@@ -1,0 +1,11 @@
+--- libtool	2009-11-09 16:41:17.000000000 -0500
++++ libtool2	2009-11-09 17:35:41.000000000 -0500
+@@ -941,7 +941,7 @@
+     }
+ 
+     if ${opt_dry_run-false}; then :; else
+-      eval "$my_cmd"
++      eval $my_cmd
+       my_status=$?
+       if test "$my_status" -eq 0; then :; else
+ 	eval "(exit $my_status); $my_fail_exp"

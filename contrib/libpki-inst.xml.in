@@ -1,0 +1,220 @@
+<project>
+    <shortName>libpki</shortName>
+    <fullName>OpenCA LibPKI v@VERSION@</fullName>
+    <version>@VERSION@</version>
+    <!-- <installerFilename>openca-base-@VERSION@-${platform_name}-${linux_distribution}-@DIST_VERSION@.${platform_exec_suffix}</installerFilename> -->
+    <installerFilename>libpki-@VERSION@-@RC@-${platform_name}-@DIST_NAME@-@DIST_VERSION@.@arch_target@.${platform_exec_suffix}</installerFilename>
+    <licenseFile>../COPYING</licenseFile>
+    <leftImage>images/openca_installer.png</leftImage>
+    <splashImage>images/openca_splash.png</splashImage>
+    <allowComponentSelection>0</allowComponentSelection>
+    <requireInstallationByRootUser>1</requireInstallationByRootUser>
+    <saveRelativePaths>1</saveRelativePaths>
+    <registerWithPackageDatabase>1</registerWithPackageDatabase>
+    <vendor>OpenCA</vendor>
+    <summary>OpenCA LibPKI</summary>
+    <release>1</release>
+    <description>Open Source PKI library</description>
+    <enableRollback>0</enableRollback>
+    <uninstallerDirectory>@DESTDIR@@prefix@/share/libpki</uninstallerDirectory>
+
+    <preInstallationActionList>
+    </preInstallationActionList>
+
+    <componentList>
+        <component>
+            <name>common</name>
+            <description>Common Components</description>
+            <canBeEdited>0</canBeEdited>
+            <selected>1</selected>
+            <show>1</show>
+            <folderList>
+                <folder>
+                    <description>Common bin</description>
+                    <destination>${installdir}</destination>
+                    <name>commonbin</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@DESTDIR@@prefix@/bin</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+
+                <folder>
+                    <description>Common Share</description>
+                    <destination>${installdir}</destination>
+                    <name>commonshare</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@DESTDIR@@prefix@/share</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Common Libs</description>
+                    <destination>${installdir}</destination>
+                    <name>commonlib</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@DESTDIR@@prefix@/lib@mybits@</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+
+                <folder>
+                    <description>Common Etc</description>
+                    <!-- <destination>${installdir}/etc</destination> -->
+                    <destination>${installdir}</destination>
+                    <name>commonetc</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@DESTDIR@@prefix@/etc</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+
+                <folder>
+                    <description>Common Include</description>
+                    <destination>${installdir}</destination>
+                    <name>commoninclude</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@DESTDIR@@prefix@/include</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+            </folderList>
+        </component>
+    </componentList>
+    <parameterList>
+        <directoryParameter>
+            <name>installdir</name>
+            <description>Installer.Parameter.installdir.description</description>
+            <explanation>Installer.Parameter.installdir.explanation</explanation>
+            <value>@prefix@</value>
+            <default>@prefix@</default>
+            <allowEmptyValue>0</allowEmptyValue>
+            <ask>no</ask>
+            <cliOptionName>prefix</cliOptionName>
+            <mustBeWritable>yes</mustBeWritable>
+            <mustExist>0</mustExist>
+            <width>30</width>
+        </directoryParameter>
+
+	<booleanParameter>
+	   <name>support</name>
+	   <ask>yes</ask>
+	   <default>1</default>
+	   <title>OpenCA Support</title>
+	   <explanation>The LibPKI Project is built around a community of many users and developers who contributed with their time, code and knowledge to the project. The LibPKI Users mailing list is the best place where to ask for help or suggestions abut your installation of LibPKI.
+
+Do you want to subscribe to the LibPKI-Users mailing list now ? 
+</explanation>
+	   <value>1</value>
+	</booleanParameter>
+
+	<stringParameter>
+		<name>email</name>
+		<default></default>
+		<value>me@mydomain.com</value>
+		<ask>1</ask>
+		<description>E-Mail Address</description>
+		<explanation>Please provide the email address you want
+to use for subscribing the LibPKI Users mailing list</explanation>
+		<ruleList>
+                        <compareValues>
+                            <logic>equals</logic>
+                            <value1>${support}</value1>
+                            <value2>1</value2>
+                        </compareValues>
+		</ruleList>
+	</stringParameter>
+
+	<labelParameter>
+	   <name>invalidemail</name>
+	   <title>Notice</title>
+	   <description>You have not provided a valid email address. If you want to really subscribe to the users Mailing List, please hit "Back" and provide a valid email.
+	   </description>
+	   <ruleEvaluationLogic>or</ruleEvaluationLogic>
+	   <ruleList>
+               <compareValues>
+                   <logic>equals</logic>
+                   <value1>${email}</value1>
+                   <value2>me@mydomain.com</value2>
+               </compareValues>
+               <compareValues>
+                   <logic>equals</logic>
+                   <value1>${email}</value1>
+                   <value2></value2>
+                </compareValues>
+	    </ruleList>
+	</labelParameter>
+    </parameterList>
+<!--
+    <postInstallationActionList>
+
+	<substitute>
+	  <files>${installdir}/etc/ocspd/ocspd.cnf</files>
+	  <substitutionList>
+	    <substitution>
+	      <pattern>@installdir@</pattern>
+	      <value>${installdir}</value>
+	    </substitution>
+          </substitutionList>
+        </substitute>
+
+    </postInstallationActionList>
+
+-->
+
+<!--
+	<httpPost>
+	    <url>http://www.openca.org/alby/subscribe</url>
+	   <filename>/var/tmp/openca-subscribe.html</filename>
+	   <queryParameterList>
+		<queryParameter name="prj" value="libpki" />
+		<queryParameter name="email" value="${email}" />
+		<queryParameter name="ver" value="@VERSION@" />
+		<queryParameter name="os" value="@DIST_NAME@" />
+		<queryParameter name="osver" value="@DIST_VER@" />
+		<queryParameter name="org" value="${organization}" />
+		<queryParameter name="act" value="OP039432012211SSPP" />
+		<queryParameter name="hostname" value="${machine_hostname}" />
+		<queryParameter name="fqdn" value="${machine_fqdn}" />
+		<queryParameter name="ipaddr" value="${machine_ipaddr}" />
+	   </queryParameterList>
+	   <ruleEvaluationLogic>and</ruleEvaluationLogic>
+	   <ruleList>
+               <compareValues>
+                   <logic>does_not_equal</logic>
+                   <value1>${email}</value1>
+                   <value2>me@email.com</value2>
+               </compareValues>
+               <compareValues>
+                   <logic>does_not_equal</logic>
+                   <value1>${email}</value1>
+                   <value2></value2>
+                </compareValues>
+	    </ruleList>
+	</httpPost>
+	-->
+
+    <finalPageActionList>
+        <launchBrowser>
+            <progressText>Open OpenCA Website</progressText>
+            <url>http://www.openca.org/alby/install2?prj=@PACKAGE@;ver=@VERSION@</url>
+        </launchBrowser>
+    </finalPageActionList>
+
+    <platformOptionsList>
+        <platformOptions>
+            <platform>linux</platform>
+        </platformOptions>
+    </platformOptionsList>
+</project>
+

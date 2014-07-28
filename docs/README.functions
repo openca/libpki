@@ -1,0 +1,12 @@
+
+PKI_REQ * PKI_REQ_gen( PKI_KEYPAIR *,  PKI_X509_PROFILE * );
+	This function generates a request
+
+PKI_X509_gen()
+	This function generates a new X509 certificate
+
+PKI_CRL_gen()
+	This function issues a new CRL
+
+
+

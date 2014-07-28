@@ -1,0 +1,11 @@
+
+#ifndef _LIBPKI_PKI_ALGORITHM_
+#define _LIBPKI_PKI_ALGORITHM_
+
+PKI_ALGORITHM * PKI_ALGORITHM_new ();
+void PKI_ALGORITHM_free ( PKI_ALGORITHM *a );
+PKI_ALGORITHM * PKI_ALGORITHM_new_type ( int type );
+PKI_ALGORITHM * PKI_ALGORITHM_new_digest ( PKI_DIGEST_ALG *alg );
+
+#endif
+

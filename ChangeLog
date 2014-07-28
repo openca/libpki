@@ -1,0 +1,515 @@
+* May 10 2014 Massimiliano Pala <madwolf@openca.org>
+- Fixed building library on AIX operating systems
+- Fixed building library on Solaris (pre open-solaris) with old pthread
+- Fixed signature generation error when setting the signing algorithm
+- Fixed issues with X509_get_parsed() function and signature algorithm retrieval
+
+* Mar 09 2014 Massimiliano Pala <madwolf@openca.org>
+- Added possibility to remove DNS URLs support (buggy in old Solaris)
+- Added checks for availability of pthreads' RWLOCK
+- Added mutex-based implementation if RWLOCK is not supported
+
+* Oct 20 2013 Massimiliano Pala <madwolf@openca.org>
+- Fixed support for GCC pragma diagnostics 'pop' to accomodate older gcc versions
+- Fixed support for 32 bits builds
+- Fixed setting the right protocol when 'pki-tool genreq' is used without a config token
+
+* Oct 19 2013 Massimiliano Pala <madwolf@openca.org>
+- Fixed options parsing for pki-tool and pki-crl command-line tools
+
+* Oct 18 2013 Massimiliano Pala <madwolf@openca.org>
+- Added PKI_HMAC_* interface to handle HMACs more easily
+
+* Oct 04 2013 Massimiliano Pala <madwolf@openca.org>
+- Added example for generating PKCS#12 files
+- Fixed generation of HTTP_MSG from POST messages with no body
+- Fixed parsing file-based (with no protocol) URIs
+- Fixed several bugs and memory leaks throughout the code base
+- Enhanced --enable-extra-checks configure option by adding -Wall
+- Fixed URL building for HTTP messages
+- Added FIPS mode set/check (requires the underlying crypto provider to support FIPS mode)
+- Added fips-mode example in the examples/ directory
+- Added README.FIPS_140-2
+
+* Aug 09 2013 Massimiliano Pala <madwolf@penca.org>
+- Fixed a memory error in PKI_DIGEST_ functions
+
+* Aug 07 2013 Massimiliano Pala <madwolf@openca.org>
+- Fixed some errors introduced by previous patches (OCSP response signing)
+
+* Aug 03 2013 Massimiliano Pala <madwolf@openca.org>
+- Fixed various memory leaks in BIO handling
+- Fixed a memory leak in signing OCSP responses
+
+* Jun 13 2013 Massimiliano Pala <madwolf@openca.org>
+- Added new errors for better logging Token issues
+
+* Sep 13 2012 Massimiliano Pala <madwolf@openca.org>
+- Fixed PKI_TOKEN error when generating new keys (SCHEME vs ALGOR_ID)
+
+* Aug 06 2012 Massimiliano Pala <madwolf@openca.org>
+- Added SOCK_DGRAM possibilities
+- Fixed OCSP interface for response building
+
+* Feb 17 2012 Massimiliano Pala <madwolf@openca.org>
+-Fixed generation of OCSP responses (uninitialized field was causing OCSP responses to be invalid
+-Added support for DNS queries via the URL interface (dns://<domain>?<record_type>
+-Added initial support for sperimental Lightweight Internet Revokation Tokens (LIRTs)
+
+* Jul 21 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed library versioning system
+-Updated libtool and aclocal scripts to the latest available version
+
+* Mar 27 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed a key-encoding error in OpenSSL (version "0" vs version "1" bug)
+
+* Mar 22 2011 Massimiliano Pala <madwolf@openca.org>
+-Added new pki-siginfo tool to ease signature info gathering for X509 objs
+-Added PKI_X509_KEYPAIR_get_curve() to get curve related to an EC key
+-Added possibility to load any type of X509 objects by using PKI_X509_get()
+with PKI_DATATYPE_ANY as a type
+
+* Mar 21 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed an error when setting the signature algorithm in PKI_X509_CERT_new()
+
+* Feb 22 2011 Massimiliano Pala <madwolf@openca.org>
+-Added identifier for IPv6 subjectAltName addresses
+-Added pki-derenc to the pki-tool (txt to der encoder)
+
+* Feb 21 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed debug information in PKI_MSG_REQ generation
+-Added the possibility to specify sign digest algor in
+PKI_X509_SCEP_MSG_new_certreq() function
+
+* Feb 15 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed ASN1 encoding refresh when PKI_X509 data structures are modified
+-Added PKI_X509_set_modified() function to force data encoding when storing PKI_X509 objects
+-Enhanced the pki-cert tool by adding a -verfiy (signature) option
+
+* Feb 14 2011 Massimilinao Pala <madwolf@openca.org>
+-Fixed memory allocation error for PKI_HTTP_get_message()
+-Fixed param parsing error for pki-crl tool
+-Fixed CRL reason code
+
+* Feb  9 2011 Massimiliano Pala <madwolf@openca.org>
+-Added pki-cert tool to view/manipulate certificates
+-Added pki-crl tool to view/generate CRLs
+-Added PKI_ALGORITHM data structures for initializing X509 algorithm identifiers
+
+* Feb  3 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed name comparison for certificate profile loading
+
+* Feb  2 2011 Massimiliano Pala <madwolf@openca.org>
+-Fixed URL input management for stdin, stdout, stderr file stream
+-Added pki-cert tool to manage certificate format conversion (pem,der,txt,xml)
+-Fixed rpath config on Solaris/OpenSolaris
+
+* Jan 17 2011 Massimiliano Pala <madwolf@openca.org>
+-Added PKI_KEYPARAMS structure to pass key generation parameters to HSMs
+-Added compressed/uncompressed encoding options for EC keys
+-Fixed default validity in pki-tool
+
+* Jan 16 2011 Massimiliano Pala <madwolf@openca.org>
+-Added profile/keyParams section parsing in profiles configuration files (PKI_TOKEN)
+-Updated default key min/suggested sizes
+-Improved pki-tool command line tool (added params for EC key generation, better -batch handling)
+
+* Jan 14 2011 Massimiliano Pala <madwolf@openca.org>
+-Extended no-case keyUsage and extendedKeyUsage extension parsing in profiles
+-Fixed return code in PKI_NET_Listen(). Now it returns PKI_ERR in case of errors or the socket number (e.g., int > 2 ).
+
+* Jan 13 2011 Massimiliano Pala <madwolf@openca.org>
+-Fix in PKI_X509_OCSP_RESP_STATUS definition
+-Fix in token.c (load config)
+
+* Dec  8 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed linker script error (-rpath issue)
+-Fixed ECDSA configuration option
+-Fixed ECDSA get Algorithm by Name (now working with ECDSA-SHA1,
+ECDSA-SHA256,...)
+-Fixed library versioning
+
+* Nov 19 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed incompatibility with Firefox OCSP stack
+
+* Nov 17 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed SSL verify routine (allowing for PKI_SSL_VERIFY_NONE)
+-Fixed IPv6 Hex addresses (eg., [2001::b]) parsing
+
+* Nov 16 2010 Massimiliano Pala <madwolf@openca.org>
+-Added support for IPv6 to PKI_NET_* functions
+
+* Nov  8 2010 Massimiliano Pala <madwolf@openca.org>
+-Updated error messages and error handling (addedd PKI_ERROR())
+
+* Nov  6 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed extension management
+-Enhanced pki-tool support for non-token PKI operations
+-Fixed OID file management
+
+* Sep  7 2010 Massimiliano Pala <madwolf@openca.org>
+-Added support for URL retrieval from connected PKI_SOCKETs
+
+* Sep  2 2010 Massimiliano Pala <madwolf@openca.org>
+-Added support for cross platform thread creation (PKI_THREAD)
+-Added support for cross platform mutexes (PKI_MUTEX)
+-Added support for cross platform locks (PKI_RWLOCK)
+-Added support for cross platform condition variables (PKI_COND)
+-Added timeout support to LDAP connections
+
+* Aug 30 2010 Massimiliano Pala <madwolf@openca.org>
+-Added PKI_TOKEN_login() function
+-Added PKI_TOKEN_check() to retrieve the status of a loaded token
+-Fixed error in parsing algorithm name for key and token generation
+
+* Aug 24 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed support for library versioning
+
+* Aug 22 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed -rpath issue for custom OpenSSL installation (when using non-standard openssl installation path - e.g., for EC/ECDSA support)
+-Added support for cross-platform threads management (src/pki_threads.c)
+
+* Aug 21 2010 Massimiliano Pala <madwolf@openca.org>
+-Improved OS detection and defines
+-Added specific support for 64 bits architectures
+-Added support for non deprecated functions in LDAP (OPENLDAP)
+-Added support for Windows LDAP API
+
+* Jun 29 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed a bug in the PKCS#11 object delete
+-Fixed a bug in the PKCS#11 attribute retrieval
+-Added possibility to import a keypair in PKCS#11 (RSA)
+
+* Jun 27 2010 Massimiliano Pala <madwolf@openca.org>
+-Added support for OS details within pki.h (LIBPKI_OS_DETAILS)
+-Added support for endianness recognition
+
+* Jun 25 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed warnings with -Wall -Werrors
+-Fixed 64bit problem (int vs size_t)
+
+* Jun 22 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed correct usage of username and password in HTTP user authentication
+-Fixed debugging information for PKI_SSL connections
+-Fixed usage of PKI_SSL in PKI_X509_get(), and PKI_X509_put()
+-Updated url-tool to support trust settings for SSL-enabled connections
+
+* Jun 15 2010 Massimiliano Pala <madwolf@openca.org>
+-Fixed PKI_SSL trust settings
+-Fixed redirection support for HTTP/HTTPs code
+
+* May 25 2010 Massimiliano Pala <madwolf@openca.org>
+-Added PKI_SSL to the URL interface
+-Simplified HTTP/HTTPS code
+
+* May 23 2010 Massimiliano Pala <madwolf@openca.org>
+-Added support for PKI_SSL to manage SSL/TLS connections
+
+* May 19 2010 Massimiliano Pala <madwolf@openca.org>
+- Added safe URL deconding/encoding of PKI_MEM data
+- Enhanced HTTP support via the new PKI_HTTP data structure and help
+functions
+
+* Mar 25 2010 Massimiliano Pala <madwolf@openca.org>
+- Fixed RPM generation on Ubuntu
+- Added HSM_get_errno() and HSM_get_errdesc() functions to manage error
+messages from the crypto layer
+
+* Mar 22 2010 Massimiliano Pala <madwolf@openca.org>
+- Fixed PRQP Request/Responses signatures (via the general PKI_X509 cbs)
+- Added easy functions for adding services to PRQP_RESP objects
+- Fixed usage of PKI_STRING_OCTET instead of PKI_STRING_BIT in CERT_IDENTIFIER
+
+* Jan 18 2010 Massimiliano Pala <madwolf@openca.org>
+- Fixed RPM building script
+
+* Nov 14 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed Signature verification for OCSP and PRQP messages
+- Fixed parsing OCSP responses (on load)
+- Added simple OCSP REQ single request handling functions
+- Fixed build system for all platforms and libtool 2.2.6+
+
+* Nov 02 2009 Massimiliano Pala <madwolf@openca.org>
+- Simplified configure.in script
+- Fixed some libtool problems
+
+* Oct 31 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed algorithm setting in PKI_sign()
+- Fixed debugging messages for PKI_X509_PROFILE and PKI_CONFIG
+
+* Oct 27 2009 Massimiliano Pala <madwolf@openca.org>
+- Added the possibility to specify Certificate Template and Level of Assurance
+in PKI_MSG_REQ interface (working with SCEP messages (tested with OpenCA))
+- Fixed PKI_X509_PROFILE and PKI_CONFIG parsing functions (update is now
+working correctly
+- Finished PKI_X509 object container for all the principal objects (REQ, CRL,
+CERT, SCEP_MSG, PKCS#7, PKCS#12)
+
+* Oct  9 2009 Massimilaino Pala <madwolf@openca.org>
+- Added the new PKI_X509 object container to simplify PKI_X509_XXX management
+
+* Sep 30 2009 Massimiliano Pala <madwolf@openca.org>
+- Added the possibility to get a PKI_PKCS12 from a PKI_TOKEN
+- Added public PKI_NET_* functions for managing network connections both for client and server applications
+
+* Sep 28 2009 Massimiliano Pala <madwolf@openca.org>
+- Added support for RDN (retrieving a list of RDN from a PKI_X509_NAME)
+
+* Sep  7 2009 Massimiliano Pala <madwolf@openca.org>
+- Added support for OCSP request and response easy generation
+
+* Jun 26 2009 Massimiliano Pala <madwolf@openca.org>
+- Passed compilation with -Wall -Wextra in GCC
+
+* Jun 23 2009 Massimiliano Pala <madwolf@openca.org>
+- Finished PKCS#12 full support for PKI_TOKEN import/export functions
+- Fixed a bug in PKI_NAME_get_parsed() function (Memory)
+- Added support for creating in-memory PKI_X509_PROFILE configs
+- Added support for Proxy Certificates (RFC 3820) issuing via PKI_TOKEN
+
+* Jun  7 2009 Massimiliano Pala <madwolf@openca.org>
+- Added PKCS#12 get support (from a URL)
+- Added creation of a new PKI_TOKEN from a PKCS#12 object
+
+* May 14 2009 Massimiliano Pala <madwolf@openca.org>
+- Updated PRQP support to draft-ietf-pkix-prqp-03.txt (referrals support)
+- Fixed initialization error when setting the default password CB
+
+* May  4 2009 Massimiliano Pala <madwolf@openca.org>
+- Added PKI_MSG_RESP type of messages
+- Fixed sending PKI_MSG_REQ (SCEP) type of messages over HTTP
+
+* May  2 2009 Massimiliano Pala <madwolf@openca.org>
+- Started simplifying the SCEP interface
+- Integrating SCEP message support in PKI_MSG system
+- Fixed PKI_X509_ATTRIBUTE management for PKCS#7
+
+* Apr 27 2009 Massimiliano Pala <madwolf@openca.org>
+- Started the PKI_MSG_* subsystem to handle communication between a client/CA
+- Added support for PKCS#7 handling
+
+* Apr 24 2009 Massimiliano Pala <madwolf@openca.org>
+- Added support for OID optional field in PRQP requests/responses
+- Fixed a mispelled OID (htmlRequest)
+
+* Apr 23 2009 Massimiliano Pala <madwolf@openca.org>
+- Added pki-query tool (PRQP client)
+- Added color to pki-query output
+- Fixed a URL parsing error (URI_PROTO_SOCK was not selected in socket:// URI)
+
+* Apr 22 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed a bug in releasing xml resources after parsing a config file
+
+* Apr 20 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed an error in PRQP OID initialization
+- Changed PRQP_REQ and PRQP_RESP to PKI_PRQP_REQ and PKI_PRQP_RESP
+- Aligned URL interface for PRQP to the rest of the library URL system
+
+* Apr  7 2009 Massimiliano Pala <madwolf@openca.org>
+- Added full support for crossCertificatePair (PKI_X509_XPAIR)
+
+* Apr  1 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed conflict in header files (PKCS11) for C++ reserved `template' word
+
+* Mar 29 2009 Massimiliano Pala <madwolf@openca.org>
+- Added `https' to the list of valid URI types for the URL interface
+- Fixed some bugs in the http URI handling
+- Added support for HTTP redirect for both `http' and `https' URIs
+
+* Feb 25 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed concurrent threads accessing non-atomic operation on PKCS#11 HSMs
+- NOTE: Never initialize a PKCS#11 token before a fork() - it won't work!
+
+* Feb 14 2009 Massimiliano Pala <madwolf@openca.org>
+- Added import of certificates in PKCS#11 devices
+
+* Feb 12 2009 Massimiliano Pala <madwolf@openca.org>
+- Added Callbacks for TOKEN credential
+
+* Feb 11 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed certificate issuing via TOKEN interface
+- Added validity period (secs) to the TOKEN certificate issuing interface
+- Added certificate issuing (self-sing and normal) to pki-tool command
+
+* Feb  9 2009 Massimiliano Pala <madwolf@openca.org>
+- Completed refactoring of the HSM interface for better extensibility and code
+readability
+
+* Feb  4 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed export/load keys password protected (software/PEM).
+
+* Feb  3 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed portability problems on Solaris 11
+- Fixed small memory leaks
+
+* Feb  2 2009 Massimiliano Pala <madwolf@openca.org>
+- Completely rewritten the KEYPAIR/CERT/REQ/CRL get/import/export functions to better match the hardware devices management.
+
+* Jan 29 2009 Massimiliano Pala <madwolf@openca.org>
+- Added key loading from PKCS#11 device via id:// url
+- Added generation of PKCS#11 request in pki-tool (both with keygen or without)
+
+* Jan 29 2009 Massimiliano Pala <madwolf@openca.org>
+- Fixed key generation code for PKCS#11 devices
+- Added pki-tool command line util as part of standard distro of libpki
+- Fixed key ID and label setting on PKCS#11 devices
+
+* Jan 26 2009 Massimiliano Pala <madwolf@openca.org>
+- Added PKCS11 Object and PKCS11 Object Attributes (Templates) management functions
+
+* Jan 21 2009 Massimiliano Pala <madwolf@openca.org>
+- Added KEYPAIR generation for PKCS#11 driver
+
+* Jan 20 2009 Massimiliano Pala <madwolf@openca.org>
+- Added management for selecting slot on PKCS11 devices via the
+PKI_TOKEN_use_slot() function (<pki:slot /> in the config file).
+
+* Jan 13 2009 Massimiliano Pala <madwolf@openca.org>
+- Added graphical installer for different distributions (Linux/Fedora,
+Linux/Ubuntu, MacOS X/Darwin, etc.)
+- Updated the PRQP module to the last specs from IETF
+(draft-ietf-pkix-prqp-02.txt)
+- Fixed support for multi threaded applications (dynamic and static threads
+initialization for OpenSSL/ENGINE)
+- Fixed support for nChipher devices
+- Updated PKCS11 driver (added Slot Interface and Slot info retrieval
+functionalities)
+
+* Nov 8  2008 Massimiliano Pala <madwolf@openca.org>
+- Fixed PRQP ASN.1 of CERT_IDENTIFIER
+
+* Oct 31 2008 Massimiliano Pala <madwolf@openca.org>
+- Fixed PRQP response generation and CERT_IDENTIFIER_dup function
+
+* Oct 21 2008 Massimiliano Pala <madwolf@openca.org>
+- Updated PRQP module with OIDs from IETF PRQP PKIX draft
+
+* Oct 15 2008 Massimiliano Pala <madwolf@openca.org>
+- Fixed MySQL and PG QUERY building functions (stack checking now
+works properly)
+
+* Sep  9 2008 Massimiliano Pala <madwolf@openca.org>
+- Fixes a PKCS11_Malloc() wrong reference in PKCS11 pkey code
+
+* Jul 17 2008 Massimiliano Pala <madwolf@openca.org>
+- Added revocation code management for each entry in CRLs
+
+* Jul 10 2008 Massimiliano Pala <madwolf@openca.org>
+- Finished CRL generation code
+
+* Jul 02 2008 Massimiliano Pala <madwolf@openca.org>
+- Fixed autoconf replacement malloc with rpl_malloc because it won't
+work when cross compiling
+- Fixed PRQP definitions to match the current I-D from IETF
+(draft-ietf-pkix-prqp-00.txt)
+- First successful build of a LibPKI application on iPhone
+
+* Jun 29 2008 Massimiliano Pala <madwolf@openca.org>
+- Fixed PKCS#11 headers, now using updated pkcs11t.h from RSA
+
+* Jun 20 2008 Massimiliano Pala <madwolf@openca.org>
+- Fixed PKCS#7 Bug (Memory)
+- Added first support for PKCS#11 devices
+
+* Mar 20 2008 Massimiliano Pala <madwolf@openca.org>
+-Added support for DSA-224 and DSA-256 algorithms
+-Added support for ECDSA with SHA2 suite (ECDSA-SHA224, ECDSA-SHA256,
+ECDSA-SHA384, ECDSA-SHA512)
+-Fixed EC key generation (selected curves only by using bit sizes). Named
+curves for 256, 384 and 512 bit sizes are aligned with NIST specs
+
+* Mar 18 2008 Massimiliano Pala <madwolf@openca.org>
+-Added support for OpenSSL 0.9.9 version
+-Fixed support for static library linking (linux)
+
+* Mar  4 2008 Massimiliano Pala <madwolf@openca.org>
+-Added better support for PKI_ALGOR and PKI_DIGEST_ALG managing
+-Initial support for PKCS#7 object management
+
+* Feb  6 2008 Massimiliano Pala <madwolf@openca.org>
+-Fixed a memory bug in URL_new()
+-Added functions to easily calculate hash() values
+
+* Dec  2 2007 Massimiliano Pala <madwolf@openca.org>
+-Fixed a small error in OID definition list
+
+* Oct 15 2007 Massimiliano Pala <madwolf@openca.org>
+-Fixed signature problem for PRQP request/responses
+-Fixed PRQP ASN1 encoding/decoding error
+
+* Sep 30 2007 Massimiliano Pala <madwolf@openca.org>
+-Finished PKI_log subsystem API - PKI_log_init(), PKI_log(), PKI_log_end() and PKI_log_debug() provide the logging system interface. The signature capabilities are still to be implemented.
+
+* Sep 29 2007 Massimiliano Pala <madwolf@openca.org>
+-Added the PKI_LOG subsystem. Currently supported logging devices are SYSLOG, stderr, or a general file. Plans to support XML file as well.
+-Added support for $HOME/.libpki/ configuration directory (if NULL config_dir is passed when initializing the PKI_TOKEN structure with PKI_TOKEN_init())
+
+* Sep 18 2007 Massimiliano Pala <madwolf@openca.org>
+-Updated PRQP ASN1 to the new specifications of the new I-D (still to be published on IETF)
+
+* Sep 16 2007 Massimiliano Pala <madwolf@openca.org>
+-Fixed problems in BIO macros for reading/writing PRQP messages (due to differences between openssl v0.9.7 and v0.9.8+)
+
+* Sep 15 2007 Massimiliano Pala <madwolf@openca.org>
+-Integrated new version of PRQP that is aligned with I-D <draft-pala-prqp-00.txt> available from IETF
+
+* Sep 14 2007 Massimiliano Pala <madwolf@openca.org>
+-Added support for OpenSSL ENGINE usage. Currently tested with Alladine eToken, libp11 and openssl-libp11 engine.
+
+* Aug 29 2007 Massimiliano Pala <madwolf@openca.org>
+-Added first support for PKCS11 URL retrieval (pkcs11://), parameters parsing and other datatype retrieving (key/data) are still missing
+
+* Aug 22 2007 Massimiliano Pala <madwolf@openca.org>
+-Fixed a memory leakage
+-Fixed configure script for selectively disable support for optional libs (mysql, postgresql)
+-First support for PostgreSQL URL retrieval (pg://)
+
+* Aug 21 2007 Massimiliano Pala <madwolf@openca.org>
+-Added MySQL support for URL retrieval (needs mysql.h include file)
+
+* Aug 19 2007 Massimiliano Pala <madwolf@openca.org>
+-Fixed support for LDAP URL retrieval
+-Fixed compile-time warnings on Solaris (cc)
+
+* Aug  8 2007 Massimiliano Pala <madwolf@openca.org>
+-Added support for SCEP messages to the library (directly integrated from OpenCA tools), it requires additional code cleanup
+-Initial CMS support added. Much work is needed to support all ASN.1 data structures and message generation tools
+
+* Jul 27 2007 Massimiliano Pala <madwolf@openca.org>, Scott Rea <scott@cs.dartmouth.edu>
+-The Pittsburgh Hack, save the token in a PKCS12 bag and use an attribute to store where (if any) the HSM config file is (maybe use the PKCS12_add_CSPName_asc() from OpenSSL src/crypto/pkcs12/p12_attr.c. Use another attribute if that one is used for other purposes.
+
+* Jul 10 2007 Massimiliano Pala <madwolf@openca.org>
+-Finished restructuring the library to use KMF only for token operations. Now OpenSSL is required also when libkmf is present on the system
+
+* May 18 2007 Massimiliano Pala <madwolf@openca.org>
+-Finished support for extensions management into libpki by using ceritficate profiles and oid configuration file (xml based)
+-Addedd support for certificate, request and certificate chain writing through PKI_TOKEN interface (currently only file:// protocol is supported)
+
+* May 14 2007 Massimiliano Pala <madwolf@openca.org>
+-Added support for config file (definition of ObjectIdentifiers)
+
+* May  8 2007 Massimiliano Pala <madwolf@openca.org>
+-Initial support for PKI_PROFILE xml parsing
+
+* Apr  7 2007 Massimiliano Pala <madwolf@openca.org>
+-Added new/get functions to the PKI_TOKEN interface
+-Fixed documentation for the PKI_TOKEN
+-Added support for different signature schemes (RSA/DSA/ECDSA
+withRC2/RC5/SHA1)
+
+* Apr  6 2007 Massimiliano Pala <madwolf@openca.org>
+-Added PKI_CRED_new() and PKI_CRED_free() functions
+-Fixed linking problems on Solaris 9- (static openssl)
+-Changed the PKI_TOKEN_add* function to PKI_TOKEN_set*
+
+* Apr  2 2007 Massimiliano Pala <madwolf@openca.org>
+-Enhanced documentation creation (doxygen)
+
+* Mar 22 2007 Massimiliano Pala <madwolf@openca.org>
+-Addedd inital support for Sun's KMF library (OpenSolaris only)
+-Fixed errors in key generation
+-Updated HTTP code (we now rely on libxml2 nanoHttp implementation
+
+* Jan 10 2007 Massimiliano Pala <madwolf@openca.org>
+-Fixed LDAP differences with OpenLDAP and Sun's LDAP LD options
+

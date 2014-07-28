@@ -1,0 +1,38 @@
+# Installation details for Solaris/OpenSolaris installation
+
+1. Install sun studio 11+ (http://www.sun.com/download/ )
+
+2. Set the PATH variable correctly, e.g. include into your .bashrc:
+
+	PATH=<studio-path>/SUNWspro/bin:$PATH
+	export PATH
+
+   or for csh, tcsh:
+
+	setenv PATH <studio-path>/SUNWspro/bin:$PATH
+
+3. On Solaris 9 you should download latest version of OpenSSL (0.9.8+) and
+   install it. We suggest you to install the package with the following
+   option
+
+	./config --prefix=/usr/sfw
+
+This should help you with the pre-requisites on Solaris platforms (tested
+on SunOS-5.9, SunOS-5.10 and SunOS-5.11).
+
+Please if you have additional info to improve compatibility, let us know by
+sending an e-mail to:
+
+	project.manager@openca.org
+
+or subscribe to the devel mailing list, more info on:
+
+	http://www.openca.org/projects/libpki
+
+Now have fun, and code your favourite PKI applications!!!!
+
+---
+Sincerely,
+
+   Massimiliano Pala <project.manager@openca.org>
+

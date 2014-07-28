@@ -1,0 +1,108 @@
+
+PKI_CRYPTO_TOKEN
+	Cryptographic structure for HSM accelerators
+
+PKI_KEYPAIR
+	Cryptographic structure for Public and Private Key storage
+
+PKI_PKCS7
+	PKCS7 formatted Token
+
+PKI_PKCS12
+	PKCS12 formatted Token
+
+PKI_X509
+	Cryptographic structure for X509 certificate storage
+
+PKI_X509_PROFILE
+	Cryptographic structure for X509 certificate profile storage
+
+PKI_CRL
+	Cryptographic structure for CRL storage
+
+AIO_FILE
+	Structure to read/write object(s) from/to (abstraction layer
+	for I/O operations)
+
+
+For all these data structure each CRYPTO_PACKAGE should provide
+functionalities for:
+- Init/Allocation (_new());
+- Finalize/Free (_free());
+- Load from AIO_FILE (_new_aio());
+- Write to AIO_FILE (_write_aio());
+
+
+Init/Allocation (_new()):
+  PKI_CRYPTO_TOKEN_new();
+  PKI_KEYPAIR_new();
+  PKI_PKCS7_new();
+  PKI_PKCS12_new();
+  PKI_X509_new();
+  PKI_X509_PROFILE_new();
+  PKI_CRL_new();
+  AIO_FILE_new();
+
+This function allocates memory and initialize the internal structures.
+On success it returns a pointer to the new data, otherwise it returns
+NULL (0).
+
+Finalize/Free(_free()):
+  PKI_CRYPTO_TOKEN_free ( PKI_CRYPTO_TOKEN * );
+  PKI_KEYPAIR_free ( PKI_P_KEY * );
+  PKI_PKCS7_free ( PKI_PKCS7 * );
+  PKI_PKCS12_free ( PKI_PKCS12 * );
+  PKI_X509_free ( PKI_X509 * );
+  PKI_X509_PROFILE_free ( PKI_X509_PROFILE * );
+  PKI_CRL_free ( PKI_CRL * );
+  AIO_FILE_free ( AIO_FILE * );
+
+This function frees all the used memory in the passed structure. Check
+about NULL pointers should be implemented in the CRIPTO_PACKAGE provided
+functions. It returns 1 on success or 0 on error.
+
+Open/Load (_new_aio()):
+  PKI_CRYPTO_TOKEN_new_aio( AIO_FILE *, int format );
+  PKI_KEYPAIR_new_aio( AIO_FILE *, int format );
+  PKI_PKCS7_new_aio( AIO_FILE *, int format );
+  PKI_PKCS12_new_aio( AIO_FILE *, int format );
+  PKI_X509_new_aio( AIO_FILE *, int format );
+  PKI_X509_PROFILE_new_aio( AIO_FILE *, int format );
+  PKI_CRL_new_aio( AIO_FILE *, int format );
+  AIO_FILE_new_aio( AIO_FILE *, int format );
+
+This function loads the data structure from a provided AIO_FILE pointer.
+On success it returns a pointer to the new data, otherwise it returns
+NULL (0).
+The format argument specifies the format the data is memorized into
+the AIO_FILE, values are in pki/formats.h include file.
+
+
+Write (_write()):
+  PKI_CRYPTO_TOKEN_write_aio( AIO_FILE *, PKI_CRYPTO_TOKEN *, int mode, int format);
+  PKI_KEYPAIR_write_aio( AIO_FILE *, PKI_P_KEY *, int mode, int format);
+  PKI_PKCS7_write_aio( AIO_FILE *, PKI_PKCS7 *, int mode, int format);
+  PKI_PKCS12_write_aio( AIO_FILE *, PKI_PKCS12 *, int mode, int format);
+  PKI_X509_write_aio( AIO_FILE *, PKI_X509 *, int mode, int format);
+  PKI_X509_PROFILE_write_aio( AIO_FILE *, PKI_X509_PROFILE *, int mode, int format);
+  PKI_CRL_write_aio( AIO_FILE *, PKI_X509_PROFILE *, int mode, int format);
+  AIO_FILE_write_aio( AIO_FILE *, PKI_X509_PROFILE *, int mode, int format);
+
+This function writes the data structure to the provided AIO_FILE. The mode
+argument is one of AIO_WRITE, AIO_APPEND defined in pki/aio.h include file.
+The format argument specifies the format the data will be written into
+the AIO_FILE, value is one from PKI_FORMAT_PEM, PKI_FORMAT_DER, PKI_FORMAT_B64
+defined in pki/formats.h include file.
+
+/*
+():
+  PKI_CRYPTO_TOKEN
+  PKI_P_KEY
+  PKI_S_KEY
+  PKI_PKCS7
+  PKI_PKCS12
+  PKI_X509
+  PKI_X509_PROFILE
+  PKI_CRL
+  AIO_FILE
+*/

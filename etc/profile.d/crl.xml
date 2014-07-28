@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<!-- PKI X509 PROFILE for Sample CRL -->
+<pki:profile xmlns:pki="http://www.openca.org/openca/pki/1/0/0">
+   <!-- Name of the Service -->
+   <pki:name>crl</pki:name>
+   <pki:validity years="1" days="1" hours="0" minutes="0" />
+   <pki:extensions>
+      <pki:extension name="OpenCA" critical="yes">
+         <pki:value type="DER">0F:03:22:22:11:00:66</pki:value>
+      </pki:extension>
+      <pki:extension name="crlDistributionPoints" critical="no">
+         <pki:value type="URI">http://www.somewhere.com/my.crl</pki:value>
+         <pki:value type="IP">10.5.122.233</pki:value>
+      </pki:extension>
+      <pki:extension name="authorityInfoAccess" critical="no">
+         <pki:value type="URI" tag="OCSP">http://www.somewhere.com/ocsp</pki:value>
+	 <pki:value type="URI" tag="caIssuers">1.3.6.1.5.5.7.48.1</pki:value>
+      </pki:extension>
+      <pki:extension name="nameConstraints" critical="no">
+         <pki:value tag="permitted" type="IP">192.168.0.0/255.255.0.0</pki:value>
+         <pki:value tag="excluded" type="email">.hackmasters.net</pki:value>
+      </pki:extension>
+   </pki:extensions>
+</pki:profile>

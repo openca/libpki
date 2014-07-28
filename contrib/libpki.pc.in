@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@prefix@/lib
+includedir=@prefix@/include
+mandir=@prefix@/share/man
+sharedir=@prefix@/share/libpki
+modules=1
+
+Name: libpki
+Version: @VERSION@
+Description: libpki library.
+Requires: libxml-2.0 openssl-0.9.8
+Libs: @libpki_libs@ -lpki
+Cflags: @libpki_cflags@

@@ -1,0 +1,25 @@
+# Installation details for Solaris 9
+
+On Solaris 9 an old version of libxml2 is installed. In order to be able
+to compile libpki you need to update the library. We were not able to find
+an updated package from Sun directly. There are two options:
+
+  1. Download the source code, compile it and install it (source code
+     can be found at http://xmlsoft.org)
+
+  2. Download the binary package by using the pkg-get tool (more info
+     can be found at http://www.blastwave.org/packages.php/libxml2 )
+     In order to install libxml2, you'll probably have to upgrade the
+     system, to do so, you'll need to run `pkg-get -u` to install new
+     packages. This will also provide a new version of OpenSSL package
+     (all packages installed by using pkg-get will be installed under
+     /opt/csw directory). After the upgrade, you should be able to
+     install the new xml2 lib by using the command `pkg-get -u libxml2`.
+
+
+
+---
+Sincerely,
+
+   Massimiliano Pala <project.manager@openca.org>
+

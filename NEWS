@@ -1,0 +1,8 @@
+LibPKI News:
+============
+
+* Aug 22, 2010 Massimiliano Pala <madwolf@openca.org>
+  The LibPKI package is currently used as the cryptographic layer for the PRQP
+  and the OCSP responders
+
+

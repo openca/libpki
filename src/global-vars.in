@@ -1,0 +1,142 @@
+# src/global-vars.in
+
+VERSION			= @PACKAGE_VERSION@
+PACKAGE_VERSION	= @PACKAGE_VERSION@
+TODAY			= @TODAY@
+
+INTERFACE_CURRENT	= @iface_current@
+INTERFACE_REVISION	= @iface_revision@
+INTERFACE_AGE		= @iface_age@
+
+#-------- installation paths: --------
+
+# prefix		= $(DESTDIR)@prefix@
+# exec_prefix		= @exec_prefix@
+
+etc_prefix		= $(DESTDIR)${prefix}/etc
+lib_prefix		= $(DESTDIR)@libdir@
+var_prefix		= $(DESTDIR)${prefix}/var
+doc_prefix		= $(DESTDIR)$datadir/libpki
+
+DEST_SBINDIR	= $(DESTDIR)@sbindir@
+DEST_BINDIR		= $(DESTDIR)@bindir@
+DEST_LIBDIR		= $(DESTDIR)@libdir@
+DEST_DATADIR		= @datadir@
+DEST_INFODIR		= @infodir@
+DEST_MANDIR		= @mandir@
+
+#-------- for distribution building: --------
+
+dist_user		= @dist_user@
+dist_group		= @dist_group@
+package_build		= @package_build@
+includedir		= @prefix@/include
+
+#-------- build and utility programs: --------
+
+@SET_MAKE@
+SHEXT			= @shext@
+SHEXT2			= @shext2@
+SHELL			= @SHELL@
+GZIP			= @GZIP@
+TAR			= @TAR@
+PWD			= @PWD@
+## sometimes "-D -c" must be added here
+INSTALL                 = ${install_sh_PROGRAM}
+MKDIR			= @MKDIR@
+CHMOD			= @CHMOD@
+CHOWN			= @CHOWN@
+ECHO			= @ECHO@
+SED			= @SED@
+CAT			= @CAT@
+MV			= @MV@
+CP			= @CP@
+LN_S			= @LN_S@
+AWK			= @AWK@
+CC			= @CC@
+RM			= rm
+
+PERL			= @PERL@
+OPENSSL			= ${OPENSSL_CMD}
+OPENSSL_PREFIX		= ${openssl_prefix}
+OPENSSL_CFLAGS		= ${openssl_cflags}
+OPENSSL_LDFLAGS		= ${openssl_ldflags}
+OPENSSL_LDADD		= ${openssl_ldadd}
+OPENSSL_STATIC_LIBS	= ${openssl_static_libs}
+
+LDAP_PREFIX		= ${ldap_prefix}
+LDAP_CFLAGS		= ${ldap_cflags}
+LDAP_LIBS		= ${ldap_libs}
+LDAP_LDFLAGS		= ${ldap_ldflags}
+LDAP_LDADD		= ${ldap_ldadd}
+LDAP_VENDOR		= ${ldap_vendor}
+
+XML2_CONFIG		= ${xml2_config}
+XML2_PREFIX		= ${xml2_prefix}
+XML2_CFLAGS		= ${xml2_cflags}
+XML2_LDFLAGS		= ${xml2_ldflags}
+XML2_LDADD		= ${xml2_ldadd}
+
+MYSQL_CONFIG		= ${mysql_config}
+MYSQL_PREFIX		= ${mysql_prefix}
+MYSQL_CFLAGS		= ${mysql_cflags}
+MYSQL_LDFLAGS		= ${mysql_ldflags}
+MYSQL_LDADD		= ${mysql_ldadd}
+
+PG_CONFIG		= ${pg_config}
+PG_PREFIX		= ${pg_prefix}
+PG_CFLAGS		= ${pg_cflags}
+PG_LDFLAGS		= ${pg_ldflags}
+PG_LDADD		= ${pg_ldadd}
+
+PTHREAD_MYDEFS		= @PTHREAD_MYDEFS@
+
+# =================================================
+
+SYSTEM_CFLAGS		= @sys_cflags@
+# SYSTEM_LDFLAGS		= @sys_ldflags@
+SYSTEM_LDADD		= @sys_ldadd@
+
+# =================================================
+
+BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ $(PTHREAD_MYDEFS) @my_cflags@ @sys_cflags@
+BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
+BUILD_LIBPKI_LDADD	= @my_ldadd@
+TEST_LIBS		= @test_libs@
+
+LIBPKI_CFLAGS		= @libpki_cflags@
+LIBPKI_LDFLAGS		= @libpki_ldflags@ @rpath@
+LIBPKI_LIBADD		= @libpki_ldadd@
+
+RPATH = @rpath@
+
+# ================================================
+
+POD2MAN			= @POD2MAN@
+
+## this is an implementation of GNU's "install -D"
+__install_dir::
+	@if test -z "$(DIR)"; then $(MAKE) default; \
+	else \
+	    if test ! -d $(DIR); then \
+		$(MAKE) __install_dir DIR=`dirname $(DIR)`; \
+		if test -n "$(MODE)"; then \
+			set -x; \
+			$(INSTALL) -d -o $(USER) -g $(GROUP) -m $(MODE) $(DIR); \
+		else \
+			set -x; \
+			$(INSTALL) -d -o $(USER) -g $(GROUP) $(DIR); \
+		fi; \
+	    fi; \
+	fi;
+
+## this is an implementation of relative linking
+## it is required to support symlink during installs
+## with DEST_DIR in use (package builds)
+__install_ln_s::
+	if test -z "$(TARGET)"; then $(MAKE) default; \
+	else \
+	    $(TOP)/relative_ln_s.sh $(TARGET) $(LINK); \
+	    chown -h $(USER):$(GROUP) $(LINK); \
+	fi;
+

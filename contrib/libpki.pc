@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/usr/lib
+includedir=/usr/include
+mandir=/usr/share/man
+sharedir=/usr/share/libpki
+modules=1
+
+Name: libpki
+Version: 0.8.6
+Description: libpki library.
+Requires: libxml-2.0 openssl-0.9.8
+Libs: @libpki_libs@ -lpki
+Cflags: -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/libxml2 -DMACOS

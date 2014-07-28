@@ -1,0 +1,48 @@
+# Installation details for Solaris/OpenSolaris installation
+
+1. Install pkg-net (http:// )
+2. Use apt-get to install gcc and devel tools
+
+If you want to use GCC tools, do the (optional) 3-5 steps:
+
+  3. Add /opt/csw/bin and /usr/ccs/bin
+  4. Add /opt/csw/gcc<x>/bin dir to your path
+  5. Check for make/gmake path (eventually make a symlink to gmake)
+
+6. If you installed openssl by using pkg-get, use the --with-openssl-prefix
+   option when configuring the package:
+
+	$ ./configure --with-openssl-prefix=/opt/csw
+
+This should help you with the pre-requisites on Solaris platforms (tested
+on Solaris10).
+
+Please if you have additional info to improve compatibility, let us know by
+sending an e-mail to:
+
+	project.manager@openca.org
+
+or subscribe to the devel mailing list, more info on:
+
+	http://www.openca.org/openca/
+
+
+# Installation details for Solaris 10 installation
+
+1. Install sun studio 11+ (http://www.sun.com/download/ )
+
+This should help you with the pre-requisites on Solaris platforms (tested
+on Solaris10).
+
+2. Add the /usr/ccs/bin in your PATH variable
+
+Please if you have additional info to improve compatibility, let us know by
+sending an e-mail to:
+
+	project.manager@openca.org
+
+or subscribe to the devel mailing list, more info on:
+
+	http://www.openca.org/openca/
+
+
