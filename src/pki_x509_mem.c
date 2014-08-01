@@ -310,8 +310,8 @@ PKI_MEM *PKI_X509_put_mem (PKI_X509 *x, PKI_DATA_FORMAT format,
 
 PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type, 
 			PKI_MEM **pki_mem, PKI_DATA_FORMAT format, 
-				PKI_CRED *cred, HSM *hsm) {
-
+				PKI_CRED *cred, HSM *hsm)
+{
 	PKI_IO *membio = NULL;
 	const PKI_X509_CALLBACKS *cb = NULL;
 	PKI_MEM *ret = NULL;
@@ -320,71 +320,75 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 	char *pwd = NULL;
 	const EVP_CIPHER *enc = NULL;
 
-	if(( membio = BIO_new(BIO_s_mem())) == NULL ) {
+	if ((membio = BIO_new(BIO_s_mem())) == NULL)
+	{
 		PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL);
 		return NULL;
 	}
 
-	if(( cb = PKI_X509_CALLBACKS_get ( type, hsm )) == NULL ) {
+	if ((cb = PKI_X509_CALLBACKS_get(type, hsm)) == NULL)
+	{
 		PKI_ERROR(PKI_ERR_CALLBACK_NULL, NULL);
 		return NULL;
 	}
 
 	/* Check if we have to encrypt the key */
-	if ( cred && cred->password && strlen(cred->password) > 0 ) {
+	if (cred && cred->password && strlen(cred->password) > 0)
+	{
 		pwd = (char *) cred->password;
 		enc=EVP_aes_256_cbc();
-	} else {
+	}
+	else
+	{
 		enc=NULL;
-	};
+	}
 
-	switch( format ) {
+	switch (format)
+	{
 		case PKI_DATA_FORMAT_PEM:
-			if( cb->to_pem_ex ) {
-			  // if( type == PKI_DATATYPE_X509_KEYPAIR ) {
-				// rv = PEM_write_bio_PrivateKey( membio,
-				//	x, enc, NULL, 0, NULL, pwd);
+			if (cb->to_pem_ex)
 				rv = cb->to_pem_ex(membio, x, (void *) enc, NULL, 0, NULL, pwd );
-			} else if( cb->to_pem ) {
+			else if (cb->to_pem)
 				rv = cb->to_pem ( membio, x );
-			}
 			break;
 
 		case PKI_DATA_FORMAT_URL:
 		case PKI_DATA_FORMAT_ASN1:
-			if( cb->to_der ) {
+			if (cb->to_der)
 				rv = cb->to_der ( membio, x );
-			} else {
+			else
 				PKI_log_debug ( "NO ASN1 (type %d) callback ? %p",
 					type, cb->to_der );
-			}
 			break;
 
 		case PKI_DATA_FORMAT_TXT:
-			if( cb->to_txt ) {
-				rv = cb->to_txt ( membio, x );
-			}
+			if (cb->to_txt) rv = cb->to_txt ( membio, x );
 			break;
 
 		case PKI_DATA_FORMAT_B64:
-			if( cb->to_b64 ) {
+			if (cb->to_b64)
+			{
 				rv = cb->to_b64 ( membio, x );
-			} else if ( cb->to_der ) {
-				rv = cb->to_der ( membio, x );
-				if((ret = PKI_MEM_new_bio(membio, pki_mem)) 
-								!= NULL ) {
+			}
+			else if (cb->to_der)
+			{
+				rv = cb->to_der(membio, x);
+				if ((ret = PKI_MEM_new_bio(membio, pki_mem))
+								!= NULL )
+				{
 					if (PKI_MEM_B64_encode(ret, 0) == NULL) rv = PKI_ERR;
 					else rv = PKI_OK;
-				} else {
+				}
+				else
+				{
 					rv = 0;
 				}
 			}
 			break;
 
 		case PKI_DATA_FORMAT_XML:
-			if( cb->to_xml ) {
-				rv = cb->to_xml ( membio, x );
-			}
+			if (cb->to_xml)
+				rv = cb->to_xml( membio, x );
 			break;
 
 		case PKI_DATA_FORMAT_UNKNOWN:
@@ -396,33 +400,36 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 	}
 
 	/* We already covered the case of B64 without a specific encoding callback */
-	if ( (format != PKI_DATA_FORMAT_B64) || ( cb->to_b64 != NULL ) ) {
-		if ( rv ) {
-			if((ret = PKI_MEM_new_bio(membio, pki_mem)) == NULL ) {
+	if ((format != PKI_DATA_FORMAT_B64) || (cb->to_b64 != NULL))
+	{
+		if (rv)
+		{
+			if ((ret = PKI_MEM_new_bio(membio, pki_mem)) == NULL )
+			{
 				PKI_log_err ("Can not convert BIO");
-				if ( membio ) BIO_free_all ( membio );
+				if (membio) BIO_free_all (membio);
 				return NULL;
 			}
-		} else {
+		}
+		else
+		{
 			/* OpenSSL ERROR! */
-			if( membio ) BIO_free_all ( membio );
+			if (membio) BIO_free_all(membio);
 			return ( NULL );
 		}
 	}
 
-	BIO_free_all ( membio );
+	BIO_free_all(membio);
 
 	if (ret && (format == PKI_DATA_FORMAT_URL))
 	{
 		PKI_MEM *url_encoded = NULL;
 	
-		if((url_encoded = PKI_MEM_url_encode(ret, 1 )) == NULL)
+		if (PKI_MEM_url_encode(ret, 1 ) != PKI_OK)
 		{
 			PKI_MEM_free(ret);
 			return NULL;
 		}
-
-		ret = url_encoded;
 	}
 
 	return ret;

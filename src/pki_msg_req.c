@@ -483,7 +483,6 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 
 	PKI_MEM *mem = NULL;
 	PKI_MEM *resp_mem = NULL;
-	PKI_MEM *encoded = NULL;
 
 	PKI_MEM_STACK *mem_sk = NULL;
 	PKI_X509_PKCS7 *p7 = NULL;
@@ -540,7 +539,8 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 		break;
 	}
 
-	if( !mem ) {
+	if (!mem)
+	{
 		PKI_log_debug("ERROR::Can not retrieve CA/RA certs!");
 		return NULL;
 	}
@@ -550,101 +550,122 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 	msg->recipients = NULL;
 
 	p7 = PKI_X509_PKCS7_get_mem( mem, NULL);
-	if( !p7 ) {
+	if (!p7)
+	{
 		PKI_log_debug("Can not load response (P7 with CA/RA "
 			"certs!");
-	} else {
+	}
+	else
+	{
 		PKI_log_debug("Loaded P7 with CA/RA certs [OK]!");
 	}
-	if(mem_sk ) PKI_STACK_MEM_free_all ( mem_sk );
 
-	//DEBUG
-	PKI_X509_PKCS7_put( p7, PKI_DATA_FORMAT_PEM, "ca-ra-p7.pem",
-				NULL, NULL, NULL );
+	if (mem_sk) PKI_STACK_MEM_free_all(mem_sk);
 
-	if((cert_num = PKI_X509_PKCS7_get_certs_num ( p7 )) <= 0 ) {
+	// DEBUG
+	// PKI_X509_PKCS7_put( p7, PKI_DATA_FORMAT_PEM, "ca-ra-p7.pem",
+	//			NULL, NULL, NULL );
+
+	if ((cert_num = PKI_X509_PKCS7_get_certs_num ( p7 )) <= 0 )
+	{
 		PKI_log_debug("No Certs in P7 with CA/RA Response!");
-	} else {
+	}
+	else
+	{
 		int j = 0;
 		PKI_X509_CERT *x = NULL;
 
-		// PKI_X509_PKCS7_clear_certs ( p7 );
-		for ( j = 0; j < cert_num; j++ ) {
-			if((x = PKI_X509_PKCS7_get_cert ( p7, j )) == NULL ) {
+		for (j = 0; j < cert_num; j++)
+		{
+			if ((x = PKI_X509_PKCS7_get_cert ( p7, j )) == NULL)
 				continue;
-			}
 		
-			if(PKI_MSG_REQ_add_recipient (msg, x) == PKI_ERR ){
+			if (PKI_MSG_REQ_add_recipient(msg, x) == PKI_ERR)
 				PKI_log_debug("ERROR::Can not add recipients!");
-			}
 		}
-	};
+	}
 
-	/* Encode the message */
-	if(PKI_MSG_REQ_encode ( msg, PKI_DATA_FORMAT_PEM ) == PKI_ERR ) {
+	// Encode the message
+	if (PKI_MSG_REQ_encode(msg, PKI_DATA_FORMAT_PEM) == PKI_ERR)
+	{
 		PKI_log_err ( "Can not encode message!");
 		return ( NULL );
 	}
 
+	// TODO: Remove this debuggging info
 	PKI_log_debug( "Creating MSG REQ message" );
-	if((mem = PKI_MSG_REQ_put_mem ( msg, PKI_DATA_FORMAT_B64, 
-						NULL, NULL, NULL )) == NULL ) {
+
+	if ((mem = PKI_MSG_REQ_put_mem(msg, PKI_DATA_FORMAT_B64, 
+						NULL, NULL, NULL )) == NULL)
+	{
 		PKI_log_debug( "Error in creating MSG REQ message" );
 		return ( NULL );
 	}
 	
-	/* Strips \n \r from the B64 and encodes for safe URL */
-	if((encoded = PKI_MEM_url_encode ( mem, 1 )) == NULL ) {
+	// Strips \n \r from the B64 and encodes for safe URL
+	if (PKI_MEM_url_encode(mem, 1) != PKI_OK)
+	{
 		PKI_log_err ("Memory Error!");
 		PKI_MEM_free ( mem );
 		return ( NULL );
 	}
-	PKI_MEM_free ( mem );
 
+	// TODO: Remove this debugging info
 	PKI_log_debug( "Sending MSG REQ message" );
 
-	/* Build the URL for the GET */
+	// Build the URL for the GET
 	mem_url = PKI_MEM_new_null();
 	snprintf( dest_url, sizeof(dest_url), 
 			"%s?operation=PKIOperation&message=", url_s );
 
-	PKI_MEM_add( mem_url, dest_url, strlen(dest_url) );
-	PKI_MEM_add( mem_url, (char *) encoded->data, encoded->size+1 );
+	PKI_MEM_add(mem_url, dest_url, strlen(dest_url) );
+	PKI_MEM_add(mem_url, (char *) mem->data, mem->size+1 );
 	mem_url->data[mem_url->size-1] = '\x0';
 
-	/* Sends the GET request and retrieve the response */
-	if((mem_sk = URL_get_data ( (char *) mem_url->data, 60, 
-						64*1024, NULL )) != NULL ) {
+	// Now we can free the mem buffer
+	PKI_MEM_free(mem);
+	mem = NULL; // Safety
+
+	// Sends the GET request and retrieve the response
+	if ((mem_sk = URL_get_data ( (char *) mem_url->data, 60, 
+						64*1024, NULL )) != NULL)
+	{
 		resp_mem = PKI_STACK_MEM_pop ( mem_sk );
 		PKI_STACK_MEM_free ( mem_sk );
 	}
 
-	/* Free the URL data used for the GET request */
+	// Free the URL data used for the GET request
 	if( mem_url ) PKI_MEM_free ( mem_url );
 
-	/* If we have a response, let's parse it */
-	if( resp_mem ) {
+	// If we have a response, let's parse it
+	if (resp_mem)
+	{
 		PKI_X509_PKCS7 *p7 = NULL;
-		if((p7 = PKI_X509_PKCS7_get_mem ( resp_mem, NULL )) == NULL ) {
+
+		if ((p7 = PKI_X509_PKCS7_get_mem ( resp_mem, NULL )) == NULL)
+		{
 			PKI_log_debug("ERROR::Can not read response P7!");
 			PKI_MEM_free ( resp_mem );
 			return NULL;
 		}
-	// DEBUG
-	/*
-	URL_put_data ("file://scep-resp.der", resp_mem, NULL, NULL, 0, 0, NULL);
-	PKI_X509_PKCS7_put ( p7, PKI_DATA_FORMAT_PEM, "scep-resp.pem",
-		NULL, NULL, NULL );
-	PKI_X509_PKCS7_put ( p7, PKI_DATA_FORMAT_TXT, "scep-resp.txt",
-		NULL, NULL, NULL );
-	*/
 
-	} else {
+		// TODO: Remove this debug code
+		// URL_put_data ("file://scep-resp.der", resp_mem, NULL, NULL, 0, 0, NULL);
+		// PKI_X509_PKCS7_put ( p7, PKI_DATA_FORMAT_PEM, "scep-resp.pem",
+		//	NULL, NULL, NULL );
+		// PKI_X509_PKCS7_put ( p7, PKI_DATA_FORMAT_TXT, "scep-resp.txt",
+		//	NULL, NULL, NULL );
+
+	}
+	else
+	{
 		PKI_log_debug( "ERROR::No Response received!" );
 	}
 
-	/* Now we have to build the RESPONSE */
+	// Now we have to build the RESPONSE
 	ret = PKI_MSG_RESP_new_null();
+
+	// TODO: Finish building the response
 
 	return ret;
 }

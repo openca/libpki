@@ -49,8 +49,11 @@ size_t PKI_MEM_get_size( PKI_MEM *buf );
 ssize_t PKI_MEM_printf( PKI_MEM * buf );
 ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf );
 
-PKI_MEM *PKI_MEM_url_encode ( PKI_MEM *mem, int skip_newlines );
-PKI_MEM *PKI_MEM_url_decode ( PKI_MEM *mem, int skip_newlines );
+int PKI_MEM_url_encode ( PKI_MEM *mem, int skip_newlines );
+int PKI_MEM_url_decode ( PKI_MEM *mem, int skip_newlines );
+
+PKI_MEM *PKI_MEM_get_url_encoded ( PKI_MEM *mem, int skip_newlines );
+PKI_MEM *PKI_MEM_get_url_decoded ( PKI_MEM *mem, int skip_newlines );
 
 #include <openssl/bio.h>
 PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io );

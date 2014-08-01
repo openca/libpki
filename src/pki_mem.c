@@ -364,42 +364,41 @@ ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf ) {
 	return i;
 }
 
-/*! \brief Returns a new PKI_MEM with a URL-safe encoded version of a PKI_MEM */
-
-PKI_MEM *PKI_MEM_url_encode ( PKI_MEM *mem, int skip_newlines ) {
-
+PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skip_newlines)
+{
 	PKI_MEM *encoded = NULL;
 
 	char enc_buf[10];
 	int i = 0;
 
-	if( !mem || !mem->data || (mem->size == 0) ) {
+	if( !mem || !mem->data || (mem->size == 0) )
+	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
-	};
+	}
 
-	if((encoded = PKI_MEM_new_null()) == NULL) {
+	if((encoded = PKI_MEM_new_null()) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
-	};
+	}
 
 	for( i = 0; i < mem->size; i++ )
 	{
 		char *str = "=$&+,/:;=?@ <>#\%{}|\\^~[]\r\n`";
 		unsigned char tmp_d2 = 0;
 
-		if( skip_newlines ) {
-			if ( mem->data[i] == '\r' || mem->data[i] == '\n' ) {
-				continue;
-			}
-		}
+		if (skip_newlines && ( mem->data[i] == '\r' || mem->data[i] == '\n')) continue;
 
 		tmp_d2 = mem->data[i];
-		if( (strchr( str, tmp_d2 ) != NULL ) ||
-			(tmp_d2 <= 31) || ( tmp_d2 >= 127 ) || (isgraph(tmp_d2) == 0)) {
-
+		if ((strchr( str, tmp_d2 ) != NULL ) ||
+			(tmp_d2 <= 31) || ( tmp_d2 >= 127 ) || (isgraph(tmp_d2) == 0))
+		{
 			sprintf(enc_buf, "%%%2.2x", tmp_d2 );
 			PKI_MEM_add ( encoded, enc_buf, 3 );
-		} else {
+		}
+		else
+		{
 			PKI_MEM_add ( encoded, (char *) &(mem->data[i]), 1);
 		}
 	}
@@ -407,13 +406,9 @@ PKI_MEM *PKI_MEM_url_encode ( PKI_MEM *mem, int skip_newlines ) {
 	return encoded;
 }
 
-
-/*! \brief Decodes a URL-encoded PKI_MEM and returns the pointer to
- *         the same PKI_MEM object if successful, NULL otherwise */
-
-PKI_MEM *PKI_MEM_url_decode(PKI_MEM *mem, int skip_newlines)
+PKI_MEM *PKI_MEM_get_url_decoded(PKI_MEM *mem, int skip_newlines)
 {
-	// PKI_MEM *ret = NULL;
+	PKI_MEM *decoded = NULL;
 	ssize_t data_size = 0;
 	unsigned char *data = NULL;
 	int i = 0;
@@ -424,54 +419,95 @@ PKI_MEM *PKI_MEM_url_decode(PKI_MEM *mem, int skip_newlines)
 		return NULL;
 	}
 
-	/*
-	if((ret = PKI_MEM_new_null()) == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return NULL;
-	}
-	*/
-
-	// Allocates the memory for the decoding
-	if ((data = PKI_Malloc(mem->size + 2)) == NULL)
+	// Allocates the new PKI_MEM for the decoding operations
+	if((decoded = PKI_MEM_new_null()) == NULL)
 	{
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
 
-	// Copies the original data into the buffer
-	memcpy(data, mem->data, mem->size);
-	data_size = mem->size;
-
-	// Let's free the original data pointer and
-	// re-initialize the original PKI_MEM
-	PKI_ZFree(mem->data, mem->size);
-	mem->data = NULL;
-	mem->size = 0;
-
-	for( i = 0; i < data_size; i++ )
+	// Let's do the decoding
+	for( i = 0; i < mem->size; i++ )
 	{
 		int p;
 		unsigned char k;
 
-		// if( sscanf((const char *)&mem->data[i],"%%%2x", &p ) > 0 )
-		if (sscanf((const char *)&data[i], "%%%2x", &p) > 0)
+		if (sscanf((const char *)&mem->data[i], "%%%2x", &p) > 0)
 		{
 			k = (unsigned char) p;
-			PKI_MEM_add(mem, (char *) &k, 1);
+			PKI_MEM_add(decoded, (char *) &k, 1);
 			i += 2;
 		}
 		else
 		{
-			// PKI_MEM_add(ret, (char*) &mem->data[i], 1);
-			PKI_MEM_add(mem, (char*) &data[i], 1);
+			PKI_MEM_add(decoded, (char*) &data[i], 1);
 		}
 	}
 
-	// Let's free the data
-	// PKI_Free(data);
+	// Returns the newly allocated url-decoded PKI_MEM
+	return decoded;
+}
 
-	return mem;
+/*! \brief Returns a new PKI_MEM with a URL-safe encoded version of a PKI_MEM */
+
+int PKI_MEM_url_encode(PKI_MEM *mem, int skip_newlines)
+{
+	PKI_MEM *encoded = NULL;
+
+	if ((encoded = PKI_MEM_get_url_encoded(mem, skip_newlines)) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR_MEMORY_ALLOC;
+	}
+
+	// Clears the memory for the old PKI_MEM
+	if (mem->data) PKI_Free(mem->data);
+
+	// Transfer ownership of the data
+	mem->data = encoded->data;
+	mem->size = encoded->size;
+
+	// Clears the encoded data container
+	encoded->data = NULL;
+	encoded->size = 0;
+
+	// Free the newly-allocated (now empty) container
+	PKI_MEM_free(encoded);
+
+	// Returns success
+	return PKI_OK;
+}
+
+
+/*! \brief Decodes a URL-encoded PKI_MEM and returns the pointer to
+ *         the same PKI_MEM object if successful, NULL otherwise */
+
+int PKI_MEM_url_decode(PKI_MEM *mem, int skip_newlines)
+{
+	PKI_MEM *decoded = NULL;
+
+	if ((decoded = PKI_MEM_get_url_decoded(mem, skip_newlines)) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR_MEMORY_ALLOC;
+	}
+
+	// Clears the memory for the old PKI_MEM
+	if (mem->data) PKI_Free(mem->data);
+
+	// Transfer ownership of the data
+	mem->data = decoded->data;
+	mem->size = decoded->size;
+
+	// Clears the encoded data container
+	decoded->data = NULL;
+	decoded->size = 0;
+
+	// Free the newly-allocated (now empty) container
+	PKI_MEM_free(decoded);
+
+	// Returns success
+	return PKI_OK;
 }
 
 /*! \brief Returns a PKI_MEM with the contents of a memory PKI_IO */
