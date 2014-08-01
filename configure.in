@@ -338,8 +338,6 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([bzero memset setenv socket strcasecmp strchr strrchr strstr])
 
-# EXTRA_CFLAGS = "-Wall -Wmissing-field-initializers -Wmissing-parameter-type -Wtype-limits -Wuninitialized -Wconversion"
-
 old_cflags="$CFLAGS"
 
 dnl check for stack protection of gcc
@@ -360,6 +358,7 @@ if [[ "$CC" = "gcc" ]] ; then
 
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		AC_CHECK_C_OPTION(-Wno-deprecated)
+		AC_CHECK_C_OPTION(-Wno-unknown-pragmas)
 	fi
 
 	AC_GCC_CHECK_PRAGMA_IGNORED
