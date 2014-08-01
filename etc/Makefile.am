@@ -2,23 +2,17 @@
 
 TOP=../src
 
-PROFILES = \
-	profile.d/*.xml
+etc_prefix = $(DESTDIR)${prefix}/etc
+lib_prefix = $(DESTDIR)@libdir@
+var_prefix = $(DESTDIR)${prefix}/var
+doc_prefix = $(DESTDIR)$datadir/libpki
 
-TOKENS = \
-	token.d/*.xml
-
-HSMS = \
-	hsm.d/*.xml
-
-STORES = \
-	store.d/*.xml
-
-CONFIGS = \
-	*.xml
-
-PKI_CONFIG = \
-	pki.conf
+PROFILES   = profile.d/*.xml
+TOKENS     = token.d/*.xml
+HSMS       = hsm.d/*.xml
+STORES     = store.d/*.xml
+CONFIGS    = *.xml
+PKI_CONFIG = pki.conf
 
 EXTRA_DIST = $(PROFILES) $(TOKENS) $(HSMS) $(STORES) $(CONFIGS) $(PKI_CONFIG)
 

@@ -270,7 +270,7 @@ ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@
 ldap_prefix = @ldap_prefix@
 ldap_vendor = @ldap_vendor@
-lib_prefix = @lib_prefix@
+lib_prefix = $(DESTDIR)@libdir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 libpki_cflags = @libpki_cflags@
@@ -333,6 +333,9 @@ xml2_ldadd = @xml2_ldadd@
 xml2_ldflags = @xml2_ldflags@
 xml2_prefix = @xml2_prefix@
 TOP = ../src
+etc_prefix = $(DESTDIR)${prefix}/etc
+var_prefix = $(DESTDIR)${prefix}/var
+doc_prefix = $(DESTDIR)$datadir/libpki
 EXTRA_DIST = \
 	README.data_structures \
 	README.functions \

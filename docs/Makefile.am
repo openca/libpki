@@ -2,6 +2,11 @@
 
 TOP=../src
 
+etc_prefix = $(DESTDIR)${prefix}/etc
+lib_prefix = $(DESTDIR)@libdir@
+var_prefix = $(DESTDIR)${prefix}/var
+doc_prefix = $(DESTDIR)$datadir/libpki
+
 EXTRA_DIST = \
 	README.data_structures \
 	README.functions \

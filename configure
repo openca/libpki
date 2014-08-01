@@ -2510,7 +2510,6 @@ RC=1
 # PACKAGE_NAME="libpki"
 TODAY=`/bin/date +%Y%m%d`
 
-# AC_SUBST(VERSION)
 
 
 mybits="32"
@@ -2559,7 +2558,6 @@ else
 $as_echo "#define ENABLE_ARCH_32 1" >>confdefs.h
 
 fi
-
 
 
 
@@ -12130,9 +12128,6 @@ else
 fi
 
 
-
-# DIST_VERSION=`bash -c 'grep -o [0-9] /etc/issue'`
-# DIST_VERSION=`cat /etc/issue | /bin/sed -e 's/[a-zA-Z ()\\]*//g'`
 
 if [ -f "/etc/issue" ] ; then
    DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
