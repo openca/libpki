@@ -17,7 +17,6 @@ dnl Set Version Numbers
 # PACKAGE_NAME="libpki"
 TODAY=`/bin/date +%Y%m%d`
 
-# AC_SUBST(VERSION)
 AC_SUBST(TODAY)
 
 mybits="32"
@@ -64,8 +63,6 @@ else
 fi
 
 AC_SUBST(mybits)
-
-dnl . ./IFACE_VERSION
 
 v=$PACKAGE_VERSION
 dnl v=`cat IFACE_VERSION`
@@ -272,9 +269,6 @@ else
 fi
 
 AC_SUBST(DIST_VERSION)
-
-# DIST_VERSION=`bash -c 'grep -o [0-9] /etc/issue'`
-# DIST_VERSION=`cat /etc/issue | /bin/sed -e 's/[a-zA-Z ()\\]*//g'`
 
 if [[ -f "/etc/issue" ]] ; then
    DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`

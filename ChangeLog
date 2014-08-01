@@ -1,3 +1,9 @@
+* Aug  1 2014 Massimiliano Pala <madwolf@openca.org>
+- Fixed inconsistency in PKI_MEM_url_decode / PKI_MEM_url_encode functions
+- Added PKI_MEM_url_get_encoded and PKI_MEM_url_get_decoded functions
+- Fixed buffer size utilization in PKI_MSG_REQ and TOKEN to avoid possible buffer overflow
+- Fixed make 'distclean' target
+
 * May 10 2014 Massimiliano Pala <madwolf@openca.org>
 - Fixed building library on AIX operating systems
 - Fixed building library on Solaris (pre open-solaris) with old pthread
