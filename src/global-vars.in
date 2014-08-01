@@ -94,7 +94,6 @@ PTHREAD_MYDEFS		= @PTHREAD_MYDEFS@
 # =================================================
 
 SYSTEM_CFLAGS		= @sys_cflags@
-# SYSTEM_LDFLAGS		= @sys_ldflags@
 SYSTEM_LDADD		= @sys_ldadd@
 
 # =================================================

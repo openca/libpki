@@ -804,27 +804,27 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 			break;
 		case PKI_DATATYPE_X509_CRL:
 			objClass = CKO_DATA;
-			strncat(myLabel, "'s CRL", sizeof( myLabel ));
+			strncat(myLabel, "'s CRL", sizeof(myLabel) - 1);
 			ret_sk = PKI_STACK_X509_CRL_new();
 			break;
 		case PKI_DATATYPE_X509_REQ:
 			objClass = CKO_DATA;
-			strncat(myLabel, "'s Request", sizeof( myLabel ));
+			strncat(myLabel, "'s Request", sizeof(myLabel) - 1);
 			ret_sk = PKI_STACK_X509_REQ_new();
 			break;
 		case PKI_DATATYPE_X509_CA:
 			objClass = CKO_CERTIFICATE;
-			strncat(myLabel, "'s CA", sizeof( myLabel ));
+			strncat(myLabel, "'s CA", sizeof(myLabel) - 1);
 			ret_sk = PKI_STACK_X509_CERT_new();
 			break;
 		case PKI_DATATYPE_X509_TRUSTED:
 			objClass = CKO_CERTIFICATE;
-			strncat(myLabel, "'s TA Cert", sizeof( myLabel ));
+			strncat(myLabel, "'s TA Cert", sizeof(myLabel) - 1);
 			ret_sk = PKI_STACK_X509_CERT_new();
 			break;
 		case PKI_DATATYPE_X509_OTHER:
 			objClass = CKO_CERTIFICATE;
-			strncat(myLabel, "'s Other Cert", sizeof( myLabel ));
+			strncat(myLabel, "'s Other Cert", sizeof(myLabel) - 1);
 			ret_sk = PKI_STACK_X509_CERT_new();
 			break;
 		case PKI_DATATYPE_X509_PKCS7:
@@ -1034,12 +1034,12 @@ int HSM_PKCS11_STACK_add_url( PKI_X509_STACK *sk, URL *url,
 			case PKI_DATATYPE_X509_CRL:
 				// objClass = CKO_DATA;
 				// func = i2d_X509_CRL;
-				strncat(myLabel, "'s CRL", sizeof( myLabel ));
+				strncat(myLabel, "'s CRL", sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_REQ:
 				// objClass = CKO_DATA;
 				// func = i2d_X509_REQ;
-				strncat(myLabel, "'s Request", sizeof(myLabel));
+				strncat(myLabel, "'s Request", sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_CA:
 				idx = (CK_ULONG) 

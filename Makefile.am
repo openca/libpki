@@ -44,7 +44,7 @@ PTHREAD_MYDEFS		= @PTHREAD_MYDEFS@
 ACLOCAL_AMFLAGS = -I m4
 
 #AUTOMAKE_OPTIONS = no-dependencies
-SUBDIRS = src docs etc
+SUBDIRS = src docs etc .
 
 AUX_DIST = \
  	acinclude.m4 \
@@ -176,6 +176,9 @@ documentation:: pdfdocs
 		fi; \
 	fi
 
+distclean-local:
+	@echo "Cleaning local autoconf cache... " ; \
+	 rm -rf autom4te.cache/
 
 ########################## BINARY DISTRO STUFF ###########################
 

@@ -19,7 +19,7 @@ else
 TOOLS_AND_TESTS = tools tests
 endif
 
-SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) scep prqp lirt . $(TOOLS_AND_TESTS)
+SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cms prqp lirt . $(TOOLS_AND_TESTS)
 
 INCLUDES = \
 	-I$(top_srcdir)/src/libpki \
@@ -53,16 +53,6 @@ SRCS = \
 	token.c \
 	token_id.c \
 	token_data.c \
-	net/url.c \
-	net/sock.c \
-	net/ssl.c \
-	net/pki_socket.c \
-	net/http_s.c \
-	net/ldap.c \
-	net/mysql.c \
-	net/pg.c \
-	net/pkcs11.c \
-	net/dns.c \
 	support.c \
 	profile.c \
 	pki_config.c \
@@ -70,23 +60,8 @@ SRCS = \
 	pki_x509.c \
 	pki_x509_mem.c \
 	pki_x509_mime.c \
-	io/pki_x509_io.c \
-	io/pki_keypair_io.c \
-	io/pki_x509_req_io.c \
-	io/pki_x509_cert_io.c \
-	io/pki_x509_crl_io.c \
-	io/pki_x509_xpair_io.c \
-	io/pki_x509_pkcs7_io.c \
-	io/pki_x509_p12_io.c \
-	io/pki_ocsp_req_io.c \
-	io/pki_ocsp_resp_io.c \
-	cms/asn1.c \
-	cms/cms_simple.c \
-	cms/cms_cert_req.c \
 	pki_msg_req.c \
-	io/pki_msg_req_io.c \
-	pki_msg_resp.c \
-	io/pki_msg_resp_io.c
+	pki_msg_resp.c
 
 lib_LTLIBRARIES = libpki.la
 
@@ -97,16 +72,14 @@ libpki_la_LDFLAGS = \
 	-version-number "$(PACKAGE_VERSION)" \
 	-version-info "$(INTERFACE_CURRENT):$(INTERFACE_REVISION):$(INTERFACE_AGE)"
 
-#	-version-number "$(INTERFACE_CURRENT):$(INTERFACE_REVISION):$(INTERFACE_AGE)"
-
-# -release "$(VERSION)"
-# -version-info "$(INTERFACE_CURRENT):$(INTERFACE_REVISION):$(INTERFACE_AGE)"
-
 libpki_la_CFLAGS   = $(BUILD_LIBPKI_CFLAGS) $(SYSTEM_CFLAGS)
 
 libpki_la_LIBADD   = \
 			$(CRYPTO_SRC_PREFIX)/libpki-openssl.la \
 			drivers/libpki-token.la \
+			io/libpki-io.la \
+			net/libpki-net.la \
+			cms/libpki-cms.la \
 			scep/libpki-scep.la \
 			prqp/libpki-prqp.la \
 			lirt/libpki-lirt.la \

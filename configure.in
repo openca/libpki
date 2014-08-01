@@ -4,7 +4,7 @@ AC_COPYRIGHT([Copyright 2007-2014 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.8.6, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.8.7, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -21,9 +21,10 @@ TODAY=`/bin/date +%Y%m%d`
 AC_SUBST(TODAY)
 
 mybits="32"
+mybits_install=""
 is_sparc="no"
 is_aix="no"
-my_arch=`uname -p`
+my_arch=`uname -m`
 
 case "$my_arch" in
   *i686)
@@ -34,17 +35,21 @@ case "$my_arch" in
     ;;
   *86_64)
     mybits="64"
+    mybits_install="64"
     ;;
   *sparc*)
     mybits="64"
+    mybits_install="64"
     is_sparc="yes"
     ;;
   *aix*)
     mybits="64"
+    mybits_install="64"
     is_aix="yes"
     ;;
   *powerpc*)
     mybits="64"
+    mybits_install="64"
     is_aix="yes"
     ;;
   *)
@@ -196,6 +201,7 @@ case "${build_os}" in
  *darwin*)
 		myarch=darwin
 		shlext=dylib
+		mybits_install=""
 		;;
  *sun*) myarch=solaris
 		shlext=so
@@ -245,6 +251,7 @@ esac
 AC_SUBST(shlext)
 AC_SUBST(arch_target)
 AC_SUBST(myarch)
+AC_SUBST(mybits_install)
 
 AM_CONDITIONAL(LIBPKI_ARCH_LINUX, test x$myarch = xlinux)
 AM_CONDITIONAL(LIBPKI_ARCH_BSD, test x$myarch = xbsd)
@@ -295,6 +302,7 @@ AC_PATH_PROG(AR, ar, , $default_path)
 AR="$AR $ar_opt"
 
 if [[ "x$iphone_build" = "xno" ]] ; then
+	AM_PROG_AWK
 	AM_PROG_CC_C_O
 fi
 
@@ -304,10 +312,7 @@ dnl Check for install program
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_AWK
-dnl AC_PROG_CC
 AC_PROG_MAKE_SET
-dnl AC_PROG_RANLIB
-dnl LT_INIT
 
 dnl Automatically update the libtool script if it becomes out-of-date.
 AC_SUBST(LIBTOOL_DEPS)
@@ -357,6 +362,10 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Werror)
 		AC_CHECK_C_OPTION(-Wfatal-errors)
 		AC_CHECK_C_OPTION(-Wall)
+	fi
+
+	if [[ "$DIST_NAME" = "darwin" ]] ; then
+		AC_CHECK_C_OPTION(-Wno-deprecated)
 	fi
 
 	AC_GCC_CHECK_PRAGMA_IGNORED
@@ -454,7 +463,7 @@ fi
 
 AC_ARG_WITH( libdir,
    [  --with-libdir=DIR         installed package prefix directory],
-   [ libdir=$withval ] , [ libdir=$prefix/lib$mybits ] )
+   [ libdir=$withval ] , [ libdir=$prefix/lib$mybits_install ] )
 
 AC_SUBST(package_prefix)
 AC_SUBST(prefix)
@@ -1116,8 +1125,16 @@ dnl		fi    dnl End of prefix block
 dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 		dnl NEW Check function
 
-		dirs="/opt/local/lib$mybits /lib$mybits /usr/lib$mybits /usr/local/lib$mybits /usr/local/ssl/lib$mybits /opt/csw/lib /opt/csw /usr/sfw/lib /usr/local/openssl"
-		dnl dirs="/usr/local/openssl-0.9.7 /usr/local/ssl/lib$mybits /usr/sfw/lib /opt/csw/lib /usr/local/openssl /usr/local/openssl-1.0.0"
+		gen_dirs="/usr/lib$mybits /usr/local/lib$mybits /opt/lib$mybits /opt/local/lib$mybits"
+		ssl_dirs="/usr/local/ssl/lib$mybits /usr/local/openssl/lib$mybits /opt/lib$mybits"
+		solaris_dirs="/opt/csw/lib$mybits /opt/csw/lib /opt/csw /usr/sfw/lib$mylibs /usr/sfw/lib"
+		darwin_dirs=""
+		aix_dirs=""
+
+		prefix_dirs="$prefix/lib$mybits $prefix/lib"
+
+		dirs="$prefix_dirs $gen_dirs $ssl_dirs $solaris_dirs $darwin_dirs $aix_dirs"
+
 		library_cflags=
 		library_ldflags=
 		library_ldadd=
@@ -1296,7 +1313,7 @@ elif test x$myarch = xdarwin ; then
     AC_DEFINE(LIBPKI_TARGET_OSX, 1, [OSX])
     sys_cflags="-DMACOS"
     dnl sys_cflags="-framework CoreFoundation"
-    sys_ldadd="-ll -lIOKit -framework Foundation"
+    sys_ldadd="-ll -framework Foundation"
   fi
 elif test x$myarch = xsolaris ; then
   AC_DEFINE(LIBPKI_TARGET_SOLARIS, 1, [Solaris])
@@ -1394,7 +1411,10 @@ AC_CONFIG_FILES(
 	src/drivers/pkcs11/Makefile
 	src/drivers/kmf/Makefile
 	src/openssl/Makefile
+	src/io/Makefile
+	src/net/Makefile
 	src/scep/Makefile
+	src/cms/Makefile
 	src/prqp/Makefile
 	src/lirt/Makefile
 	src/tools/Makefile
@@ -1510,11 +1530,12 @@ echo "
 Configuration for $PACKAGE $VERSION :
 --------------------------------
 
- Architecture .........: $myarch
+ Architecture .........: $myarch ($mybits bits)
  Host System Type .....: $host
- Library Version ......: v = $iface_current, r = $iface_revision, a = $iface_age
- Install path .........: $package_prefix
  Supported URLs .......: $supported_urls
+ Library Version ......: v = $iface_current, r = $iface_revision, a = $iface_age
+ Install lib path .....: $libdir
+ Install path .........: $package_prefix
  Compiler Flags .......: $my_cflags
  Linker Flags .........: $my_ldflags $rpath
  Libs .................: $my_ldadd

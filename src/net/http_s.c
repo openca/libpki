@@ -11,65 +11,7 @@
 #define HTTP_BUF_SIZE	65535
 
 /* ----------------------------- AUXILLARY FUNCS ------------------------------ */
-/*
-URL *__get_url_from_http_path(PKI_SOCKET *sock, char *path)
-{
-	URL *ret = NULL;
-	size_t len = 0;
 
-	// We need valid input to parse the path string
-	if (sock == NULL || path == NULL) return NULL;
-
-	// Generate a new URL object
-	ret = URL_new(NULL);
-	if (ret == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return NULL;
-	}
-
-	// Gets the SSL status
-	ret->ssl = (sock->type == PKI_SOCKET_SSL ? 1 : 0);
-
-	// Copy the protocol details
-	if (sock->url != NULL)
-	{
-		ret->proto = sock->url->proto;
-		ret->port = sock->url->port;
-	}
-	else
-	{
-		ret->proto = (ret->ssl != 0 ?  URI_PROTO_HTTPS : URI_PROTO_HTTP);
-	}
-
-	// Gets the length of the path
-	len = strlen(path);
-
-	// Copy the path
-	ret->path = PKI_Malloc(len);
-	ret->url_s = PKI_Malloc(len + 10);
-
-	// Let's copy the path into the path of the URL
-	if (strncmp_nocase(path, "http://", 7) == 0)
-	{
-		strncpy(ret->path, path + 7, len - 7);
-		strncpy(ret->url_s, path, len);
-	}
-	else if (strncmp_nocase(path, "https://", 8) == 0)
-	{
-		strncpy(ret->path, path + 8, len - 8);
-		strncpy(ret->url_s, path, len);
-	}
-	else
-	{
-		char *fmt = (ret->ssl == 1 ? "https://%s" : "http://%s");
-		snprintf(ret->url_s, len + 10, fmt, path);
-		strncpy(ret->path, path, len);
-	}
-
-	return ret;
-}
-*/
 
 /*
  * Returns the pointer to the end of the header, if found. Starts searching
@@ -102,7 +44,7 @@ char * __find_end_of_header(PKI_MEM *m, int offset)
 		if (i == 4) found = 1;
 
 		// If we found the End Of Header we return that
-		if (found == 1) ret = &(m->data[idx + 3]);
+		if (found == 1) ret = (char *) &(m->data[idx + 3]);
 	}
 
 	return ret;
@@ -176,7 +118,7 @@ int __parse_http_header(PKI_HTTP *msg)
   	  msg->method = PKI_HTTP_METHOD_HTTP;
 
   	  // Let's get the version and the code
-  	  if (sscanf(msg->head->data,"HTTP/%f %d", &msg->version, &msg->code) < 1)
+  	  if (sscanf((const char *)msg->head->data,"HTTP/%f %d", &msg->version, &msg->code) < 1)
   	  {
   		  PKI_log_debug("ERROR Parsing HTTP Version and Code");
   		  PKI_Free(line);

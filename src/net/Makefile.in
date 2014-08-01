@@ -79,7 +79,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src/lirt
+subdir = src/net
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/build/mkinstalldirs $(top_srcdir)/build/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -95,19 +95,21 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libpki_lirt_la_LIBADD =
-am__objects_1 = libpki_lirt_la-lirt_asn1.lo libpki_lirt_la-lirt_bio.lo \
-	libpki_lirt_la-lirt_lib.lo
-am_libpki_lirt_la_OBJECTS = $(am__objects_1)
-libpki_lirt_la_OBJECTS = $(am_libpki_lirt_la_OBJECTS)
+libpki_net_la_LIBADD =
+am__objects_1 = libpki_net_la-dns.lo libpki_net_la-ldap.lo \
+	libpki_net_la-pg.lo libpki_net_la-pki_socket.lo \
+	libpki_net_la-ssl.lo libpki_net_la-http_s.lo \
+	libpki_net_la-mysql.lo libpki_net_la-pkcs11.lo \
+	libpki_net_la-sock.lo libpki_net_la-url.lo
+am_libpki_net_la_OBJECTS = $(am__objects_1)
+libpki_net_la_OBJECTS = $(am_libpki_net_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_lirt_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(libpki_lirt_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
-	$@
+libpki_net_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_net_la_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -142,8 +144,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_lirt_la_SOURCES)
-DIST_SOURCES = $(libpki_lirt_la_SOURCES)
+SOURCES = $(libpki_net_la_SOURCES)
+DIST_SOURCES = $(libpki_net_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -389,20 +391,25 @@ xml2_ldflags = @xml2_ldflags@
 xml2_prefix = @xml2_prefix@
 TOP = ..
 BASE_DEFS = 
-LIRT_VERSION = 0.1.0
 INCLUDES = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-LIRT_SRCS = \
-	lirt_asn1.c \
-	lirt_bio.c \
-	lirt_lib.c
+SRCS = \
+	dns.c \
+	ldap.c \
+	pg.c \
+	pki_socket.c ssl.c \
+	http_s.c \
+	mysql.c \
+	pkcs11.c \
+	sock.c \
+	url.c
 
-noinst_LTLIBRARIES = libpki-lirt.la
-libpki_lirt_la_SOURCES = $(LIRT_SRCS)
-libpki_lirt_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+noinst_LTLIBRARIES = libpki-net.la
+libpki_net_la_SOURCES = $(SRCS)
+libpki_net_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -416,9 +423,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/lirt/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/net/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/lirt/Makefile
+	  $(AUTOMAKE) --gnu src/net/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -449,8 +456,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki-lirt.la: $(libpki_lirt_la_OBJECTS) $(libpki_lirt_la_DEPENDENCIES) $(EXTRA_libpki_lirt_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_lirt_la_LINK)  $(libpki_lirt_la_OBJECTS) $(libpki_lirt_la_LIBADD) $(LIBS)
+libpki-net.la: $(libpki_net_la_OBJECTS) $(libpki_net_la_DEPENDENCIES) $(EXTRA_libpki_net_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_net_la_LINK)  $(libpki_net_la_OBJECTS) $(libpki_net_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -458,9 +465,16 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_lirt_la-lirt_asn1.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_lirt_la-lirt_bio.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_lirt_la-lirt_lib.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-dns.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-http_s.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-ldap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-mysql.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-pg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-pkcs11.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-pki_socket.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-sock.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-ssl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_net_la-url.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -483,26 +497,75 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libpki_lirt_la-lirt_asn1.lo: lirt_asn1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_lirt_la_CFLAGS) $(CFLAGS) -MT libpki_lirt_la-lirt_asn1.lo -MD -MP -MF $(DEPDIR)/libpki_lirt_la-lirt_asn1.Tpo -c -o libpki_lirt_la-lirt_asn1.lo `test -f 'lirt_asn1.c' || echo '$(srcdir)/'`lirt_asn1.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_lirt_la-lirt_asn1.Tpo $(DEPDIR)/libpki_lirt_la-lirt_asn1.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='lirt_asn1.c' object='libpki_lirt_la-lirt_asn1.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_net_la-dns.lo: dns.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-dns.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-dns.Tpo -c -o libpki_net_la-dns.lo `test -f 'dns.c' || echo '$(srcdir)/'`dns.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-dns.Tpo $(DEPDIR)/libpki_net_la-dns.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='dns.c' object='libpki_net_la-dns.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_lirt_la_CFLAGS) $(CFLAGS) -c -o libpki_lirt_la-lirt_asn1.lo `test -f 'lirt_asn1.c' || echo '$(srcdir)/'`lirt_asn1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-dns.lo `test -f 'dns.c' || echo '$(srcdir)/'`dns.c
 
-libpki_lirt_la-lirt_bio.lo: lirt_bio.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_lirt_la_CFLAGS) $(CFLAGS) -MT libpki_lirt_la-lirt_bio.lo -MD -MP -MF $(DEPDIR)/libpki_lirt_la-lirt_bio.Tpo -c -o libpki_lirt_la-lirt_bio.lo `test -f 'lirt_bio.c' || echo '$(srcdir)/'`lirt_bio.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_lirt_la-lirt_bio.Tpo $(DEPDIR)/libpki_lirt_la-lirt_bio.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='lirt_bio.c' object='libpki_lirt_la-lirt_bio.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_net_la-ldap.lo: ldap.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-ldap.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-ldap.Tpo -c -o libpki_net_la-ldap.lo `test -f 'ldap.c' || echo '$(srcdir)/'`ldap.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-ldap.Tpo $(DEPDIR)/libpki_net_la-ldap.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ldap.c' object='libpki_net_la-ldap.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_lirt_la_CFLAGS) $(CFLAGS) -c -o libpki_lirt_la-lirt_bio.lo `test -f 'lirt_bio.c' || echo '$(srcdir)/'`lirt_bio.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-ldap.lo `test -f 'ldap.c' || echo '$(srcdir)/'`ldap.c
 
-libpki_lirt_la-lirt_lib.lo: lirt_lib.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_lirt_la_CFLAGS) $(CFLAGS) -MT libpki_lirt_la-lirt_lib.lo -MD -MP -MF $(DEPDIR)/libpki_lirt_la-lirt_lib.Tpo -c -o libpki_lirt_la-lirt_lib.lo `test -f 'lirt_lib.c' || echo '$(srcdir)/'`lirt_lib.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_lirt_la-lirt_lib.Tpo $(DEPDIR)/libpki_lirt_la-lirt_lib.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='lirt_lib.c' object='libpki_lirt_la-lirt_lib.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_net_la-pg.lo: pg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-pg.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-pg.Tpo -c -o libpki_net_la-pg.lo `test -f 'pg.c' || echo '$(srcdir)/'`pg.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-pg.Tpo $(DEPDIR)/libpki_net_la-pg.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pg.c' object='libpki_net_la-pg.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_lirt_la_CFLAGS) $(CFLAGS) -c -o libpki_lirt_la-lirt_lib.lo `test -f 'lirt_lib.c' || echo '$(srcdir)/'`lirt_lib.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-pg.lo `test -f 'pg.c' || echo '$(srcdir)/'`pg.c
+
+libpki_net_la-pki_socket.lo: pki_socket.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-pki_socket.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-pki_socket.Tpo -c -o libpki_net_la-pki_socket.lo `test -f 'pki_socket.c' || echo '$(srcdir)/'`pki_socket.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-pki_socket.Tpo $(DEPDIR)/libpki_net_la-pki_socket.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_socket.c' object='libpki_net_la-pki_socket.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-pki_socket.lo `test -f 'pki_socket.c' || echo '$(srcdir)/'`pki_socket.c
+
+libpki_net_la-ssl.lo: ssl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-ssl.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-ssl.Tpo -c -o libpki_net_la-ssl.lo `test -f 'ssl.c' || echo '$(srcdir)/'`ssl.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-ssl.Tpo $(DEPDIR)/libpki_net_la-ssl.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ssl.c' object='libpki_net_la-ssl.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-ssl.lo `test -f 'ssl.c' || echo '$(srcdir)/'`ssl.c
+
+libpki_net_la-http_s.lo: http_s.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-http_s.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-http_s.Tpo -c -o libpki_net_la-http_s.lo `test -f 'http_s.c' || echo '$(srcdir)/'`http_s.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-http_s.Tpo $(DEPDIR)/libpki_net_la-http_s.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='http_s.c' object='libpki_net_la-http_s.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-http_s.lo `test -f 'http_s.c' || echo '$(srcdir)/'`http_s.c
+
+libpki_net_la-mysql.lo: mysql.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-mysql.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-mysql.Tpo -c -o libpki_net_la-mysql.lo `test -f 'mysql.c' || echo '$(srcdir)/'`mysql.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-mysql.Tpo $(DEPDIR)/libpki_net_la-mysql.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mysql.c' object='libpki_net_la-mysql.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-mysql.lo `test -f 'mysql.c' || echo '$(srcdir)/'`mysql.c
+
+libpki_net_la-pkcs11.lo: pkcs11.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-pkcs11.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-pkcs11.Tpo -c -o libpki_net_la-pkcs11.lo `test -f 'pkcs11.c' || echo '$(srcdir)/'`pkcs11.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-pkcs11.Tpo $(DEPDIR)/libpki_net_la-pkcs11.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pkcs11.c' object='libpki_net_la-pkcs11.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-pkcs11.lo `test -f 'pkcs11.c' || echo '$(srcdir)/'`pkcs11.c
+
+libpki_net_la-sock.lo: sock.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-sock.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-sock.Tpo -c -o libpki_net_la-sock.lo `test -f 'sock.c' || echo '$(srcdir)/'`sock.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-sock.Tpo $(DEPDIR)/libpki_net_la-sock.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sock.c' object='libpki_net_la-sock.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-sock.lo `test -f 'sock.c' || echo '$(srcdir)/'`sock.c
+
+libpki_net_la-url.lo: url.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -MT libpki_net_la-url.lo -MD -MP -MF $(DEPDIR)/libpki_net_la-url.Tpo -c -o libpki_net_la-url.lo `test -f 'url.c' || echo '$(srcdir)/'`url.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_net_la-url.Tpo $(DEPDIR)/libpki_net_la-url.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='url.c' object='libpki_net_la-url.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_net_la_CFLAGS) $(CFLAGS) -c -o libpki_net_la-url.lo `test -f 'url.c' || echo '$(srcdir)/'`url.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -714,7 +777,6 @@ uninstall-am:
 	tags tags-am uninstall uninstall-am
 
 include $(TOP)/global-vars
-# libpki_lirt_la_LIBADD = $(OPENSSL_LIBS) 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

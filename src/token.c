@@ -2048,22 +2048,22 @@ int PKI_TOKEN_import_cert ( PKI_TOKEN *tk, PKI_X509_CERT *cert,
 
 	if( url->proto == URI_PROTO_ID ) {
 		memset(myLabel, 0x0, sizeof(myLabel));
-        	strncpy(myLabel, url->addr, sizeof( myLabel ));
+        	strncpy(myLabel, url->addr, sizeof(myLabel) - 1);
 		switch( type ) {
 			case PKI_DATATYPE_X509_CERT:
-				strncat( myLabel, "'s ID", sizeof(myLabel));
+				strncat( myLabel, "'s ID", sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_CA:
 				strncat( myLabel, "'s CA Cert",
-							sizeof(myLabel));
+							sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_OTHER:
 				strncat( myLabel, "'s Other Cert", 
-							sizeof(myLabel));
+							sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_TRUSTED:
 				strncat( myLabel, "'s Trusted Cert", 
-							sizeof(myLabel));
+							sizeof(myLabel) - 1);
 				break;
 			default:
 				if ( url ) URL_free ( url );
@@ -2105,22 +2105,22 @@ int PKI_TOKEN_import_cert_stack ( PKI_TOKEN *tk, PKI_X509_CERT_STACK *sk,
 
 	if( url->proto == URI_PROTO_ID ) {
 		memset(myLabel, 0x0, sizeof(myLabel));
-        	strncpy(myLabel, url->addr, sizeof( myLabel ));
+        	strncpy(myLabel, url->addr, sizeof(myLabel) - 1);
 		switch( type ) {
 			case PKI_DATATYPE_X509_CERT:
-				strncat( myLabel, "'s ID", sizeof(myLabel));
+				strncat( myLabel, "'s ID", sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_CA:
 				strncat( myLabel, "'s CA Cert",
-							sizeof(myLabel));
+							sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_OTHER:
 				strncat( myLabel, "'s Other Cert", 
-							sizeof(myLabel));
+							sizeof(myLabel) - 1);
 				break;
 			case PKI_DATATYPE_X509_TRUSTED:
 				strncat( myLabel, "'s Trusted Cert", 
-							sizeof(myLabel));
+							sizeof(myLabel) - 1);
 				break;
 			default:
 				if ( url ) URL_free ( url );

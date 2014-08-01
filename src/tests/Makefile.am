@@ -3,14 +3,14 @@
 ## All Rights Reserved
 
 TOP     = ..
-include $(TOP)/global-vars
+
+LIBPKI_CFLAGS		= @libpki_cflags@
+BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
 
 if STATIC_COMPILE
-# testLDFLAGS=-L../.libs $(LIBPKI_LIBS) -lpki
 testLDFLAGS=$(BUILD_LIBPKI_LDFLAGS)
 testLDADD=../libpki.la ../openssl/libpki-openssl.la
 else
-# testLDFLAGS=-L../.libs $(LIBPKI_LIBS) -lpki
 testLDFLAGS=$(BUILD_LIBPKI_LDFLAGS)
 testLDADD=../libpki.la ../openssl/libpki-openssl.la
 endif

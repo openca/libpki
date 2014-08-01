@@ -586,7 +586,7 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 	}
 
 	// Encode the message
-	if (PKI_MSG_REQ_encode(msg, PKI_DATA_FORMAT_PEM) == PKI_ERR)
+	if (PKI_MSG_REQ_encode(msg, PKI_MSG_PROTO_SCEP) == PKI_ERR)
 	{
 		PKI_log_err ( "Can not encode message!");
 		return ( NULL );

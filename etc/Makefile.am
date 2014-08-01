@@ -1,7 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
 TOP=../src
-include $(TOP)/global-vars
 
 PROFILES = \
 	profile.d/*.xml
