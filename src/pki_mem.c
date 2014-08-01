@@ -364,152 +364,6 @@ ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf ) {
 	return i;
 }
 
-PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skip_newlines)
-{
-	PKI_MEM *encoded = NULL;
-
-	char enc_buf[10];
-	int i = 0;
-
-	if( !mem || !mem->data || (mem->size == 0) )
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return NULL;
-	}
-
-	if((encoded = PKI_MEM_new_null()) == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return NULL;
-	}
-
-	for( i = 0; i < mem->size; i++ )
-	{
-		char *str = "=$&+,/:;=?@ <>#\%{}|\\^~[]\r\n`";
-		unsigned char tmp_d2 = 0;
-
-		if (skip_newlines && ( mem->data[i] == '\r' || mem->data[i] == '\n')) continue;
-
-		tmp_d2 = mem->data[i];
-		if ((strchr( str, tmp_d2 ) != NULL ) ||
-			(tmp_d2 <= 31) || ( tmp_d2 >= 127 ) || (isgraph(tmp_d2) == 0))
-		{
-			sprintf(enc_buf, "%%%2.2x", tmp_d2 );
-			PKI_MEM_add ( encoded, enc_buf, 3 );
-		}
-		else
-		{
-			PKI_MEM_add ( encoded, (char *) &(mem->data[i]), 1);
-		}
-	}
-
-	return encoded;
-}
-
-PKI_MEM *PKI_MEM_get_url_decoded(PKI_MEM *mem, int skip_newlines)
-{
-	PKI_MEM *decoded = NULL;
-	ssize_t data_size = 0;
-	unsigned char *data = NULL;
-	int i = 0;
-
-	if(!mem || !mem->data || (mem->size == 0) )
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return NULL;
-	}
-
-	// Allocates the new PKI_MEM for the decoding operations
-	if((decoded = PKI_MEM_new_null()) == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return NULL;
-	}
-
-	// Let's do the decoding
-	for( i = 0; i < mem->size; i++ )
-	{
-		int p;
-		unsigned char k;
-
-		if (sscanf((const char *)&mem->data[i], "%%%2x", &p) > 0)
-		{
-			k = (unsigned char) p;
-			PKI_MEM_add(decoded, (char *) &k, 1);
-			i += 2;
-		}
-		else
-		{
-			PKI_MEM_add(decoded, (char*) &data[i], 1);
-		}
-	}
-
-	// Returns the newly allocated url-decoded PKI_MEM
-	return decoded;
-}
-
-/*! \brief Returns a new PKI_MEM with a URL-safe encoded version of a PKI_MEM */
-
-int PKI_MEM_url_encode(PKI_MEM *mem, int skip_newlines)
-{
-	PKI_MEM *encoded = NULL;
-
-	if ((encoded = PKI_MEM_get_url_encoded(mem, skip_newlines)) == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return PKI_ERR_MEMORY_ALLOC;
-	}
-
-	// Clears the memory for the old PKI_MEM
-	if (mem->data) PKI_Free(mem->data);
-
-	// Transfer ownership of the data
-	mem->data = encoded->data;
-	mem->size = encoded->size;
-
-	// Clears the encoded data container
-	encoded->data = NULL;
-	encoded->size = 0;
-
-	// Free the newly-allocated (now empty) container
-	PKI_MEM_free(encoded);
-
-	// Returns success
-	return PKI_OK;
-}
-
-
-/*! \brief Decodes a URL-encoded PKI_MEM and returns the pointer to
- *         the same PKI_MEM object if successful, NULL otherwise */
-
-int PKI_MEM_url_decode(PKI_MEM *mem, int skip_newlines)
-{
-	PKI_MEM *decoded = NULL;
-
-	if ((decoded = PKI_MEM_get_url_decoded(mem, skip_newlines)) == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return PKI_ERR_MEMORY_ALLOC;
-	}
-
-	// Clears the memory for the old PKI_MEM
-	if (mem->data) PKI_Free(mem->data);
-
-	// Transfer ownership of the data
-	mem->data = decoded->data;
-	mem->size = decoded->size;
-
-	// Clears the encoded data container
-	decoded->data = NULL;
-	decoded->size = 0;
-
-	// Free the newly-allocated (now empty) container
-	PKI_MEM_free(decoded);
-
-	// Returns success
-	return PKI_OK;
-}
-
 /*! \brief Returns a PKI_MEM with the contents of a memory PKI_IO */
 
 PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io ) {
@@ -575,11 +429,16 @@ PKI_MEM *PKI_MEM_new_bio(PKI_IO *io, PKI_MEM **mem)
 	return my_mem;
 }
 
-/*! \brief Encodes the contents of a PKI_MEM in B64 format. If the second parameter
- *         is not 0, the resulting encoding is presented on a single line (no line
- *         breaks will be added to the resulting PKI_MEM */
+/*! \brief Returns a new B64-encoded PKI_MEM.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param skipNewLines The second parameter controls the format of the B64 data. If
+ *     set to 0, the encoded data will be bound with new lines every 76 chars. Otherwise
+ *     no line breaks will be added to the resulting PKI_MEM.
+ * @return This function returns a new PKI_MEM container with the B64-encoded content
+ */
 
-PKI_MEM *PKI_MEM_B64_encode (PKI_MEM *der, int skipNewLines)
+PKI_MEM *PKI_MEM_get_b64_encoded (PKI_MEM *mem, int skipNewLines)
 {
 	PKI_IO *b64 = NULL;
 	PKI_IO *bio = NULL;
@@ -600,7 +459,7 @@ PKI_MEM *PKI_MEM_B64_encode (PKI_MEM *der, int skipNewLines)
 	}
 
 	bio = BIO_push(b64, bio);
-	BIO_write ( bio, der->data, (int) der->size );
+	BIO_write ( bio, mem->data, (int) mem->size );
 	(void) BIO_flush (bio);
 	bio = BIO_pop ( bio );
 	BIO_free ( b64 );
@@ -609,24 +468,24 @@ PKI_MEM *PKI_MEM_B64_encode (PKI_MEM *der, int skipNewLines)
 	if((ret_mem = PKI_MEM_new_bio( bio, NULL )) != NULL)
 	{
 		// Free the old data
-		PKI_Free ( der->data );
+		PKI_Free ( mem->data );
 
 		// Get the new data from the ret_mem
-		der->data = ret_mem->data;
-		der->size = ret_mem->size;
+		mem->data = ret_mem->data;
+		mem->size = ret_mem->size;
 
 		// Free the ret_mem
 		PKI_Free ( ret_mem );
 
 		// The new data might have an ending EOL added to it, let's get
 		// rid of it
-		size_t size = der->size;
+		size_t size = mem->size;
 		while(size > 0)
 		{
-			if (der->data[size] == '\n' || der->data[size] == '\r' || der->data[size] == '\x0')
+			if (mem->data[size] == '\n' || mem->data[size] == '\r' || mem->data[size] == '\x0')
 			{
-				if (der->data[size] != '\x0') der->size--;
-				der->data[size] = '\x0';
+				if (mem->data[size] != '\x0') mem->size--;
+				mem->data[size] = '\x0';
 				size--;
 			}
 			else break;
@@ -640,16 +499,21 @@ PKI_MEM *PKI_MEM_B64_encode (PKI_MEM *der, int skipNewLines)
 
 	BIO_free ( bio );
 
-	return der;
+	return mem;
 }
 
-/*! \brief Decodes a PKI_MEM from B64. The second parameter controls the format of the
- *         expected B64 data. If set to negative values, the B64 data is expected to be
- *         on one line, if set to positive values, the data is expected to be on multiple
- *         lines. If set to 0, the data is assumed to be separated in 76 chars lines. */
+/*! \brief Returns a new PKI_MEM from a B64-encoded one.
+ *
+ * @param b64_mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param lineSize The second parameter controls the format of the expected B64 data. If set to
+ *    negative values, the B64 data is expected to be on one line, if set to positive
+ *    values, the data is expected to be on multiple lines. If set to 0, the data is
+ *    assumed to be separated in 76 chars lines.
+ * @return This function returns a new PKI_MEM container with the B64-decoded content
+ */
 
-PKI_MEM *PKI_MEM_B64_decode ( PKI_MEM *b64_mem, int lineSize ) {
-
+PKI_MEM *PKI_MEM_get_b64_decoded( PKI_MEM *mem, int lineSize )
+{
 	PKI_MEM *ret_mem = NULL;
 	PKI_IO *b64 = NULL;
 	PKI_IO *bio = NULL;
@@ -672,8 +536,8 @@ PKI_MEM *PKI_MEM_B64_decode ( PKI_MEM *b64_mem, int lineSize ) {
 	/* Let's write the data first */
 	/* It seems that OpenSSL has a max line length of 76, so we need linebreaks */
 	// so we can not use this: BIO_write ( bio, b64_mem->data, b64_mem->size );
-	size = (int64_t) b64_mem->size;
-	tmp_ptr = b64_mem->data;
+	size = (int64_t) mem->size;
+	tmp_ptr = mem->data;
 
 	// Let's write the file in chunks of lineSize (default 76)
 	if (lineSize > 0)
@@ -691,7 +555,7 @@ PKI_MEM *PKI_MEM_B64_decode ( PKI_MEM *b64_mem, int lineSize ) {
 	}
 	else
 	{
-		BIO_write(bio, b64_mem->data, (int) b64_mem->size);
+		BIO_write(bio, mem->data, (int) mem->size);
 	}
 
 	bio = BIO_push(b64, bio);
@@ -710,14 +574,302 @@ PKI_MEM *PKI_MEM_B64_decode ( PKI_MEM *b64_mem, int lineSize ) {
 	BIO_free( bio );
 
 	if ( ret_mem->size > 0 ) {
-		PKI_Free ( b64_mem->data );
-		b64_mem->data = ret_mem->data;
-		b64_mem->size = ret_mem->size;
+		PKI_Free (mem->data );
+		mem->data = ret_mem->data;
+		mem->size = ret_mem->size;
 		PKI_Free ( ret_mem );
 	} else {
 		PKI_Free ( ret_mem );
 		return PKI_ERR;
 	}
 
-	return b64_mem;
+	return mem;
+}
+
+/*! \brief Returns a new URL-encoded PKI_MEM.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param skipNewLines If set to anything but 0, new line characters (\n and \r)
+ *    will be skipped (and, thus, NOT encoded).
+ * @return This function returns a new PKI_MEM container with the URL-encoded content
+ */
+
+PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skipNewLines)
+{
+	PKI_MEM *encoded = NULL;
+
+	char enc_buf[1024];
+
+	int i = 0;
+	int enc_idx = 0;
+
+	if( !mem || !mem->data || (mem->size == 0) )
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	if((encoded = PKI_MEM_new_null()) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	for( i = 0; i < mem->size; i++ )
+	{
+		char *str = "=$&+,/:;=?@ <>#\%{}|\\^~[]\r\n`";
+		unsigned char tmp_d2 = 0;
+
+		if (skipNewLines && ( mem->data[i] == '\r' || mem->data[i] == '\n')) continue;
+
+		tmp_d2 = mem->data[i];
+		if ((strchr( str, tmp_d2 ) != NULL ) ||
+			(tmp_d2 <= 31) || ( tmp_d2 >= 127 ) || (isgraph(tmp_d2) == 0))
+		{
+			enc_idx += sprintf(&enc_buf[enc_idx], "%%%2.2x", tmp_d2 );
+			// PKI_MEM_add ( encoded, enc_buf, 3 );
+		}
+		else
+		{
+			// PKI_MEM_add ( encoded, (char *) &(mem->data[i]), 1);
+			enc_buf[enc_idx++] = mem->data[i];
+		}
+
+		// Let's check if it is time to move the buffer contents into the
+		// PKI_MEM. If so, let's transfer the content and reset the buffer
+		// index
+		if (enc_idx >= sizeof(enc_buf) - 4)
+		{
+			PKI_MEM_add(encoded, enc_buf, enc_idx);
+			enc_idx = 0;
+		}
+	}
+
+	// If there is something left in the buffer that needs to be added
+	// we add it
+	if (enc_idx > 0) PKI_MEM_add(encoded, enc_buf, enc_idx);
+
+	// Let's now return the encoded PKI_MEM
+	return encoded;
+}
+
+/*! \brief Returns a new URL-decoded PKI_MEM.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @return This function returns a new PKI_MEM container with the URL-encoded content
+ */
+
+PKI_MEM *PKI_MEM_get_url_decoded(PKI_MEM *mem)
+{
+	PKI_MEM *decoded = NULL;
+	ssize_t data_size = 0;
+	unsigned char *data = NULL;
+
+	int i = 0;
+	int enc_idx = 0;
+
+	if(!mem || !mem->data || (mem->size == 0) )
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Let's allocate a big buffer - same size of the encoded one
+	// is enough as URL encoding expands the size (decoded is smaller)
+	if ((data = PKI_Malloc(mem->size)) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Let's do the decoding
+	for( i = 0; i < mem->size; i++ )
+	{
+		int p;
+		unsigned char k;
+
+		if (sscanf((const char *)&mem->data[i], "%%%2x", &p) > 0)
+		{
+			k = (unsigned char) p;
+			data[enc_idx++] = k;
+			i += 2;
+		}
+		else
+		{
+			data[enc_idx++] = mem->data[i];
+		}
+	}
+
+	// Allocates the new PKI_MEM for the decoding operations
+	if((decoded = PKI_MEM_new_data(enc_idx, data)) == NULL)
+	{
+		PKI_Free(data);
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Free the allocated memory
+	PKI_Free(data);
+
+	// Returns the newly allocated url-decoded PKI_MEM
+	return decoded;
+}
+
+/*! \brief Returns a new PKI_MEM whose content is encoded according to the selected format.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param format The second parameter controls the encoding format. Supported formats
+ *    are PKI_DATA_FORMAT_B64 and PKI_DATA_FORMAT_URL.
+ * @param opts The third parameter is format-specific. For B64 encoding, if this
+ *    parameter is set to anything but 0, the encoded data will be bound with new lines
+ *    every 76 chars. For URL encoding, if this parameter is set to anything but 0, new
+ *    line characters (\n and \r) will be skipped (and, thus, NOT encoded).
+ * @return This function returns a new PKI_MEM container with the encoded content.
+ */
+
+PKI_MEM * PKI_MEM_get_encoded(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
+{
+	if (!mem || !mem->data)
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Let's check the available encodings
+	switch (format)
+	{
+		case PKI_DATA_FORMAT_B64:
+			return PKI_MEM_get_b64_encoded(mem, opts);
+			break;
+
+		case PKI_DATA_FORMAT_URL:
+			return PKI_MEM_get_url_encoded(mem, opts);
+			break;
+
+		default:
+			// Unknown data format
+			PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+	}
+
+	// If we reach here, it means no valid format was detected
+	return NULL;
+}
+
+/*! \brief Returns a new PKI_MEM whose content is decoded according to the selected format.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param format The second parameter controls the format to be decoded. Supported
+ *    formats are PKI_DATA_FORMAT_B64 and PKI_DATA_FORMAT_URL.
+ * @param opts The third parameter is format-specific. For B64 decoding, if this
+ *    parameter is set to anything but 0, the decoded data will be bound with new lines
+ *    every 76 chars (Max). For URL encoding, this parameter has no effect.
+ * @return This function returns a new PKI_MEM container with the encoded content.
+ */
+
+PKI_MEM * PKI_MEM_get_decoded(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
+{
+	if (!mem || !mem->data)
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Let's check the available encodings
+	switch (format)
+	{
+		case PKI_DATA_FORMAT_B64:
+			return PKI_MEM_get_b64_decoded(mem, opts);
+			break;
+
+		case PKI_DATA_FORMAT_URL:
+			return PKI_MEM_get_url_decoded(mem);
+			break;
+
+		default:
+			// Unknown data format
+			PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+	}
+
+	// If we reach here, it means no valid format was detected
+	return NULL;
+}
+
+/* !\brief Encodes the contents of a PKI_MEM according to the provided data format.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param format The second parameter controls the format to be encoded. Supported
+ *    formats are PKI_DATA_FORMAT_B64 and PKI_DATA_FORMAT_URL.
+ * @param opts The third parameter is format-specific. For B64 encoding, if this
+ *    parameter is set to anything but 0, the encoded data will be bound with new lines
+ *    every 76 chars. For URL encoding, if this parameter is set to anything but 0, new
+ *    line characters (\n and \r) will be skipped (and, thus, NOT encoded).
+ * @return PKI_OK if the decoding was successful. In case of errors, the appropriate
+ *    error code is returned.
+ */
+int PKI_MEM_encode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
+{
+	PKI_MEM *encoded = NULL;
+
+	if ((encoded = PKI_MEM_get_encoded(mem, format, opts)) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR_MEMORY_ALLOC;
+	}
+
+	// Clears the memory for the old PKI_MEM
+	if (mem->data) PKI_Free(mem->data);
+
+	// Transfer ownership of the data
+	mem->data = encoded->data;
+	mem->size = encoded->size;
+
+	// Clears the encoded data container
+	encoded->data = NULL;
+	encoded->size = 0;
+
+	// Free the newly-allocated (now empty) container
+	PKI_MEM_free(encoded);
+
+	// Returns success
+	return PKI_OK;
+}
+
+/*! \brief Decodes the contents of a PKI_MEM according to the selected format.
+ *
+ * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
+ * @param format The second parameter controls the format to be decoded. Supported
+ *    formats are PKI_DATA_FORMAT_B64 and PKI_DATA_FORMAT_URL.
+ * @param opts The third parameter is format-specific. For B64 decoding, if this
+ *    parameter is set to anything but 0, the decoded data will be bound with new lines
+ *    every 76 chars (Max). For URL encoding, this parameter has no effect.
+ * @return PKI_OK if the decoding was successful. In case of errors, the appropriate
+ *    error code is returned.
+ */
+
+int PKI_MEM_decode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
+{
+	PKI_MEM *decoded = NULL;
+
+	if ((decoded = PKI_MEM_get_decoded(mem, format, opts)) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR_MEMORY_ALLOC;
+	}
+
+	// Clears the memory for the old PKI_MEM
+	if (mem->data) PKI_Free(mem->data);
+
+	// Transfer ownership of the data
+	mem->data = decoded->data;
+	mem->size = decoded->size;
+
+	// Clears the encoded data container
+	decoded->data = NULL;
+	decoded->size = 0;
+
+	// Free the newly-allocated (now empty) container
+	PKI_MEM_free(decoded);
+
+	// Returns success
+	return PKI_OK;
 }

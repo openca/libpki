@@ -603,7 +603,7 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 	}
 	
 	// Strips \n \r from the B64 and encodes for safe URL
-	if (PKI_MEM_url_encode(mem, 1) != PKI_OK)
+	if (PKI_MEM_encode(mem, PKI_DATA_FORMAT_URL, 1) != PKI_OK)
 	{
 		PKI_log_err ("Memory Error!");
 		PKI_MEM_free ( mem );

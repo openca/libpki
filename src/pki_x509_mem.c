@@ -124,20 +124,12 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 			}
 			else if (cb->read_der)
 			{
-				// PKI_MEM *rr = PKI_MEM_dup(mem);
-				// if (rr == NULL) break;
-
-				if (PKI_MEM_B64_decode(dup_mem, 76) == NULL &&
-						PKI_MEM_B64_decode(dup_mem, 0) == NULL)
+				if (PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 76) != PKI_OK &&
+						PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 0) != PKI_OK)
 				{
 					// Can not B64 decode
 					break;
 				}
-
-				// Let's make the io internals point to the
-				// B64 decoded PKI_MEM (rr)
-				// ptr = (BUF_MEM *) io->ptr;
-				// ptr->data = (char *) rr->data;
 
 				// Now we "write" the data into the PKI_IO
 				BIO_write(io, dup_mem->data, (int) dup_mem->size);
@@ -145,22 +137,6 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 				// And use the DER reader to retrieve the
 				// requested object
 				ret = cb->read_der(io, NULL);
-
-				/*
-					rr = PKI_MEM_new_bio(io, NULL);
-					PKI_MEM_B64_decode(rr, 76);
-				(void) BIO_flush(io);
-				// BIO_free_all(io);
-
-				//if ((io = BIO_new(BIO_s_mem())) != NULL)
-				// {
-					BIO_write(io, rr->data, (int) rr->size);
-				//	(void) BIO_flush(io);
-
-					ret = cb->read_der(io, NULL);
-					PKI_MEM_free(rr);
-				//}
-				 */
 			}
 			break;
 
@@ -376,8 +352,8 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 				if ((ret = PKI_MEM_new_bio(membio, pki_mem))
 								!= NULL )
 				{
-					if (PKI_MEM_B64_encode(ret, 0) == NULL) rv = PKI_ERR;
-					else rv = PKI_OK;
+					rv = PKI_MEM_encode(ret, PKI_DATA_FORMAT_B64, 0);
+					if (rv != PKI_OK) rv = 0; // We align with the callbacks ret codes
 				}
 				else
 				{
@@ -402,7 +378,7 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 	/* We already covered the case of B64 without a specific encoding callback */
 	if ((format != PKI_DATA_FORMAT_B64) || (cb->to_b64 != NULL))
 	{
-		if (rv)
+		if (rv != 0)
 		{
 			if ((ret = PKI_MEM_new_bio(membio, pki_mem)) == NULL )
 			{
@@ -425,7 +401,7 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 	{
 		PKI_MEM *url_encoded = NULL;
 	
-		if (PKI_MEM_url_encode(ret, 1 ) != PKI_OK)
+		if (PKI_MEM_encode(ret, PKI_DATA_FORMAT_URL, 1 ) != PKI_OK)
 		{
 			PKI_MEM_free(ret);
 			return NULL;

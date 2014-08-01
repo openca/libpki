@@ -18,6 +18,8 @@ typedef enum {
 	PKI_ERR_PARAM_NULL,
 	PKI_ERR_CALLBACK_NULL,
 	PKI_ERR_PARAM_TYPE,
+	PKI_ERR_PKI_FORMAT_UNKNOW,
+	PKI_ERR_DATA_FORMAT_UNKNOWN,
 	/* PKI MEM Errors */
 	PKI_ERR_MEM_,
 	/* URI related Errors */
@@ -131,6 +133,8 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_PARAM_NULL, "Null Parameter" },
 	{ PKI_ERR_CALLBACK_NULL, "Missing or Null Callback" },
 	{ PKI_ERR_PARAM_TYPE, "Wrong Paramenter Type" },
+	{ PKI_ERR_PKI_FORMAT_UNKNOW, "Unknow PKI Format" },
+	{ PKI_ERR_DATA_FORMAT_UNKNOWN, "Unknown Data Format" },
 	/* PKI MEM Errors */
 	{ PKI_ERR_MEM_, "" },
 	/* URI Related Operations */

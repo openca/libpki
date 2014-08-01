@@ -49,17 +49,22 @@ size_t PKI_MEM_get_size( PKI_MEM *buf );
 ssize_t PKI_MEM_printf( PKI_MEM * buf );
 ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf );
 
-int PKI_MEM_url_encode ( PKI_MEM *mem, int skip_newlines );
-int PKI_MEM_url_decode ( PKI_MEM *mem, int skip_newlines );
-
-PKI_MEM *PKI_MEM_get_url_encoded ( PKI_MEM *mem, int skip_newlines );
-PKI_MEM *PKI_MEM_get_url_decoded ( PKI_MEM *mem, int skip_newlines );
-
 #include <openssl/bio.h>
 PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io );
 PKI_MEM *PKI_MEM_new_bio ( PKI_IO *io, PKI_MEM **mem );
 
-PKI_MEM *PKI_MEM_B64_encode ( PKI_MEM *der, int skipNewLines );
-PKI_MEM *PKI_MEM_B64_decode ( PKI_MEM *b64_mem, int lineSize );
+// Specific Format Encoding / Decoding
+PKI_MEM *PKI_MEM_get_url_encoded( PKI_MEM *mem, int skip_newlines);
+PKI_MEM *PKI_MEM_get_url_decoded( PKI_MEM *mem);
+PKI_MEM *PKI_MEM_get_b64_encoded( PKI_MEM *mem, int skipNewLines);
+PKI_MEM *PKI_MEM_get_b64_decoded( PKI_MEM *mem, int lineSize);
+
+// Generic Format Encoding / Decoding
+PKI_MEM * PKI_MEM_get_encoded(PKI_MEM *mem, PKI_DATA_FORMAT format, int opt);
+PKI_MEM * PKI_MEM_get_decoded(PKI_MEM *mem, PKI_DATA_FORMAT format, int opt);
+
+// Generic (in-place) Format Encoding / Decoding
+int PKI_MEM_encode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opt);
+int PKI_MEM_decode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opt);
 
 #endif
