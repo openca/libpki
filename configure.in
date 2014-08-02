@@ -478,7 +478,7 @@ dnl databases, tmp, crypto, mails
 AC_ARG_WITH( include-prefix,
 	AC_HELP_STRING( [--with-include-prefix=INCLUDEPREFIX],
 			[sets include prefix (default is PREFIX/include)]),
-			include_prefix=$withval, var_prefix=${prefix}/include)
+			include_prefix=$withval, include_prefix=${prefix}/include)
 AC_SUBST(include_prefix)
 
 dnl ############################## BEGIN #############################
@@ -680,7 +680,7 @@ AC_SUBST(xml2_prefix)
 if ! [[ "x$xml2_config" = "x" ]] ; then
 	xml2_cflags=`$xml2_config --cflags`
  	xml2_ldadd=`$xml2_config --libs`
-  xml2_ldflags=-L`$xml2_config --prefix` 
+  xml2_ldflags=-L`$xml2_config --prefix`/lib$mybits_install 
   XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
 else
   xml2_cflags=-I${xml2_prefix}/include/libxml2
@@ -691,7 +691,10 @@ fi
 
 xml2_config="$xml2_prefix/bin/xml2-config"
 
-AC_MSG_RESULT([with xml2-prefix      : $xml2_prefix ])
+AC_MSG_RESULT([with xml2-prefix      : $xml2_prefix])
+AC_MSG_RESULT([with xml2-cflags      : $xml2_cflags])
+AC_MSG_RESULT([with xml2-ldflags     : $xml2_ldflags])
+AC_MSG_RESULT([with xml2-ldadd       : $xml2_ldadd])
 
 AM_CONDITIONAL(xml2_prefix, test ! x$xml2_prefix = x )
 
@@ -702,10 +705,9 @@ fi
 dnl Export our XML2 build settings
 AC_DEFINE(HAVE_XML2, 1, [LIBXML2])
 
-AC_SUBST(xml2_prefix)
 AC_SUBST(xml2_config)
+AC_SUBST(xml2_prefix)
 AC_SUBST(xml2_cflags)
-AC_SUBST(XML2_CPPFLAGS)
 AC_SUBST(xml2_ldadd)
 AC_SUBST(xml2_ldflags)
 
@@ -1071,9 +1073,9 @@ if [[ "${enableopenssl}" = "yes" ]] ; then
 
 	  openssl_ldadd="-lcrypto -lssl"
 	  openssl_ldflags=
-      AC_MSG_RESULT([openssl lib dir         : $openssl_path])
+    AC_MSG_RESULT([openssl lib dir         : $openssl_path])
    else
-      AC_MSG_RESULT([openssl lib dir         : $openssl_path (default)])
+    AC_MSG_RESULT([openssl lib dir         : $openssl_path (default)])
 
 	  openssl_ldadd="-lcrypto -lssl"
 	  openssl_ldflags=
@@ -1325,40 +1327,35 @@ fi
 AC_SUBST(sys_ldadd)
 AC_SUBST(sys_cflags)
 
+libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+
 if [[ "${enable_shared}" = "yes" ]] ; then
-  libpki_ldflags="${openssl_ldflags} ${openssl_ldadd} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags} -L${lib_prefix}"
-libpki_ldadd="-lpthread"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${openssl_ldadd} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread"
 else
-libpki_ldflags="-static ${ldap_ldflags} -L${lib_prefix} ${openssl_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-libpki_ldadd="-lpthread ${openssl_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
 fi
 
-libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${kmf_cflags} ${xml2_cflags} ${sys_cflags}"
-
 # Harmonize the linker directories
-h_dirs="${lib_prefix} ${prefix}/lib${bits_install}"
+h_dirs="${lib_prefix} ${prefix}/lib"
 for dir in $h_dirs ; do
-  if ! [[ -d "$dir" ]] ; then
-    libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}||g"`
+  if ! [[ -d "${dir}${mybits_install}" ]] ; then
+    libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
     AC_MSG_RESULT([Removed $dir from linking (non-existing dir)])
   else
-    has_dir=`echo $libpki_ldflags | grep "L${dir}"`
+    has_dir=`echo $libpki_ldflags | grep "L${dir}${mybits_install}"`
     if ! [[ "x$has_dir" = "x" ]] ; then
-      libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}||g"`
-      libpki_ldflags="-L${dir} $libpki_ldflags"
+    	AC_MSG_RESULT([Removing duplicate entries for -L${dir}${mybits_install} from libpki_ldflags])
+      libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
+      libpki_ldflags="-L${dir}${mybits_install} $libpki_ldflags"
     	AC_MSG_RESULT([Removed duplicate entries for -L$dir from libpki_ldflags])
-    fi
-    has_dir=`echo $libpki_ldadd | grep -q "L${dir}"`
-    if ! [[ "x$has_dir" = "x" ]] ; then
-      libpki_ldadd=`echo $libpki_ldadd | sed -e "s|-L${dir}||g"`
-      libpki_ldadd="-L${dir} $libpki_ldadd"
-    	AC_MSG_RESULT([Removed duplicate entries for -L$dir from libpki_ldadd])
     fi
   fi
 done
 
 # Harmonize the linker directories
-c_dirs="${lib_prefix}/include ${prefix}/include"
+c_dirs="${prefix}/include"
 for dir in $c_dirs ; do
   if ! [[ -d "$dir" ]] ; then
     libpki_cflags=`echo $libpki_cflags | sed -e "s|-I${dir}||g"`
@@ -1372,10 +1369,6 @@ for dir in $c_dirs ; do
     fi
   fi
 done
-
-
-# libpki_cflags=`echo $libpki_cflags | sed -e "s|-L/usr/lib$bits_install ||g" | sed -e "s|-I/usr/include ||g"`
-# libpki_ldadd=`echo $libpki_ldadd | sed -e "s|-L/usr/lib$bits_install ||g" | sed -e "s|-L/usr ||g"`
 
 # Adds all the rpaths
 if ! [[ "x$enable_rpath" = "xyes" ]] ; then
@@ -1393,11 +1386,11 @@ AC_SUBST(libpki_ldadd)
 dnl Internal Makefile
 if [[ "${enable_shared}" = "yes" ]] ; then
 	my_ldadd="-lpthread ${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
-	my_ldflags="${ldap_ldflags} ${openssl_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else
 	if [[ "$iphone_build" = "no" ]] ; then
-		my_ldflags="-static ${ldap_ldflags} -L${openssl_prefix}/lib ${openssl_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd}"
 		test_libs="-static ${sys_ldadd} src/.libs/libpki.a"
 	else
@@ -1407,28 +1400,29 @@ else
 	fi
 fi
 
+my_cflags="${EXTRA_CFLAGS} ${libpki_cflags}"
 my_ldflags=`echo ${my_ldflags} | sed -e "s|-lssl||g" | sed -e "s|-lcrypto||g"`
-my_cflags="${EXTRA_CFLAGS} ${ldap_cflags} ${openssl_cflags} ${xml2_cflags} ${kmf_cflags} ${mysql_cflags} ${pg_cflags} "
-
 
 # Harmonize the linker directories
-h_dirs="${lib_prefix} ${prefix}/lib${bits_install}"
+h_dirs="${lib_prefix} ${prefix}/lib"
 for dir in $h_dirs ; do
-  if ! [[ -d "$dir" ]] ; then
-    my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}||g"`
+  if ! [[ -d "${dir}${mybits_install}" ]] ; then
+    my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
     AC_MSG_RESULT([Removed $dir from linking (non-existing dir)])
   else
-    has_dir=`echo $my_ldflags | grep "L${dir}"`
+    has_dir=`echo $my_ldflags | grep "L${dir}${mybits_install}"`
     if ! [[ "x$has_dir" = "x" ]] ; then
-      my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}||g"`
-      my_ldflags="-L${dir} $my_ldflags"
-    	AC_MSG_RESULT([Removed duplicate entries for -L$dir from my_ldflags])
+    	AC_MSG_RESULT([Removing duplicate entries for -L${dir}${mybits_install} from my_ldflags])
+      my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
+      my_ldflags="-L${dir}${mybits_install} $my_ldflags"
+    	AC_MSG_RESULT([Removed duplicate entries for -L${dir}${mybits_install} from my_ldflags])
     fi
+    AC_MSG_RESULT([New my_ldflags: $my_ldflags])
   fi
 done
 
 # Harmonize the linker directories
-c_dirs="${lib_prefix}/include ${prefix}/include"
+c_dirs="${prefix}/include"
 for dir in $c_dirs ; do
   if ! [[ -d "$dir" ]] ; then
     my_cflags=`echo $my_cflags | sed -e "s|-I${dir}||g"`
@@ -1438,11 +1432,10 @@ for dir in $c_dirs ; do
     if ! [[ "x$has_dir" = "x" ]] ; then
       my_cflags=`echo "$my_cflags" | sed -e "s|-I${dir}||g"`
       my_cflags="-I${dir} $my_cflags"
-    	AC_MSG_RESULT([Removed duplicate entries for -I$dir from my_cflags])
+    	AC_MSG_RESULT([Removed duplicate entries for -I${dir} from my_cflags])
     fi
   fi
 done
-
 
 AC_SUBST(my_cflags)
 AC_SUBST(my_ldflags)
@@ -1505,10 +1498,10 @@ AC_CONFIG_FILES(
 
 AC_OUTPUT
 
-if [[ "x$myarch" = "xsolaris" ]] ; then
-	# We need to patch libtool
-	patch -N <contrib/solaris-libtool.patch 2>/dev/null >/dev/null
-fi
+# if [[ "x$myarch" = "xsolaris" ]] ; then
+# 	# We need to patch libtool
+# 	patch -N <contrib/solaris-libtool.patch 2>/dev/null >/dev/null
+# fi
 
 echo "
 XML2 library Configuration:
