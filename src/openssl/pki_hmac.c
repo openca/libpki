@@ -226,7 +226,7 @@ PKI_MEM *PKI_HMAC_get_value_b64(PKI_HMAC *hmac)
 	// If a valid PKI_MEM is returned, let's B64 it
 	if (ret && ret->data && ret->size > 0)
 	{
-		if (PKI_MEM_encode(ret, PKI_DATA_FORMAT_B64, 1) != PKI_OK)
+		if (PKI_MEM_encode(ret, PKI_DATA_FORMAT_B64, 0) != PKI_OK)
 		{
 			PKI_log_err("can not B64 encoding HMAC PKI_MEM value");
 			if (ret) PKI_MEM_free(ret);

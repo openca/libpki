@@ -124,7 +124,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 			}
 			else if (cb->read_der)
 			{
-				if (PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 76) != PKI_OK &&
+				if (PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 1) != PKI_OK &&
 						PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 0) != PKI_OK)
 				{
 					// Can not B64 decode
@@ -352,7 +352,7 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 				if ((ret = PKI_MEM_new_bio(membio, pki_mem))
 								!= NULL )
 				{
-					rv = PKI_MEM_encode(ret, PKI_DATA_FORMAT_B64, 0);
+					rv = PKI_MEM_encode(ret, PKI_DATA_FORMAT_B64, 1);
 					if (rv != PKI_OK) rv = 0; // We align with the callbacks ret codes
 				}
 				else

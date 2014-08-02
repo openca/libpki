@@ -135,14 +135,6 @@ PKI_MEM *PKI_MEM_new_func_bio ( void *obj, int (*func)(BIO *, void *) ) {
 		return ( NULL );
 	}
 
-	// fprintf( stderr, "BIO MEM PTR => %p [%d]\n", 
-	// 			bio_mem_ptr, bio_mem_ptr->length );
-	//
-	// if(( ret = PKI_MEM_new_null()) == NULL ) {
-	// 	if( bio_mem ) BIO_free ( bio_mem );
-	// 	return NULL;
-	// }
-
 	/* Adds the data to the return PKI_MEM */
 	size = (size_t) bio_mem_ptr->length;
 	ret = PKI_MEM_new_data( size, (unsigned char *) bio_mem_ptr->data);
@@ -165,8 +157,11 @@ int PKI_MEM_free ( PKI_MEM *buf ) {
 
 	if( !buf ) return (0);
 
-	PKI_ZFree(buf->data, buf->size);
-	buf->data = NULL;
+	if (buf->data)
+	{
+		PKI_ZFree(buf->data, buf->size);
+		buf->data = NULL;
+	}
 
 	PKI_ZFree(buf, sizeof(PKI_MEM));
 
@@ -433,25 +428,24 @@ PKI_MEM *PKI_MEM_new_bio(PKI_IO *io, PKI_MEM **mem)
  *
  * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
  * @param skipNewLines The second parameter controls the format of the B64 data. If
- *     set to 0, the encoded data will be bound with new lines every 76 chars. Otherwise
- *     no line breaks will be added to the resulting PKI_MEM.
+ *     set to non-0 values, the encoded data will be bound with new lines every 76
+ *     chars. Otherwise (if 0) no line breaks will be added to the resulting PKI_MEM.
  * @return This function returns a new PKI_MEM container with the B64-encoded content
  */
 
-PKI_MEM *PKI_MEM_get_b64_encoded (PKI_MEM *mem, int skipNewLines)
+PKI_MEM *PKI_MEM_get_b64_encoded (PKI_MEM *mem, int addNewLines)
 {
 	PKI_IO *b64 = NULL;
 	PKI_IO *bio = NULL;
-	PKI_MEM *ret_mem = NULL;
+
+	PKI_MEM *encoded = NULL;
 
 	if(!(b64 = BIO_new(BIO_f_base64()))) {
 		return NULL;
 	}
 
-	if (skipNewLines != 0)
-	{
-		BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-	}
+	// Sets the flag to not output any new-line (only one line)
+	if (addNewLines == 0) BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
 	if(!(bio = BIO_new(BIO_s_mem()))) {
 		BIO_free_all ( b64 );
@@ -465,27 +459,17 @@ PKI_MEM *PKI_MEM_get_b64_encoded (PKI_MEM *mem, int skipNewLines)
 	BIO_free ( b64 );
 
 	/* Now we get back the info from the bio */
-	if((ret_mem = PKI_MEM_new_bio( bio, NULL )) != NULL)
+	if((encoded = PKI_MEM_new_bio( bio, NULL )) != NULL)
 	{
-		// Free the old data
-		PKI_Free ( mem->data );
-
-		// Get the new data from the ret_mem
-		mem->data = ret_mem->data;
-		mem->size = ret_mem->size;
-
-		// Free the ret_mem
-		PKI_Free ( ret_mem );
-
 		// The new data might have an ending EOL added to it, let's get
 		// rid of it
-		size_t size = mem->size;
-		while(size > 0)
+		size_t size = encoded->size;
+		while (size > 0)
 		{
-			if (mem->data[size] == '\n' || mem->data[size] == '\r' || mem->data[size] == '\x0')
+			if (encoded->data[size] == '\n' || encoded->data[size] == '\r' || encoded->data[size] == '\x0')
 			{
-				if (mem->data[size] != '\x0') mem->size--;
-				mem->data[size] = '\x0';
+				if (encoded->data[size] != '\x0') encoded->size--;
+				encoded->data[size] = '\x0';
 				size--;
 			}
 			else break;
@@ -499,91 +483,55 @@ PKI_MEM *PKI_MEM_get_b64_encoded (PKI_MEM *mem, int skipNewLines)
 
 	BIO_free ( bio );
 
-	return mem;
+	return encoded;
 }
 
 /*! \brief Returns a new PKI_MEM from a B64-encoded one.
  *
  * @param b64_mem The first parameter should be a pointer to a valid PKI_MEM container.
- * @param lineSize The second parameter controls the format of the expected B64 data. If set to
+ * @param withNewLines The second parameter controls the format of the expected B64 data. If set to
  *    negative values, the B64 data is expected to be on one line, if set to positive
  *    values, the data is expected to be on multiple lines. If set to 0, the data is
  *    assumed to be separated in 76 chars lines.
  * @return This function returns a new PKI_MEM container with the B64-decoded content
  */
 
-PKI_MEM *PKI_MEM_get_b64_decoded( PKI_MEM *mem, int lineSize )
+PKI_MEM *PKI_MEM_get_b64_decoded(PKI_MEM *mem, int withNewLines)
 {
-	PKI_MEM *ret_mem = NULL;
+	PKI_MEM *decoded = NULL;
+
 	PKI_IO *b64 = NULL;
 	PKI_IO *bio = NULL;
+
 	int i = 0;
-	int64_t size = 0;
+	int n = 0;
+
 	char buf[1024];
 	unsigned char *tmp_ptr;
 
-	if(!(b64 = BIO_new(BIO_f_base64()))) {
-		return NULL;
-	};
+	if (!(b64 = BIO_new(BIO_f_base64()))) return NULL;
+	if (withNewLines <= 0) BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
 
-	if (lineSize <= 0) BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
-
-	if(!(bio = BIO_new(BIO_s_mem()))) {
-		BIO_free_all ( b64 );
+	if ((bio = BIO_new_mem_buf(mem->data, (int) mem->size)) == NULL)
+	{
+		BIO_free_all(b64);
 		return NULL;
 	}
+	BIO_push(b64, bio);
 
-	/* Let's write the data first */
-	/* It seems that OpenSSL has a max line length of 76, so we need linebreaks */
-	// so we can not use this: BIO_write ( bio, b64_mem->data, b64_mem->size );
-	size = (int64_t) mem->size;
-	tmp_ptr = mem->data;
-
-	// Let's write the file in chunks of lineSize (default 76)
-	if (lineSize > 0)
+	if ((decoded = PKI_MEM_new_null()) == NULL)
 	{
-		if (lineSize > 76) lineSize = 76;
-		while (size > lineSize)
-		{
-			BIO_write(bio, tmp_ptr, (int) lineSize);
-			BIO_write(bio, "\n", 1);
-
-			size -= lineSize;
-			tmp_ptr += lineSize;
-		}
-		BIO_write(bio, tmp_ptr, (int) size);
+		BIO_free_all(b64);
+		return NULL;
 	}
-	else
+
+	while ((n = BIO_read(b64, buf, sizeof(buf))) > 0)
 	{
-		BIO_write(bio, mem->data, (int) mem->size);
+		PKI_MEM_add(decoded, buf, n);
 	}
+	BIO_free_all(b64);
 
-	bio = BIO_push(b64, bio);
-	ret_mem = PKI_MEM_new_null();
-	do {
-		i = BIO_read ( bio, buf, sizeof (buf));
-		if ( i > 0 ) {
-			size = (size_t) i;
-			PKI_MEM_add(ret_mem, buf, (size_t) size );
-		}
-	} while ( i > 0 );
-
-	(void)BIO_flush(bio);
-	bio = BIO_pop(bio);
-	BIO_free( b64 );
-	BIO_free( bio );
-
-	if ( ret_mem->size > 0 ) {
-		PKI_Free (mem->data );
-		mem->data = ret_mem->data;
-		mem->size = ret_mem->size;
-		PKI_Free ( ret_mem );
-	} else {
-		PKI_Free ( ret_mem );
-		return PKI_ERR;
-	}
-
-	return mem;
+	return decoded;
 }
 
 /*! \brief Returns a new URL-encoded PKI_MEM.
@@ -603,13 +551,13 @@ PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skipNewLines)
 	int i = 0;
 	int enc_idx = 0;
 
-	if( !mem || !mem->data || (mem->size == 0) )
+	if (!mem || !mem->data || (mem->size == 0))
 	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
-	if((encoded = PKI_MEM_new_null()) == NULL)
+	if ((encoded = PKI_MEM_new_null()) == NULL)
 	{
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
@@ -620,7 +568,7 @@ PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skipNewLines)
 		char *str = "=$&+,/:;=?@ <>#\%{}|\\^~[]\r\n`";
 		unsigned char tmp_d2 = 0;
 
-		if (skipNewLines && ( mem->data[i] == '\r' || mem->data[i] == '\n')) continue;
+		if (skipNewLines && (mem->data[i] == '\r' || mem->data[i] == '\n')) continue;
 
 		tmp_d2 = mem->data[i];
 		if ((strchr( str, tmp_d2 ) != NULL ) ||
@@ -817,18 +765,18 @@ int PKI_MEM_encode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
 	}
 
 	// Clears the memory for the old PKI_MEM
-	if (mem->data) PKI_Free(mem->data);
+	// if (mem->data) PKI_Free(mem->data);
 
 	// Transfer ownership of the data
 	mem->data = encoded->data;
 	mem->size = encoded->size;
 
 	// Clears the encoded data container
-	encoded->data = NULL;
-	encoded->size = 0;
+	// encoded->data = NULL;
+	// encoded->size = 0;
 
 	// Free the newly-allocated (now empty) container
-	PKI_MEM_free(encoded);
+	// PKI_MEM_free(encoded);
 
 	// Returns success
 	return PKI_OK;

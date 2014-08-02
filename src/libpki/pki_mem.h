@@ -19,7 +19,7 @@
 
 typedef struct pki_mem_st {
 	unsigned char * data;
-	size_t current;
+	// size_t current;
 	size_t size;
 } PKI_MEM;
 
@@ -56,8 +56,8 @@ PKI_MEM *PKI_MEM_new_bio ( PKI_IO *io, PKI_MEM **mem );
 // Specific Format Encoding / Decoding
 PKI_MEM *PKI_MEM_get_url_encoded( PKI_MEM *mem, int skip_newlines);
 PKI_MEM *PKI_MEM_get_url_decoded( PKI_MEM *mem);
-PKI_MEM *PKI_MEM_get_b64_encoded( PKI_MEM *mem, int skipNewLines);
-PKI_MEM *PKI_MEM_get_b64_decoded( PKI_MEM *mem, int lineSize);
+PKI_MEM *PKI_MEM_get_b64_encoded( PKI_MEM *mem, int addNewLines);
+PKI_MEM *PKI_MEM_get_b64_decoded( PKI_MEM *mem, int withNewLines);
 
 // Generic Format Encoding / Decoding
 PKI_MEM * PKI_MEM_get_encoded(PKI_MEM *mem, PKI_DATA_FORMAT format, int opt);
