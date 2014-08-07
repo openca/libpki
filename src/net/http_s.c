@@ -173,7 +173,7 @@ int __parse_http_header(PKI_HTTP *msg)
     // We do not need the line anymore, let's free the memory
     if (line) PKI_Free(line);
 
-
+    // Success
 	return PKI_OK;
 }
 
@@ -395,7 +395,6 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
 
     	  // Let's get the pointer to the start of the body
     	  body = eoh + 1;
-    	  // body_start = body - (char *)m->data;
 
     	  // Checks for the content-length is in the header - if we have not found it, yet
     	  if (ret->method != PKI_HTTP_METHOD_GET && content_length < 0)
@@ -411,7 +410,6 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
 
       // Updates the start pointer for the next read operation
       idx += read;
-      // body_size = idx - body_start;
 
       // Let's check if we need to expand the buffer
       if (max_size <= 0)
@@ -458,17 +456,14 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
 
   // Sets some HTTP specific data
   ret->location = PKI_HTTP_get_header ( ret, "Location" );
-  ret->type = PKI_HTTP_get_header ( ret, "Content-Type" );
+  ret->type     = PKI_HTTP_get_header ( ret, "Content-Type" );
 
   if (ret->method != PKI_HTTP_METHOD_GET && content_length > 0 && body)
   {
 	  size_t body_start = body - (char *)m->data;
 	  size_t body_size = idx - body_start;
 
-	  // PKI_log_err("{DEBUG} ADDING BODY TO THE HTTP OBJECT: body_size = %d (body - data = %d)", body_size, body - (char *) m->data);
-
 	  // Let's allocate the body for the HTTP message (if any)
-	  // ret->body = PKI_MEM_new_data((size_t)content_length + 1, (unsigned char *)body);
 	  ret->body = PKI_MEM_new_data((size_t)idx - body_start, (unsigned char *)body);
 
 	  // Let's cheat and add a final NULL char (but not reflected in the size reported
@@ -483,9 +478,6 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
 
   // Let's free the buffer memory
   if (m) PKI_MEM_free(m);
-
-  // PKI_log_err("{DEBUG} metod = %d, header->size = %d, body = %p, body_size = %d",
-  //	  ret->method, ret->head->size, ret->body, ret->body->size);
 
   // Now we can return the HTTP message
   return ret;

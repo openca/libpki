@@ -89,7 +89,7 @@ PG_CFLAGS		= ${pg_cflags}
 PG_LDFLAGS		= ${pg_ldflags}
 PG_LDADD		= ${pg_ldadd}
 
-PTHREAD_MYDEFS		= @PTHREAD_MYDEFS@
+PTHREAD_MYDEFS		= @pthread_opts@
 
 # =================================================
 
@@ -98,7 +98,7 @@ SYSTEM_LDADD		= @sys_ldadd@
 
 # =================================================
 
-BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ $(PTHREAD_MYDEFS) @my_cflags@ @sys_cflags@
+BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ @pthread_opts@ @my_cflags@ @sys_cflags@
 BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
 BUILD_LIBPKI_LDADD	= @my_ldadd@
 TEST_LIBS		= @test_libs@

@@ -46,33 +46,65 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	PKI_X509 *ret = NULL;
 	const PKI_X509_CALLBACKS *cb = NULL;
 
+	// If no hsm, let's get the default
 	if ( !hsm ) hsm = (HSM *) HSM_get_default();
 
+	// Now we need the callbacks for object creation and handling
 	if (( cb = PKI_X509_CALLBACKS_get ( type, hsm )) == NULL ) {
-		PKI_log_debug ("Can not get callbacks for type %d", type );
+		PKI_ERROR(PKI_ERR_CALLBACK_NULL, NULL);
 		return NULL;
 	}
 
+	// Let's allocate the required memory
 	if((ret = PKI_Malloc (sizeof( PKI_X509 ))) == NULL ) {
-		PKI_log_err ( "Memory Error!");
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
 
-	/* Object Type */
+	// Object Type
 	ret->type = type;
 
-	/* X509_Callbacks */
+	// X509_Callbacks
 	ret->cb = cb;
 
-	/* URL Reference */
+	// URL Reference
 	ret->ref = NULL;
 
-	/* HSM to use */
+	// HSM to use
 	ret->hsm = hsm;
 
+	// Crypto provider's specific data structure
 	ret->value = NULL;
 
 	return ret;
+}
+
+/*! \brief Frees the memory associated with a PKI_X509 object */
+
+void PKI_X509_free_void ( void *x ) {
+	PKI_X509_free ( (PKI_X509 *) x );
+	return;
+}
+
+void PKI_X509_free ( PKI_X509 *x ) {
+
+	if (!x ) return;
+
+	if (x->value)
+	{
+		if (x->cb->free)
+			x->cb->free(x->value);
+		else
+			PKI_Free(x->value);
+	}
+
+	if (x->cred) PKI_CRED_free(x->cred);
+
+	if (x->ref ) URL_free(x->ref);
+
+	PKI_ZFree ( x, sizeof(PKI_X509) );
+
+	return;
 }
 
 /*! \brief Allocates the memory for a new PKI_X509 and sets the data */
@@ -121,34 +153,6 @@ PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, void *value,
 	ret->value = ret->cb->dup ( value );
 
 	return ret;
-}
-
-/*! \brief Frees the memory associated with a PKI_X509 object */
-
-void PKI_X509_free_void ( void *x ) {
-	PKI_X509_free ( (PKI_X509 *) x );
-	return;
-}
-
-void PKI_X509_free ( PKI_X509 *x ) {
-
-	if (!x ) return;
-
-	if ( x->value && x->cb->free ) {
-		x->cb->free ( x->value );
-	}
-
-	if ( x->cred ) {
-		PKI_CRED_free ( x->cred );
-	}
-
-	if ( x->ref ) {
-		URL_free ( x->ref );
-	}
-
-	PKI_ZFree ( x, sizeof(PKI_X509) );
-
-	return;
 }
 
 /*!

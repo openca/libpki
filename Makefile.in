@@ -528,7 +528,6 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 
 #-------- --------
 POD2MAN = @POD2MAN@
-PTHREAD_MYDEFS = @PTHREAD_MYDEFS@
 PWD = @PWD@
 RANLIB = @RANLIB@
 RC = @RC@
@@ -540,7 +539,6 @@ STRIP = @STRIP@
 TAR = @TAR@
 TODAY = `date +%Y%m%d`
 VERSION = @PACKAGE_VERSION@
-XML2_CPPFLAGS = @XML2_CPPFLAGS@
 ZIP = @ZIP@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -637,6 +635,7 @@ pg_prefix = @pg_prefix@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+pthread_opts = @pthread_opts@
 resolv_ldadd = @resolv_ldadd@
 rpath = @rpath@
 sbindir = @sbindir@
@@ -676,6 +675,7 @@ SHLEXT = @shlext@
 openssl_path = @openssl_path@
 openssl_libs = @openssl_libs@
 OPENSSL = @OPENSSL@
+PTHREAD_MYDEFS = @PTHREAD_MYDEFS@
 ACLOCAL_AMFLAGS = -I m4
 
 #AUTOMAKE_OPTIONS = no-dependencies

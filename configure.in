@@ -314,6 +314,11 @@ AC_SUBST(LIBTOOL_DEPS)
 dnl Setup dist stuff
 AC_SUBST(ac_aux_dir)
 
+AC_CHECK_LIB(c, calloc,
+        [ AC_DEFINE(HAVE_CALLOC, 1, [Calloc in C library])],
+        [ AC_MSG_RESULT([no calloc was found]) ]
+)
+
 if [[ "x$iphone_build" = "xno" ]] ; then
 	dnl check for libraries
 	dnl AC_CHECK_LIB(nsl, gethostbyname)
@@ -431,8 +436,7 @@ else
 	AC_MSG_RESULT([pthread cflags ... $pthread_opts])
 fi
 
-PTHREAD_MYDEFS="$pthread_opts"
-AC_SUBST(PTHREAD_MYDEFS)
+AC_SUBST(pthread_opts)
 
 if [[ x"$pthread_rw" = xyes ]] ; then
 	AC_DEFINE(HAVE_PTHREAD_RWLOCK, 1, [HAVE_PTHREAD_RWLOCK])

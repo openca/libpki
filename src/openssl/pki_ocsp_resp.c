@@ -6,75 +6,109 @@
 
 /*! \brief Generates an empty OCSP request  */
 
-PKI_OCSP_RESP *PKI_OCSP_RESP_new ( void ) {
-
+PKI_OCSP_RESP *PKI_OCSP_RESP_new ( void )
+{
+	// Crypto Provider's specific data structures
 	PKI_X509_OCSP_RESP_VALUE *r = NULL;
 	OCSP_BASICRESP *bs = NULL;
 
+	// Return container
 	PKI_OCSP_RESP * ret = NULL;
 
-	if(( r = OCSP_RESPONSE_new()) == NULL ) {
-		PKI_log_debug("Memory Error");
+	// Allocates the response object
+	if ((r = OCSP_RESPONSE_new()) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
 
+	// Sets the initial state to "Success"
 	if (!(ASN1_ENUMERATED_set(r->responseStatus, 
-			PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL))) {
+			PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL)))
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
 		if (r) OCSP_RESPONSE_free (r);
 		return NULL;
 	}
 
-	if(( bs = OCSP_BASICRESP_new()) == NULL ) {
-		PKI_log_debug("Memory Error");
+	// Creates the basic response object
+	if ((bs = OCSP_BASICRESP_new()) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
 		if( r ) OCSP_RESPONSE_free ( r );
 		return ( NULL );
 	}
 
+	// Let's now create the outer container
 	if(( ret = (PKI_OCSP_RESP *) 
-			PKI_Malloc (sizeof(PKI_OCSP_RESP)))==NULL){
-		PKI_log_debug("Memory Error");
+			PKI_Malloc (sizeof(PKI_OCSP_RESP)))==NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
 		if ( bs ) OCSP_BASICRESP_free ( bs );
 		if ( r  ) OCSP_RESPONSE_free ( r );
-		return ( NULL );
+
+		return NULL;
 	}
 
+	// Transfer ownership of r and bs to the container
 	ret->resp = r;
 	ret->bs = bs;
 
+	// Success - object created
 	return ret;
 }
 
 
-void PKI_OCSP_RESP_free( PKI_OCSP_RESP *x ) {
+void PKI_OCSP_RESP_free( PKI_OCSP_RESP *x )
+{
+	// if no PKI_X509_OCSP_RESP is passed, let's return an error
+	if (!x) return;
 
-	/* if no PKI_X509_OCSP_RESP is passed, let's return an error */
-	if( !x ) return;
-
-	/* Free the memory */
+	// Free the memory
 	if( x->resp ) OCSP_RESPONSE_free( x->resp );
 	if( x->bs ) OCSP_BASICRESP_free ( x->bs );
 
+	// Free the container
 	PKI_Free ( x );
 
-	/* Return success -- 1 */
+	// All done
 	return;
 }
 
-PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_new_null ( void ) {
-	return PKI_X509_new ( PKI_DATATYPE_X509_OCSP_RESP, NULL );
+PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_new_null ( void )
+{
+	return PKI_X509_new(PKI_DATATYPE_X509_OCSP_RESP, NULL);
 }
 
-PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_new ( void ) {
+PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_new ( void )
+{
 	PKI_X509_OCSP_RESP *ret = NULL;
 
-	if((ret = PKI_X509_OCSP_RESP_new_null ()) == NULL ) {
+	// Let's allocate the memory for the container
+	if ((ret = PKI_X509_OCSP_RESP_new_null()) == NULL)
 		return NULL;
-	}
 
-	if ( ret->cb && ret->cb->create ) {
+	// If we have the create callback, let's allocate the
+	// value for the object
+	if (ret->cb && ret->cb->create)
+	{
 		ret->value = ret->cb->create();
+
+		// If the internal value creation failed, let's fail
+		// all the way
+		if (!ret->value)
+		{
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			PKI_X509_OCSP_RESP_free(ret);
+
+			return NULL;
+		}
 	}
 
+	// Success - object created
 	return ret;
 }
 

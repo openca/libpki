@@ -722,7 +722,7 @@ dist_user
 include_prefix
 lib_prefix
 package_prefix
-PTHREAD_MYDEFS
+pthread_opts
 PERL
 RPM
 PKGMK
@@ -12506,6 +12506,53 @@ fi
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for calloc in -lc" >&5
+$as_echo_n "checking for calloc in -lc... " >&6; }
+if ${ac_cv_lib_c_calloc+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char calloc ();
+int
+main ()
+{
+return calloc ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_calloc=yes
+else
+  ac_cv_lib_c_calloc=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_calloc" >&5
+$as_echo "$ac_cv_lib_c_calloc" >&6; }
+if test "x$ac_cv_lib_c_calloc" = xyes; then :
+
+$as_echo "#define HAVE_CALLOC 1" >>confdefs.h
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no calloc was found" >&5
+$as_echo "no calloc was found" >&6; }
+
+fi
+
+
 if [ "x$iphone_build" = "xno" ] ; then
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
@@ -14028,7 +14075,6 @@ else
 $as_echo "pthread cflags ... $pthread_opts" >&6; }
 fi
 
-PTHREAD_MYDEFS="$pthread_opts"
 
 
 if [ x"$pthread_rw" = xyes ] ; then

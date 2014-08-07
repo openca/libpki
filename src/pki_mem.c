@@ -259,7 +259,8 @@ char * PKI_MEM_get_parsed(PKI_MEM *buf)
 		ret = PKI_Malloc(1);
 		*ret = '\x0';
 
-		return ret;
+		return
+				ret;
 	}
 
 	ret = PKI_Malloc(buf->size + 1);
@@ -280,25 +281,34 @@ char * PKI_MEM_get_parsed(PKI_MEM *buf)
  *         to the beginning of the memory region
  */
 
-void *PKI_Malloc( size_t size ) {
-
+void *PKI_Malloc( size_t size )
+{
 	void *ret = NULL;
 
-	if ( size <= 0 ) return NULL;
+	// Checks we have a sensitive size to malloc
+	if ( size == 0 ) return NULL;
 
-	if((ret = (void *) malloc( size )) != NULL ) {
+	// Allocates and zeroize memory (this might prevent
+	// some cross-process / cross-thread information leaking)
+#ifdef HAVE_CALLOC
+	ret = calloc(1, size);
+#else
+	if ((ret = (void *) malloc( size )) != NULL)
 		memset(ret, 0, size );
-	};
+#endif
 
+	// Returns the pointer to the allocated memory
 	return (ret);
 }
 
 /*! \brief Frees memory associated with a pointer (allocated with PKI_Malloc) */
 
-void PKI_Free( void *ret ) {
-	
+void PKI_Free( void *ret )
+{
+	// Checks we have a valid pointer
 	if( ret == NULL ) return;
-
+	
+	// Frees the associated memory
 	free ( ret );
 
 	return;

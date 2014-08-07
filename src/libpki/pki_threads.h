@@ -11,4 +11,9 @@ PKI_THREAD *PKI_THREAD_new ( void * (*func)(void *arg), void *arg );
 
 PKI_THREAD_ID PKI_THREAD_self ( void );
 
+int PKI_THREAD_join(PKI_THREAD *th, void **retval);
+int PKI_THREAD_terminate(PKI_THREAD *th);
+
+void PKI_THREAD_exit(void *retval);
+
 #endif

@@ -81,15 +81,54 @@ PKI_THREAD *PKI_THREAD_new ( void * (*func)(void *arg), void *arg ) {
 		return NULL;
 	}
 
-	if( (rc = PKI_THREAD_create( th, &attr, func, arg )) != 0 ) {
+	if ((rc = PKI_THREAD_create( th, &attr, func, arg)) != 0)
+	{
 		PKI_log_err("Thread Create Error (%d)!", rc);
 		PKI_Free ( th );
-        return ( NULL );
-    }
+		return ( NULL );
+	}
 
 	pthread_attr_destroy(&attr);
 
 	return th;
+}
+
+/*! \brief Waits for the termination of a specific thread */
+int PKI_THREAD_join(PKI_THREAD *th, void **retval)
+{
+	// Checks the input
+	if (!th) return PKI_ERR;
+
+	// If there is a failure, let's return an error code
+	if (pthread_join(*th, retval) != 0) return PKI_ERR;
+
+	// Thread joined successfully
+	return PKI_OK;
+}
+
+/*! \brief Terminates a specific thread */
+int PKI_THREAD_terminate(PKI_THREAD *th)
+{
+	int ret_code = 0;
+
+	// Checks the input
+	if (!th) return PKI_ERR;
+
+	// Cancel the specified thread
+	ret_code = pthread_cancel(*th);
+
+	// Returns PKI_ERR in case of error
+	if (ret_code != 0) return PKI_ERR;
+
+	// Thread terminated correctly
+	return PKI_OK;
+}
+
+/*! \brief Terminates the current thread */
+void PKI_THREAD_exit(void *retval)
+{
+	// Terminates the current thread
+	pthread_exit(retval);
 }
 
 /*! \brief Returns the identifier for current thread */

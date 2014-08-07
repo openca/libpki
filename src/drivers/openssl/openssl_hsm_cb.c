@@ -394,6 +394,7 @@ const PKI_X509_CALLBACKS *HSM_OPENSSL_X509_get_cb ( PKI_DATATYPE type ) {
 			ret = &PKI_OPENSSL_X509_XPAIR_CALLBACKS;
 			break;
 		case PKI_DATATYPE_X509_CMS_MSG :
+			// TODO: Provide support for CMS
 			// ret = &PKI_OPENSSL_X509_CMS;
 			break;
 		case PKI_DATATYPE_SCEP_MSG :
@@ -407,6 +408,7 @@ const PKI_X509_CALLBACKS *HSM_OPENSSL_X509_get_cb ( PKI_DATATYPE type ) {
 			break;
 		case PKI_DATATYPE_X509_LIRT:
 			ret = &PKI_OPENSSL_X509_PKI_LIRT_CALLBACKS;
+			break;
 		default:
 			return NULL;
 	}

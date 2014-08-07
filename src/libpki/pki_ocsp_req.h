@@ -37,6 +37,7 @@ int PKI_X509_OCSP_REQ_sign ( PKI_X509_OCSP_REQ *req, PKI_X509_KEYPAIR *keypair,
 int PKI_X509_OCSP_REQ_sign_tk ( PKI_X509_OCSP_REQ *req, PKI_TOKEN *tk );
 
 /* --------------------------------- Parsing ---------------------------- */
+int PKI_X509_OCSP_REQ_has_nonce ( PKI_X509_OCSP_REQ *req );
 int PKI_X509_OCSP_REQ_elements ( PKI_X509_OCSP_REQ *req );
 
 PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid ( PKI_X509_OCSP_REQ *req, int num);

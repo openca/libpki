@@ -8,7 +8,7 @@ BASE_DEFS =
 
 DEFS = $(OPENCA_DEFS)
 
-BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ @PTHREAD_MYDEFS@ @my_cflags@ @sys_cflags@
+BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ @pthread_opts@ @my_cflags@ @sys_cflags@
 BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
 BUILD_LIBPKI_LDADD	= @my_ldadd@
 

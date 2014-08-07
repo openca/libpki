@@ -166,6 +166,26 @@ int PKI_X509_OCSP_REQ_add_longlong ( PKI_X509_OCSP_REQ *req, long long serial,
 	return ret;
 }
 
+/*! \brief Checks if a nonce is present in the request and returns 1 if found, 0 otherwise. */
+
+int PKI_X509_OCSP_REQ_has_nonce(PKI_X509_OCSP_REQ *req)
+{
+	int idx = 0;
+
+	// Input check
+	if (!req || !req->value)
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Retrieves the index of the NONCE extension
+	idx = OCSP_REQUEST_get_ext_by_NID(req->value, NID_id_pkix_OCSP_Nonce, -1);
+
+	// If found, we return 1. Otherwise we return 0.
+	return (idx < 0 ? 0 : 1);
+}
+
 /*! \brief Returns the number of single requests present in the OCSP REQ */
 
 int PKI_X509_OCSP_REQ_elements ( PKI_X509_OCSP_REQ *req ) {
@@ -253,15 +273,6 @@ int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ *req,
 	}
 
 	ret = PKI_X509_sign ( req, md, k );
-
-	/*
-	ret = PKI_sign( PKI_DATATYPE_X509_OCSP_REQ, 
-			val->tbsRequest, &OCSP_REQINFO_it,
-			val->optionalSignature->signatureAlgorithm, NULL,
-			val->optionalSignature->signature, k, md );
-	*/
-
-
 
 	if (ret == PKI_ERR)
 	{
