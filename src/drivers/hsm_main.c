@@ -42,9 +42,9 @@ static int __set_algorithm (PKI_ALGOR *alg, ASN1_OBJECT *obj, int ptype) {
 
 /*! \brief Returns the errno from the crypto layer */
 
-unsigned long HSM_get_errno ( HSM *hsm )
+unsigned long HSM_get_errno (const HSM *hsm )
 {
-	HSM *my_hsm = NULL;
+	const HSM *my_hsm = NULL;
 
 	if (!hsm) my_hsm = (HSM *) HSM_OPENSSL_get_default();
 	else my_hsm = hsm;
@@ -60,9 +60,9 @@ unsigned long HSM_get_errno ( HSM *hsm )
 /*! \brief Returns the description of the passed error number from the
  *         crypto layer */
 
-char *HSM_get_errdesc ( unsigned long err, HSM *hsm )
+char *HSM_get_errdesc ( unsigned long err, const HSM *hsm )
 {
-	HSM *my_hsm = NULL;
+	const HSM *my_hsm = NULL;
 
 	// If no hsm was provided, let's get the default one
 	if (!hsm) my_hsm = (HSM *) HSM_OPENSSL_get_default();
@@ -601,17 +601,19 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 
 	if ( signature->data ) PKI_Free ( signature->data );
 
-	signature->data = sig->data;
+	signature->data   = sig->data;
 	signature->length = (int) sig->size;
 
 	signature->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT|0x07);
-        signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
+  signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
 
 	// We can not free the data in the sig PKI_MEM because that is
 	// actually owned by the signature now, so let's change the
 	// data pointer and then free the PKI_MEM data structure
 	sig->data = NULL;
-	sig->size= 0;
+	sig->size = 0;
+
+	// Now we can free the signature mem
 	PKI_MEM_free(sig);
 
 	return PKI_OK;
@@ -625,32 +627,28 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
 	PKI_MEM *sig = NULL;
 	HSM *hsm = NULL;
 
+	// Input check
 	if (!der || !der->data || !key || !key->value)
 	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
+	// Uses the default algorithm if none was provided
 	if ( !alg ) alg = PKI_DIGEST_ALG_DEFAULT;
-
-	/*
-	if ((hsm = key->hsm) == NULL)
-		PKI_log_debug("No HSM found for Key Ops, using software");
-	else
-		PKI_log_debug("Using HSM for Key Operations");
-	*/
 
 	// If no HSM is provided, let's get the default one
 	if (!(hsm && hsm->callbacks && hsm->callbacks->sign))
 		hsm = (HSM *) HSM_get_default();
 
+	// Requires the use of the HSM's sign callback
 	if (hsm && hsm->callbacks && hsm->callbacks->sign)
 	{
 		sig = hsm->callbacks->sign(der, alg, key); 
 		if (sig) PKI_log_debug("Signature Size (%d bytes)", sig->size);
 	}
-	else return NULL;
 
+	// Let's return the output of the signing function
 	return sig;
 }
 
@@ -752,10 +750,15 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 		ret = PKI_verify_signature ( data, sig, alg, key );
 	}
 
-	// PKI_log_debug( "PKI_verify() ended (%d)", ret );
-
 	if ( data ) PKI_MEM_free ( data );
 	if ( sig  ) PKI_MEM_free ( sig  );
+
+	// Provides some additional information in debug mode
+	if (ret != PKI_OK)
+	{
+		PKI_log_debug("Crypto Layer Error: %s (%d)", 
+			HSM_get_errdesc(HSM_get_errno(hsm), hsm), HSM_get_errno(hsm));
+	}
 
 	return (ret);
 }
@@ -775,12 +778,12 @@ int PKI_verify_signature ( PKI_MEM *data, PKI_MEM *sig, PKI_ALGOR *alg,
 		return PKI_ERR;
 	}
 
-	EVP_MD_CTX_init(&ctx);
-
 	if((dgst = PKI_ALGOR_get_digest( alg )) == PKI_ID_UNKNOWN ) {
 		PKI_log_debug( "PKI_verify_signature() can not get digest!");
-		goto err;
+		return PKI_ERR;
 	}
+
+	EVP_MD_CTX_init(&ctx);
 
 	if((EVP_VerifyInit_ex(&ctx,dgst, NULL)) == 0 ) {
 		PKI_log_debug( "PKI_verify_signature() verify init failed!");

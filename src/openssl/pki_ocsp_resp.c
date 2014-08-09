@@ -213,7 +213,6 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 	int ret = 0;
 	OCSP_BASICRESP *bsrp = NULL;
 	PKI_X509_OCSP_RESP_VALUE *resp_val = NULL;
-
 	PKI_OCSP_RESP *r = NULL;
 
 	if (!resp || !resp->value || !k || !k->value) 
@@ -231,6 +230,17 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 
 	// If no digest is given, let's use the default one
 	if (!md) md = PKI_DIGEST_ALG_SHA1;
+
+	// DEBUG ONLY: Use this to check correctness
+	/*
+	PKI_X509_KEYPAIR_VALUE *key_val = NULL;
+	key_val = PKI_X509_get_value(k);
+	if (!OCSP_BASICRESP_sign(r->bs, key_val, md, 0))
+	{
+		PKI_log_debug("ERROR: Can not sign with OCSP_BASICRESP_sign! %s!", ERR_error_string(ERR_get_error(), NULL));
+		return PKI_ERR;
+	}
+	*/
 
 	// Using the generic signing function
 	ret = PKI_X509_sign(resp, md, k);
@@ -678,11 +688,27 @@ int i2d_PKI_OCSP_RESP_bio(PKI_IO *bp, PKI_OCSP_RESP *o ) {
 
 	if ( !o || !o->resp ) return PKI_ERR;
 
+	// Let's re-pack the bytes
+	/*
+	if (o->resp->responseBytes->response) ASN1_OCTET_STRING_free(o->resp->responseBytes->response);
+	if ((o->resp->responseBytes->response = ASN1_OCTET_STRING_new()) == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR;
+	}
+
+	if (!ASN1_item_pack(o->bs, ASN1_ITEM_rptr(OCSP_BASICRESP), &o->resp->responseBytes->response))
+	{
+		PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, NULL);
+		return PKI_ERR;
+	}
+	*/
+
 #if OPENSSL_VERSION_NUMBER < 0x0090800fL
-        return ASN1_i2d_bio( (int (*)(OCSP_RESPONSE *, unsigned char **)) 
+	return ASN1_i2d_bio( (int (*)(OCSP_RESPONSE *, unsigned char **)) 
 		i2d_OCSP_RESPONSE, bp, (unsigned char *) o->resp);
 #else
-        return ASN1_i2d_bio( (i2d_of_void *) i2d_OCSP_RESPONSE, bp, 
+	return ASN1_i2d_bio( (i2d_of_void *) i2d_OCSP_RESPONSE, bp, 
 		(unsigned char *) o->resp);
 #endif
 }

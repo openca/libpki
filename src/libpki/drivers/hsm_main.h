@@ -15,8 +15,8 @@
 
 /* ----------------------- HSM Management ---------------------------- */
 
-unsigned long HSM_get_errno ( HSM *hsm );
-char *HSM_get_errdesc ( unsigned long err, HSM *hsm );
+unsigned long HSM_get_errno ( const HSM *hsm );
+char *HSM_get_errdesc ( unsigned long err, const HSM *hsm );
 
 const HSM *HSM_get_default( void );
 

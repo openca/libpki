@@ -392,7 +392,8 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 
 	tmp_x = req->value;
 
-	switch ( type ) {
+	switch ( type ) 
+	{
 		case PKI_X509_DATA_NONCE:
 			idx = OCSP_REQUEST_get_ext_by_NID(tmp_x, NID_id_pkix_OCSP_Nonce, -1);
 			if (idx >= 0)
@@ -406,26 +407,30 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 		case PKI_X509_DATA_NOTBEFORE:
 		case PKI_X509_DATA_NOTAFTER:
 			break;
+
 		case PKI_X509_DATA_SIGNATURE:
 			if ( tmp_x && tmp_x->optionalSignature ) {
 				ret = tmp_x->optionalSignature->signature;
 			}
 			break;
+
 		case PKI_X509_DATA_ALGORITHM:
 		case PKI_X509_DATA_SIGNATURE_ALG1:
 			if ( tmp_x && tmp_x->optionalSignature ) {
 				ret = tmp_x->optionalSignature->signatureAlgorithm;
 			}
 			break;
+
 		case PKI_X509_DATA_SIGNATURE_ALG2:
 			break;
+
 		case PKI_X509_DATA_TBS_MEM_ASN1:
-			if((mem = PKI_MEM_new_null()) == NULL ) 
-				break;
+			if((mem = PKI_MEM_new_null()) == NULL) break;
 			mem->size = (size_t) ASN1_item_i2d ( (void *) tmp_x->tbsRequest, 
 				&(mem->data), &OCSP_REQINFO_it );
 			ret = mem;
 			break;
+
 		default:
 			return NULL;
 	}

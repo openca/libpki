@@ -534,7 +534,8 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
 
 	if (cVal && cVal->cert_info)
 	{
-		PKI_log_err("Signature = %s", PKI_ALGOR_get_parsed(cVal->cert_info->signature));
+		PKI_log_debug("Signature = %s", 
+			PKI_ALGOR_get_parsed(cVal->cert_info->signature));
 	}
 
 	//	PKI_X509_CINF_FULL *cFull = NULL;
