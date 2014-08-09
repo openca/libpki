@@ -296,7 +296,7 @@ AC_PATH_PROG(AR, ar, , $default_path)
 AR="$AR $ar_opt"
 
 if [[ "x$iphone_build" = "xno" ]] ; then
-	AM_PROG_AWK
+	AC_MSG_RESULT([Not an iPhone Build])
 	AM_PROG_CC_C_O
 fi
 
@@ -797,7 +797,10 @@ dnl ====================== mySQL LIBRARIES ===================
 
 		enablemysql="yes"
 		supported_urls="$supported_urls mysql"
-   		AC_MSG_RESULT([Enable MySQL URLs      : yes ])
+   	AC_MSG_RESULT([Enable MySQL URLs      : yes ])
+		AC_MSG_RESULT([MySQL LDFLAGS          : $mysql_ldflags])
+		AC_MSG_RESULT([MySQL CFLags           : $mysql_cflags])
+		AC_MSG_RESULT([MySQL LDAdd            : $mydql_ldadd])
 	else
 		enablemysql="no"
 		mysql_cflags=
@@ -1348,12 +1351,12 @@ for dir in $h_dirs ; do
     libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
     AC_MSG_RESULT([Removed $dir from linking (non-existing dir)])
   else
-    has_dir=`echo $libpki_ldflags | grep "L${dir}${mybits_install}"`
+    has_dir=`echo $libpki_ldflags | grep "L${dir}${mybits_install} "`
     if ! [[ "x$has_dir" = "x" ]] ; then
     	AC_MSG_RESULT([Removing duplicate entries for -L${dir}${mybits_install} from libpki_ldflags])
-      libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
+      libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install} ||g"`
       libpki_ldflags="-L${dir}${mybits_install} $libpki_ldflags"
-    	AC_MSG_RESULT([Removed duplicate entries for -L$dir from libpki_ldflags])
+    	AC_MSG_RESULT([Removed duplicate entries for -L$dir${mybits_install} from libpki_ldflags])
     fi
   fi
 done
@@ -1414,10 +1417,10 @@ for dir in $h_dirs ; do
     my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
     AC_MSG_RESULT([Removed $dir from linking (non-existing dir)])
   else
-    has_dir=`echo $my_ldflags | grep "L${dir}${mybits_install}"`
+    has_dir=`echo $my_ldflags | grep "L${dir}${mybits_install} "`
     if ! [[ "x$has_dir" = "x" ]] ; then
     	AC_MSG_RESULT([Removing duplicate entries for -L${dir}${mybits_install} from my_ldflags])
-      my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
+      my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install} ||g"`
       my_ldflags="-L${dir}${mybits_install} $my_ldflags"
     	AC_MSG_RESULT([Removed duplicate entries for -L${dir}${mybits_install} from my_ldflags])
     fi

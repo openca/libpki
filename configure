@@ -12388,7 +12388,8 @@ fi
 AR="$AR $ar_opt"
 
 if [ "x$iphone_build" = "xno" ] ; then
-	AM_PROG_AWK
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Not an iPhone Build" >&5
+$as_echo "Not an iPhone Build" >&6; }
 
 fi
 
@@ -15375,8 +15376,14 @@ $as_echo "#define HAVE_MYSQL 1" >>confdefs.h
 
 		enablemysql="yes"
 		supported_urls="$supported_urls mysql"
-   		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Enable MySQL URLs      : yes " >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Enable MySQL URLs      : yes " >&5
 $as_echo "Enable MySQL URLs      : yes " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: MySQL LDFLAGS          : $mysql_ldflags" >&5
+$as_echo "MySQL LDFLAGS          : $mysql_ldflags" >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: MySQL CFLags           : $mysql_cflags" >&5
+$as_echo "MySQL CFLags           : $mysql_cflags" >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: MySQL LDAdd            : $mydql_ldadd" >&5
+$as_echo "MySQL LDAdd            : $mydql_ldadd" >&6; }
 	else
 		enablemysql="no"
 		mysql_cflags=
@@ -16775,14 +16782,14 @@ for dir in $h_dirs ; do
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed $dir from linking (non-existing dir)" >&5
 $as_echo "Removed $dir from linking (non-existing dir)" >&6; }
   else
-    has_dir=`echo $libpki_ldflags | grep "L${dir}${mybits_install}"`
+    has_dir=`echo $libpki_ldflags | grep "L${dir}${mybits_install} "`
     if ! [ "x$has_dir" = "x" ] ; then
     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removing duplicate entries for -L${dir}${mybits_install} from libpki_ldflags" >&5
 $as_echo "Removing duplicate entries for -L${dir}${mybits_install} from libpki_ldflags" >&6; }
-      libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
+      libpki_ldflags=`echo $libpki_ldflags | sed -e "s|-L${dir}${mybits_install} ||g"`
       libpki_ldflags="-L${dir}${mybits_install} $libpki_ldflags"
-    	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed duplicate entries for -L$dir from libpki_ldflags" >&5
-$as_echo "Removed duplicate entries for -L$dir from libpki_ldflags" >&6; }
+    	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed duplicate entries for -L$dir${mybits_install} from libpki_ldflags" >&5
+$as_echo "Removed duplicate entries for -L$dir${mybits_install} from libpki_ldflags" >&6; }
     fi
   fi
 done
@@ -16844,11 +16851,11 @@ for dir in $h_dirs ; do
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed $dir from linking (non-existing dir)" >&5
 $as_echo "Removed $dir from linking (non-existing dir)" >&6; }
   else
-    has_dir=`echo $my_ldflags | grep "L${dir}${mybits_install}"`
+    has_dir=`echo $my_ldflags | grep "L${dir}${mybits_install} "`
     if ! [ "x$has_dir" = "x" ] ; then
     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removing duplicate entries for -L${dir}${mybits_install} from my_ldflags" >&5
 $as_echo "Removing duplicate entries for -L${dir}${mybits_install} from my_ldflags" >&6; }
-      my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install}||g"`
+      my_ldflags=`echo $my_ldflags | sed -e "s|-L${dir}${mybits_install} ||g"`
       my_ldflags="-L${dir}${mybits_install} $my_ldflags"
     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed duplicate entries for -L${dir}${mybits_install} from my_ldflags" >&5
 $as_echo "Removed duplicate entries for -L${dir}${mybits_install} from my_ldflags" >&6; }
