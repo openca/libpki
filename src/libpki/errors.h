@@ -100,6 +100,7 @@ typedef enum {
 	PKI_ERR_OCSP_REQ_ENCODE,
 	PKI_ERR_OCSP_REQ_DECODE,
 	PKI_ERR_OCSP_REQ_SIGN,
+	PKI_ERR_OCSP_NONCE_COPY,
 	PKI_ERR_OCSP_,
 	/* PRQP Ops */
 	PKI_ERR_PRQP_,
@@ -215,6 +216,7 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_OCSP_REQ_ENCODE, "Can not encode OCSP request" },
 	{ PKI_ERR_OCSP_REQ_DECODE, "Can not decode OCSP request" },
 	{ PKI_ERR_OCSP_REQ_SIGN, "Can not sign OCSP request" },
+	{ PKI_ERR_OCSP_NONCE_COPY, "Can not copy NONCE from request" },
 	{ PKI_ERR_OCSP_, "" },
 	/* PRQP Ops */
 	{ PKI_ERR_PRQP_, "" },

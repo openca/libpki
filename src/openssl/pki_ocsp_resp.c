@@ -55,7 +55,7 @@ PKI_OCSP_RESP *PKI_OCSP_RESP_new ( void )
 
 	// Transfer ownership of r and bs to the container
 	ret->resp = r;
-	ret->bs = bs;
+	ret->bs   = bs;
 
 	// Success - object created
 	return ret;
@@ -166,7 +166,15 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 
 	r = resp->value;
 
-	if( !r->bs ) return PKI_ERR;
+	if( !r->bs ) 
+	{
+		// Creates the basic response object
+		if ((r->bs = OCSP_BASICRESP_new()) == NULL)
+		{
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return PKI_ERR;
+		}
+	}
 
 	if (thisUpdate == NULL )
 	{
@@ -208,14 +216,14 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 
 	PKI_OCSP_RESP *r = NULL;
 
-	if(!resp || !resp->value || !k || !k->value) 
+	if (!resp || !resp->value || !k || !k->value) 
 	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
 	}
 
 	r = resp->value;
-	if( !r->bs ) 
+	if (r->bs == NULL) 
 	{
 		PKI_ERROR(PKI_ERR_OCSP_RESP_SIGN, NULL);
 		return PKI_ERR;
@@ -228,10 +236,9 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 	ret = PKI_X509_sign(resp, md, k);
 	if (ret == PKI_ERR)
 	{
-		PKI_log_err("ERROR while calling PKI_X509_sign()");
+		PKI_ERROR(PKI_ERR_OCSP_RESP_SIGN, ERR_error_string(ERR_get_error(), NULL));
 
 		r->bs->signature = NULL;
-		PKI_ERROR(PKI_ERR_OCSP_RESP_SIGN, ERR_error_string(ERR_get_error(), NULL));
 		return PKI_ERR;
 	}
 
@@ -243,7 +250,6 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 	{
 		if (!(resp_val->responseBytes = OCSP_RESPBYTES_new()))
 		{
-			PKI_log_err("ERROR while allocating memory");
 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 			return PKI_ERR;
 		}
@@ -255,7 +261,6 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 	/* Now add the encoded data to the request bytes */
 	if (!ASN1_item_pack(bsrp, ASN1_ITEM_rptr(OCSP_BASICRESP), &resp_val->responseBytes->response)) 
 	{
-		PKI_log_err("ERROR while encoding data");
 		PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, NULL);
 		return PKI_ERR;
 	}
@@ -272,20 +277,31 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 	OCSP_RESPID *rid;
 	PKI_OCSP_RESP *r = NULL;
 
-	if (!resp || !keypair || !keypair->value)
-	{
-		PKI_log_err("Parameter Error (data %p - keypair %p)", resp, keypair);
-		return PKI_ERR;
-	}
-
-	r = resp->value;
-
-	if (!r || !r->resp || !r->bs ) 
+	if (!resp || !resp->value || !keypair || !keypair->value)
 	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
 	}
 
+	// Let's get the value
+	r = resp->value;
+
+	//
+	if (!r->resp)
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// If there is no bs, no need to sign the response
+	// we do not consider this to be an error
+	if (!r->bs)
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Checks the certificates
 	if (!cert || !cert->value )
 	{
 		PKI_log(PKI_LOG_WARNING,"Signing an OCSP_RESP without a cert");
@@ -297,24 +313,12 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 			"issuer's certificate!");
 	}
 
+	// Let's get the responderId
 	rid = r->bs->tbsResponseData->responderId;
 
+	// Sets the responderId
 	if (cert)
 	{
-	/*
-	unsigned char md[SHA_DIGEST_LENGTH];
-    X509_pubkey_digest(cert, EVP_sha1(), md, NULL);
-    if (!(rid->value.byKey = ASN1_OCTET_STRING_new())) {
-		PKI_log_err ("Memory Allocation Failed");
-                return PKI_ERR;
-	}
-    if (!(ASN1_OCTET_STRING_set(rid->value.byKey, md, SHA_DIGEST_LENGTH))) {
-		PKI_log_err("Internal Error");
-		return PKI_ERR;
-	}
-    rid->type = V_OCSP_RESPID_KEY;
-	*/
-
 		if (!X509_NAME_set(&rid->value.byName, X509_get_subject_name(cert->value)))
 		{
 			PKI_log_err("Internal Error");
@@ -336,7 +340,7 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 		rid->type = V_OCSP_RESPID_KEY;
 		if((rid->value.byKey = ASN1_OCTET_STRING_new()) == NULL)
 		{
-			PKI_log_err("Memory Allocation Error!");
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 			PKI_DIGEST_free(dgst);
 			return PKI_ERR;
 		}
@@ -352,40 +356,28 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 		PKI_DIGEST_free(dgst);
 	}
 
-	if(X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0) == 0 ) {
+	if(X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0) == 0)
+	{
 		PKI_log_err("Error adding signed time to response");
-		// return PKI_ERR;
 	}
 
-	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new())) {
-		PKI_log_debug("OCSP RESPBYTES Memory error");
+	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new()))
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return PKI_ERR;
 	}
 
 	if((r->resp->responseBytes->responseType = 
-			OBJ_nid2obj(NID_id_pkix_OCSP_basic)) == NULL ) {
+			OBJ_nid2obj(NID_id_pkix_OCSP_basic)) == NULL )
+	{
 		PKI_log_debug("id-pkix-ocsp-basic OID error");
 		return PKI_ERR;
-	};
-
-	if ( r->bs == NULL )
-	{
-		PKI_log_debug("Basic Response is empty, no sign allowed!");
-		return PKI_ERR;
-
-		/*
-		if((r->bs = OCSP_BASICRESP_new()) == NULL ) {
-			PKI_log_err ("Memory Error (BASICREQUEST creation)");
-			return PKI_ERR;
-		}
-		*/
 	}
 
 	/* If there's old certs, let's clean the stack */
 	if( r->bs->certs )
 	{
 		PKI_X509_CERT_VALUE *tmp_cert = NULL;
-
 		while ( (tmp_cert = sk_X509_pop( r->bs->certs )) != NULL )
 		{
 			X509_free ( tmp_cert );
@@ -395,36 +387,15 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 	{
 		if((r->bs->certs = sk_X509_new_null()) == NULL)
 		{
-			PKI_log_debug("ERROR, Can not Create stack "
-						"of certs in signature!");
+			PKI_log_debug("ERROR, Can not Create stack of certs in signature!");
 			return( PKI_ERR );
 		}
 	}
 
 	/* Let's push the signer's certificate */
-	// if ( cert ) OCSP_basic_add1_cert( r->bs, cert->cb->dup ( cert->value ));
 	if ( cert ) OCSP_basic_add1_cert(r->bs, cert->value);
 
-	/* Ler's push the CA's certificate */
-	// if ( issuer ) 
-	//	OCSP_basic_add1_cert (r->bs, issuer->cb->dup ( issuer->value ));
-
-	/* Now, if we have the otherCerts, let's add them to the response */
-	/*
-	if ( otherCerts ) {
-		int i = 0;
-		for( i = 0; i<PKI_STACK_X509_CERT_elements(otherCerts); i++ ) {
-			PKI_X509_CERT *x_tmp = NULL;
-
-			x_tmp = PKI_STACK_X509_CERT_get_num (otherCerts,i);
-			if( x_tmp && x_tmp->value ) {
-				OCSP_basic_add1_cert( r->bs,
-					X509_dup( x_tmp->value ));
-			}
-		}
-	}
-	*/
-
+	// Let's now perform the real signing operation
 	return PKI_X509_OCSP_RESP_DATA_sign(resp, keypair, digest);
 
 }
@@ -488,6 +459,9 @@ void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type )
 			break;
 
 		case PKI_X509_DATA_NOTBEFORE:
+			ret = tmp_x->tbsResponseData->producedAt;
+			break;
+
 		case PKI_X509_DATA_NOTAFTER:
 			break;
 
@@ -541,25 +515,32 @@ char * PKI_X509_OCSP_RESP_get_parsed ( PKI_X509_OCSP_RESP *r,
 			ret = (char *) PKI_STRING_get_parsed((PKI_STRING *)
 				PKI_X509_OCSP_RESP_get_data ( r, type ));
 			break;
+
 		case PKI_X509_DATA_NOTBEFORE:
-		case PKI_X509_DATA_NOTAFTER:
 			ret = (char *) PKI_TIME_get_parsed((PKI_TIME *)
 				PKI_X509_OCSP_RESP_get_data ( r, type ));
 			break;
+
+		case PKI_X509_DATA_NOTAFTER:
+			ret = NULL;
+			break;
+
 		case PKI_X509_DATA_ALGORITHM:
 			ret = (char *) PKI_ALGOR_get_parsed ( (PKI_ALGOR *)
 				PKI_X509_OCSP_RESP_get_data ( r, type ));
 			break;
+
 		case PKI_X509_DATA_SIGNATURE:
 			ret = (char *) PKI_X509_SIGNATURE_get_parsed(
 				(PKI_X509_SIGNATURE *) 
 					PKI_X509_OCSP_RESP_get_data ( r, type ));
 			break;
+
 		default:
-			return ( NULL );
+			ret = NULL;
 	}
 
-	return ( ret );
+	return ret;
 }
 
 /*! \brief Copies the NONCE from a PKI_OCSP_RESP into the response */
@@ -585,7 +566,7 @@ int PKI_X509_OCSP_RESP_copy_nonce ( PKI_X509_OCSP_RESP *resp,
 
 	if(!OCSP_copy_nonce( r->bs, req->value ))
 	{
-		PKI_log_err("Can not copy OCSP REQ nonce");
+		PKI_ERROR(PKI_ERR_OCSP_NONCE_COPY, NULL);
 		return PKI_ERR;
 	}
 
@@ -602,19 +583,24 @@ int PKI_X509_OCSP_RESP_print_parsed ( PKI_X509_OCSP_RESP *r,
 	const char *str = NULL;
 	int ret = PKI_OK;
 
-	if( !r | !r->value ) return ( PKI_ERR );
+	if (!r | !r->value) return ( PKI_ERR );
 
-	if((str = PKI_X509_OCSP_RESP_get_parsed ( r, type )) == NULL ) {
-		return ( PKI_ERR );
-	} else {
-		if( fd == 0 ) fd = 2;
-		if( write( fd, str, strlen(str)) == -1 ) {
-			ret = PKI_ERR;
-		}
-		PKI_Free( (char *) str );
+	// Let's get the parsed value
+	if ((str = PKI_X509_OCSP_RESP_get_parsed(r, type)) == NULL)
+		return PKI_ERR;
+
+	// If the fd is 0, let's redirect to stdout
+	if ( fd == 0 ) fd = 2;
+
+	// Let's write the data to the fd and keep track of the
+	// error(s) - if any occur
+	if (write( fd, str, strlen(str)) == -1)
+	{
+		ret = PKI_ERR;
 	}
+	PKI_Free( (char *) str );
 
-	return ( ret );
+	return ret;
 }
 
 /* PEM <-> INTERNAL Macros --- fix for errors in OpenSSL */

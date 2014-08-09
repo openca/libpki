@@ -16795,9 +16795,9 @@ for dir in $c_dirs ; do
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed $dir from includes (non-existing dir)" >&5
 $as_echo "Removed $dir from includes (non-existing dir)" >&6; }
   else
-    has_dir=`echo $libpki_cflags | grep "I${dir}"`
+    has_dir=`echo $libpki_cflags | grep "I${dir} "`
     if ! [ "x$has_dir" = "x" ] ; then
-      libpki_cflags=`echo "$libpki_cflags" | sed -e "s|-I${dir}||g"`
+      libpki_cflags=`echo "$libpki_cflags" | sed -e "s|-I${dir} ||g"`
       libpki_cflags="-I${dir} $libpki_cflags"
     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed duplicate entries for -I$dir from libpki_cflags" >&5
 $as_echo "Removed duplicate entries for -I$dir from libpki_cflags" >&6; }
@@ -16866,9 +16866,9 @@ for dir in $c_dirs ; do
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed $dir from includes (non-existing dir)" >&5
 $as_echo "Removed $dir from includes (non-existing dir)" >&6; }
   else
-    has_dir=`echo $my_cflags | grep "I${dir}"`
+    has_dir=`echo $my_cflags | grep "I${dir} "`
     if ! [ "x$has_dir" = "x" ] ; then
-      my_cflags=`echo "$my_cflags" | sed -e "s|-I${dir}||g"`
+      my_cflags=`echo "$my_cflags" | sed -e "s|-I${dir} ||g"`
       my_cflags="-I${dir} $my_cflags"
     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Removed duplicate entries for -I${dir} from my_cflags" >&5
 $as_echo "Removed duplicate entries for -I${dir} from my_cflags" >&6; }

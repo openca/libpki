@@ -215,14 +215,15 @@ PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid ( PKI_X509_OCSP_REQ *req, int num) {
 
 	if ( !req || !req->value ) return NULL;
 
-	if(((count = PKI_X509_OCSP_REQ_elements ( req )) <= 0) ||
-							( count < num ) ) {
+	if ((count = PKI_X509_OCSP_REQ_elements ( req )) < num)
+	{
 		return NULL;
 	}
 
 	val = req->value;
 
-	if((single = OCSP_request_onereq_get0(val, num)) == NULL ) {
+	if ((single = OCSP_request_onereq_get0(val, num)) == NULL)
+	{
 		return NULL;
 	}
 
@@ -237,7 +238,8 @@ PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial ( PKI_X509_OCSP_REQ *req,
 	PKI_OCSP_CERTID *cid = NULL;
 	PKI_INTEGER *ret = NULL;
 
-	if((cid = PKI_X509_OCSP_REQ_get_cid(req, num)) == NULL ) {
+	if ((cid = PKI_X509_OCSP_REQ_get_cid(req, num)) == NULL)
+	{
 		return NULL;
 	}
 

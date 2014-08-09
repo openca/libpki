@@ -1365,9 +1365,9 @@ for dir in $c_dirs ; do
     libpki_cflags=`echo $libpki_cflags | sed -e "s|-I${dir}||g"`
     AC_MSG_RESULT([Removed $dir from includes (non-existing dir)])
   else
-    has_dir=`echo $libpki_cflags | grep "I${dir}"`
+    has_dir=`echo $libpki_cflags | grep "I${dir} "`
     if ! [[ "x$has_dir" = "x" ]] ; then
-      libpki_cflags=`echo "$libpki_cflags" | sed -e "s|-I${dir}||g"`
+      libpki_cflags=`echo "$libpki_cflags" | sed -e "s|-I${dir} ||g"`
       libpki_cflags="-I${dir} $libpki_cflags"
     	AC_MSG_RESULT([Removed duplicate entries for -I$dir from libpki_cflags])
     fi
@@ -1432,9 +1432,9 @@ for dir in $c_dirs ; do
     my_cflags=`echo $my_cflags | sed -e "s|-I${dir}||g"`
     AC_MSG_RESULT([Removed $dir from includes (non-existing dir)])
   else
-    has_dir=`echo $my_cflags | grep "I${dir}"`
+    has_dir=`echo $my_cflags | grep "I${dir} "`
     if ! [[ "x$has_dir" = "x" ]] ; then
-      my_cflags=`echo "$my_cflags" | sed -e "s|-I${dir}||g"`
+      my_cflags=`echo "$my_cflags" | sed -e "s|-I${dir} ||g"`
       my_cflags="-I${dir} $my_cflags"
     	AC_MSG_RESULT([Removed duplicate entries for -I${dir} from my_cflags])
     fi
