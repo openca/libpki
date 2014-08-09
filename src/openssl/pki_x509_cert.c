@@ -1360,3 +1360,45 @@ PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions ( PKI_X509_CERT *x ) {
 
 	return ret;
 }
+
+int PKI_X509_CERT_check_pubkey(PKI_X509_CERT *x, PKI_X509_KEYPAIR *k)
+{
+	int ret = 0;
+
+	X509_PUBKEY *pub_key = NULL;
+	PKI_X509_KEYPAIR_VALUE *k_val = NULL;
+
+	PKI_STRING *c_pubkey = NULL;
+	PKI_STRING *k_pubkey = NULL;
+
+	// Input checks
+	if (!x || !x->value || !k || !k->value) return -1;
+
+	// Gets the certificate's public key bits
+	c_pubkey = PKI_X509_CERT_get_data(x, PKI_X509_DATA_PUBKEY_BITSTRING);
+	if (!c_pubkey) return -99;
+
+	// Gets the Key Value from the KeyPair
+	k_val = PKI_X509_get_value(k);
+	if (!k_val) 
+	{
+		// Let's return ok, because in HSMs we might not have
+		// access to the pubkey data
+		return 0;
+	}
+
+	// Gets the KeyPair public key bits
+	if (!X509_PUBKEY_set(&pub_key, k_val)) return -99;
+
+	// Now let's point to tke KeyPair's public key
+	k_pubkey = pub_key->public_key;
+
+	// Compares the two bit strings
+	ret = PKI_STRING_cmp(c_pubkey, k_pubkey);
+	
+	// Frees the memory
+	X509_PUBKEY_free(pub_key);
+
+	// Let's return the result of the operation
+	return ret;
+}

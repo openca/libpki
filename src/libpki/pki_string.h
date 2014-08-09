@@ -38,6 +38,7 @@ PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size );
 PKI_STRING * PKI_STRING_dup ( PKI_STRING *a );
 void PKI_STRING_free( PKI_STRING *s );
 
+int PKI_STRING_cmp(PKI_STRING *a, PKI_STRING *b);
 int PKI_STRING_set( PKI_STRING *s, char *content, ssize_t size );
 int PKI_STRING_get_type( PKI_STRING *s );
 char * PKI_STRING_get_parsed( PKI_STRING *s );

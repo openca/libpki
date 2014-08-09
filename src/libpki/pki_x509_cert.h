@@ -30,6 +30,9 @@ char * PKI_X509_CERT_get_parsed( PKI_X509_CERT *x, PKI_X509_DATA type );
 int PKI_X509_CERT_print_parsed( PKI_X509_CERT *x, 
 				PKI_X509_DATA type, int fd );
 
+/* Key Check function */
+int PKI_X509_CERT_check_pubkey(PKI_X509_CERT *x, PKI_X509_KEYPAIR *k);
+
 /* Exts functions */
 int PKI_X509_CERT_add_extension ( PKI_X509_CERT *x, PKI_X509_EXTENSION *ext );
 int PKI_X509_CERT_add_extension_stack (PKI_X509_CERT *x, 

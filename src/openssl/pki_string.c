@@ -239,3 +239,12 @@ int PKI_STRING_print_fp( FILE *fp, PKI_STRING *s ) {
 	return ( PKI_OK );
 }
 
+/*! \brief Compares two ASN1 strings. Returns non-zero if the two string are equal */
+
+int PKI_STRING_cmp(PKI_STRING *a, PKI_STRING *b)
+{
+	if (!a || !b) return -1;
+
+	return ASN1_STRING_cmp(a, b);
+}
+

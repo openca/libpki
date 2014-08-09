@@ -175,17 +175,22 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 /*! \brief Checks the integrity of a PKI_TOKEN
  */
 
-int PKI_TOKEN_check ( PKI_TOKEN *tk ) {
+int PKI_TOKEN_check ( PKI_TOKEN *tk )
+{
 	int ret;
 
 	ret = PKI_TOKEN_STATUS_OK;
 
-	if ( !tk ) {
-		return PKI_TOKEN_STATUS_MEMORY_ERR;
-	}
+	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
-	if (!tk->keypair ) 
+	if (!tk->keypair)
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
+
+	if (PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair) != 0)
+	{
+		PKI_log_err("Possible Key Mismatch (certificate / keypair)");
+		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
+	}
 
 	if (!tk->cert ) 
 		ret |= PKI_TOKEN_STATUS_CERT_ERR;
