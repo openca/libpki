@@ -124,9 +124,10 @@ int PKI_RWLOCK_write_lock ( PKI_RWLOCK *l ) {
   pthread_mutex_unlock(&l->lock_mutex);
 
   pthread_mutex_lock(&l->data_mutex);
-  pthread_mutex_lock(&l->lock_mutex);
+  // pthread_mutex_lock(&l->lock_mutex);
   l->n_writers_waiting--;
-  l->n_writers--;
+  // l->n_writers--;
+  l->n_writers++;
   pthread_mutex_unlock(&l->lock_mutex);
 
 # endif /* HAVE_PTHREAD_RWLOCK */
