@@ -204,6 +204,14 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 		}
 	}
 
+	//We specify NID_id_pkix_OCSP_valid due to an error in OpenSSL's code, see http://marc.info/?l=openssl-users&m=138573884214852&w=2
+	if (!OCSP_SINGLERESP_add1_ext_i2d(single,
+				NID_id_pkix_OCSP_valid, "", 0 ,0))
+	{
+		PKI_log_err("Can not create \"extended revoke\" extension entry for response!");
+		return PKI_ERR;
+	}
+
 	return PKI_OK;
 }
 
