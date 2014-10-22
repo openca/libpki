@@ -208,7 +208,7 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 	if (!OCSP_SINGLERESP_add1_ext_i2d(single,
 				NID_id_pkix_OCSP_valid, "", 0 ,0))
 	{
-		PKI_log_err("Can not create \"extended revoke\" extension entry for response!");
+		PKI_log_err("Can not create \"id-pkix-ocsp-extended-revoke\" extension entry for response!");
 		return PKI_ERR;
 	}
 
