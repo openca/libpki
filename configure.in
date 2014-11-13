@@ -472,10 +472,11 @@ dnl =========================== Global Report Variables ================
 supported_urls="file http https"
 
 dnl =========================== Include and lib prefixes ===============
+
 AC_ARG_WITH( lib-prefix,
-	AC_HELP_STRING( [--with-lib-prefix=LIBPREFIX],
-			[sets library prefix (default is PREFIX/lib)]),
-			lib_prefix=$withval, lib_prefix=${prefix}/lib${mybits_install})
+  AC_HELP_STRING( [--with-lib-prefix=LIBPREFIX],
+                  [sets library prefix (default is PREFIX/lib)]),
+	lib_prefix=$withval, lib_prefix=${prefix}/lib${mybits_install})
 AC_SUBST( lib_prefix)
 
 dnl databases, tmp, crypto, mails
