@@ -59,7 +59,7 @@
                     <platforms>all</platforms>
                     <distributionFileList>
                         <distributionDirectory>
-                            <origin>@DESTDIR@@prefix@/lib@mybits@</origin>
+                            <origin>@DESTDIR@@prefix@/lib@mybits_install@</origin>
                         </distributionDirectory>
                     </distributionFileList>
                 </folder>
