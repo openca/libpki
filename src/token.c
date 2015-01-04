@@ -88,12 +88,14 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
 {
 	PKI_TOKEN *tk = NULL;
 
-	tk = (PKI_TOKEN *) PKI_Malloc ( sizeof(PKI_TOKEN));
+	tk = (PKI_TOKEN *) PKI_Malloc (sizeof(PKI_TOKEN));
 	if(!tk)
 	{
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return (NULL);
 	}
+	
+	memset(tk, 0, sizeof(PKI_TOKEN));
 
 	if ((tk->otherCerts = PKI_STACK_X509_CERT_new()) == NULL)
 	{
@@ -382,12 +384,6 @@ int PKI_TOKEN_free( PKI_TOKEN *tk )
 		tk->crls = NULL;
 	}
 
-	if (tk->hsm)
-	{
-		HSM_free(tk->hsm);
-		tk->hsm = NULL;
-	}
-
 	if (tk->profiles)
 	{
 		PKI_X509_PROFILE *pr = NULL;
@@ -451,6 +447,12 @@ int PKI_TOKEN_free( PKI_TOKEN *tk )
 	{
 		PKI_CRED_free(tk->cred);
 		tk->cred = NULL;
+	}
+
+	if (tk->hsm)
+	{
+		HSM_free(tk->hsm);
+		tk->hsm = NULL;
 	}
 
 	PKI_Free( tk );
@@ -519,7 +521,10 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 	char *hsm_name = NULL;
 	char *config_file = NULL;
 	char *tmp_s = NULL;
+
 	int ret = PKI_ERR;
+
+	PKI_ALGOR * alg = NULL;
 
 	/* Check input */
 	if(!tk || !tk_name)
@@ -701,7 +706,10 @@ PKI_log_debug("[2] is hardware token ? %s", (((tk->type != HSM_TYPE_SOFTWARE) &&
 		if (tk->algor) PKI_ALGOR_free(tk->algor);
 
 		// Assign the algorithm from the certificate
-		tk->algor = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
+		alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
+		if (alg) PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
+
+		// tk->algor = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
 	
 		// Assign the name
 		tk->cert_id = strdup( tmp_s );
@@ -1499,7 +1507,8 @@ int PKI_TOKEN_set_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *pkey )
 {
 	PKI_ALGOR *pKeyAlgor = NULL;
 
-	if (!tk || !pkey || !pkey->value) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	if (!tk || !pkey || !pkey->value)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	if (tk->keypair)
 	{
@@ -1579,8 +1588,6 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 	{
 		PKI_log_debug ("Setting algor to %s", PKI_ALGOR_get_parsed (alg));
 		PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
-
-		PKI_ALGOR_free(alg);
 	}
 
 	return PKI_OK;
@@ -1706,20 +1713,21 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 
 	if (!tk | !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if ((url = getParsedUrl( url_string)) == NULL)
+	if ((url = getParsedUrl(url_string)) == NULL)
 		return PKI_ERROR(PKI_ERR_URI_PARSE, url_string);
 
 	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
 
 	if ((pkey = PKI_X509_KEYPAIR_get_url( url, tk->cred, tk->hsm )) == NULL)
 	{
-		/* Can not load the certificate from the given URL */
+		/* Can not load the keypair from the given URL */
 		if (url) URL_free( url );
 		PKI_log_debug("PKI_TOKEN_load_keypair()::Can not load key (%s)", url->url_s);
 		tk->status |= PKI_TOKEN_STATUS_LOGIN_ERR;
 
 		return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, url_string);
 	}
+
 
 	// Let's free the URL structure's memory
 	if (url) URL_free(url);

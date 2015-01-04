@@ -17,7 +17,7 @@ PKI_X509 *PKI_X509_get_url ( URL *url, PKI_DATATYPE type,
 PKI_X509_STACK *PKI_X509_STACK_get ( char *url_s, PKI_DATATYPE type, 
 					PKI_CRED *cred, HSM *hsm );
 
-PKI_X509_CERT_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
+PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 					PKI_CRED *cred, HSM *hsm );
 
 /* --------------------------- X509 put (write) ----------------------- */

@@ -134,11 +134,11 @@ PKI_X509_STACK *PKI_X509_STACK_get ( char *url_s, PKI_DATATYPE type,
  *
  */
 
-PKI_X509_CERT_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
+PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 						PKI_CRED *cred, HSM *hsm ) {
 	
-	PKI_X509_CERT_STACK *ret = NULL;
-	PKI_X509_CERT_STACK *tmp_x_sk = NULL;
+	PKI_X509_STACK *ret = NULL;
+	PKI_X509_STACK *tmp_x_sk = NULL;
 	PKI_MEM_STACK *mem_sk = NULL;
 	PKI_X509_CERT *x = NULL;
 

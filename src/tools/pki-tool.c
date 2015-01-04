@@ -925,22 +925,23 @@ int main (int argc, char *argv[] ) {
 
 		PKI_TOKEN_login( tk );
 
-		if( signkey )
+		if (signkey)
 		{
-			if(verbose) {
+			if (verbose)
+			{
 				printf("Loading Keypair (%s) ... ", signkey);
 				fflush(stdout);
 			}
-			if((PKI_TOKEN_load_keypair( tk, signkey )) 
-							== PKI_ERR){
-				printf("\nERROR, can not load key "
-						"[%s]\n\n", signkey );
+
+			if (PKI_TOKEN_load_keypair(tk, signkey) == PKI_ERR)
+			{
+				printf("\nERROR, can not load key [%s]\n\n", signkey );
 				exit(1);
-			} else {
+			}
+			else
+			{
 				if( !tk->keypair ) {
-					printf("\nERROR, can not load "
-						"keypair from token "
-						"config!\n\n");
+					printf("\nERROR, can not load keypair from token config!\n\n");
 					exit(1);
 				}
 				if( verbose ) printf("Ok.\n");
@@ -1289,8 +1290,8 @@ int main (int argc, char *argv[] ) {
 	if( verbose ) printf("Freeing Token Object ... ");
 	fflush(stdout);
 
-	if( tk ) PKI_TOKEN_free ( tk );
 	if( prof ) PKI_X509_PROFILE_free ( prof );
+	if( tk ) PKI_TOKEN_free ( tk );
 
 	if(verbose) printf("Done.\n\n");
 

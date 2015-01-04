@@ -181,8 +181,8 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 
 PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor )
 {
-	int alg_nid 	= PKI_ALGOR_UNKNOWN;
 	PKI_ALGOR *ret 	= NULL;
+	int alg_nid 	= PKI_ALGOR_UNKNOWN;
 
 	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ID_UNKNOWN)
 	{
@@ -193,6 +193,7 @@ PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor )
 	// Check if the OID found corresponds to one of the supported algorithms 
 	switch (alg_nid)
 	{
+		// RSA Scheme
 #ifdef ENABLE_MD4
 		case PKI_ALGOR_RSA_MD4:
 #endif
@@ -217,7 +218,15 @@ PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor )
 #ifdef ENABLE_RIPEMD
 		case PKI_ALGOR_RSA_RIPEMD160:
 #endif
+
+		// DSA Scheme
 		case PKI_ALGOR_DSA_SHA1:
+#ifdef ENABLE_DSA_SHA_2
+		case PKI_ALGOR_DSA_SHA224:
+		case PKI_ALGOR_DSA_SHA256:
+#endif
+
+		// ECDSA Scheme
 #ifdef ENABLE_ECDSA
 		case PKI_ALGOR_ECDSA_SHA1:
 #endif
@@ -226,10 +235,6 @@ PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor )
 		case PKI_ALGOR_ECDSA_SHA256:
 		case PKI_ALGOR_ECDSA_SHA384:
 		case PKI_ALGOR_ECDSA_SHA512:
-#endif
-#ifdef ENABLE_DSA_SHA_2
-		case PKI_ALGOR_DSA_SHA224:
-		case PKI_ALGOR_DSA_SHA256:
 #endif
 			break;
 

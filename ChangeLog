@@ -1,3 +1,7 @@
+* Jan  4 2015 Massimiliano Pala <madwolf@openca.org>
+- Fixed PKI_TOKEN_load_cert() when setting the token's algor
+- Fixed I/O return type for PKI_X509_get()
+
 * Aug 14 2014 Massimiliano Pala <madwolf@openca.org>
 - Fixed two bugs in PKI_RWLOCK_write_lock() that caoused deadlock if no RWLOCK support for pthread is available.
 

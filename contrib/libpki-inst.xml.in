@@ -172,9 +172,8 @@ to use for subscribing the LibPKI Users mailing list</explanation>
 
 -->
 
-<!--
 	<httpPost>
-	    <url>http://www.openca.org/alby/subscribe</url>
+	    <url>https://www.openca.org/alby/subscribe</url>
 	   <filename>/var/tmp/openca-subscribe.html</filename>
 	   <queryParameterList>
 		<queryParameter name="prj" value="libpki" />
@@ -202,7 +201,6 @@ to use for subscribing the LibPKI Users mailing list</explanation>
                 </compareValues>
 	    </ruleList>
 	</httpPost>
-	-->
 
     <finalPageActionList>
         <launchBrowser>

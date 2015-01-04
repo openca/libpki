@@ -22,7 +22,7 @@ void PKI_X509_CERT_free_void( void *x ) {
 
 void PKI_X509_CERT_free( PKI_X509_CERT *x ) {
 
- 	PKI_X509_free ( x );
+ 	if (x) PKI_X509_free ( x );
 	return;
 }
 
