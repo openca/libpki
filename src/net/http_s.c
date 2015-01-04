@@ -462,9 +462,11 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
   {
 	  size_t body_start = body - (char *)m->data;
 	  size_t body_size = idx - body_start;
-
+	  
+	  //Check if Content-Length > 0 but body_size is 0
+	  if (body_size == 0) goto err; 
 	  // Let's allocate the body for the HTTP message (if any)
-	  ret->body = PKI_MEM_new_data((size_t)idx - body_start, (unsigned char *)body);
+	  ret->body = PKI_MEM_new_data(body_size, (unsigned char *)body);
 
 	  // Let's cheat and add a final NULL char (but not reflected in the size reported
 	  // by the object (i.e., it will not be copied using the normal dup functions)
