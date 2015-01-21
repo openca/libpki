@@ -4,7 +4,7 @@ char *prg_name = NULL;
 
 static char *banner = "\n"
  "  OpenCA Signature Info Tool - v" VERSION "\n"
- "  (c) 2011-2013 by Massimiliano Pala and OpenCA Labs\n"
+ "  (c) 2011-2015 by Massimiliano Pala and OpenCA Labs\n"
  "  All Rights Reserved\n";
 
 void usage() {

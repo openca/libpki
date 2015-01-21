@@ -2,7 +2,7 @@
 
 void usage( void ) {
 	printf("\nURL Tool - v1.0\n");
-	printf("(c) 2007-2013 by Massimiliano Pala and OpenCA Labs\n");
+	printf("(c) 2007-2015 by Massimiliano Pala and OpenCA Labs\n");
 	printf("OpenCA Licensed software\n");
 
 	printf("\n  USAGE: url-tool [options] <URL>\n");

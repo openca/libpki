@@ -41,7 +41,7 @@ char * prompt_str( char * pt ) {
 void usage ( void ) {
 
 	fprintf(stderr, "\n\nPKI Token Tool - Massimiliano Pala <madwolf@openca.org>\n");
-	fprintf(stderr, "(c) 2006-2013 by Massimiliano Pala and OpenCA Labs\n");
+	fprintf(stderr, "(c) 2006-2015 by Massimiliano Pala and OpenCA Labs\n");
 	fprintf(stderr, "OpenCA Licensed Software\n\n");
 
 	fprintf(stderr, "  USAGE: pki-tool cmd [options]\n\n");
