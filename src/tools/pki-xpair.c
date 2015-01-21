@@ -3,7 +3,7 @@
 void usage ( void ) {
 
 	printf("\n\nPKI Cross Certificates Management Tool\n");
-	printf("(c) 2006-2013 by Massimiliano Pala and OpenCA Labs\n");
+	printf("(c) 2006-2015 by Massimiliano Pala and OpenCA Labs\n");
 	printf("    OpenCA Licensed Software\n\n");
 
 	printf("  USAGE: pki-xpair [options]\n\n");
