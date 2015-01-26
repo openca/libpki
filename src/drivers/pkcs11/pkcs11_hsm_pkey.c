@@ -172,7 +172,7 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	n = 0;
 	//HSM_PKCS11_set_attr_int( CKA_CLASS, CKO_PUBLIC_KEY, &pubTemp[n++]);
 	//HSM_PKCS11_set_attr_int( CKA_KEY_TYPE, CKK_RSA, &pubTemp[n++]);
-	HSM_PKCS11_set_attr_int( CKA_MODULUS_BITS, bits, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_int( CKA_MODULUS_BITS, (CK_ULONG)bits, &pubTemp[n++]);
 
 	HSM_PKCS11_set_attr_bool( CKA_TOKEN, CK_TRUE, &pubTemp[n++]);
 	HSM_PKCS11_set_attr_bool( CKA_ENCRYPT, CK_TRUE, &pubTemp[n++]);

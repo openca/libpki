@@ -852,12 +852,12 @@ int HSM_PKCS11_set_attr_bool (CK_ATTRIBUTE_TYPE type,
 }
 
 int HSM_PKCS11_set_attr_int ( CK_ATTRIBUTE_TYPE type,
-				int value, CK_ATTRIBUTE *attribute ) {
+				CK_ULONG value, CK_ATTRIBUTE *attribute ) {
 
 	if ( !attribute ) return ( PKI_ERR );
 
 	attribute->type = type;
-	attribute->pValue = (void *) PKI_Malloc ( sizeof(int));
+	attribute->pValue = (void *) PKI_Malloc ( sizeof(CK_ULONG));
 	memcpy(attribute->pValue, &value, sizeof(value));
 	attribute->ulValueLen = sizeof( value );
 

@@ -843,7 +843,7 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 	}
 
 	idx = 0;
-	HSM_PKCS11_set_attr_int(CKA_CLASS,(int) objClass,&templ[idx++]);
+	HSM_PKCS11_set_attr_int(CKA_CLASS, objClass, &templ[idx++]);
 	HSM_PKCS11_set_attr_sn(CKA_LABEL, myLabel, strlen(myLabel), 
 							&templ[idx++]);	
 	HSM_PKCS11_set_attr_sn(CKA_APPLICATION, myLabel, strlen(myLabel), 
