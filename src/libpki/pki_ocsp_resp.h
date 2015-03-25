@@ -39,9 +39,11 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *r, PKI_X509_KEYPAIR *pkey,
 					PKI_DIGEST_ALG *md );
 int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *r, PKI_X509_KEYPAIR *keypair,
 		PKI_X509_CERT *cert, PKI_X509_CERT *issuer, 
-		PKI_X509_CERT_STACK * otherCerts, PKI_DIGEST_ALG *digest);
+		PKI_X509_CERT_STACK * otherCerts, PKI_DIGEST_ALG *digest,
+		PKI_X509_OCSP_RESPID_TYPE respidType);
 
-int PKI_X509_OCSP_RESP_sign_tk ( PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk, PKI_DIGEST_ALG *digest );
+int PKI_X509_OCSP_RESP_sign_tk ( PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk, 
+				 PKI_DIGEST_ALG *digest, PKI_X509_OCSP_RESPID_TYPE respidType);
 
 /* ------------------------------ Data Parsing --------------------------- */
 

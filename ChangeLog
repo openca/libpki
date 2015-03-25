@@ -1,3 +1,6 @@
+* Mar 25 2015 Massimiliano Pala <madwolf@openca.org>
+- Added responderId type parameter in OCSP response signing
+
 * Jan  4 2015 Massimiliano Pala <madwolf@openca.org>
 - Fixed PKI_TOKEN_load_cert() when setting the token's algor
 - Fixed I/O return type for PKI_X509_get()
