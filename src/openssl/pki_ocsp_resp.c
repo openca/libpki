@@ -282,7 +282,7 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp, 
 		PKI_X509_KEYPAIR *keypair, PKI_X509_CERT *cert, 
 		PKI_X509_CERT *issuer, PKI_X509_CERT_STACK * otherCerts,
-		PKI_DIGEST_ALG *digest ) {
+		PKI_DIGEST_ALG *digest, PKI_X509_OCSP_RESPID_TYPE respidType ) {
 
 	OCSP_RESPID *rid;
 	PKI_OCSP_RESP *r = NULL;
@@ -327,8 +327,13 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 	rid = r->bs->tbsResponseData->responderId;
 
 	// Sets the responderId
-	if (cert)
+	if (cert && respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME)
 	{
+		if (!cert) {
+			PKI_log_err("PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
+			return PKI_ERR;
+		}
+
 		if (!X509_NAME_set(&rid->value.byName, X509_get_subject_name(cert->value)))
 		{
 			PKI_log_err("Internal Error");
@@ -412,7 +417,8 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 
 /*! \brief Signs a PKI_X509_OCSP_RESP object by using a token */
 
-int PKI_X509_OCSP_RESP_sign_tk(PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk, PKI_DIGEST_ALG *digest)
+int PKI_X509_OCSP_RESP_sign_tk(PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk, 
+			       PKI_DIGEST_ALG *digest, PKI_X509_OCSP_RESPID_TYPE respidType)
 {
 	int ret = PKI_OK;
 
@@ -429,7 +435,7 @@ int PKI_X509_OCSP_RESP_sign_tk(PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk, PKI_DIGEST_
 	}
 
 	ret = PKI_X509_OCSP_RESP_sign(r, tk->keypair, tk->cert, tk->cacert,
-			tk->otherCerts, digest);
+			tk->otherCerts, digest, respidType);
 
 	if (ret != PKI_OK) PKI_log_debug("Error while signing OCSP response");
 
