@@ -567,13 +567,19 @@ int HSM_PKCS11_session_new( unsigned long slot_id, CK_SESSION_HANDLE *hSession,
 	
 	if ( flags == 0 ) flags = CKF_SERIAL_SESSION;
 
+	memset(&session_info, 0, sizeof(CK_SESSION_INFO));
+
 	if(( rv = lib->callbacks->C_GetSessionInfo(*hSession, &session_info)) 
 								== CKR_OK ) {
 
 		if ( session_info.flags == flags ) {
 			return ( PKI_OK );
 		}
+		PKI_log_debug("HSM_PKCS11_session new ():: Session flags returned from C_GetSessionInfo() differ "
+			"to given argument: Prev=0x%08x, Curr=0x%08x", session_info.flags, flags );
 	}
+	else
+		PKI_log_debug("HSM_PKCS11_session new ()::C_GetSessionInfo failed: Error: [0x%8.8X]", rv );
 
 
 	/* If we reach this point, then the current session is either
@@ -581,7 +587,7 @@ int HSM_PKCS11_session_new( unsigned long slot_id, CK_SESSION_HANDLE *hSession,
 	if((rv = lib->callbacks->C_OpenSession (slot_id, 
 			(CK_FLAGS) flags, NULL, NULL, hSession)) != CKR_OK ) {
 		PKI_log_debug("HSM_PKCS11_session new ()::Failed opening a "
-			"new session 0x%x with the token (%d) [0x%8.8X]",
+			"new session (flags=0x%x) with the token (slot=%d): Error: [0x%8.8X]",
 					flags, slot_id, rv );
 		return ( PKI_ERR );
 	}
@@ -788,14 +794,9 @@ int HSM_PKCS11_get_attr_bn ( CK_OBJECT_HANDLE *hObj,
 		*val = BN_bin2bn( data, (int) size, NULL );
 	}
 
-	/*
 	if( data ) {
-		for ( i = size; i < sizeof(CK_ULONG); i++ ) {
-			*data = 0x0;
-		}
-		*val = *data;
+		PKI_Free ( data );
 	}
-	*/
 
 	return ( PKI_OK );
 }

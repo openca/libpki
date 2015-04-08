@@ -99,7 +99,9 @@ HSM *HSM_PKCS11_new ( PKI_CONFIG *conf ) {
 	HSM *hsm = NULL;
 	char *cryptoki_id = NULL;
 
-	hsm = (HSM *) PKI_Malloc ( sizeof( HSM ));
+	if( (hsm = (HSM *) PKI_Malloc ( sizeof( HSM )) ) == NULL)
+		return(NULL);
+
 	memcpy( hsm, &pkcs11_hsm, sizeof( HSM));
 
 	/* Not really needed! */
@@ -111,46 +113,45 @@ HSM *HSM_PKCS11_new ( PKI_CONFIG *conf ) {
 	/* Let's get the ID for the HSM */
 	if((cryptoki_id = PKI_CONFIG_get_value( conf, "/hsm/id" )) == NULL ) {
 		PKI_log_debug("ERROR, Can not get ENGINE id from conf!\n");
-		PKI_Free ( hsm );
-		return( NULL );
+		goto err;
 	}
 
 	if((hsm->id = URL_new ( cryptoki_id )) == NULL ) {
 		PKI_log_debug("ERROR, Can not convert id into URI (%s)", 
 								cryptoki_id);
 		PKI_Free ( cryptoki_id );
-		PKI_Free ( hsm );
-		return (NULL);
+		goto err;
 	}
 
 	/* cryptoki_id is no more of use, let's free the memory */
 	PKI_Free ( cryptoki_id );
-	
+
 	if((hsm->driver = (void *)
-			_pki_pkcs11_load_module( hsm->id->addr, conf))==NULL) {
+		_pki_pkcs11_load_module( hsm->id->addr, conf))==NULL) {
 		PKI_log_err("Can not init PKCS11 lib");
-		PKI_Free ( hsm );
-		return (NULL);
+		goto err;
 	}
 
 	/* The PKCS11 interface need to be initialized */
-	if(( HSM_PKCS11_init ( hsm->driver, conf )) == PKI_ERR ) {
+	if(( HSM_PKCS11_init ( hsm, conf )) == PKI_ERR ) {
 		PKI_log_err("Can not initialize PKCS11 (%s)", hsm->id->addr );
-		HSM_PKCS11_free ( hsm->driver, conf );
-		PKI_Free( hsm );
-		return( NULL );
+		goto err;
 	};
 
 	if((hsm->session = (void *) PKI_Malloc ( sizeof (CK_SESSION_HANDLE)))
 								== NULL ) {
 		PKI_log_err("HSM_PKCS11_new()::Memory Allocation error for"
 				"CK_SESSION_HANDLE");
-		HSM_PKCS11_free ( hsm->driver, conf );
-		PKI_Free ( hsm );
-		return ( NULL );
+		goto err;
 	}
 
 	return( hsm );
+
+err:
+	if(hsm) {
+		HSM_PKCS11_free ( hsm, conf );
+	}
+	return(NULL);
 }
 
 int HSM_PKCS11_free ( HSM *driver, PKI_CONFIG *conf ) {
@@ -165,19 +166,21 @@ int HSM_PKCS11_free ( HSM *driver, PKI_CONFIG *conf ) {
 	if (ret != PKI_OK)
 	{
 		/* This is a non-fatal error, so let's just log it and continue */
-		PKI_log_debug("HHSM_PKCS11_free()::Failed to logout from the HSM");
+		PKI_log_debug("HSM_PKCS11_free()::Failed to logout from the HSM");
 	}
 
-	if((handle = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
-                PKI_log_debug("HSM_PKCS11_free():: Can't get handler!");
-                return ( PKI_ERR );
-        }
+	if((handle = _hsm_get_pkcs11_handler ( driver )) == NULL )
+	{
+		PKI_log_debug("HSM_PKCS11_free():: Can't get handler!");
+		return ( PKI_ERR );
+	}
 
 	/* Check if the Finalize function is available */
 	if (handle->callbacks && handle->callbacks->C_Finalize)
 	{
 		rv = handle->callbacks->C_Finalize( NULL_PTR );
-		if (!rv) PKI_log_debug("HSM_PKCS11_free()::Failed to call C_Finalize");
+		if (rv != CKR_OK)
+			PKI_log_debug("HSM_PKCS11_free()::Failed to call C_Finalize (0X%8.8X)", rv);
 	}
 
 	/* Close reference to shared lib */
@@ -188,13 +191,22 @@ int HSM_PKCS11_free ( HSM *driver, PKI_CONFIG *conf ) {
 		// PKI_Free ( handle->callbacks );
 	}
 
+	/* Free list of machanisms */
+	if( handle->mech_list ) {
+		PKI_Free ( handle->mech_list );
+	}
+
 	/* Set the mutex to an invalid value */
 	pthread_mutex_destroy ( &handle->pkcs11_mutex );
 	pthread_cond_destroy ( &handle->pkcs11_cond );
 
 	/* Free the Memory */
 	PKI_Free ( handle );
-	
+
+	if(driver->session)  PKI_Free ( driver->session );
+	if(driver->id)       URL_free(driver->id);
+	PKI_Free ( driver );
+
 	return (PKI_OK);
 }
 
@@ -252,6 +264,10 @@ int HSM_PKCS11_login ( HSM *driver, PKI_CRED *cred ) {
 	{
 		pwd = (unsigned char *) getpass("Please enter your password: ");
 	}
+	else if ((pwd = (unsigned char * ) cred->password ) == NULL )
+	{
+		PKI_log_debug("No Password Provided for Login");
+	}
 
 	if (pwd && strlen((const char*) pwd) > 0)
 	{
@@ -296,13 +312,13 @@ int HSM_PKCS11_logout ( HSM *driver ) {
         PKI_log_debug("HSM_PKCS11_logout()::Start!");
 
         if((lib = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
-                PKI_log_debug("HSM_PKCS11_login():: Can't get handler!");
+                PKI_log_debug("HSM_PKCS11_logout():: Can't get handler!");
                 return ( PKI_ERR );
         }
 
 	rv = lib->callbacks->C_Logout( lib->session );
 	if( rv && rv != CKR_SESSION_CLOSED && rv != CKR_SESSION_HANDLE_INVALID
-			&& rv != CKR_USER_NOT_LOGGED_IN ) {
+			&& rv != CKR_USER_NOT_LOGGED_IN && rv != CKR_CRYPTOKI_NOT_INITIALIZED ) {
 		PKI_log_err(  "can't logout from current session (0x%8.8X)", 
 								rv );
 
@@ -330,7 +346,7 @@ int HSM_PKCS11_init( HSM *driver, PKI_CONFIG *conf ) {
 		return ( PKI_ERR );
 	}
 
-	handle = (PKCS11_HANDLER *) driver;
+	handle = (PKCS11_HANDLER *) driver->driver;
 
 	/* Initialize MUTEX for non-atomic operations */
 	if(pthread_mutex_init( &handle->pkcs11_mutex, NULL ) != 0 ) {
@@ -780,7 +796,7 @@ HSM_SLOT_INFO * HSM_PKCS11_SLOT_INFO_get ( unsigned long num, HSM *hsm ) {
 	slot_num = (CK_ULONG) num;
 	if((rv = lib->callbacks->C_GetSlotInfo(slot_num, &info)) != CKR_OK ) {
 		PKI_log_debug("Can not get Info from PKCS11 library" );
-		PKI_log_debug("Returned Value is %d (OK is %d)", rv, CKR_OK );
+		PKI_log_debug("Returned Value is (0X%8.8X) (OK is (0X%8.8X))", rv, CKR_OK );
 		return ( PKI_ERR );
 	};
 	
@@ -945,7 +961,7 @@ int HSM_PKCS11_SLOT_select (unsigned long num, PKI_CRED *cred, HSM *hsm) {
 	rv = lib->callbacks->C_GetMechanismList(lib->slot_id,
 						lib->mech_list, &lib->mech_num);
 	if( rv != CKR_OK ) {
-		PKI_log_debug("C_GetMechanismList::Failed (%d::%d)", 
+		PKI_log_debug("C_GetMechanismList::Failed (%d::0X%8.8X)",
 				lib->slot_id, rv );
 		goto end;
 	}

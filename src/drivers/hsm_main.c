@@ -100,7 +100,6 @@ HSM *HSM_new( char *dir, char *name ) {
 
 	HSM *hsm = NULL;
 	char * url_s = NULL;
-	char * buff = NULL;
 
 	PKI_CONFIG *conf = NULL;
 	char *type = NULL;
@@ -120,12 +119,9 @@ HSM *HSM_new( char *dir, char *name ) {
 
 	if((conf = PKI_CONFIG_load( url_s )) == NULL ) {
 		PKI_log_debug( "Can not load config from %s", url_s );
-		return(NULL);
+		goto err;
 	}
 
-	if((buff = PKI_Malloc ( BUFF_MAX_SIZE )) == NULL ) {
-		return(NULL);
-	}
 
 	/* Let's generate the right searching string with the namespace
 	   prefix */
@@ -197,7 +193,18 @@ HSM *HSM_new( char *dir, char *name ) {
 		PKI_log_debug("HSM created in non-FIPS mode");
 	}
 
+	PKI_CONFIG_free ( conf );
+	if (url_s) PKI_Free ( url_s );
+	if (type) PKI_Free(type);
+
 	return (hsm);
+
+err:
+	PKI_CONFIG_free ( conf );
+	if (url_s) PKI_Free ( url_s );
+	if (type) PKI_Free(type);
+
+	return (NULL);
 }
 
 /*! \brief Allocates a new HSM structure and initializes it in FIPS mode
@@ -264,7 +271,7 @@ int HSM_init( HSM *hsm ) {
 	/* Call the init function provided by the hsm itself */
 	if( hsm->callbacks->init )
 	{
-		return (hsm->callbacks->init ( hsm->driver, hsm->config ));
+		return (hsm->callbacks->init ( hsm, hsm->config ));
 	}
 	else
 	{
@@ -298,7 +305,7 @@ int HSM_login ( HSM *hsm, PKI_CRED *cred ) {
 	if (!hsm) return (PKI_ERR);
 
 	if ( hsm->callbacks->login ) {
-		return ( hsm->callbacks->login( hsm->driver, cred ));
+		return ( hsm->callbacks->login( hsm, cred ));
 	} else {
 		/* No login required by the HSM */
 		PKI_log_debug("No login function for selected HSM");
@@ -312,7 +319,7 @@ int HSM_logout ( HSM *hsm ) {
 	if (!hsm || !hsm->callbacks ) return (PKI_ERR);
 
 	if ( hsm->callbacks && hsm->callbacks->logout ) {
-		return ( hsm->callbacks->logout( hsm->driver ));
+		return ( hsm->callbacks->logout( hsm ));
 	} else {
 		/* No login required by the HSM */
 		PKI_log_debug("No login function for selected HSM");
