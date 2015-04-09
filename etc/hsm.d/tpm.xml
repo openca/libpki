@@ -36,5 +36,5 @@
        go -->
   <pki:passin>stdin</pki:passin>
   <!-- ... or simply specify the password here -->
-  <!-- <pki:passwd></pki:passwd> -->
+  <!-- <pki:password></pki:password> -->
 </pki:hsm>
