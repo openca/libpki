@@ -138,25 +138,25 @@ typedef struct callbacks_st {
 	char * (*get_errdesc)( unsigned long err, char *str, size_t size );
 
 	/* HSM initialization function */
-	int (*init) (struct hsm_st *driver, PKI_CONFIG *);
+	int (*init) (struct hsm_st *hsm, PKI_CONFIG *);
 
 	/* HSM free function */
-	int (*free) (struct hsm_st *driver, PKI_CONFIG *);
+	int (*free) (struct hsm_st *hsm, PKI_CONFIG *);
 
 	/* HSM login */
-	int (*login)(struct hsm_st *driver, PKI_CRED *cred);
+	int (*login)(struct hsm_st *hsm, PKI_CRED *cred);
 
 	/* HSM logout */
-	int (*logout)(struct hsm_st *driver);
+	int (*logout)(struct hsm_st *hsm);
 
 	/* HSM set algor function */
-	int (*select_algor) (struct hsm_st *driver, PKI_ALGOR *algor);
+	int (*select_algor) (struct hsm_st *hsm, PKI_ALGOR *algor);
 
 	/* HSM set fips mode */
-	int (*set_fips_mode) (const struct hsm_st *driver, int k);
+	int (*set_fips_mode) (const struct hsm_st *hsm, int k);
 
 	/* HSM gets fips operation mode */
-	int (*is_fips_mode) (const struct hsm_st *driver);
+	int (*is_fips_mode) (const struct hsm_st *hsm);
 
 	/* ------------- Signing functions --------------- */
 	/* General Signing function */

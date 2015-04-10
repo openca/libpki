@@ -29,14 +29,14 @@ PKI_STACK * HSM_ENGINE_OBJSK_get_url ( PKI_DATATYPE type, URL *url,
 
 /*
 PKI_X509_KEYPAIR_STACK * HSM_ENGINE_KEYPAIR_get_url ( URL *url, PKI_CRED *cred, 
-							HSM *driver ) {
+							HSM *hsm ) {
 	HSM *hsm = NULL;
 	PKI_X509_KEYPAIR_STACK *ret = NULL;
 	PKI_X509_KEYPAIR *keypair = NULL;
 	PW_CB_DATA cb_data;
 	ENGINE *e = NULL;
 
-	if((hsm = (HSM *) driver) == NULL ) {
+	if((hsm = (HSM *) hsm) == NULL ) {
 		PKI_log_debug("ERROR, Memory Allocation", __FILE__, __LINE__);
 		return(NULL);
 	}

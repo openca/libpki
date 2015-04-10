@@ -294,7 +294,7 @@ void * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
 
 PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp, 
-		URL *url, PKI_CRED *cred, HSM *driver ) {
+		URL *url, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_X509_KEYPAIR *ret = NULL;
 	PKI_RSA_KEY *rsa = NULL;

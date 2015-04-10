@@ -244,14 +244,14 @@ HSM *HSM_ENGINE_new ( PKI_CONFIG *conf )
 	return( hsm );
 }
 
-int HSM_ENGINE_free ( HSM *driver, PKI_CONFIG *conf ) {
+int HSM_ENGINE_free ( HSM *hsm, PKI_CONFIG *conf ) {
 
-	if( driver == NULL ) return (PKI_OK);
+	if( hsm == NULL ) return (PKI_OK);
 
 	return (PKI_ERR);
 }
 
-int HSM_ENGINE_init( HSM *driver, PKI_CONFIG *conf ) {
+int HSM_ENGINE_init( HSM *hsm, PKI_CONFIG *conf ) {
 
 	/* We need to initialize the driver by using the config
 	   options. For the ENGINE, we do not need the driver
@@ -264,12 +264,12 @@ int HSM_ENGINE_init( HSM *driver, PKI_CONFIG *conf ) {
 	PKI_STACK *pre_cmds = NULL;
 	PKI_STACK *post_cmds = NULL;
 
-	if( !driver ) return ( PKI_ERR );
+	if( !hsm ) return ( PKI_ERR );
 
        	PKI_log_debug("INFO, Initialising HSM [%s]", 
 		PKI_CONFIG_get_value(conf, "/hsm/name"));
 
-	e = (ENGINE *) driver;
+	e = (ENGINE *) hsm;
 
 	if( !conf ) {
 		PKI_log_debug("WARNING, no PRECMDS provided (?!?!?)");

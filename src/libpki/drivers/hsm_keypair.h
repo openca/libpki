@@ -10,7 +10,7 @@ PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new( PKI_KEYPARAMS *params, char *label,
                                         PKI_CRED *cred, HSM *hsm );
 
 PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new_url( PKI_KEYPARAMS *params, URL *url,
-                                        PKI_CRED *cred, HSM *driver );
+                                        PKI_CRED *cred, HSM *hsm );
 
 /* Free the memory associated to a keypair */
 /*

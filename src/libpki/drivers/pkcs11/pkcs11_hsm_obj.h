@@ -20,7 +20,7 @@ PKI_MEM_STACK * HSM_PKCS11_OBJSK_wrap_url ( PKI_DATATYPE type, URL *url,
 
 /* --------------------- Internal Functions --------------------------- */
 PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url, 
-					PKI_CRED *cred, HSM *driver );
+					PKI_CRED *cred, HSM *hsm );
 int HSM_PKCS11_STACK_add_url( PKI_X509_STACK *sk, URL *url, 
 					PKI_CRED *cred, HSM *hsm );
 
@@ -32,14 +32,14 @@ int HSM_PKCS11_X509_CERT_get_template (CK_ATTRIBUTE *templ, PKI_X509_CERT *x,
 PKI_X509_KEYPAIR_STACK * HSM_PKCS11_KEYPAIR_get_url (URL *url, PKI_CRED *cred, 
 								HSM *hsm);
 PKI_STACK * HSM_PKCS11_KEYPAIR_wrap_url ( URL *url, PKI_CRED *cred, 
-								HSM *driver );
+								HSM *hsm );
 PKI_STACK * HSM_PKCS11_KEYPAIR_STACK_wrap ( PKI_X509_KEYPAIR_STACK *sk, 
-						PKI_CRED *cred, HSM *driver );
+						PKI_CRED *cred, HSM *hsm );
 /* ------------------------ add KEYPAIR functions ------------------------- */
 int HSM_PKCS11_KEYPAIR_add_url ( PKI_X509_KEYPAIR *pk, URL *url, PKI_CRED *cred,
-							HSM *driver );
+							HSM *hsm );
 int HSM_PKCS11_KEYPAIR_STACK_add_url ( PKI_STACK *sk, URL *url, PKI_CRED *cred,
-							HSM *driver );
+							HSM *hsm );
 /* ------------------------ Find functions ------------------------------ */
 
 CK_OBJECT_HANDLE * HSM_PKCS11_X509_CERT_find_private_key ( PKI_X509_CERT *x,

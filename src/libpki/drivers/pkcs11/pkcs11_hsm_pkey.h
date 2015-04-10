@@ -5,7 +5,7 @@
 
 /* ------------------------ Key Management Functions --------------------- */
 PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
-				URL *url, PKI_CRED *cred, HSM *driver );
+				URL *url, PKI_CRED *cred, HSM *hsm );
 
 void HSM_PKCS11_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey );
 

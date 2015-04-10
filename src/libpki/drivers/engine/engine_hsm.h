@@ -14,8 +14,8 @@ unsigned long HSM_ENGINE_get_errno ( void );
 char * HSM_ENGINE_get_errdesc ( unsigned long err, char *str, size_t size );
 
 HSM *HSM_ENGINE_new ( PKI_CONFIG *conf );
-int HSM_ENGINE_free ( HSM *driver, PKI_CONFIG *conf );
-int HSM_ENGINE_init( HSM *driver, PKI_CONFIG *conf );
+int HSM_ENGINE_free ( HSM *hsm, PKI_CONFIG *conf );
+int HSM_ENGINE_init( HSM *hsm, PKI_CONFIG *conf );
 
 /* ---------------------- Sign/Verify functions ----------------------- */
 

@@ -9,11 +9,11 @@ char * HSM_OPENSSL_get_errdesc ( unsigned long err, char *str, size_t size );
 HSM * HSM_OPENSSL_new( PKI_CONFIG *conf );
 const HSM * HSM_OPENSSL_get_default( void );
 
-int HSM_OPENSSL_free ( HSM *driver, PKI_CONFIG *conf );
-int HSM_OPENSSL_init ( HSM *driver, PKI_CONFIG *conf );
+int HSM_OPENSSL_free ( HSM *hsm, PKI_CONFIG *conf );
+int HSM_OPENSSL_init ( HSM *hsm, PKI_CONFIG *conf );
 
-int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k);
-int HSM_OPENSSL_is_fips_mode(const HSM *driver);
+int HSM_OPENSSL_set_fips_mode(const HSM *hsm, int k);
+int HSM_OPENSSL_is_fips_mode(const HSM *hsm);
 
 /* ---------------------- Sign/Verify functions ----------------------- */
 

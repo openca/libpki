@@ -295,7 +295,7 @@ CK_OBJECT_HANDLE * HSM_PKCS11_get_obj( CK_ATTRIBUTE *templ,
 }
 
 int HSM_PKCS11_get_contents_info( unsigned long slot_id, PKI_CRED *cred,
-							void *driver ) {
+							void *hsm ) {
 
 	PKCS11_HANDLER *lib = NULL;
 
@@ -317,9 +317,9 @@ int HSM_PKCS11_get_contents_info( unsigned long slot_id, PKI_CRED *cred,
 
 	int objID = 0;
 
-	if( !driver ) return (PKI_ERR);
+	if( !hsm ) return (PKI_ERR);
 
-	if(( lib = _hsm_get_pkcs11_handler ( driver)) == NULL ) {
+	if(( lib = _hsm_get_pkcs11_handler ( hsm)) == NULL ) {
 		return ( PKI_ERR );
 	}
 
@@ -329,7 +329,7 @@ int HSM_PKCS11_get_contents_info( unsigned long slot_id, PKI_CRED *cred,
 		return ( PKI_ERR );
 	}
 
-	if( HSM_PKCS11_login ( driver, cred ) == PKI_ERR ) {
+	if( HSM_PKCS11_login ( hsm, cred ) == PKI_ERR ) {
 		return ( PKI_ERR );
 	}
 

@@ -119,7 +119,7 @@ void * _engine_pki_ecdsakey_new( PKI_KEYPARAMS *kp, ENGINE *e ) {
 
 
 PKI_X509_KEYPAIR *HSM_ENGINE_X509_KEYPAIR_new( PKI_KEYPARAMS *kp, 
-				URL *url, PKI_CRED *cred, HSM *driver ) {
+				URL *url, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_X509_KEYPAIR *ret = NULL;
 	PKI_X509_KEYPAIR_VALUE *val = NULL;
@@ -139,7 +139,7 @@ PKI_X509_KEYPAIR *HSM_ENGINE_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 		return NULL;
 	}
 
-	e = (ENGINE *) driver;
+	e = (ENGINE *) hsm;
 	if( _engine_pki_rand_seed() == 0 ) {
 		/* Probably low level of randomization available */
 		PKI_log_debug("WARNING, low rand available (ENGINE HSM)");
@@ -201,7 +201,7 @@ PKI_X509_KEYPAIR *HSM_ENGINE_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 			return NULL;
 	}
 
-	if((ret = PKI_X509_new( PKI_DATATYPE_X509_KEYPAIR, driver)) == NULL ) {
+	if((ret = PKI_X509_new( PKI_DATATYPE_X509_KEYPAIR, hsm)) == NULL ) {
 		if( val ) EVP_PKEY_free ( val );
 		return NULL;
 	}

@@ -494,7 +494,7 @@ PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
 
 	/* Login into the device - do nothing if we are already logged in */
 	/*
-	if(( HSM_PKCS11_login ( driver, cred )) == PKI_ERR ) {
+	if(( HSM_PKCS11_login ( hsm, cred )) == PKI_ERR ) {
 		PKI_log_debug("HSM_PKCS11_KEYPAIR_get_url()::ERROR, can not "
 					"login to device!");
 		return ( NULL );
@@ -655,11 +655,11 @@ PKI_STACK * HSM_PKCS11_KEYPAIR_wrap_url ( URL *url, PKI_CRED *cred,
 
 	if( !url ) return ( NULL );
 
-	if(( key_sk = HSM_PKCS11_KEYPAIR_get_url( url, cred, driver )) == NULL){
+	if(( key_sk = HSM_PKCS11_KEYPAIR_get_url( url, cred, hsm )) == NULL){
 		return ( NULL );
 	}
 
-	return ( HSM_PKCS11_KEYPAIR_STACK_wrap ( key_sk, cred, driver ) );
+	return ( HSM_PKCS11_KEYPAIR_STACK_wrap ( key_sk, cred, hsm ) );
 }
 
 PKI_STACK * HSM_PKCS11_KEYPAIR_STACK_wrap ( PKI_KEYPAIR_STACK *sk, 
@@ -770,7 +770,7 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 	}
 
 	if ((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
-		PKI_log_debug ("HSM_PKCS11_KEYPAIR_get_url()::No handler");
+		PKI_log_debug ("HSM_PKCS11_STACK_get_url()::No handler");
 		return NULL;
 	}
 

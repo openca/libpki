@@ -20,17 +20,17 @@
 
 #define RSA_SIGNATURE_MAX_SIZE		8192
 
-PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
-					PKCS11_HANDLER *lib, void *driver );
+static PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
+					PKCS11_HANDLER *lib, void *hsm );
 
-PKI_DSA_KEY * _pki_pkcs11_dsakey_new( PKI_KEYPARAMS *kp, URL *url, 
-					PKCS11_HANDLER *lib, void *driver );
+static PKI_DSA_KEY * _pki_pkcs11_dsakey_new( PKI_KEYPARAMS *kp, URL *url, 
+					PKCS11_HANDLER *lib, void *hsm );
 #ifdef ENABLE_ECDSA
-PKI_EC_KEY * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
-			URL *url, PKCS11_HANDLER *lib, void *driver );
+static PKI_EC_KEY * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
+			URL *url, PKCS11_HANDLER *lib, void *hsm );
 #else
 void * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
-			URL *url, PKCS11_HANDLER *lib, void *driver );
+			URL *url, PKCS11_HANDLER *lib, void *hsm );
 #endif
 
 int _pki_pkcs11_rand_init( void );
@@ -82,8 +82,8 @@ size_t _get_key_id ( char *id, size_t size ) {
 }
 */
 
-PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
-					PKCS11_HANDLER *lib, void *driver) {
+static PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
+					PKCS11_HANDLER *lib, void *hsm) {
 
 	PKI_RSA_KEY *ret = NULL;
 
@@ -270,7 +270,7 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	ret->flags |= RSA_FLAG_SIGN_VER;
 
 	/* Push the priv and pub key handlers to the rsa->ex_data */
-	RSA_set_ex_data( ret, KEYPAIR_DRIVER_HANDLER_IDX, driver );
+	RSA_set_ex_data( ret, KEYPAIR_DRIVER_HANDLER_IDX, hsm );
 	RSA_set_ex_data( ret, KEYPAIR_PRIVKEY_HANDLER_IDX, handler_privkey );
 	RSA_set_ex_data( ret, KEYPAIR_PUBKEY_HANDLER_IDX, handler_pubkey );
 
@@ -308,8 +308,8 @@ err:
 
 }
 
-PKI_DSA_KEY * _pki_pkcs11_dsakey_new( PKI_KEYPARAMS *kp, URL *url,
-					PKCS11_HANDLER *lib, void *driver ) {
+static PKI_DSA_KEY * _pki_pkcs11_dsakey_new( PKI_KEYPARAMS *kp, URL *url,
+					PKCS11_HANDLER *lib, void *hsm ) {
 	PKI_DSA_KEY *k = NULL;
 	// unsigned char seed[20];
 
@@ -319,8 +319,8 @@ PKI_DSA_KEY * _pki_pkcs11_dsakey_new( PKI_KEYPARAMS *kp, URL *url,
 }
 
 #ifdef ENABLE_ECDSA
-PKI_EC_KEY * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
-			URL *url, PKCS11_HANDLER *lib, void *driver ) {
+static PKI_EC_KEY * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
+			URL *url, PKCS11_HANDLER *lib, void *hsm ) {
 
 	PKI_EC_KEY *k = NULL;
 
@@ -332,7 +332,7 @@ PKI_EC_KEY * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
 #else /* EVP_PKEY_EC */
 
 void * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
-			URL *url, PKCS11_HANDLER *lib, void *driver ) {
+			URL *url, PKCS11_HANDLER *lib, void *hsm ) {
 	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
 	return ( NULL );
 }
@@ -341,7 +341,7 @@ void * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
 
 
 PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
-			URL *url, PKI_CRED *cred, HSM *driver ) {
+			URL *url, PKI_CRED *cred, HSM *hsm ) {
 
 	PKCS11_HANDLER *lib = NULL;
 	int type = PKI_SCHEME_DEFAULT;
@@ -371,7 +371,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 	PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Start!");
 
-	if ((lib = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
+	if ((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
 		PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Can not get handler");
 		return NULL;
 	}
@@ -423,7 +423,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 	}
 	*/
 
-	if( HSM_PKCS11_login ( driver, cred ) == PKI_ERR ) {
+	if( HSM_PKCS11_login ( hsm, cred ) == PKI_ERR ) {
 		HSM_PKCS11_session_close ( &lib->session, lib );
 		return ( PKI_ERR );
 	}
@@ -461,7 +461,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 		case PKI_SCHEME_RSA:
 			if ((rsa = _pki_pkcs11_rsakey_new ( kp, url, 
-					lib, driver)) == NULL ) {
+					lib, hsm)) == NULL ) {
 				HSM_PKCS11_session_close ( &lib->session, lib );
 				return ( NULL );
 			};
@@ -476,7 +476,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 		case PKI_SCHEME_DSA:
 			if ((dsa = _pki_pkcs11_dsakey_new ( kp, url, 
-					lib, driver)) == NULL ) {
+					lib, hsm)) == NULL ) {
 				HSM_PKCS11_session_close ( &lib->session, lib );
 				return ( NULL );
 			};
@@ -492,7 +492,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 #ifdef ENABLE_ECDSA
 		case PKI_SCHEME_ECDSA:
 			if ((ecdsa = _pki_pkcs11_ecdsakey_new ( kp, url, 
-					lib, driver)) == NULL ) {
+					lib, hsm)) == NULL ) {
 				HSM_PKCS11_session_close ( &lib->session, lib );
 				return ( NULL );
 			};
@@ -514,7 +514,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 	HSM_PKCS11_session_close ( &lib->session, lib );
 
-	if (( ret = PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, driver)) == NULL){
+	if (( ret = PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, hsm)) == NULL){
 			PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL );
 			if ( val ) EVP_PKEY_free ( (EVP_PKEY *) val );
 		if ( val ) EVP_PKEY_free ( val );
@@ -562,7 +562,7 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 
 	PKCS11_HANDLER *lib = NULL;
 	CK_OBJECT_HANDLE *pHandle = NULL;
-	HSM *driver = NULL;
+	HSM *hsm = NULL;
 
 	CK_MECHANISM RSA_MECH = {
 		CKM_RSA_PKCS, NULL_PTR, 0 };
@@ -594,7 +594,7 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 			return (0 /* 0 = PKI_ERR in OpenSSL */ );
 
 	/* Retrieves the reference to the hsm */
-	if((driver = (HSM *) RSA_get_ex_data (rsa, KEYPAIR_DRIVER_HANDLER_IDX))
+	if((hsm = (HSM *) RSA_get_ex_data (rsa, KEYPAIR_DRIVER_HANDLER_IDX))
 								== NULL ) {
 		PKI_log_err ("HSM_PKCS11_rsa_sign()::Can't get Driver Handle");
 		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
@@ -607,7 +607,7 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
 	}
 
-	if ((lib = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
+	if ((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
                 PKI_log_err("HSM_PKCS11_rsa_sign()::Can not get lib handler");
                 return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
         }
@@ -636,7 +636,7 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	if(( HSM_PKCS11_session_new( lib->slot_id, &lib->session,
 				CKF_SERIAL_SESSION, lib )) == PKI_ERR ) {
 
-		PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Failed in opening a "
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::Failed in opening a "
 				"new session (R/W) with the token" );
 		return ( 0 );
 	};

@@ -48,16 +48,16 @@ typedef struct pkcs11_handler {
 } PKCS11_HANDLER;
 
 HSM * HSM_PKCS11_new( PKI_CONFIG *conf );
-int HSM_PKCS11_free ( HSM *driver, PKI_CONFIG *conf );
+int HSM_PKCS11_free ( HSM *hsm, PKI_CONFIG *conf );
 
-int HSM_PKCS11_login ( HSM *driver, PKI_CRED *cred );
-int HSM_PKCS11_logout ( HSM *driver );
+int HSM_PKCS11_login ( HSM *hsm, PKI_CRED *cred );
+int HSM_PKCS11_logout ( HSM *hsm );
 
-int HSM_PKCS11_init ( HSM *driver, PKI_CONFIG *conf );
-int HSM_PKCS11_algor_set ( HSM *driver, PKI_ALGOR *alg);
+int HSM_PKCS11_init ( HSM *hsm, PKI_CONFIG *conf );
+int HSM_PKCS11_algor_set ( HSM *hsm, PKI_ALGOR *alg);
 
-int HSM_PKCS11_set_fips_mode ( const HSM *driver, int k);
-int HSM_PKCS11_is_fips_mode( const HSM *driver );
+int HSM_PKCS11_set_fips_mode ( const HSM *hsm, int k);
+int HSM_PKCS11_is_fips_mode( const HSM *hsm );
 
 /*
 PKI_MEM * HSM_PKCS11_sign (PKI_MEM *der, PKI_X509_KEYPAIR *key,
@@ -69,7 +69,7 @@ int HSM_PKCS11_sign (PKI_OBJTYPE type,
 				PKI_STRING *bit,
 				PKI_X509_KEYPAIR *key, 
 				PKI_DIGEST_ALG *digest, 
-				HSM *driver );
+				HSM *hsm );
 */
 
 int HSM_PKCS11_verify ( PKI_OBJTYPE type, void *x, 
@@ -79,6 +79,6 @@ unsigned long HSM_PKCS11_SLOT_num(HSM * hsm);
 HSM_SLOT_INFO * HSM_PKCS11_SLOT_INFO_get ( unsigned long num, HSM *hsm );
 void HSM_PKCS11_SLOT_INFO_free ( HSM_SLOT_INFO *sl_info, HSM *hsm );
 int HSM_PKCS11_SLOT_select ( unsigned long num, PKI_CRED *cred, HSM *hsm);
-int HSM_PKCS11_SLOT_clear (unsigned long slot_id, PKI_CRED *cred, HSM *driver);
+int HSM_PKCS11_SLOT_clear (unsigned long slot_id, PKI_CRED *cred, HSM *hsm);
 
 #endif

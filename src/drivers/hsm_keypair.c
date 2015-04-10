@@ -34,7 +34,7 @@ PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new( PKI_KEYPARAMS *params,
 }
 
 PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new_url( PKI_KEYPARAMS *params,
-			URL *url, PKI_CRED *cred, HSM *driver ) {
+			URL *url, PKI_CRED *cred, HSM *hsm_in ) {
 
 	PKI_X509_KEYPAIR *ret = NULL;
 	HSM *hsm = NULL;
@@ -44,8 +44,8 @@ PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new_url( PKI_KEYPARAMS *params,
 		return NULL;
 	};
 
-	if( driver ) {
-		hsm = driver;
+	if( hsm_in ) {
+		hsm = hsm_in;
 	} else {
 		hsm = (HSM *) HSM_get_default();
 		// PKI_log_debug("Getting Default HSM (%p/%p)", hsm, &openssl_hsm );
