@@ -111,6 +111,21 @@ typedef enum {
 	/* Signatures Related Errors */
 	PKI_ERR_SIGN_,
 	PKI_ERR_SIGN_VERIFY,
+	/* Network Related Errors */
+	PKI_ERR_NET_OPEN,
+	PKI_ERR_NET_,
+	/* SSL/TLS Related Errors */
+	PKI_ERR_NET_SSL_NOT_SUPPORTED,
+	PKI_ERR_NET_SSL_NO_CIPHER,
+	PKI_ERR_NET_SSL_VERIFY,
+	PKI_ERR_NET_SSL_SET_SOCKET,
+	PKI_ERR_NET_SSL_SET_CIPHER,
+	PKI_ERR_NET_SSL_SET_FLAGS,
+	PKI_ERR_NET_SSL_INIT,
+	PKI_ERR_NET_SSL_START,
+	PKI_ERR_NET_SSL_CONNECT,
+	PKI_ERR_NET_SSL_PEER_CERTIFICATE,
+	PKI_ERR_NET_SSL_,
 } PKI_ERR_CODE;
 
 typedef struct pki_err_st {
@@ -227,6 +242,23 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	/* Signatures Related Errors */
 	{ PKI_ERR_SIGN_, "" },
 	{ PKI_ERR_SIGN_VERIFY, "" },
+	/* Network Related Errors */
+	{ PKI_ERR_NET_OPEN, "Can not open socket connection" },
+	{ PKI_ERR_NET_, "" },
+  /* SSL/TLS Related Errors */
+	{ PKI_ERR_NET_SSL_NOT_SUPPORTED , "Not supported by SSL/TLS" },
+	{ PKI_ERR_NET_SSL_NO_CIPHER , "No valid cipher (algorithm)" },
+	{ PKI_ERR_NET_SSL_VERIFY , "TLS/SSL certificate verify error" },
+	{ PKI_ERR_NET_SSL_SET_SOCKET , "Can not set the socket FD for SSL/TLS" },
+	{ PKI_ERR_NET_SSL_SET_CIPHER , "Can not set the selected ciphers list" },
+	{ PKI_ERR_NET_SSL_SET_FLAGS , "Can not set the selected flags for SSL/TLS" },
+	{ PKI_ERR_NET_SSL_INIT , "Can not init the SSL/TLS protocol" },
+	{ PKI_ERR_NET_SSL_START , "Can not start the SSL/TLS protocol" },
+	{ PKI_ERR_NET_SSL_CONNECT , "Can not connect via SSL/TLS protocol" },
+	{ PKI_ERR_NET_SSL_PEER_CERTIFICATE , "Can not process peer certificate" },
+	{ PKI_ERR_NET_SSL_ , "" },
+	/* List Boundary */
+	{ 0, 0 }
 };
 
 static const int __libpki_err_size = sizeof ( __libpki_errors_st ) / sizeof ( PKI_ERR_ST );
