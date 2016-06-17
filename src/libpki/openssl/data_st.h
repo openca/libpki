@@ -32,23 +32,22 @@
 typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Some useful Key definitions */
-#define PKI_RSA_KEY	RSA
-#define PKI_DSA_KEY	DSA
+#define PKI_RSA_KEY		RSA
+#define PKI_DSA_KEY		DSA
 
 #ifdef ENABLE_ECDSA
-#define PKI_EC_KEY				EC_KEY
+#define PKI_EC_KEY		EC_KEY
 #endif
 
-#define  PKI_ID					int
-#define  PKI_ID_UNKNOWN			NID_undef
+#define  PKI_ID			int
+#define  PKI_ID_UNKNOWN		NID_undef
 
-#define  PKI_DIGEST_ALG			EVP_MD
-#define	 PKI_ALGOR 				X509_ALGOR
-#define	 PKI_ALGORITHM			X509_ALGOR
-#define  PKI_CIPHER				EVP_CIPHER
+#define  PKI_DIGEST_ALG		EVP_MD
+#define	 PKI_ALGOR 		X509_ALGOR
+#define	 PKI_ALGORITHM		X509_ALGOR
+#define  PKI_CIPHER		EVP_CIPHER
 
-// typedef struct X509_NAME 	PKI_X509_NAME;
-#define PKI_X509_NAME			X509_NAME
+#define PKI_X509_NAME		X509_NAME
 
 #define PKI_DIGEST_ALG_NULL  	(PKI_DIGEST_ALG *) NULL
 #define PKI_DIGEST_ALG_UNKNOWN 	(PKI_DIGEST_ALG *) NULL
@@ -275,7 +274,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 
 #define PKI_ALGOR_ID			int
-#define PKI_ALGOR_ID_UNKNOWN	-1
+#define PKI_ALGOR_ID_UNKNOWN		-1
 
 #define PKI_OID				ASN1_OBJECT
 #define PKI_TIME			ASN1_GENERALIZEDTIME
@@ -361,7 +360,6 @@ typedef enum {
 	PKI_X509_NAME_TYPE_L	=	NID_localityName ,
 	PKI_X509_NAME_TYPE_CN	=	NID_commonName,
 	PKI_X509_NAME_TYPE_EMAIL=	NID_pkcs9_emailAddress ,
-//	PKI_X509_NAME_TYPE_UID	=	NID_uniqueIdentifier ,
 #ifdef NID_uniqueIdentifier
 	PKI_X509_NAME_TYPE_UID	=	NID_uniqueIdentifier ,
 #else
@@ -399,10 +397,10 @@ typedef struct pki_x509_extension_st {
 
 #ifdef ENABLE_ECDSA
 typedef enum {
-	PKI_EC_KEY_FORM_UNKNOWN			=	0,
-	PKI_EC_KEY_FORM_COMPRESSED		=	POINT_CONVERSION_COMPRESSED,
+	PKI_EC_KEY_FORM_UNKNOWN		=	0,
+	PKI_EC_KEY_FORM_COMPRESSED	=	POINT_CONVERSION_COMPRESSED,
 	PKI_EC_KEY_FORM_UNCOMPRESSED	=	POINT_CONVERSION_UNCOMPRESSED,
-	PKI_EC_KEY_FORM_HYBRID			=	POINT_CONVERSION_HYBRID,
+	PKI_EC_KEY_FORM_HYBRID		=	POINT_CONVERSION_HYBRID,
 } PKI_EC_KEY_FORM;
 
 #define PKI_EC_KEY_FORM_DEFAULT			PKI_EC_KEY_FORM_COMPRESSED
@@ -451,17 +449,6 @@ typedef struct pki_x509_cinf_full {
         STACK_OF(X509_EXTENSION) *extensions;   /* [ 3 ] optional in v3 */
 	ASN1_ENCODING enc;
 } PKI_X509_CINF_FULL;
-
-/*
-typedef struct pki_x509_crl_template_st {
-	char *serial;
-	unsigned long days;
-	unsigned long hours;
-
-	PKI_X509_CRL_ENTRY_STACK *entries;
-	PKI_X509_PROFILE *profile;
-} PKI_X509_CRL_TEMPLATE;
-*/
 
 #define PKI_X509_CRL_ENTRY	X509_REVOKED
 /* typedef struct X509_REVOKED 	PKI_CRL_ENTRY; */
@@ -526,16 +513,10 @@ typedef enum {
 #define PKI_X509_PRQP_RESP		PKI_X509
 
 #define PKI_X509_LIRT_VALUE		PKI_LIRT
-#define PKI_X509_LIRT					PKI_X509
+#define PKI_X509_LIRT			PKI_X509
 
 #include <libpki/hsm_st.h>
 #include <libpki/token_st.h>
-
-/*
-#define B64_write_bio( type, bio, data ) \
-	PEM_ASN1_write_bio ( (int (*)()) i2d_##type, "", \
-		bio, (char *) data, NULL, NULL, 0, NULL, NULL )
-*/
 
 #define __B64_write_bio_internal(type,bio,data,p) ({ BIO *b64; int r;\
                 b64 = BIO_new(BIO_f_base64()) ; \
