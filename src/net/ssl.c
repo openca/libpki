@@ -46,9 +46,6 @@ static int __ssl_find_trusted(X509_STORE_CTX      *ctx,
 	// Gets the number of trusted certificates
 	trusted_certs_num = PKI_STACK_X509_CERT_elements(pki_ssl->trusted_certs);
 
-	// Debuggin
-	PKI_log_err("Trusted Certificates are: %d", trusted_certs_num);
-
 	// Check if a certificate is among the trusted ones
 	for (i = 0; i < trusted_certs_num; i++){
 
@@ -57,14 +54,16 @@ static int __ssl_find_trusted(X509_STORE_CTX      *ctx,
 
 		issuer = PKI_STACK_X509_CERT_get_num(pki_ssl->trusted_certs, i);
 		issuer_val = PKI_X509_get_value(issuer);
-
-		if(X509_cmp( issuer_val, x) == 0) {
+		
+		// Checks if the peer certificate is the i-th trusted ones
+		if (X509_cmp(issuer_val, x) == 0) {
 			/* The certificate is present among the trusted ones */
 			PKI_log_debug("Same Certificate Found in Chain!");
 			ret = PKI_OK;
 			break;
 		}
 
+		// Checks if the peer certificate was issued by the i-th trusted one
 		if((ctx_err = X509_check_issued(issuer_val, x)) == X509_V_OK ) {
 			/* The cert has been issued by a trusted one */
 			PKI_log_debug("__ssl_find_trusted()-> Found Issuer");
@@ -398,15 +397,11 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 	}
 
 	if (ret == 1) {
-		PKI_log_err("DEBUG: Adding peer certificate - depth: %d", depth);
+		// We add the certificate only if it was successfully validated
+		// to avoid malformed, expired, etc. certificates
 		PKI_STACK_X509_CERT_push(pki_ssl->peer_chain, 
                              PKI_X509_dup(x));
-	} else {
-		PKI_log_err("DEBUG: skipping peer certificate - depth: %d", depth);
-	}
-
-	PKI_log_err("DEBUG: peer chain has %d certs",
-		PKI_STACK_X509_CERT_elements(pki_ssl->peer_chain));
+	} 
 
 	/* Check for the verify_ok --- it should be OK in depth 0. We use
    * this variable to keep track if at least one cert in the chain is
@@ -423,19 +418,27 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 
 		sk_x = pki_ssl->peer_chain;
 
-		if (sk_x != 0) {
-			for (k = 0; k < PKI_STACK_X509_CERT_elements(sk_x); k++) {
+		// Certificate Details
+		fprintf(stderr, "\n ====== SERVER CERTIFICATE ==========\n");
+		PKI_X509_CERT_put(x, PKI_DATA_FORMAT_TXT, "stderr", NULL, NULL, NULL);
+		fprintf(stderr, "\n\n");
 
-				// Gets the certificate from the stack
-				sk_cert = PKI_STACK_X509_CERT_get_num(sk_x, k);
+		if (sk_x != 0) for (k = 0; k < PKI_STACK_X509_CERT_elements(sk_x); k++) {
 
-				// Checks if we can find the certificate in the list of
-				// trusted certificates for the SSL/TLS connection
-				ok = __ssl_find_trusted(ctx, (X509 *) sk_cert->value);
+			// Gets the certificate from the stack
+			sk_cert = PKI_STACK_X509_CERT_get_num(sk_x, k);
 
-				// If we have found the certificate, let's break
-				if (ok == PKI_OK) break;
-			}
+			// Certificate Details
+			fprintf(stderr, "\n ====== PEER CHAIN CERTIFICATE - num: %d ==========\n", k);
+			PKI_X509_CERT_put(sk_cert, PKI_DATA_FORMAT_TXT, "stderr", NULL, NULL, NULL);
+			fprintf(stderr, "\n");
+
+			// Checks if we can find the certificate in the list of
+			// trusted certificates for the SSL/TLS connection
+			ok = __ssl_find_trusted(ctx, (X509 *) sk_cert->value);
+
+			// If we have found the certificate, let's break
+			if (ok == PKI_OK) break;
 		}
 
 		if ( ok == PKI_ERR ) {

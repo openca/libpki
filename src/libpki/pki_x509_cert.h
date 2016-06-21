@@ -56,7 +56,9 @@ int PKI_X509_CERT_is_selfsigned ( PKI_X509_CERT *x );
 int PKI_X509_CERT_is_ca ( PKI_X509_CERT *x );
 int PKI_X509_CERT_is_proxy ( PKI_X509_CERT *x );
 int PKI_X509_CERT_check_domain ( PKI_X509_CERT *x, char *domain );
-char ** PKI_X509_CERT_get_email ( PKI_X509_CERT *x );
+
+/* Retrieves the e-mail address from the Subject or SubjectAltName */
+PKI_STACK * PKI_X509_CERT_get_email ( PKI_X509_CERT *x );
 
 // PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_num ( PKI_X509_CERT  *x, 
 // 							int num );
