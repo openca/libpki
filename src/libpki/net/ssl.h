@@ -18,6 +18,7 @@
 #define _LIBPKI_PKI_SSL_H
 
 #include <openssl/ssl.h>
+#include <libpki/pki_x509_cert.h>
 
 /*! \brief Algorithms for PKI_SSL connections */
 typedef SSL_METHOD PKI_SSL_ALGOR;
@@ -201,19 +202,19 @@ typedef enum {
 
 #define PKI_SSL_CIPHERS_TLS1_2 \
 	"ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384"  \
-  ":ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384"         \
+	":ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384"         \
 	":DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-SHA256"           \
-  ":ECDH-RSA-AES256-GCM-SHA384:ECDH-ECDSA-AES256-GCM-SHA384"   \
+	":ECDH-RSA-AES256-GCM-SHA384:ECDH-ECDSA-AES256-GCM-SHA384"   \
 	":ECDH-RSA-AES256-SHA384:ECDH-ECDSA-AES256-SHA384"           \
 	":ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256" \
 	":ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256"         \
 	":DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES128-SHA256"           \
 	":ECDH-RSA-AES128-GCM-SHA256:ECDH-ECDSA-AES128-GCM-SHA256"   \
-	":ECDH-RSA-AES128-SHA256:ECDH-ECDSA-AES128-SHA256"					 \
+	":ECDH-RSA-AES128-SHA256:ECDH-ECDSA-AES128-SHA256"           \
 	":AES256-GCM-SHA384:AES256-SHA256"                           \
 	":AES128-GCM-SHA256:AES128-SHA256"
 
-#define PKI_SSL_CIPHERS_ALL \
+#define PKI_SSL_CIPHERS_ALL       \
 	PKI_SSL_CIPHERS_TLS1_2    \
 	PKI_SSL_CIPHERS_TLS1_1    \
 	PKI_SSL_CIPHERS_TLS1      \
@@ -244,6 +245,10 @@ typedef struct  pki_ssl_t {
 
 	/* PKI_X509_CERT_STACK of trusted certificates */
 	PKI_X509_CERT_STACK *trusted_certs;
+
+	/* PKI_X509_CERT_STACK of other certificates (e.g., SubCAs to facilitate
+	 * the certificate's chain building) */
+	PKI_X509_CERT_STACK *other_certs;
 
 	/* Set to 1 while the socket is connected, 0 otherwise */
 	int connected;
@@ -276,6 +281,13 @@ int PKI_SSL_set_algor ( PKI_SSL *ssl, PKI_SSL_ALGOR *algor );
 int PKI_SSL_set_flags ( PKI_SSL *ssl, PKI_SSL_FLAGS flags );
 int PKI_SSL_set_cipher ( PKI_SSL *ssl, char *cipher );
 
+int PKI_SSL_set_token ( PKI_SSL *ssl, struct pki_token_st *tk );
+
+int PKI_SSL_set_trusted ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk );
+// int PKI_SSL_add_trusted ( PKI_SSL *ssl, PKI_X509_CERT *cert );
+int PKI_SSL_set_others ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk );
+// int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert );
+
 int PKI_SSL_set_fd ( PKI_SSL *ssl, int fd );
 int PKI_SSL_get_fd ( PKI_SSL *ssl );
 
@@ -286,9 +298,6 @@ int PKI_SSL_connect_url ( PKI_SSL *ssl, URL *url, int timeout );
 int PKI_SSL_connect ( PKI_SSL *ssl, char *url_s, int timeout );
 
 int PKI_SSL_start_ssl ( PKI_SSL *ssl, int fd );
-
-int PKI_SSL_set_token ( PKI_SSL *ssl, struct pki_token_st *tk );
-int PKI_SSL_set_trusted ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk );
 int PKI_SSL_close ( PKI_SSL *ssl );
 
 ssize_t PKI_SSL_write ( PKI_SSL *ssl, char * buf, ssize_t size );

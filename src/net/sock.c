@@ -455,7 +455,7 @@ ssize_t PKI_NET_read (int fd, void *bufptr, size_t nbytes, int timeout ) {
 		return -1;
 	}
 
-	for (;; ) {
+	for ( ; ; ) {
 		/* Add the socket to the read set */
 		FD_ZERO( &readset );
 		FD_SET ( fd, &readset);
@@ -552,7 +552,7 @@ PKI_MEM *PKI_NET_get_data ( int fd, int timeout, size_t max_size ) {
 	};
 
 	if( buf->size <= 0 ) {
-		PKI_log_debug("WARNING::No HTTP data retrieved.");
+		PKI_log_debug("WARNING::No NET data retrieved.");
 
 		if( buf ) PKI_MEM_free ( buf );
 		buf = NULL;
@@ -569,24 +569,26 @@ ssize_t PKI_NET_recvfrom (int fd, void *bufptr, size_t nbytes,
 	struct sockaddr_in cli_addr;
 	socklen_t slen = sizeof(cli_addr);
 
+	bzero(&cli_addr, sizeof(cli_addr));
+
 	if (!bufptr || nbytes <= 0) return 0;
 
 	if (cli && cli_len > 0)
 	{
 		rv = recvfrom(fd, bufptr, nbytes, 0, (struct sockaddr *)cli, &cli_len);
-		PKI_log_debug("[DNS] Packet from %s:%d", 
+		PKI_log_debug("[UDP] Packet from %s:%d", 
 			inet_ntoa(cli->sin_addr), ntohl(cli->sin_port));
 	}
 	else
 	{
 		rv = recvfrom(fd, bufptr, nbytes, 0, (struct sockaddr *)&cli_addr, &slen);
-		PKI_log_debug("[DNS] Packet from %s:%d", 
+		PKI_log_debug("[UDP] Packet from %s:%d", 
 			inet_ntoa(cli_addr.sin_addr), ntohl(cli_addr.sin_port));
 	}
 
 	if (rv == -1)
 	{
-		PKI_log_debug("[DNS] Error getting the packet!");
+		PKI_log_debug("[UDP] Error getting the packet!");
 		return -1;
 	}
 

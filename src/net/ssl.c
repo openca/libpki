@@ -383,7 +383,7 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 	if (pki_ssl->auth == 0 || ret == 1) ret = 1;
 
 	/* We add the Cert to the peer_chain only if we have an "ok" return
-   * code to avoid duplicates */
+	 * code to avoid duplicates */
 	if (pki_ssl->peer_chain == 0) {
 
 		// Generates an empty stack of certs
@@ -409,8 +409,8 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 		PKI_STACK_X509_CERT_elements(pki_ssl->peer_chain));
 
 	/* Check for the verify_ok --- it should be OK in depth 0. We use
-   * this variable to keep track if at least one cert in the chain is
-   * explicitly trusted */
+	 * this variable to keep track if at least one cert in the chain is
+	 * explicitly trusted */
 	if (depth              == 0 && 
 	    pki_ssl->auth      != 0 && 
 	    pki_ssl->verify_ok != PKI_OK) {
@@ -563,6 +563,42 @@ static int __pki_ssl_init_ssl  ( PKI_SSL *ssl ) {
 				val = PKI_X509_get_value ( x );
 				X509_STORE_add_cert ( store, val );
 			}
+		}
+	}
+
+	/* Clears the SSL_CTX chain certs */
+	// SSL_CTX_clear_chain_certs(ssl->ssl_ctx);
+	SSL_CTX_clear_extra_chain_certs(ssl->ssl_ctx);
+
+	/* Now sets the other (not-trusted) certificates */
+	if ( ssl->other_certs ) {
+		int i = 0;
+		for (i = 0; i < PKI_STACK_X509_CERT_elements(
+						ssl->other_certs); i++) {
+			PKI_X509_CERT_VALUE *val = NULL;
+			PKI_X509_CERT *x = NULL;
+
+			x = PKI_STACK_X509_CERT_get_num( 
+						ssl->other_certs,i);
+			val = PKI_X509_get_value ( x );
+			SSL_CTX_add_extra_chain_cert(ssl->ssl_ctx, val);
+			// SSL_CTX_add0_chain_cert(ssl->ssl_ctx, val);
+		}
+	}
+
+	/* Now sets the other (not-trusted) certificates (from the ssl token,
+	 * if any) */
+	if ( ssl_tk && ssl_tk->otherCerts ) {
+		for (i=0; i < PKI_STACK_X509_CERT_elements(
+					ssl_tk->otherCerts); i++) {
+			PKI_X509_CERT_VALUE *val = NULL;
+			PKI_X509_CERT *x = NULL;
+
+			x = PKI_STACK_X509_CERT_get_num( 
+					ssl_tk->otherCerts,i);
+			val = PKI_X509_get_value ( x );
+			SSL_CTX_add_extra_chain_cert(ssl->ssl_ctx, val);
+			// SSL_CTX_add0_chain_cert(ssl->ssl_ctx, val);
 		}
 	}
 
@@ -1016,6 +1052,71 @@ int PKI_SSL_set_trusted ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk ) {
 	return PKI_OK;
 }
 
+/*! \brief Adds a certificate to the list of trusted ones for SSL connections */
+
+int PKI_SSL_add_trusted ( PKI_SSL *ssl, PKI_X509_CERT *cert ) {
+
+	// Input Check
+	if ( !ssl || !cert ) PKI_ERROR(PKI_ERR_PARAM_NULL);
+
+	// Allocates a new list if not already present
+	if ((ssl->trusted_certs == NULL) &&
+		(ssl->trusted_certs = PKI_STACK_X509_CERT_new()) == NULL) {
+		// Failure allocating memory
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	// Adds the certificate to the list of trusted certs
+	PKI_STACK_X509_CERT_push ( ssl->trusted_certs, cert);
+
+	// All Done
+	return PKI_OK;
+}
+
+/*! \brief Sets the list of untrusted certificates for SSL connections */
+
+int PKI_SSL_set_others ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk ) {
+
+	int i = 0;
+
+	if ( !ssl || !sk ) {
+		PKI_log_err ( "Missing PKI_SSL or PKI_X509_CERT_STACK param!");
+		return PKI_ERR;
+	}
+
+	if (ssl->other_certs == NULL) {
+		ssl->other_certs = PKI_STACK_X509_CERT_new();
+	}
+
+	for( i = 0; i < PKI_STACK_X509_CERT_elements (sk); i++ ) {
+		PKI_STACK_X509_CERT_push ( ssl->other_certs,
+			PKI_STACK_X509_CERT_get_num (sk,i));
+	}
+
+	return PKI_OK;
+}
+
+/*! \brief Adds a certificate to the list of not-trusted ones for SSL connections */
+
+int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert ) {
+
+	// Input Check
+	if ( !ssl || !cert ) PKI_ERROR(PKI_ERR_PARAM_NULL);
+
+	// Allocates a new list if not already present
+	if ((ssl->other_certs == NULL) &&
+		(ssl->other_certs = PKI_STACK_X509_CERT_new()) == NULL) {
+		// Failure allocating memory
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	// Adds the certificate to the list of non-trusted certs
+	PKI_STACK_X509_CERT_push(ssl->other_certs, cert);
+
+	// All Done
+	return PKI_OK;
+}
+
 
 /*! \brief Closes an SSL connection */
 
@@ -1076,6 +1177,14 @@ void PKI_SSL_free ( PKI_SSL *ssl ) {
 		};
 
 		PKI_STACK_X509_CERT_free ( ssl->trusted_certs );
+	}
+
+	if( ssl->other_certs ) {
+		while( (cert = PKI_STACK_X509_CERT_pop (ssl->other_certs))
+								!= NULL ) {
+			PKI_X509_CERT_free ( cert );
+		};
+		PKI_STACK_X509_CERT_free ( ssl->other_certs );
 	}
 
 	if( ssl->peer_chain ) {
