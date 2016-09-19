@@ -207,6 +207,50 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 	return PKI_OK;
 }
 
+/*!
+ * \brief set the id-pkix-ocsp-extended-revoke extension in the response
+ */ 
+
+int PKI_X509_OCSP_RESP_set_extendedRevoke(PKI_X509_OCSP_RESP * resp) {
+
+	PKI_X509_EXTENSION_VALUE * ext_val = NULL;
+	OCSP_BASICRESP *bs = NULL;
+
+	// Input Checks
+	if (!resp || !resp->value) 
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Checks we have the basic response
+	bs = (OCSP_BASICRESP *) resp->value;
+	if (!bs) return PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+
+	// Allocates the memory
+	if ((ext_val = X509_EXTENSION_new()) == NULL) 
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
+
+	// Let's create the extension and add it to the stack of extensions of
+	// the OCSP response. Due to an error reported here:
+	//
+	// http://marc.info/?1=openssl-users&m=138573884214852&w=2
+	//
+	// We do specify the OID with the dotted notation {id-pkix-ocsp 9}
+	ext_val->object = PKI_OID_get("1.3.6.1.5.5.7.48.1.9");
+
+	// Let's now set the non-critical flag and the value should be NULL
+	ext_val->critical = 0;
+	ext_val->value = NULL;
+
+	// Let's add the extension to the basicresponse
+	if (!OCSP_BASICRESP_add_ext(bs, ext_val, -1)) {
+		// Free memory and return error
+		X509_EXTENSION_free(ext_val);
+		return PKI_ERR;
+	}
+
+	// Done
+	return PKI_OK;
+}
+
 int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp, 
 				PKI_X509_KEYPAIR *k, PKI_DIGEST_ALG *md ) {
 

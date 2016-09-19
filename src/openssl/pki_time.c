@@ -135,3 +135,19 @@ int PKI_TIME_print_fp ( FILE *fp, PKI_TIME *time ) {
 	return (PKI_OK);
 }
 
+/*!
+ * \brief Sets the passed PKI_TIME to the provided time_t
+ */
+
+PKI_TIME * PKI_TIME_set(PKI_TIME *time, time_t new_time) {
+
+	// Input Checks
+	if (!time) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, 0);
+		return NULL;
+	}
+
+	// Sets the passed time_t in the PKI_TIME structure
+	return ASN1_GENERALIZEDTIME_adj(time, new_time, 0, 0);
+}
+

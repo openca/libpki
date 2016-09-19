@@ -32,6 +32,7 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *r,
 			PKI_X509_EXTENSION *invalidityDate );
 int PKI_X509_OCSP_RESP_copy_nonce (PKI_X509_OCSP_RESP *r, 
 						PKI_X509_OCSP_REQ *req);
+int PKI_X509_OCSP_RESP_set_extendedRevoke(PKI_X509_OCSP_RESP * resp);
 
 /* ------------------------------ Signature ----------------------------- */
 
