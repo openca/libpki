@@ -159,7 +159,7 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 
 	OCSP_SINGLERESP *single = NULL;
 	PKI_TIME *myThisUpdate = NULL;
-
+	X509_EXTENSION *extendedRevocation = NULL;
 	PKI_OCSP_RESP *r = NULL;
 
 	if ( !resp || !resp->value || !cid ) return ( PKI_ERR );
@@ -202,6 +202,25 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 			PKI_log_err("Can not create extension entry for response!");
 			return PKI_ERR;
 		}
+	}
+
+	if ((extendedRevocation = X509_EXTENSION_new()) == NULL)
+	{
+		PKI_log_err("Can't allocate memory for extended revocation extension.");
+		//ERR_print_errors_fp(stdout);
+		return PKI_ERR;
+	}
+	//As per RFC6960 set critical to 0 and the OID to id-pkix-ocsp-extended-revoke and value to NULL
+	//We specify NID_id_pkix_OCSP_valid due to an error in OpenSSL's code, see http://marc.info/?l=openssl-users&m=138573884214852&w=2
+	extendedRevocation->critical = 0;
+	extendedRevocation->object = OBJ_nid2obj(NID_id_pkix_OCSP_valid);
+	extendedRevocation->value = ASN1_OCTET_STRING_new();
+	//This extension goes to responseExtensions and not singleExtensions like invalidityDate
+	if (!OCSP_BASICRESP_add_ext(r->bs, extendedRevocation, -1))
+	{
+		PKI_log_err("Can not create \"id-pkix-ocsp-extended-revoke\" extension entry for response!");
+		//ERR_print_errors_fp(stdout);
+		return PKI_ERR;
 	}
 
 	return PKI_OK;

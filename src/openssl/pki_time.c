@@ -50,6 +50,19 @@ int PKI_TIME_free( PKI_TIME *time ) {
 }
 
 /*!
+ * \brief Sets the passed PKI_TIME to the provided time_t
+ */
+
+PKI_TIME *PKI_TIME_set(PKI_TIME *time, time_t new_time) {
+
+	if (!time) {
+		return NULL;
+	}
+
+	return ASN1_GENERALIZEDTIME_adj(time, new_time, 0, 0);
+}
+
+/*!
  * \brief Adjusts the time by adding/subtracting the offset seconds from current value
  */
 
