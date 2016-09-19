@@ -98,9 +98,9 @@ const HSM *HSM_get_default( void ) {
 
 HSM *HSM_new( char *dir, char *name ) {
 
-	HSM *hsm = NULL;
+	HSM  * hsm   = NULL;
 	char * url_s = NULL;
-	char * buff = NULL;
+	char * buff  = NULL;
 
 	PKI_CONFIG *conf = NULL;
 	char *type = NULL;
@@ -120,11 +120,11 @@ HSM *HSM_new( char *dir, char *name ) {
 
 	if((conf = PKI_CONFIG_load( url_s )) == NULL ) {
 		PKI_log_debug( "Can not load config from %s", url_s );
-		return(NULL);
+		goto err;
 	}
 
 	if((buff = PKI_Malloc ( BUFF_MAX_SIZE )) == NULL ) {
-		return(NULL);
+		goto err;
 	}
 
 	/* Let's generate the right searching string with the namespace
@@ -132,9 +132,7 @@ HSM *HSM_new( char *dir, char *name ) {
 	if((type = PKI_CONFIG_get_value ( conf, "/hsm/type")) == NULL ) {
 		/* No type in the config! */
 		PKI_log_debug("ERROR, No HSM type in the config!");
-		// PKI_CONFIG_free ( conf );
-		// return (NULL);
-		type = "software";
+		type = strdup("software");
 	}
 
 	if( strcmp_nocase(type,"software") == 0 ) {
@@ -167,14 +165,11 @@ HSM *HSM_new( char *dir, char *name ) {
 #endif
 	} else {
 		PKI_log_debug( "Unknown HSM type (%s)", type );
-		PKI_CONFIG_free ( conf );
-		return (NULL);
+		goto err;
 	}
 
-	if ( ( hsm != NULL ) && (HSM_init ( hsm ) != PKI_OK) )
-	{
-			HSM_free ( hsm );
-			return NULL;
+	if ( ( hsm != NULL ) && (HSM_init ( hsm ) != PKI_OK) ) {
+		goto err;
 	}
 
 	// Let' see if we can enforce the FIPS mode (optional, therefore
@@ -188,8 +183,7 @@ HSM *HSM_new( char *dir, char *name ) {
 			else
 			{
 				PKI_log_err("Can not create HSM in FIPS mode");
-				HSM_free(hsm);
-				return NULL;
+				goto err;
 			}
 	}
 	else
@@ -197,7 +191,24 @@ HSM *HSM_new( char *dir, char *name ) {
 		PKI_log_debug("HSM created in non-FIPS mode");
 	}
 
+	// Free memory
+	if (type) PKI_Free(type);
+	if (conf) PKI_CONFIG_free(conf);
+	if (url_s) PKI_Free(url_s);
+
+	// Returns the value
 	return (hsm);
+
+err:
+
+	// Free used memory
+	if (conf) PKI_CONFIG_free(conf);
+	if (url_s) PKI_Free(url_s);
+	if (hsm) HSM_free(hsm);
+	if (type) PKI_Free(type);
+
+	// Returns a NULL pointer
+	return NULL;
 }
 
 /*! \brief Allocates a new HSM structure and initializes it in FIPS mode
@@ -264,7 +275,7 @@ int HSM_init( HSM *hsm ) {
 	/* Call the init function provided by the hsm itself */
 	if( hsm->callbacks->init )
 	{
-		return (hsm->callbacks->init ( hsm->driver, hsm->config ));
+		return (hsm->callbacks->init(hsm->driver, hsm->config ));
 	}
 	else
 	{

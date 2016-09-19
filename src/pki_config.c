@@ -196,13 +196,6 @@ PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
 		return (NULL);
 	};
 
-	// if((oid = PKI_OID_get( searchName )) != NULL ) {
-	// 	return ( oid );
-	// }
-
-	// snprintf( (char *) oidSearchBuff, BUFF_MAX_SIZE,
-	// 	"/objectIdentifiers/oid[@name=\"%s\"]", searchName );
-
 	if (( sk = PKI_CONFIG_get_element_stack ( doc, 
 					(char *) "/objectIdentifiers/oid" )) == NULL ) {
 		// PKI_log_debug("[WARNING] no OID found in %s", oidFile );
@@ -334,62 +327,6 @@ PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
 	PKI_STACK_free_all ( sk );
 
 	return ret;
-
-	/*
-	xmlXPathContext *xpathCtx = NULL; 
-	xmlXPathObject *xpathObj = NULL;
-	xmlNodeSet *nodes = NULL;
-
-	PKI_STACK *sk = NULL;
-
-	char *val = NULL;
-	int size = 0;
-	int i = 0;
-
-	char *my_search = NULL;
-
-	if( !doc || !search ) return (NULL);
-
-	xpathCtx = xmlXPathNewContext(doc);
-	if(xpathCtx == NULL) {
-        	PKI_log_debug("ERROR, unable to create new XPath context!\n");
-		return(NULL);
-	}
-
-	my_search = _xml_search_namespace_add ( search );
-
-	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
-				(xmlChar *) PKI_NAMESPACE_HREF);
-
-	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
-	PKI_Free ( my_search );
-
-	if( xpathObj == NULL ) {
-		xmlXPathFreeContext(xpathCtx);
-		return(NULL);
-	}
-
-	nodes = xpathObj->nodesetval;
-	if( nodes ) {
-		size = nodes->nodeNr;
-	}
-
-	sk = PKI_STACK_new(NULL);
-	for( i=0; i < size; i++ ) {
-		PKI_CONFIG_ELEMENT *curr = NULL;
-
-		curr = nodes->nodeTab[i];
-		val = (char *) xmlNodeListGetString(doc, 
-						curr->xmlChildrenNode, 1);
-
-		PKI_STACK_push( sk, strdup( val ));
-	}
-
-	xmlXPathFreeObject(xpathObj);
-	xmlXPathFreeContext(xpathCtx);
-
-	return (sk);
-	*/
 }
 
 
@@ -404,59 +341,6 @@ char * PKI_CONFIG_get_value ( PKI_CONFIG *doc, char *search ) {
 	}
 
 	return PKI_CONFIG_get_element_value ( curr );
-
-	/*
-	val = (char *) xmlNodeListGetString(doc, curr->xmlChildrenNode, 1);
-
-	xmlXPathContext *xpathCtx = NULL; 
-	xmlXPathObject *xpathObj = NULL;
-	xmlNodeSet *nodes = NULL;
-
-
-	char *val = NULL;
-	int size = 0;
-
-	char *my_search = NULL;
-
-	if( !doc || !search ) return (NULL);
-
-	xpathCtx = xmlXPathNewContext(doc);
-	if(xpathCtx == NULL) {
-        	PKI_log_debug("ERROR, unable to create new XPath context!\n");
-		return(NULL);
-	}
-
-	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
-				(xmlChar *) PKI_NAMESPACE_HREF);
-
-	my_search = _xml_search_namespace_add ( search );
-
-	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
-	PKI_Free (my_search);
-
-	if( xpathObj == NULL ) {
-		xmlXPathFreeContext(xpathCtx);
-		return(NULL);
-	}
-
-	nodes = xpathObj->nodesetval;
-	if( nodes ) {
-		size = nodes->nodeNr;
-	}
-
-	if( size >= 1 ) {
-		PKI_CONFIG_ELEMENT *curr = NULL;
-
-		curr = nodes->nodeTab[0];
-		val = (char *) xmlNodeListGetString(doc, 
-						curr->xmlChildrenNode, 1);
-	}
-
-	xmlXPathFreeObject(xpathObj);
-	xmlXPathFreeContext(xpathCtx);
-
-	return (val);
-	*/
 }
  
 /*! \brief Returns the value of the named attribute in the searched item */
