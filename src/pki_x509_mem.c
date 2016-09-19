@@ -55,7 +55,8 @@ void * PKI_X509_get_mem_value ( PKI_MEM *mem, PKI_DATATYPE type,
 static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 				PKI_DATA_FORMAT format, PKI_CRED *cred ) {
 
-	PKI_IO *io = NULL;
+	PKI_IO *ro = NULL;
+	PKI_MEM *dup_mem = NULL;
 
 	void *ret = NULL;
 	char *pwd = NULL;
@@ -66,64 +67,48 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 	// If we have credentials (password type), let's get a reference to it
 	if ( cred && cred->password ) pwd = (char *) cred->password;
 
-	// Let's now create the PKI_IO required for the function to process
-	// the data correctly
-	if ((io = BIO_new(BIO_s_mem())) == NULL)
+	// Create a read only memory buffer - it's faster than a read/write one
+	if( (ro = BIO_new_mem_buf(mem->data, (int)mem->size)) == NULL)
 	{
-		// Error creating the IO channel, we have to abort
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
-
-	// We need to duplicate the buffer as the read functions might
-	// alter the contents of the buffer
-	PKI_MEM *dup_mem = PKI_MEM_dup(mem);
-	if (dup_mem == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-
-		PKI_Free(io);
-		return NULL;
-	}
-
-	// Let's make the internals of the IO point to our PKI_MEM
-	// data and size
-	BUF_MEM *ptr = (BUF_MEM *) io->ptr;
-	ptr->data = (char *) dup_mem->data;
-
-#if ( OPENSSL_VERSION_NUMBER < 0x10000000L )
-	ptr->length = (int) dup_mem->size;
-#else
-	ptr->length = (size_t) dup_mem->size;
-#endif
 
 	switch ( format )
 	{
 		case PKI_DATA_FORMAT_PEM :
 			if( cb->read_pem ) {
-				ret = cb->read_pem (io, NULL, NULL, pwd );
+				ret = cb->read_pem (ro, NULL, NULL, pwd );
 			}
 			break;
 
 		case PKI_DATA_FORMAT_ASN1 :
 			if( cb->read_der ) {
-				ret = cb->read_der ( io, NULL );
+				ret = cb->read_der ( ro, NULL );
 			}
 			break;
 
 		case PKI_DATA_FORMAT_TXT :
 			if ( cb->read_txt ) {
-				ret = cb->read_txt ( io, NULL );
+				ret = cb->read_txt ( ro, NULL );
 			}
 			break;
 
 		case PKI_DATA_FORMAT_B64 :
 			if (cb->read_b64)
 			{
-				ret = cb->read_b64(io, NULL);
+				ret = cb->read_b64(ro, NULL);
 			}
 			else if (cb->read_der)
 			{
+				// We need to duplicate the buffer as PKI_MEM_decode()
+				// alter the contents of the buffer
+				if( (dup_mem = PKI_MEM_dup(mem) ) == NULL)
+				{
+					PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+					break;
+				}
+
 				if (PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 1) != PKI_OK &&
 						PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 0) != PKI_OK)
 				{
@@ -131,24 +116,23 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 					break;
 				}
 
-				//dup_mem->data will have changed, so update the IO's internals to point to the new, decoded buffer
-				ptr->data = (char *) dup_mem->data;
-
-				#if ( OPENSSL_VERSION_NUMBER < 0x10000000L )
-					ptr->length = (int) dup_mem->size;
-				#else
-					ptr->length = (size_t) dup_mem->size;
-				#endif
+				// Create a read only memory buffer for further usage it's faster than a read/write one
+				BIO_free(ro);
+				if( (ro = BIO_new_mem_buf(dup_mem->data, (int)dup_mem->size)) == NULL)
+				{
+					PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+					break;
+				}
 
 				// And use the DER reader to retrieve the
 				// requested object
-				ret = cb->read_der(io, NULL);
+				ret = cb->read_der(ro, NULL);
 			}
 			break;
 
 		case PKI_DATA_FORMAT_XML :
 			if ( cb->read_xml ) {
-				ret = cb->read_xml ( io, NULL );
+				ret = cb->read_xml ( ro, NULL );
 			}
 			break;
 
@@ -160,19 +144,10 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 			break;
 	}
 
-	// We now have to "reset" the internal of the PKI_IO
-	// object and free it
-	if (io)
-	{
-		ptr = io->ptr;
-		ptr->data = NULL;
-		ptr->length = 0;
-
-		BIO_free(io);
-	}
+	if (ro) BIO_free(ro);
 
 	// Let's free the duplicated PKI_MEM structure
-	if (dup_mem) PKI_Free(dup_mem);
+	if (dup_mem) PKI_MEM_free(dup_mem);
 
 	return ret;
 }
@@ -246,6 +221,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem,
 	// If we reach here, no object was found - let's free the memory
 	// and return null
 	if (x_obj) PKI_X509_free(x_obj);
+	if (sk)    PKI_STACK_X509_free(sk);
 
 	// Let's return null
 	return NULL;
@@ -405,8 +381,6 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 
 	if (ret && (format == PKI_DATA_FORMAT_URL))
 	{
-		PKI_MEM *url_encoded = NULL;
-	
 		if (PKI_MEM_encode(ret, PKI_DATA_FORMAT_URL, 1 ) != PKI_OK)
 		{
 			PKI_MEM_free(ret);
