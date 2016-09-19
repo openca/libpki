@@ -273,9 +273,9 @@ int PKI_X509_put ( PKI_X509 *x, PKI_DATA_FORMAT format, char *url_string,
 
 	ret = PKI_X509_STACK_put(sk, format, url_string, mime, cred, hsm);
 
-	if( sk ) {
+	if (sk) {
 		/* We just need to pop the cert - not free the mem! */
-		while ((x = PKI_STACK_X509_pop( sk )) != NULL );
+		while ((x = PKI_STACK_X509_pop( sk )) != NULL ) { /* Nop */ };
 
 		/* Let's free the list itself */
                 PKI_STACK_X509_free( sk );
@@ -308,7 +308,7 @@ int PKI_X509_put_url ( PKI_X509 *x, PKI_DATA_FORMAT format, URL *url,
 
 	if( sk ) {
 		/* We just need to pop the cert - not free the mem! */
-		while ((x = PKI_STACK_X509_pop( sk )) != NULL );
+		while ((x = PKI_STACK_X509_pop( sk )) != NULL ) { /* NoP */ };
 
 		/* Let's free the list itself */
                 PKI_STACK_X509_free( sk );

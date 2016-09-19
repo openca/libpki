@@ -131,8 +131,14 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 					break;
 				}
 
-				// Now we "write" the data into the PKI_IO
-				BIO_write(io, dup_mem->data, (int) dup_mem->size);
+				//dup_mem->data will have changed, so update the IO's internals to point to the new, decoded buffer
+				ptr->data = (char *) dup_mem->data;
+
+				#if ( OPENSSL_VERSION_NUMBER < 0x10000000L )
+					ptr->length = (int) dup_mem->size;
+				#else
+					ptr->length = (size_t) dup_mem->size;
+				#endif
 
 				// And use the DER reader to retrieve the
 				// requested object

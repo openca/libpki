@@ -269,7 +269,18 @@ typedef struct  pki_ssl_t {
 	PKI_X509_CERT_STACK *peer_chain;
 
 } PKI_SSL;
-	
+
+#ifndef _LIBPKI_PKI_X509_DATA_ST_H
+
+  /* Forward Declaration for PKI_X509 structure */
+  struct pki_x509_st;
+  typedef struct pki_x509_st PKI_X509;
+
+  /* Forward Definition for PKI_X509_CERT */
+#define PKI_X509_CERT PKI_X509
+
+#endif
+
 #include <libpki/net/url.h>
 
 /* SSL helper functions */
@@ -284,9 +295,9 @@ int PKI_SSL_set_cipher ( PKI_SSL *ssl, char *cipher );
 int PKI_SSL_set_token ( PKI_SSL *ssl, struct pki_token_st *tk );
 
 int PKI_SSL_set_trusted ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk );
-// int PKI_SSL_add_trusted ( PKI_SSL *ssl, PKI_X509_CERT *cert );
+int PKI_SSL_add_trusted ( PKI_SSL *ssl, PKI_X509_CERT *cert );
 int PKI_SSL_set_others ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk );
-// int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert );
+int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert );
 
 int PKI_SSL_set_fd ( PKI_SSL *ssl, int fd );
 int PKI_SSL_get_fd ( PKI_SSL *ssl );
