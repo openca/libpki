@@ -17,17 +17,13 @@ PKI_CRED *PKI_CRED_new ( char *user, char *pwd ) {
 
 	PKI_CRED * cred = NULL;
 
-	if ((cred = PKI_CRED_new_null()) == NULL ) {
+	if ((cred = PKI_CRED_new_null()) == NULL )
 		return ( NULL );
-	}
 
-	if ( user ) {
-		cred->username = strdup( user );
-	}
+	memset(cred, 0, sizeof(PKI_CRED));
 
-	if ( pwd ) {
-		cred->password = strdup( pwd );
-	}
+	if (user) cred->username = strdup( user );
+	if (pwd) cred->password = strdup( pwd );
 
 	return ( cred );
 }

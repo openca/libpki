@@ -592,7 +592,8 @@ static int __pki_ssl_init_ssl  ( PKI_SSL *ssl ) {
 	/* Now sets the other (not-trusted) certificates (from the ssl token,
 	 * if any) */
 	if ( ssl_tk && ssl_tk->otherCerts ) {
-		for (i=0; i < PKI_STACK_X509_CERT_elements(
+		int i = 0;
+		for ( i = 0; i < PKI_STACK_X509_CERT_elements(
 					ssl_tk->otherCerts); i++) {
 			PKI_X509_CERT_VALUE *val = NULL;
 			PKI_X509_CERT *x = NULL;
@@ -1060,7 +1061,7 @@ int PKI_SSL_set_trusted ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk ) {
 int PKI_SSL_add_trusted ( PKI_SSL *ssl, PKI_X509_CERT *cert ) {
 
 	// Input Check
-	if ( !ssl || !cert ) PKI_ERROR(PKI_ERR_PARAM_NULL);
+	if ( !ssl || !cert ) PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Allocates a new list if not already present
 	if ((ssl->trusted_certs == NULL) &&
@@ -1104,7 +1105,7 @@ int PKI_SSL_set_others ( PKI_SSL *ssl, PKI_X509_CERT_STACK *sk ) {
 int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert ) {
 
 	// Input Check
-	if ( !ssl || !cert ) PKI_ERROR(PKI_ERR_PARAM_NULL);
+	if ( !ssl || !cert ) PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Allocates a new list if not already present
 	if ((ssl->other_certs == NULL) &&

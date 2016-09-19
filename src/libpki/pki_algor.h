@@ -3,7 +3,7 @@
 #ifndef _LIBPKI_ALGOR_H
 #define _LIBPKI_ALGOR_H
 
-/* Get the SCHEME algorithm (e.g., RSA-SHA224, DSA-SHA1, ECDSA-SHA1) */
+/* Get the SCHEME algorithm (e.g., RSA-SHA256, DSA-SHA1, ECDSA-SHA224) */
 PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor );
 PKI_ALGOR *PKI_ALGOR_get_by_name ( const char *alg_s );
 void PKI_ALGOR_free( PKI_ALGOR *algor);

@@ -1469,7 +1469,7 @@ int PKI_TOKEN_set_cred ( PKI_TOKEN *tk, PKI_CRED *cred )
 	if (!tk || !cred) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	if( tk->cred ) PKI_CRED_free (tk->cred);
-	tk->cred = cred;
+	tk->cred = PKI_CRED_dup(cred);
 
 	return PKI_OK;
 }

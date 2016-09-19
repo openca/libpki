@@ -89,7 +89,7 @@ extern const long LIBPKI_OS_DETAILS;
 BEGIN_C_DECLS
 
 #define PKI_NAMESPACE_PREFIX		"pki"
-#define PKI_NAMESPACE_HREF			"http://www.openca.org/openca/pki/1/0/0"
+#define PKI_NAMESPACE_HREF		"http://www.openca.org/openca/pki/1/0/0"
 
 #define PKI_SUBSCRIBER_REQ_TYPE		"application/pki-subscriber-request"
 #define PKI_SUBSCRIBER_RESP_TYPE	"application/pki-subscriber-response"
@@ -97,7 +97,7 @@ BEGIN_C_DECLS
 #define PKI_MANAGEMENT_RESP_TYPE	"application/pki-management-response"
 
 #ifdef HAVE_ENGINE
-#define ENV_OPENCA_ENGINE			"engine"
+#define ENV_OPENCA_ENGINE		"engine"
 #define ENV_OPENCA_ENGINE_ID		"engine_id"
 #define ENV_OPENCA_ENGINE_PRE		"engine_pre"
 #define ENV_OPENCA_ENGINE_POST		"engine_post"
@@ -464,11 +464,11 @@ typedef enum {
 
 /* Credentials */
 #include <libpki/pki_cred.h>
-
 #include <libpki/errors.h>
 #include <libpki/support.h>
 #include <libpki/pki_mem.h>
 #include <libpki/stack.h>
+#include <libpki/crypto.h>
 #include <libpki/net/sock.h>
 #include <libpki/net/ssl.h>
 #include <libpki/net/pki_socket.h>
@@ -487,8 +487,11 @@ typedef enum {
 #define PKI_X509_REQ	PKI_X509
 
 /* Libpki Includes */
+#include <libpki/pki_time.h>
+#include <libpki/pki_integer.h>
 #include <libpki/pki_x509_profile.h>
-#include <libpki/crypto.h>
+#include <libpki/pki_x509_mem.h>
+#include <libpki/pki_keyparams.h>
 #include <libpki/pki_string.h>
 #include <libpki/pki_init.h>
 #include <libpki/pki_algor.h>
@@ -498,39 +501,35 @@ typedef enum {
 #include <libpki/pki_digest.h>
 #include <libpki/pki_hmac.h>
 #include <libpki/pki_conf.h>
-#include <libpki/pki_x509_attribute.h>
 #include <libpki/pki_keypair.h>
+#include <libpki/pki_x509_attribute.h>
 #include <libpki/pki_x509_signature.h>
 #include <libpki/pki_x509_name.h>
-#include <libpki/pki_x509_cert.h>
 #include <libpki/pki_x509_req.h>
+#include <libpki/pki_x509_cert.h>
 #include <libpki/pki_x509_crl.h>
-#include <libpki/pki_time.h>
-#include <libpki/pki_integer.h>
 #include <libpki/pki_x509_pkcs7.h>
 #include <libpki/pki_x509_p12.h>
-#include <libpki/pki_x509_mem.h>
 
 /* OCSP support */
 
 typedef enum {
 	PKI_OCSP_CERTSTATUS_GOOD 	= V_OCSP_CERTSTATUS_GOOD,
-	PKI_OCSP_CERTSTATUS_REVOKED = V_OCSP_CERTSTATUS_REVOKED,
-	PKI_OCSP_CERTSTATUS_UNKNOWN = V_OCSP_CERTSTATUS_UNKNOWN,
+	PKI_OCSP_CERTSTATUS_REVOKED	= V_OCSP_CERTSTATUS_REVOKED,
+	PKI_OCSP_CERTSTATUS_UNKNOWN	= V_OCSP_CERTSTATUS_UNKNOWN,
 } PKI_OCSP_CERTSTATUS;
 
 typedef enum {
 	PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL 			= 0,
 	PKI_X509_OCSP_RESP_STATUS_MALFORMEDREQUEST		= 1,
 	PKI_X509_OCSP_RESP_STATUS_INTERNALERROR 		= 2,
-	PKI_X509_OCSP_RESP_STATUS_TRYLATER 				= 3,
+	PKI_X509_OCSP_RESP_STATUS_TRYLATER 			= 3,
 	PKI_X509_OCSP_RESP_STATUS_SIGREQUIRED 			= 5,
 	PKI_X509_OCSP_RESP_STATUS_UNAUTHORIZED 			= 6
 } PKI_X509_OCSP_RESP_STATUS;
 
 #include <libpki/pki_ocsp_req.h>
 #include <libpki/pki_ocsp_resp.h>
-
 
 /* HSM Support */
 #include <libpki/drivers/hsm_keypair.h>

@@ -18,7 +18,6 @@
 #define _LIBPKI_PKI_SSL_H
 
 #include <openssl/ssl.h>
-#include <libpki/pki_x509_cert.h>
 
 /*! \brief Algorithms for PKI_SSL connections */
 typedef SSL_METHOD PKI_SSL_ALGOR;
