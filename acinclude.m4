@@ -115,7 +115,7 @@ if [[ "$library_setup" = "no" ]] ; then
 
 
 		AC_MSG_RESULT([Searching OpenSSL Version: $library_includes]);
-		ver=`grep "#define SHLIB_VERSION_NUMBER" $library_includes | sed 's/[#_a-zA-Z" ]//g' | sed 's|\.|0|g'`;
+		ver=`grep "^ *# *define  *SHLIB_VERSION_NUMBER" $library_includes | sed 's/[#_a-zA-Z" ]//g' | sed 's|\.|0|g'`;
 		my_ver=`echo $_version | sed "s|\.|0|g"`;
 
 		AC_MSG_RESULT([Detected Version: $ver (required > $my_ver )]);
