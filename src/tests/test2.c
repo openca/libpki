@@ -36,9 +36,9 @@ int main (int argc, char *argv[] ) {
 	}
 	printf("Certificate Generation testsuite.\n\n");
 
-	gen_X509_Cert(PKI_SCHEME_RSA, 1024, "results/cert_rsa.pem");
-	gen_X509_Cert(PKI_SCHEME_DSA, 1024, "results/cert_dsa.pem");
-	gen_X509_Cert(PKI_SCHEME_ECDSA, 224, "results/cert_ecdsa.pem");
+	gen_X509_Cert(PKI_SCHEME_RSA, 2048, "results/cert_rsa.pem");
+	gen_X509_Cert(PKI_SCHEME_DSA, 2048, "results/cert_dsa.pem");
+	gen_X509_Cert(PKI_SCHEME_ECDSA, 256, "results/cert_ecdsa.pem");
 
 	PKI_log_end();
 
