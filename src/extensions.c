@@ -1,7 +1,6 @@
 /* X509 Profile Exts management for libpki */
 
-#include <libpki/pki.h>
-
+#include <libpki/extensions.h>
 
 /*?
  * \brief Adds extensions to a certificate according to the profile

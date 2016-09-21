@@ -1,6 +1,6 @@
 /* OID management for libpki */
 
-#include <libpki/pki.h>
+#include <libpki/pki_oid.h>
 
 PKI_CONFIG * PKI_OID_load ( char *uri ) {
 	PKI_CONFIG *oidConf = NULL;

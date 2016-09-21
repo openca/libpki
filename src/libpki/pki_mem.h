@@ -1,21 +1,14 @@
 /*
  * LIBPKI - OpenSource PKI library
  * by Massimiliano Pala (madwolf@openca.org) and OpenCA project
- *
- * Copyright (c) 2001-2007 The OpenCA Project.  All rights reserved.
- *
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
  */
 
-/* Functions prototypes*/
+#ifndef __LIBPKI_PKI_MEM_H__
+#define __LIBPKI_PKI_MEM_H__
 
-#ifndef _LIBPKI_PKI_MEM_H
-#define _LIBPKI_PKI_MEM_H
+#ifndef HEADER_BIO_H
+#include <openssl/bio.h>
+#endif
 
 typedef struct pki_mem_st {
 	unsigned char * data;
@@ -49,7 +42,6 @@ size_t PKI_MEM_get_size( PKI_MEM *buf );
 ssize_t PKI_MEM_printf( PKI_MEM * buf );
 ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf );
 
-#include <openssl/bio.h>
 PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io );
 PKI_MEM *PKI_MEM_new_bio ( PKI_IO *io, PKI_MEM **mem );
 

@@ -6,26 +6,21 @@
 * Released under OpenCA LICENSE
 */
 
-#ifndef HEADER_LIBPKI_CRYPTO_H
-#define HEADER_LIBPKI_CRYPTO_H
+#ifndef __LIBPKI_CRYPTO_H__
+#define __LIBPKI_CRYPTO_H__
 
-#include <libpki/openssl/data_st.h>
+#ifndef __LIBPKI_CORE_DATA_ST_H__
+#include <libpki/pki_core_data_st.h>
+#endif
 
 #ifdef ENABLE_KMF
-/* BEGIN of ENABLE KMF */
 #include <stdio.h>
 #include <kmfapi.h>
 
 #include <libpki/drivers/kmf/data_st.h>
 #include <libpki/drivers/kmf/pki_kmflib.h>
 
-/* END of ENABLE KMF */
-#endif
+#endif // End of ENABLE_KMF
 
-/* Include this here because it needs the kmf definitions in case
-   KMF is used */
-
-#include <libpki/drivers/hsm_main.h>
-
-/* End of HEADER_LIBPKICRYPTO_H */
+/* End of __LIBPKICRYPTO_H__ */
 #endif

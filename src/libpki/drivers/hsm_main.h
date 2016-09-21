@@ -1,7 +1,11 @@
 /* HSM Object Management Functions */
 
-#ifndef _LIBPKI_HSM_MAIN_H
-#define _LIBPKI_HSM_MAIN_H
+#ifndef __LIBPKI_HSM_MAIN_H__
+#define __LIBPKI_HSM_MAIN_H__
+
+#ifndef __LIBPKI_CRYPTO_H__
+#include <libpki/crypto.h>
+#endif
 
 /* Added MACRO to ease usage of the general signature function PKI_sign() */
 /*
@@ -73,4 +77,5 @@ int HSM_X509_del_url ( PKI_DATATYPE type, URL *url, PKI_CRED *cred, HSM *hsm );
 
 const PKI_X509_CALLBACKS * HSM_X509_get_cb ( PKI_DATATYPE type, HSM *hsm );
 
-#endif
+#endif // End of __LIBPKI_HSM_MAIN_H__
+

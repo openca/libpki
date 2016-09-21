@@ -1,7 +1,7 @@
 /* OID management for libpki */
 
-#ifndef _LIBPKI_OID_H
-#define _LIBPKI_OID_H
+#ifndef __LIBPKI_PKI_OID_H__
+#define __LIBPKI_PKI_OID_H__
 
 PKI_OID *PKI_OID_new( char *oid, char *name, char *descr );
 PKI_OID *PKI_OID_new_id ( PKI_ID id );
@@ -17,5 +17,4 @@ PKI_ID PKI_OID_get_id ( PKI_OID *a );
 const char * PKI_OID_get_descr ( PKI_OID *a );
 char * PKI_OID_get_str ( PKI_OID *a );
 
-#endif
-
+#endif // End of __LIBPKI_PKI_OID_H__

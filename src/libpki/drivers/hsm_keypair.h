@@ -1,7 +1,11 @@
 /* HSM Object Management Functions */
 
-#ifndef _LIBPKI_HSM_MAIN_KEYPAIR_H
-#define _LIBPKI_HSM_MAIN_KEYPAIR_H
+#ifndef __LIBPKI_HSM_KEYPAIR_H__
+#define __LIBPKI_HSM_KEYPAIR_H__
+
+#ifndef __LIBPKI_CRYPTO_H__
+#include <libpki/crypto.h>
+#endif
 
 /* -------------------- Key Management Functions --------------------- */
 

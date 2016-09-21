@@ -3,6 +3,26 @@
 #ifndef _LIBPKI_X509_EXTENSIONS_H
 #define _LIBPKI_X509_EXTENSIONS_H
 
+#ifndef _LIBPKI_X509_PROFILE_H
+#include <libpki/pki_x509_profile.h>
+#endif
+
+#ifndef _LIBPKI_CONF_H
+#include <libpki/pki_conf.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_CERT_H
+#include <libpki/pki_x509_cert.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_REQ_H
+#include <libpki/pki_x509_req.h>
+#endif
+
+#ifndef _LIBPKI_PKI_TOKEN_H
+#include <libpki/pki_token.h>
+#endif
+
 int PKI_X509_EXTENSIONS_cert_add_profile(PKI_X509_PROFILE *conf, 
 				         PKI_CONFIG       *oids,
                                          PKI_X509_CERT    *x, 

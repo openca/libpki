@@ -1,12 +1,9 @@
 /* TOKEN Object Management Functions */
 
-#include <libpki/pki.h>
+#include <libpki/pki_init.h>
 
-const long LIBPKI_OS_DETAILS = LIBPKI_OS_CLASS | 
-		LIBPKI_OS_BITS | LIBPKI_OS_VENDOR;
-
-#include <sys/types.h>
-#include <dirent.h>
+const long LIBPKI_OS_DETAILS = \
+  LIBPKI_OS_CLASS | LIBPKI_OS_BITS | LIBPKI_OS_VENDOR;
 
 static int _libpki_init = 0;
 static int _libpki_fips_mode = 0;

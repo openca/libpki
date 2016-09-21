@@ -1,7 +1,13 @@
 /* libpki/pki_algor.h */
 
-#ifndef _LIBPKI_ALGOR_H
-#define _LIBPKI_ALGOR_H
+#ifndef __LIBPKI_ALGOR_H__
+#define __LIBPKI_ALGOR_H__
+
+#ifdef ENABLE_OPENSSL
+# ifndef __LIBPKI_OPENSSL_DATA_ST__
+#  include <libpki/openssl/data_st.h>
+# endif
+#endif
 
 /* Get the SCHEME algorithm (e.g., RSA-SHA256, DSA-SHA1, ECDSA-SHA224) */
 PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor );

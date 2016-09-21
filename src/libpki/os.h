@@ -6,8 +6,8 @@
 * Released under OpenCA LICENSE
 */
 
-#ifndef _LIBPKI_OS_H
-# define _LIBPKI_OS_H  1
+#ifndef __LIBPKI_OS_H__
+# define __LIBPKI_OS_H__  1
 
 # include <sys/param.h>
 # include <sys/types.h>

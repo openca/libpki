@@ -3,7 +3,7 @@
 ## All Rights Reserved
 
 TOP     = ..
-include $(TOP)/global-vars
+-include $(TOP)/global-vars
 
 BASE_DEFS = 
 
@@ -15,7 +15,7 @@ MYSCEP = \
 	pki_x509_scep_asn1.c \
 	pki_x509_scep_msg.c
 
-INCLUDES = -I$(TOP) \
+AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)

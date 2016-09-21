@@ -1,6 +1,6 @@
 /* Config management for libpki */
 
-#include <libpki/pki.h>
+#include <libpki/pki_config.h>
 
 #include <sys/types.h>
 #include <dirent.h>

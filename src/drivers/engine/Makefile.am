@@ -3,13 +3,13 @@
 ## All Rights Reserved
 
 TOP     = ../..
-include $(TOP)/global-vars
+-include $(TOP)/global-vars
 
 BASE_DEFS = 
 
 DEFS = $(OPENCA_DEFS)
 
-INCLUDES = -I$(TOP) \
+AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)

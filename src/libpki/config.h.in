@@ -1,5 +1,8 @@
 /* src/libpki/config.h.in.  Generated from configure.in by autoheader.  */
 
+#ifndef __LIBPKI_CONFIG_H__
+#define __LIBPKI_CONFIG_H__
+
 /* Forces 32bits builds */
 #undef ENABLE_ARCH_32
 
@@ -202,3 +205,5 @@
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
+
+#endif // End of __LIBPKI_CONFIG_H__

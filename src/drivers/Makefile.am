@@ -3,7 +3,7 @@
 ## All Rights Reserved
 
 TOP     = ..
-include $(TOP)/global-vars
+-include $(TOP)/global-vars
 
 BASE_DEFS = 
 
@@ -36,7 +36,7 @@ OBJECTS = $(HSM_KMF_OBJ) $(HSM_SOFTWARE_OBJ) $(HSM_ENGINE_OBJ) $(HSM_PKCS11_OBJ)
 
 SUBDIRS = $(HSMS) .
 
-INCLUDES = -I$(TOP)
+AM_CPPFLAGS = -I$(TOP)
 
 SRCS = \
 	hsm_main.c \
