@@ -174,7 +174,7 @@ AC_PROG_EGREP
 CPU=`uname -p`
 AC_SUBST(CPU)
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 myarch=
 
@@ -1484,7 +1484,7 @@ AC_CONFIG_FILES(
 	src/tools/Makefile
 	src/scripts/libpki-config
 	src/tests/Makefile
-	src/libpki/pki_conf.h
+	src/libpki/pki_config.h
 	contrib/libpki.pc
 	contrib/libpki-inst.xml
 	examples/prqp/Makefile
