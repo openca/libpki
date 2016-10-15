@@ -17,20 +17,25 @@
  * Returns the pointer to the end of the header, if found. Starts searching
  * from the provided offset or from the beginning if offset is < 0
  */
-char * __find_end_of_header(PKI_MEM *m, int offset)
+char * __find_end_of_header(PKI_MEM *m, ssize_t offset)
 {
 	ssize_t idx = 0;
+	ssize_t size = 0;
 	char * ret = NULL;
 	static char bytes[4] = { '\r', '\n', '\r', '\n' };
 
 	// Input check
 	if (!m || offset >= m->size) return NULL;
 
+	if (m->size <= 4) return NULL;
+
+	size = (ssize_t)m->size;
+
 	// Fix the offset if it is < 0
 	if (offset < 0) offset = 0;
 
 	// Looks for the eoh
-	for (idx = m->size - 4; idx >= offset; idx--)
+	for (idx = size - 4; idx >= offset; idx--)
 	{
 		int i, found;
 
@@ -57,9 +62,6 @@ char * __find_end_of_header(PKI_MEM *m, int offset)
  */
 int __parse_http_header(PKI_HTTP *msg)
 {
-	// Return Object container
-	int rv = PKI_OK;
-
     // Let's parse the first line of the HTTP message
     char *eol = NULL;
     char *method = NULL;
@@ -324,26 +326,21 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
   {
 	  // Allocates a new MEM object
 	  m = PKI_MEM_new(max_size + 1);
-	  if (m == NULL)
-	  {
-		  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		  return NULL;
-	  }
-
-	  // Let's make sure there is a 0 at the end of the buffer
-	  m->data[max_size] = '\x0';
-
-	  // Sets the free space in the buffer
-	  free = (ssize_t) max_size;
   }
   else
   {
 	  // Allocates the default buffer for HTTP messages
-	  m = PKI_MEM_new(HTTP_BUF_SIZE);
-
-	  // Sets the free space in the buffer
-	  free = (ssize_t) m->size;
+	  m = PKI_MEM_new(HTTP_BUF_SIZE + 1);
   }
+
+	if (m == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Sets the free space in the buffer
+	free = (ssize_t) m->size - 1;
 
   // Let's retrieve the data from the socket. Note that this for
   // always read at most 'free' bytes which carries the amount of
@@ -404,6 +401,7 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
     		  {
     			  content_length = atoll(cnt_len_s);
     			  PKI_Free(cnt_len_s);
+    			  PKI_log_debug ( "HTTP Content-Length: %d bytes", content_length);
     		  }
     	  }
       } // End of if (!eoh) ...
@@ -417,16 +415,44 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
     	  // We expand the mem if the buffer has less than 2K free
     	  if (free < 2048)
     	  {
-    		  // Grow the memory for the HTTP message
-    		  if (PKI_MEM_grow(m, HTTP_BUF_SIZE) != PKI_OK)
+    			ssize_t ofs = 0;
+
+    		  if(body)
     		  {
-    			  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-    			  break;
+    		    ofs = (ssize_t)(body - (char *)m->data);
+          
+    		    if(ofs < 0)
+    		    {
+    		      PKI_log_debug ( "Invalid offset for HTTP body: Start: %p - Body: %p", m->data, body);
+    		      PKI_ERROR(PKI_ERR_URI_READ, NULL);
+    		      goto err;
+    		    }
     		  }
 
-    		  // Let's update the free space by adding the newly
-    		  // allocated space
-    		  free += HTTP_BUF_SIZE;
+    		  // Grow the memory for the HTTP message
+    		  if(content_length > 0 && body && m->size < (size_t)(content_length + ofs))
+    		  {
+           size_t len = ((size_t)(content_length + ofs) - m->size);
+
+    		    if (PKI_MEM_grow(m, len + 1) == PKI_ERR)
+    		    {
+    		      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    		      goto err;
+    		    }
+    		    free += (ssize_t)len;
+    		  }
+    		  else
+    		  {
+    		    if (PKI_MEM_grow(m, HTTP_BUF_SIZE) == PKI_ERR)
+    		    {
+    		      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    		      goto err;
+    		    }
+    		    free += HTTP_BUF_SIZE;
+    		  }
+
+    		  // Let's update the pointer to the body
+    		  if(body) body = (char *)m->data + ofs;
     	  }
       }
 
@@ -450,6 +476,7 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
   // an error and we return the malformed request message
   if (!eoh)
   {
+	  PKI_log_err ( "Read data (so far): %d bytes - Last read: %d bytes", idx, read);
 	  PKI_ERROR(PKI_ERR_URI_READ, NULL);
 	  goto err;
   }
@@ -460,17 +487,25 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
 
   if (ret->method != PKI_HTTP_METHOD_GET && content_length > 0 && body)
   {
-	  size_t body_start = body - (char *)m->data;
-	  size_t body_size = idx - body_start;
-	  
+	  ssize_t body_start = (ssize_t)(body - (char *)m->data);
+	  ssize_t body_size = idx - body_start;
+
+	  if(body_start < 0 || body_size < 0)
+	  {
+		  PKI_log_err ( "Invalid offset for HTTP body - body_start: %d bytes - body_size: %d bytes", body_start, body_size);
+		  PKI_ERROR(PKI_ERR_URI_READ, NULL);
+		  goto err;
+	  }
+ 
 	  //Check if Content-Length > 0 but body_size is 0
 	  if (body_size == 0) goto err; 
 	  // Let's allocate the body for the HTTP message (if any)
-	  ret->body = PKI_MEM_new_data(body_size, (unsigned char *)body);
-
-	  // Let's cheat and add a final NULL char (but not reflected in the size reported
-	  // by the object (i.e., it will not be copied using the normal dup functions)
-	  ret->body->data[body_size] = '\x0';
+	  ret->body = PKI_MEM_new_data((size_t)body_size+1, (unsigned char *)body);
+		if(ret->body == NULL)
+		{
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			goto err;
+		}
 	  ret->body->size = (size_t) body_size;
   }
   else
@@ -566,14 +601,6 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 			"Content-Length: %d\r\n"
 			"%s";
 
-	char *head_http =
-			"HTTP/%f %d\r\n"
-			"Host: %s\r\n"
-			"Connection: close\r\n"
-			"Content-type: %s\r\n"
-			"Content-Length: %d\r\n"
-			"%s";
-
 	char *head = NULL;
 
 	if ( timeout < 0 ) timeout = 0;
@@ -588,7 +615,7 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 
 		// Special case for when a usr/pwd was specified in the URL
 		auth_tmp = PKI_Malloc(len);
-		auth_len = snprintf(auth_tmp, len, "Authentication: user %s:%s\r\n\r\n", sock->url->usr, sock->url->pwd);
+		auth_len = (size_t)snprintf(auth_tmp, len, "Authentication: user %s:%s\r\n\r\n", sock->url->usr, sock->url->pwd);
 	}
 	else
 	{
