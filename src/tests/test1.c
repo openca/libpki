@@ -29,9 +29,9 @@ int main (int argc, char *argv[] ) {
 
 	PKI_log_end();
 
-	gen_X509_Req(PKI_SCHEME_RSA, 1024, "req_rsa.pem");
-	gen_X509_Req(PKI_SCHEME_DSA, 1024, "req_dsa.pem");
-	gen_X509_Req(PKI_SCHEME_ECDSA, 384, "req_ecdsa.pem");
+	gen_X509_Req(PKI_SCHEME_RSA, 2048, "req_rsa.pem");
+	gen_X509_Req(PKI_SCHEME_DSA, 2048, "req_dsa.pem");
+	gen_X509_Req(PKI_SCHEME_ECDSA, 256, "req_ecdsa.pem");
 
 	printf("Done.\n\n");
 
@@ -137,9 +137,9 @@ int test_gen_PKeys(int scheme) {
 
 	PKI_X509_KEYPAIR *p = NULL;
 	int i = 0;
-	int sizes[3][5]  = { {512, 768, 1024, 2048,    0},
-			     {512, 1024,   0,    0,    0},
-			     {160, 224,  256,  384,    0}  };
+	int sizes[3][5]  = { {1024, 2048, 3072, 4096,  0},
+			     {2048,    0,    0,    0,  0},
+			     { 256,  384,  512,    0,  0}  };
 	char buf[256];
 	int row = 0;
 	char *sc_name = NULL;

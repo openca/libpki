@@ -513,11 +513,9 @@ PKI_MEM *PKI_MEM_get_b64_decoded(PKI_MEM *mem, int withNewLines)
 	PKI_IO *b64 = NULL;
 	PKI_IO *bio = NULL;
 
-	int i = 0;
 	int n = 0;
 
 	char buf[1024];
-	unsigned char *tmp_ptr;
 
 	if (!(b64 = BIO_new(BIO_f_base64()))) return NULL;
 	if (withNewLines <= 0) BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
@@ -620,7 +618,6 @@ PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skipNewLines)
 PKI_MEM *PKI_MEM_get_url_decoded(PKI_MEM *mem)
 {
 	PKI_MEM *decoded = NULL;
-	ssize_t data_size = 0;
 	unsigned char *data = NULL;
 
 	int i = 0;

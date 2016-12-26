@@ -275,7 +275,7 @@ int HSM_init( HSM *hsm ) {
 	/* Call the init function provided by the hsm itself */
 	if( hsm->callbacks->init )
 	{
-		return (hsm->callbacks->init(hsm->driver, hsm->config ));
+		return (hsm->callbacks->init(hsm, hsm->config ));
 	}
 	else
 	{
@@ -309,7 +309,7 @@ int HSM_login ( HSM *hsm, PKI_CRED *cred ) {
 	if (!hsm) return (PKI_ERR);
 
 	if ( hsm->callbacks->login ) {
-		return ( hsm->callbacks->login( hsm->driver, cred ));
+		return ( hsm->callbacks->login(hsm, cred ));
 	} else {
 		/* No login required by the HSM */
 		PKI_log_debug("No login function for selected HSM");
@@ -323,7 +323,7 @@ int HSM_logout ( HSM *hsm ) {
 	if (!hsm || !hsm->callbacks ) return (PKI_ERR);
 
 	if ( hsm->callbacks && hsm->callbacks->logout ) {
-		return ( hsm->callbacks->logout( hsm->driver ));
+		return ( hsm->callbacks->logout( hsm ));
 	} else {
 		/* No login required by the HSM */
 		PKI_log_debug("No login function for selected HSM");
@@ -636,7 +636,7 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
 
 	PKI_MEM *sig = NULL;
-	HSM *hsm = NULL;
+	const HSM *hsm = NULL;
 
 	// Input check
 	if (!der || !der->data || !key || !key->value)
@@ -649,14 +649,17 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
 	if ( !alg ) alg = PKI_DIGEST_ALG_DEFAULT;
 
 	// If no HSM is provided, let's get the default one
-	if (!(hsm && hsm->callbacks && hsm->callbacks->sign))
-		hsm = (HSM *) HSM_get_default();
+	if (key->hsm) hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());
 
 	// Requires the use of the HSM's sign callback
 	if (hsm && hsm->callbacks && hsm->callbacks->sign)
 	{
 		sig = hsm->callbacks->sign(der, alg, key); 
 		if (sig) PKI_log_debug("Signature Size (%d bytes)", sig->size);
+	}
+	else
+	{
+		return NULL;
 	}
 
 	// Let's return the output of the signing function
