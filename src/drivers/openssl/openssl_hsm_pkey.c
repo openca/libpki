@@ -40,9 +40,8 @@ int _pki_rand_init( void );
 int _pki_rand_seed( void ) {
 	unsigned char seed[20];
 
-	if (!RAND_pseudo_bytes(seed, 20)) {
-		return 0;
-	}
+	if (!RAND_bytes(seed, 20)) return 0;
+
 	RAND_seed(seed, sizeof seed);
 
 	return(1);
@@ -50,33 +49,53 @@ int _pki_rand_seed( void ) {
 
 PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
 
-	BIGNUM *bn = NULL;
-	unsigned long esp = 0x10001;
+	BIGNUM *bne = NULL;
 	PKI_RSA_KEY *rsa = NULL;
+	int ossl_rc = 0;
 
 	int bits = PKI_RSA_KEY_DEFAULT_SIZE;
 
-	if ( kp && kp->bits > 0 ) {
-		bits = kp->bits;
-	};
+	unsigned long e = RSA_F4;
+		// Default exponent (65537)
+
+	if ( kp && kp->bits > 0 ) bits = kp->bits;
 
 	if ( bits < PKI_RSA_KEY_MIN_SIZE ) {
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE_SHORT, NULL);
 		return NULL;
-	};
+	}
 
-	if( (rsa = RSA_generate_key(bits, esp, NULL, NULL)) == NULL ) {
+	if ((bne = BN_new()) != NULL) {
+		if (1 != BN_set_word(bne, e)) {
+			PKI_ERROR(PKI_ERR_GENERAL, NULL);
+			return NULL;
+		}
+	} else {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+		
+	if ((rsa = RSA_new()) == NULL) {
+		BN_free(bne);
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	if ((ossl_rc = RSA_generate_key_ex(rsa, bits, bne, NULL)) == 1 ) {
 		/* Error */
-		BN_free( bn );
+		BN_free(bne);
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
 		return NULL;
 	}
+
+	BN_free(bne);
 
 	/* Let's return the RSA_KEY infrastructure */
 	return (rsa);
 };
 
 PKI_DSA_KEY * _pki_dsakey_new( PKI_KEYPARAMS *kp ) {
+
 	PKI_DSA_KEY *k = NULL;
 	unsigned char seed[20];
 
@@ -89,14 +108,19 @@ PKI_DSA_KEY * _pki_dsakey_new( PKI_KEYPARAMS *kp ) {
 		return NULL;
 	};
 
-	if (!RAND_pseudo_bytes(seed, 20)) {
+	if (!RAND_bytes(seed, 20)) {
 		/* Not enought rand ? */
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Too low Entropy");
 		return NULL;
 	}
 
-	if((k = DSA_generate_parameters( bits,
-				seed, 20, NULL, NULL, NULL, NULL)) == NULL ) {
+	if ((k = DSA_new()) == NULL) {
+		// Memory Allocation Error
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Too low Entropy");
+		return NULL;
+	}
+
+	if (1 != DSA_generate_parameters_ex(k, bits, seed, 20, NULL, NULL, NULL)) {
 		if( k ) DSA_free( k );
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not generated DSA params");
 		return NULL;
@@ -406,21 +430,23 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
 
 	if(!x || !bp) return 0;
 
-	switch( EVP_PKEY_type( x->type ))
+	switch(EVP_PKEY_type(EVP_PKEY_id(x)))
 	{
 		case EVP_PKEY_DSA:
-    case EVP_PKEY_RSA:
-				// ret = PEM_write_bio_PrivateKey( bp, x, enc, kstr, klen, cb, u);
-				ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, (char *) kstr, klen, cb, u);
-				break;
+		case EVP_PKEY_RSA: {
+			ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
+				(char *) kstr, klen, cb, u);
+			} break;
 #ifdef ENABLE_ECDSA
-    case EVP_PKEY_EC:
-				ret = PEM_write_bio_ECPrivateKey(bp, x->pkey.ec, enc, (unsigned char *) kstr, klen, cb, u);
-				break;
+		case EVP_PKEY_EC: {
+			ret = PEM_write_bio_ECPrivateKey(bp, 
+				x->pkey.ec, enc, (unsigned char *) kstr, klen, cb, u);
+			} break;
 #endif
-		default:
+		default: {
 			ret = 0;
-	};
+		}
+	}
 
 	return ret;
 }
@@ -436,9 +462,7 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 	PKI_X509_KEYPAIR *tmp_key = NULL;
 	EVP_PKEY *ret = NULL;
 
-	if(!kVal) {
-			return NULL;
-	}
+	if(!kVal) return NULL;
 
 	if((tmp_key = PKI_X509_new_value(PKI_DATATYPE_X509_KEYPAIR,
 			(void *) kVal, NULL)) == NULL) {

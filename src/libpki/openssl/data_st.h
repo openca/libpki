@@ -27,6 +27,10 @@
 #include <openssl/ec.h>
 #endif
 
+#ifdef DEFINE_STACK_OF
+# define DECLARE_STACK_OF DEFINE_STACK_OF
+#endif
+
 // typedef EVP_PKEY 	PKI_KEYPAIR;
 
 typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;

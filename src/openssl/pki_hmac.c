@@ -10,12 +10,20 @@ PKI_HMAC *PKI_HMAC_new_null(void)
 	PKI_HMAC *ret = NULL;
 	ret = PKI_Malloc(sizeof(PKI_HMAC));
 
+	if (ret != NULL) {
+
 	ret->key = NULL;
 	ret->value = NULL;
 	ret->digestAlg = NULL;
 	ret->initialized = 0;
 
-	HMAC_CTX_init(&ret->ctx);
+	ret->ctx = HMAC_CTX_new();
+	if (ret->ctx == NULL) {
+		PKI_ZFree(ret);
+		return NULL;
+	} else {
+		HMAC_CTX_init(ret->ctx);
+	}
 
 	return ret;
 }
@@ -78,7 +86,8 @@ void PKI_HMAC_free(PKI_HMAC *hmac)
 
 	hmac->digestAlg = NULL;
 
-	HMAC_CTX_cleanup(&hmac->ctx);
+	HMAC_CTX_cleanup(hmac->ctx);
+	HMAC_CTX_free(hmac->ctx);
 }
 
 /*
@@ -115,7 +124,7 @@ int PKI_HMAC_init(PKI_HMAC *hmac, unsigned char *key, size_t key_size, PKI_DIGES
 	}
 
 	// Initializes the Context
-	HMAC_Init_ex(&hmac->ctx, (const void *) key, (int) key_size, hmac->digestAlg, NULL);
+	HMAC_Init_ex(hmac->ctx, (const void *) key, (int) key_size, hmac->digestAlg, NULL);
 
 	// Sets the initialization flag
 	hmac->initialized = 1;
@@ -135,13 +144,13 @@ int PKI_HMAC_update(PKI_HMAC *hmac, unsigned char *data, size_t data_size)
 	}
 
 #if OPENSSL_VERSION_NUMBER > 0x0090900fL
-	rv = HMAC_Update(&hmac->ctx, (const unsigned char *) data, (unsigned int) data_size);
+	rv = HMAC_Update(hmac->ctx, (const unsigned char *) data, (unsigned int) data_size);
 	if (rv == 0)
 	{
 		return PKI_ERROR(PKI_ERR_GENERAL, "Error while updating the HMAC value");
 	}
 #else
-	HMAC_Update(&hmac->ctx, (const unsigned char *) data, (unsigned int) data_size);
+	HMAC_Update(hmac->ctx, (const unsigned char *) data, (unsigned int) data_size);
 #endif
 
 	return PKI_OK;
@@ -172,7 +181,7 @@ int PKI_HMAC_finalize(PKI_HMAC *hmac)
 
 	// Let's finalize the HMAC
 #if OPENSSL_VERSION_NUMBER > 0x0090900fL
-	int rv = HMAC_Final(&hmac->ctx, hmac->value->data, &verify_size);
+	int rv = HMAC_Final(hmac->ctx, hmac->value->data, &verify_size);
 	if (!rv)
 	{
 		PKI_log_err("can not finalize HMAC");
@@ -183,7 +192,7 @@ int PKI_HMAC_finalize(PKI_HMAC *hmac)
 	}
 #else
 	// In OpenSSL < 0.9.9 the return value is actually void
-	HMAC_Final(&hmac->ctx, hmac->value->data, &verify_size);
+	HMAC_Final(hmac->ctx, hmac->value->data, &verify_size);
 #endif
 
 	// Checks the sizes
