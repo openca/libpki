@@ -27,8 +27,14 @@
 #include <openssl/ec.h>
 #endif
 
-#ifdef DEFINE_STACK_OF
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
 # define DECLARE_STACK_OF DEFINE_STACK_OF
+#endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1000000fL
+# define EVP_MD_CTX_new EVP_MD_CTX_create
+# define EVP_MD_CTX_free EVP_MD_CTX_destroy
+# define EVP_MD_CTX_reset EVP_MD_CTX_cleanup
 #endif
 
 // typedef EVP_PKEY 	PKI_KEYPAIR;

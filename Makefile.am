@@ -178,7 +178,7 @@ documentation:: pdfdocs
 
 distclean-local:
 	@echo "Cleaning local autoconf cache... " ; \
-	 rm -rf autom4te.cache/ contrib/libpki.spec
+	 rm -rf autom4te.cache/ contrib/libpki.spec results
 
 ########################## BINARY DISTRO STUFF ###########################
 

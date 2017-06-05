@@ -1,4 +1,11 @@
+* Jun  5 2017 Massimiliano Pala <madwolf@openca.org>
+- Fixed backward compatibility with OpenSSL v1.0.x
+
+* May 28 2017 Massimiliano Pala <madwolf@openca.org>
+- Initiated port to OpenSSL v1.1.x
+
 * Dec 26 2016 Massimiliano Pala <madwolf@openca.org>
+- Fixed distclean target to remove test and docs directories
 - Fixed some memory issues w/ PKCS11 module
 - Fixed some tests details (min key sizes updated)
 

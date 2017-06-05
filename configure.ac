@@ -1,10 +1,10 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2015 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2017 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.8.9, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.9.0, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])

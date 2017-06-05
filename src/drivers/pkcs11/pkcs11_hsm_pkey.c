@@ -248,9 +248,12 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 						&size, lib ) != PKI_OK ) {
 		goto err;
 	};
-	// int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 	RSA_set0_key(ret, NULL, BN_bin2bn( data, (int) size, NULL), NULL);
-	// ret->e = BN_bin2bn( data, (int) size, NULL );
+#else
+	ret->e = BN_bin2bn( data, (int) size, NULL );
+#endif
 	PKI_Free ( data );
 	data = NULL;
 
@@ -259,8 +262,11 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 		goto err;
 	};
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 	RSA_set0_key(ret, BN_bin2bn(data, (int) size, NULL), NULL, NULL);
-	// ret->n = BN_bin2bn( data, (int) size, NULL );
+#else
+	ret->n = BN_bin2bn( data, (int) size, NULL );
+#endif
 	PKI_Free ( data );
 	data = NULL;
 
@@ -269,7 +275,11 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	RSA_set_method( ret, HSM_PKCS11_get_rsa_method());
 
 #ifdef RSA_FLAG_SIGN_VER
+# if OPENSSL_VERSION_NUMBER >= 0x1010000fL 
 	RSA_set_flags( ret, RSA_FLAG_SIGN_VER);
+# else
+	ret->flags |= RSA_FLAG_SIGN_VER;
+# endif
 #endif
 
 	/* Push the priv and pub key handlers to the rsa->ex_data */
@@ -545,7 +555,7 @@ void HSM_PKCS11_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey ) {
 
 RSA_METHOD *HSM_PKCS11_get_rsa_method ( void ) {
 
-#if OPENSSL_VERSION_NUMBER < 0x101000f
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	static RSA_METHOD ret;
 
 	ret = *RSA_get_default_method();
@@ -559,10 +569,11 @@ RSA_METHOD *HSM_PKCS11_get_rsa_method ( void ) {
 		// ret.rsa_verify = HSM_PKCS11_rsa_verify;
 		ret.rsa_verify = NULL;
 	}
-	return s_ret;
+	return &ret;
 #else
 	RSA_METHOD * r_pnt = RSA_meth_dup(RSA_get_default_method());
-	RSA_meth_set_sign(r_pnt, HSM_PKCS11_rsa_sign);
+	if (r_pnt != NULL) 
+		RSA_meth_set_sign(r_pnt, HSM_PKCS11_rsa_sign);
 	return r_pnt;
 #endif
 }
