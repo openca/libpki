@@ -348,7 +348,7 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 		return ( PKI_ERR );
 	};
 	
-	handle->hsm_info.version_major = (int) info.cryptokiVersion.major;
+	handle->hsm_info.version_major = info.cryptokiVersion.major;
 	handle->hsm_info.version_minor = (int) info.cryptokiVersion.minor;
 
 	strncpy(handle->hsm_info.manufacturerID, 

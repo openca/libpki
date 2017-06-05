@@ -424,8 +424,8 @@ typedef enum {
 #endif // ENABLE_ECDSA
 
 typedef struct pki_keyparams_st {
-	int scheme;
 	int bits;
+	PKI_SCHEME_ID scheme;
 	// RSA scheme parameters
 	struct {
 		int exponent;
@@ -437,7 +437,7 @@ typedef struct pki_keyparams_st {
 	// EC scheme parameters
 	struct {
 		int curve;
-		int form;
+		PKI_EC_KEY_FORM form;
 		int asn1flags;
 	} ec;
 #endif // ENABLE_ECDSA
