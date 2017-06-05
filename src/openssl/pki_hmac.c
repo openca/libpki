@@ -2,6 +2,16 @@
 
 #include <libpki/pki.h>
 
+#ifndef HMAC_CTX_new
+static inline HMAC_CTX * HMAC_CTX_new() {
+  return (HMAC_CTX *) OPENSSL_malloc(sizeof(HMAC_CTX));
+}
+
+static inline void HMAC_CTX_free(HMAC_CTX * ctx) {
+  if (ctx) OPENSSL_free(ctx);
+}
+#endif
+
 /*
  * \brief Allocates and return a new (empty) PKI_HMAC
  */
@@ -12,16 +22,16 @@ PKI_HMAC *PKI_HMAC_new_null(void)
 
 	if (ret != NULL) {
 
-	ret->key = NULL;
-	ret->value = NULL;
-	ret->digestAlg = NULL;
-	ret->initialized = 0;
+		ret->key = NULL;
+		ret->value = NULL;
+		ret->digestAlg = NULL;
+		ret->initialized = 0;
 
-	ret->ctx = HMAC_CTX_new();
-	if (ret->ctx == NULL) {
-		PKI_ZFree(ret);
-		return NULL;
-	} else {
+		ret->ctx = HMAC_CTX_new();
+		if (ret->ctx == NULL) {
+			PKI_Free(ret);
+			return NULL;
+		}
 		HMAC_CTX_init(ret->ctx);
 	}
 
