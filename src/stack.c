@@ -14,6 +14,7 @@
  */
 
 #include <stdlib.h>
+#include <compat.h>
 #include <libpki/stack.h>
 #include <pki.h>
 
@@ -70,7 +71,7 @@ PKI_STACK * PKI_STACK_new( void (*free)())
 	return(ret);
 }
 
-PKI_STACK *PKI_STACK_new_type ( int type ) {
+PKI_STACK *PKI_STACK_new_type ( PKI_DATATYPE type ) {
 
 	const PKI_X509_CALLBACKS *cb = NULL;
 

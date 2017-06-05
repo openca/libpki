@@ -62,8 +62,8 @@ void usage ( void ) {
 	exit (1);
 }
 
-int get_rev_instruction( char *st ) {
-	int ret = -1;
+PKI_X509_CRL_REASON get_rev_instruction( char *st ) {
+	PKI_X509_CRL_REASON ret = PKI_CRL_REASON_UNSPECIFIED;
 
 	if (!st) return ret;
 
@@ -103,10 +103,10 @@ int main (int argc, char *argv[] ) {
 
 	int debug = 0;
 	int verbose = 0;
-	int log_debug = 0;
+	PKI_LOG_FLAGS log_debug = 0;
 	int log_level = PKI_LOG_ERR;
 
-	int outform = PKI_DATA_FORMAT_PEM;
+	PKI_DATA_FORMAT outform = PKI_DATA_FORMAT_PEM;
 
 	char *token = NULL;
 	char *infile = "stdin";
@@ -182,7 +182,7 @@ int main (int argc, char *argv[] ) {
 			}
 			key_s=(argv[++i]);
 		} else if ( strncmp_nocase ( argv[i], "-entry", 6 ) == 0) {
-			int instruction = PKI_CRL_REASON_UNSPECIFIED;
+			PKI_X509_CRL_REASON instruction = PKI_CRL_REASON_UNSPECIFIED;
 			char *idx = NULL;
 			if( argv[i+1] == NULL ) {
 				error=1;

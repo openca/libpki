@@ -25,7 +25,7 @@ PKI_SOCKET *PKI_SOCKET_new () {
 		return NULL;
 	}
 
-	sock->type = -1;
+	sock->type = PKI_SOCKET_TYPE_UNKNOWN;
 	sock->fd   = -1;
 	sock->ssl  = NULL;
 	sock->url  = NULL;
@@ -234,7 +234,7 @@ int PKI_SOCKET_close ( PKI_SOCKET *sock )
 	if ( sock->url ) URL_free ( sock->url );
 
 	sock->url = NULL;
-	sock->type = -1;
+	sock->type = PKI_SOCKET_TYPE_UNKNOWN;
 
 	return PKI_OK;
 }

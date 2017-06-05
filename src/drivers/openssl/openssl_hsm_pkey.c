@@ -240,10 +240,10 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
 
 	/* Sets the point compression */
-	if ( kp && kp->ec.form > -1 ) {
+	if ( kp && kp->ec.form != PKI_EC_KEY_FORM_UNKNOWN ) {
 		form = kp->ec.form;
 	};
-	EC_KEY_set_conv_form(k, form);
+	EC_KEY_set_conv_form(k, (point_conversion_form_t)form);
 
 	/* Sets the type of parameters, flags > 0 ==> by OID, 
  	 * flags == 0 ==> specifiedCurve
@@ -329,7 +329,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 	int type = PKI_SCHEME_DEFAULT;
 
-	if ( kp && kp->scheme > -1 ) type = kp->scheme;
+	if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
 	if((ret = PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, NULL )) == NULL ) {
 		PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair");

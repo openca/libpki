@@ -4,7 +4,7 @@
 #define _LIBPKI_PKI_KEYPARAMS_H
 
 /* Memory Management */
-PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof );
+PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, PKI_X509_PROFILE *prof);
 void PKI_KEYPARAMS_free ( PKI_KEYPARAMS *kp );
 
 /* Functions */

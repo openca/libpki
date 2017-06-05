@@ -18,8 +18,9 @@
 #include <libpki/net/ssl.h>
 
 typedef enum {
-	PKI_SOCKET_FD	= 0,
-	PKI_SOCKET_SSL	= 1,
+	PKI_SOCKET_TYPE_UNKNOWN = -1,
+	PKI_SOCKET_FD	   = 0,
+	PKI_SOCKET_SSL	   = 1,
 } PKI_SOCKET_TYPE;
 
 typedef enum {

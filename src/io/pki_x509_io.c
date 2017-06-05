@@ -146,7 +146,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 
 	int i, j, count;
 
-	int x509_types[] = {
+	PKI_DATATYPE x509_types[] = {
 		PKI_DATATYPE_PUBKEY,
 		PKI_DATATYPE_PRIVKEY,
 		PKI_DATATYPE_X509_KEYPAIR,
@@ -208,7 +208,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 
 		if ( type == PKI_DATATYPE_ANY ) {
 			for ( j = 0; j < x509_types_len; j++ ) {
-				int curr_type;
+				PKI_DATATYPE curr_type;
 
 				curr_type = x509_types[j];
 

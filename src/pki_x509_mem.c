@@ -201,7 +201,8 @@ PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem,
 	//       unknown datatype (PKI_DATATYPE_UNKNOW)
 	for (i = 1; i < PKI_DATA_FORMAT_SIZE; i++)
 	{
-		if ((x_obj->value = __get_data_callback(mem, cb, i, cred)) != NULL)
+		if ((x_obj->value = __get_data_callback(mem, cb, 
+					(PKI_DATA_FORMAT)i, cred)) != NULL)
 		{
 			// Let's add the right properties to the object
 			x_obj->cred = PKI_CRED_dup(cred);

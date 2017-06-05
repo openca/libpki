@@ -15,7 +15,7 @@ int PKI_MSG_RESP_put ( PKI_MSG_RESP *msg, PKI_DATA_FORMAT format,
 	if( !msg ) return ( PKI_ERR );
 
 	if( !msg->msg_data ) {
-		int proto;
+		PKI_MSG_PROTO proto;
 
 		proto = PKI_MSG_RESP_get_proto ( msg );
 
@@ -52,7 +52,7 @@ PKI_MEM *PKI_MSG_RESP_put_mem ( PKI_MSG_RESP *msg, PKI_DATA_FORMAT format,
 	if( !msg ) return ( NULL );
 
 	if( !msg->msg_data ) {
-		int proto = 0;
+		PKI_MSG_PROTO proto;
 		proto = PKI_MSG_RESP_get_proto ( msg );
 
 		if (PKI_MSG_RESP_encode ( msg, proto ) == NULL ) {

@@ -13,7 +13,7 @@ PKI_MEM *PKI_MSG_REQ_put_mem ( PKI_MSG_REQ *msg, PKI_DATA_FORMAT format,
 	if( !msg ) return ( NULL );
 
 	if( !msg->msg_data || !msg->msg_data->value ) {
-		int proto = 0;
+		PKI_MSG_PROTO proto;
 		proto = PKI_MSG_REQ_get_proto ( msg );
 
 		if (PKI_MSG_REQ_encode ( msg, proto ) == PKI_ERR ) {
@@ -50,7 +50,7 @@ int PKI_MSG_REQ_put ( PKI_MSG_REQ *msg, PKI_DATA_FORMAT format,
 	if( !msg ) return ( PKI_ERR );
 
 	if( !msg->msg_data ) {
-		int proto;
+		PKI_MSG_PROTO proto;
 
 		proto = PKI_MSG_REQ_get_proto ( msg );
 

@@ -64,9 +64,9 @@ SCEP_ATTRIBUTE_TYPE PKI_X509_SCEP_ATTRIBUTE_get_txt ( char * txt ) {
 		i++;
 	}
 
-	if ( curr ) return curr->attr_type;
+	if ( curr ) return (SCEP_ATTRIBUTE_TYPE)curr->attr_type;
 
-	return -1;
+	return (SCEP_ATTRIBUTE_TYPE) -1;
 }
 
 /*! \brief Returns the PKI_ID of the specified SCEP_ATTRIBUTE_TYPE */
@@ -383,7 +383,7 @@ int PKI_X509_SCEP_MSG_set_status ( PKI_X509_PKCS7 *msg, SCEP_STATUS status ) {
 
 SCEP_STATUS PKI_X509_SCEP_MSG_get_status ( PKI_X509_PKCS7 *msg ) {
 
-	return PKI_X509_SCEP_MSG_get_attr_value_int ( msg, 
+	return (SCEP_STATUS) PKI_X509_SCEP_MSG_get_attr_value_int ( msg, 
 			SCEP_ATTRIBUTE_PKI_STATUS );
 }
 
@@ -400,7 +400,7 @@ int PKI_X509_SCEP_MSG_set_failinfo ( PKI_X509_PKCS7 *msg, int fail ) {
 
 SCEP_FAILURE PKI_X509_SCEP_MSG_get_failinfo ( PKI_X509_PKCS7 *msg ) {
 
-	return PKI_X509_SCEP_MSG_get_attr_value_int ( msg,
+	return (SCEP_FAILURE) PKI_X509_SCEP_MSG_get_attr_value_int ( msg,
 				SCEP_ATTRIBUTE_FAIL_INFO );
 }
 

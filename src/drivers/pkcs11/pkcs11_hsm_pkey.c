@@ -400,7 +400,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 	}
 	*/
 
-	if ( kp && kp->scheme > -1 ) type = kp->scheme;
+	if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
 	switch (type) {
 		case PKI_SCHEME_RSA:

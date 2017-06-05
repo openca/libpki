@@ -24,11 +24,11 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_null ();
 void PKI_X509_KEYPAIR_free( PKI_X509_KEYPAIR *key );
 void PKI_X509_KEYPAIR_free_void ( void *key );
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits, 
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( PKI_SCHEME_ID type, int bits, 
 				char *label, PKI_CRED *cred, HSM *hsm );
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_kp( PKI_KEYPARAMS *kp,
 				char *label, PKI_CRED *cred, HSM *hsm );
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits, 
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( PKI_SCHEME_ID type, int bits, 
 				URL *url, PKI_CRED *cred, HSM *hsm );
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url_kp( PKI_KEYPARAMS *kp,
 				URL *url, PKI_CRED *cred, HSM *hsm );

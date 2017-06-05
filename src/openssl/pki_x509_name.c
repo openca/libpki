@@ -400,7 +400,7 @@ PKI_X509_NAME_RDN **PKI_X509_NAME_get_list(PKI_X509_NAME *name, PKI_X509_NAME_TY
 
 		// PKI_log_debug("Duplicating value_s (%s)... ", value_s);
 
-		ret[cur]->type  = my_type;
+		ret[cur]->type  = (PKI_X509_NAME_TYPE) my_type;
 		ret[cur]->value = strdup( value_s );
 
 		cur++;

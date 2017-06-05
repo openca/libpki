@@ -21,8 +21,8 @@ void PKI_X509_KEYPAIR_free_void ( void *key ) {
  *         PKCS#11 HSMs ) as target
  */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits,
-							char *label, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( PKI_SCHEME_ID type, int bits,
+					char *label, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_KEYPARAMS kp;
 
@@ -37,7 +37,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits,
 
 	// EC
 #ifdef ENABLE_ECDSA
-	kp.ec.form = -1;
+	kp.ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 	kp.ec.curve = -1;
 #endif
 
@@ -48,7 +48,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits,
  *         PKCS#11 HSMs ) as target
  */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits, 
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( PKI_SCHEME_ID type, int bits, 
 			URL *url, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_KEYPARAMS kp;
@@ -64,7 +64,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits,
 
 	// EC
 #ifdef ENABLE_ECDSA
-	kp.ec.form = -1;
+	kp.ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 	kp.ec.curve = -1;
 	kp.ec.asn1flags = -1;
 #endif
@@ -77,7 +77,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits,
  */
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_kp( PKI_KEYPARAMS *kp,
-							char *label, PKI_CRED *cred, HSM *hsm ) {
+					   char *label, PKI_CRED *cred, HSM *hsm ) {
 
 	return HSM_X509_KEYPAIR_new ( kp, label, cred, hsm );
 }
