@@ -388,10 +388,10 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
       {
 #ifdef ENABLE_ECDSA
         case PKI_SCHEME_ECDSA:
-            if ( kParams->ec.form > -1 )
+            if ( (int) kParams->ec.form > 0 )
             {
               EC_KEY_set_conv_form(certPubKeyVal->pkey.ec, 
-              kParams->ec.form);
+              (point_conversion_form_t) kParams->ec.form);
             }
           if ( kParams->ec.asn1flags > -1 )
           {
@@ -1256,7 +1256,8 @@ PKI_STACK * PKI_X509_CERT_get_email ( PKI_X509_CERT *x ) {
     PKI_X509_NAME_RDN *el = NULL;
     list = PKI_X509_NAME_get_list(name, PKI_X509_NAME_TYPE_EMAIL);
     
-    for(el = list[curr]; el; curr++ ) {
+    for(curr = 0; el != NULL; curr++ ) {
+      el = list[curr];
       PKI_STACK_push( sk, PKI_X509_NAME_RDN_value(el));
     }
   }

@@ -52,11 +52,12 @@ int main (int argc, char *argv[] ) {
 	int noout 	= 0;
 	int verbose 	= 0;
 	int debug 	= 0;
-	int outform	= PKI_DATA_FORMAT_PEM;
 	int i 		= 0;
 
+	PKI_DATA_FORMAT outform	= PKI_DATA_FORMAT_PEM;
+
 	int log_level	= PKI_LOG_ERR;
-	int log_debug	= 0;
+	PKI_LOG_FLAGS log_debug	= 0;
 
 	// char *url = "ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?crossCertificatePair;binary";
 	// char *url = "ldap://fpkia.gsa.gov:389/ou=Entrust, ou=FBCA, o=U.S. Government, c=US?crossCertificatePair;binary";

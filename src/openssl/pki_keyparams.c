@@ -6,7 +6,7 @@
  * \brief Allocates memory for a new PKI_KEYPARAMS (for key of type 'scheme')
  */
 
-PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
+PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, PKI_X509_PROFILE *prof ) {
 
 	PKI_KEYPARAMS *kp = NULL;
 
@@ -41,13 +41,13 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 				PKI_log_debug("PKI_KEYPARAMS_new(): ALGOR is %s\n", tmp_s );
 				PKI_Free ( tmp_s );
 			} else {
-				kp->scheme = -1;
+				kp->scheme = PKI_SCHEME_UNKNOWN;
 			};
 		} else {
 			kp->scheme = scheme;
 		};
 		
-		if( kp->scheme == -1 ) kp->scheme = PKI_SCHEME_DEFAULT;
+		if( kp->scheme == PKI_SCHEME_UNKNOWN ) kp->scheme = PKI_SCHEME_DEFAULT;
 
 		// Get the Profile Params
 		switch (kp->scheme) {
@@ -79,11 +79,11 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 					} else if ( strncmp_nocase( tmp_s, "hybrid", 6) == 0 ) {
 						kp->ec.form = PKI_EC_KEY_FORM_HYBRID;
 					} else {
-						kp->ec.form = -1;
+						kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 					};
 					PKI_Free ( tmp_s );
 				} else {
-						kp->ec.form = -1;
+						kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 				};
 
 				if(( tmp_s = PKI_CONFIG_get_value(prof, 
@@ -127,7 +127,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 			case PKI_SCHEME_ECDSA:
 				kp->bits 		= -1;
 				kp->ec.curve 	= -1;
-				kp->ec.form 	= -1;
+				kp->ec.form 	= PKI_EC_KEY_FORM_UNKNOWN;
 				kp->ec.asn1flags = -1;
 #endif
 				break;
@@ -169,6 +169,6 @@ PKI_SCHEME_ID PKI_KEYPARAMS_get_type ( PKI_KEYPARAMS *kp ) {
 		return PKI_SCHEME_UNKNOWN;
 	}
 
-	return kp->scheme;
+	return (PKI_SCHEME_ID)kp->scheme;
 };
 

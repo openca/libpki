@@ -349,7 +349,7 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 	};
 	
 	handle->hsm_info.version_major = info.cryptokiVersion.major;
-	handle->hsm_info.version_minor = (int) info.cryptokiVersion.minor;
+	handle->hsm_info.version_minor = info.cryptokiVersion.minor;
 
 	strncpy(handle->hsm_info.manufacturerID, 
 			(const char *) info.manufacturerID, 
@@ -389,8 +389,8 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 		tmp--;
 	}
 
-	handle->hsm_info.lib_version_major = (int) info.libraryVersion.major;
-	handle->hsm_info.lib_version_minor = (int) info.libraryVersion.minor;
+	handle->hsm_info.lib_version_major = info.libraryVersion.major;
+	handle->hsm_info.lib_version_minor = info.libraryVersion.minor;
 
 	PKI_log_debug("HSM INFO::Manufacturer %s (v%d.%d)", 
 					handle->hsm_info.manufacturerID,
@@ -777,10 +777,10 @@ HSM_SLOT_INFO * HSM_PKCS11_SLOT_INFO_get(unsigned long num, HSM *hsm) {
 	if((ret = PKI_Malloc ( sizeof( HSM_SLOT_INFO ))) == NULL )
 		return ( NULL );
 
-	ret->hw_version_major = (int) info.hardwareVersion.major;
-	ret->hw_version_minor = (int) info.hardwareVersion.minor;
-	ret->fw_version_major = (int) info.firmwareVersion.major;
-	ret->fw_version_minor = (int) info.firmwareVersion.minor;
+	ret->hw_version_major = info.hardwareVersion.major;
+	ret->hw_version_minor = info.hardwareVersion.minor;
+	ret->fw_version_major = info.firmwareVersion.major;
+	ret->fw_version_minor = info.firmwareVersion.minor;
 
 	_strncpyClip(ret->manufacturerID, (char *) info.manufacturerID, 
 			MANUFACTURER_ID_SIZE );

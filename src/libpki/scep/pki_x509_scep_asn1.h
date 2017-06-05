@@ -12,12 +12,4 @@ typedef struct scep_issuer_and_subject_st {
 
 DECLARE_ASN1_FUNCTIONS(SCEP_ISSUER_AND_SUBJECT)
 
-// DECLARE_ASN1_DUP_FUNCTION(SCEP_ISSUER_AND_SUBJECT)
-
-/* New Issuer and Subject structure */
-// SCEP_ISSUER_AND_SUBJECT	*SCEP_ISSUER_AND_SUBJECT_new(void);
-
-/* Free Issuer and Subject */
-// void SCEP_ISSUER_AND_SUBJECT_free(SCEP_ISSUER_AND_SUBJECT *ias);
-
 #endif

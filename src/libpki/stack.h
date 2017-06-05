@@ -14,6 +14,8 @@
  *
  */
 
+#include <libpki/datatypes.h>
+
 #ifndef _LIBPKI_STACK_H
 #define _LIBPKI_STACK_H
 
@@ -50,7 +52,7 @@ typedef struct pki_stack_st {
 
 
 PKI_STACK * PKI_STACK_new( void (*)(void *) );
-PKI_STACK * PKI_STACK_new_type ( int type );
+PKI_STACK * PKI_STACK_new_type ( PKI_DATATYPE type );
 PKI_STACK * PKI_STACK_new_null( void );
 
 int     PKI_STACK_free ( PKI_STACK * st );

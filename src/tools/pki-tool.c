@@ -180,7 +180,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	PKI_KEYPARAMS *kp = NULL;
 	PKI_X509_PROFILE *prof = NULL;
 
-	int scheme = -1;
+	PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
 
 	if((url_s==NULL) || (strcmp_nocase("stdin", url_s) == 0)) {
 		if((url_s = tk->key_id) == NULL ) {
@@ -301,6 +301,10 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				};
 				break;
 #endif
+			case PKI_SCHEME_DH:
+			case PKI_SCHEME_UNKNOWN:
+				fprintf(stderr, "ERROR: Scheme not supported!\n\n");
+				return PKI_ERR;
 		};
 
 	}
@@ -355,7 +359,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				}
 
 				tmp_s = keyurl->url_s;
-				ret = PKI_TOKEN_export_keypair( tk, tmp_s, outFormVal );
+				ret = PKI_TOKEN_export_keypair( tk, tmp_s, (PKI_DATA_FORMAT)outFormVal );
 			}
 			else
 			{
@@ -405,7 +409,7 @@ int main (int argc, char *argv[] ) {
 	char * config = NULL;
 
 	int log_level = PKI_LOG_ERR;
-	int log_debug = 0;
+	PKI_LOG_FLAGS log_debug = 0;
 	int batch = 0;
 
 	int bits = 0;
@@ -438,7 +442,7 @@ int main (int argc, char *argv[] ) {
 	int secs  = 0;
 
 	unsigned long validity = 0;
-	int datatype = 0;
+	PKI_DATATYPE datatype = PKI_DATATYPE_UNKNOWN;
 
 	if( argc < 2 ) {
 		usage();
@@ -1141,8 +1145,7 @@ int main (int argc, char *argv[] ) {
 			}
 
 			if(PKI_TOKEN_import_cert_stack(tk, sk, 
-					PKI_DATATYPE_X509_CERT, uri) 
-								== PKI_ERR) {
+				PKI_DATATYPE_X509_CERT, uri) == PKI_ERR) {
 				printf("ERROR!\n\n");
 				exit(1);
 			};

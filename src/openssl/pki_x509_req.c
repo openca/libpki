@@ -34,7 +34,7 @@ PKI_X509_REQ *PKI_X509_REQ_new ( PKI_X509_KEYPAIR *k, char *subj_s,
 	PKI_X509_KEYPAIR_VALUE *kVal = NULL;
 
 	int rv = PKI_OK;
-	int scheme = -1;
+	PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
 
 	PKI_X509_NAME *subj = NULL;
 
@@ -148,7 +148,7 @@ PKI_X509_REQ *PKI_X509_REQ_new ( PKI_X509_KEYPAIR *k, char *subj_s,
 		PKI_KEYPARAMS *kParams = NULL;
 		// PKI_SCHEME_ID scheme;
 
-		if( scheme == -1 ) {
+		if( scheme == PKI_SCHEME_UNKNOWN ) {
 			scheme = PKI_X509_KEYPAIR_get_scheme ( k );
 		};
 
@@ -158,8 +158,8 @@ PKI_X509_REQ *PKI_X509_REQ_new ( PKI_X509_KEYPAIR *k, char *subj_s,
 			switch ( kParams->scheme ) {
 #ifdef ENABLE_ECDSA
 				case PKI_SCHEME_ECDSA:
-    				if ( kParams->ec.form > -1 ) {
-    					EC_KEY_set_conv_form(kVal->pkey.ec, kParams->ec.form);
+    				if ( kParams->ec.form != PKI_EC_KEY_FORM_UNKNOWN ) {
+    					EC_KEY_set_conv_form(kVal->pkey.ec, (point_conversion_form_t)kParams->ec.form);
     				};
 					break;
 #endif

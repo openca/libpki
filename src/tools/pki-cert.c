@@ -57,10 +57,11 @@ int main (int argc, char *argv[] ) {
 
 	int debug = 0;
 	int verbose = 0;
-	int log_debug = 0;
+
+	PKI_LOG_FLAGS log_debug = 0;
 	int log_level = PKI_LOG_ERR;
 
-	int outform = -1;
+	PKI_DATA_FORMAT outform = PKI_DATA_FORMAT_UNKNOWN;
 
 	// char *token = NULL;
 	char *infile = NULL;
@@ -223,7 +224,7 @@ int main (int argc, char *argv[] ) {
 			"    * Saving Certificate ....." );
 	};
 
-	if( outform == -1 ) {
+	if( outform == PKI_DATA_FORMAT_UNKNOWN ) {
 		if( PKI_X509_CERT_put(cert, PKI_DATA_FORMAT_TXT, outfile, 
 					NULL, NULL, NULL) != PKI_OK ) {
 			fprintf( stderr, BOLD RED "    ERROR: " 

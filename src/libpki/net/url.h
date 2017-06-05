@@ -49,7 +49,7 @@ typedef struct url_data_st {
 	char * url_s;
 
 	/* Protocol, currently supported LDAP and FILE */
-	int proto;
+	URI_PROTO proto;
 
 	/* URL requires SSL/TLS :: 0 = NO, 1 = YES */
 	int ssl;
