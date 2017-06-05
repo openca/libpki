@@ -545,7 +545,7 @@ void HSM_PKCS11_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey ) {
 
 RSA_METHOD *HSM_PKCS11_get_rsa_method ( void ) {
 
-#if OPENSSL_VERSION_NUMBER < 0x101000f
+#if OPENSSL_VERSION_NUMBER < 0x1010000f
 	static RSA_METHOD ret;
 
 	ret = *RSA_get_default_method();

@@ -314,7 +314,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	else out_mem->size = (size_t) ossl_ret;
 
 	// Cleanup the context
-#if OPENSSL_VERSION_NUMBER <= 0x100000f
+#if OPENSSL_VERSION_NUMBER <= 0x1010000f
 	EVP_MD_CTX_cleanup(ctx);
 #else
 	EVP_MD_CTX_reset(ctx);
