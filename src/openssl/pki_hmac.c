@@ -1,8 +1,9 @@
 /* HMAC utility */
 
 #include <libpki/pki.h>
+#include <openssl/hmac.h>
 
-#ifndef HMAC_CTX_new
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 static inline HMAC_CTX * HMAC_CTX_new() {
   return (HMAC_CTX *) OPENSSL_malloc(sizeof(HMAC_CTX));
 }
@@ -32,7 +33,6 @@ PKI_HMAC *PKI_HMAC_new_null(void)
 			PKI_Free(ret);
 			return NULL;
 		}
-		HMAC_CTX_init(ret->ctx);
 	}
 
 	return ret;
@@ -96,7 +96,7 @@ void PKI_HMAC_free(PKI_HMAC *hmac)
 
 	hmac->digestAlg = NULL;
 
-	HMAC_CTX_cleanup(hmac->ctx);
+	HMAC_CTX_reset(hmac->ctx);
 	HMAC_CTX_free(hmac->ctx);
 }
 

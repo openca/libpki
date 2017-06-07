@@ -510,7 +510,9 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key ( PKI_X509_KEYPAIR *pkey ) {
 
 	EVP_PKEY *pp = NULL;
 	PKI_DIGEST_ALG * digest = NULL;
+
 	int size = 0;
+	int p_type = 0;
 
 	/* Let's set the digest for the right signature scheme */
 	if( !pkey ) return NULL;
@@ -524,7 +526,13 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key ( PKI_X509_KEYPAIR *pkey ) {
 
 	pp = (EVP_PKEY *) pkey->value;
 
-	switch( EVP_PKEY_type(pp->type) ) {
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	p_type = EVP_PKEY_type(pp->type);
+#else
+	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
+#endif
+
+	switch (p_type) {
 		case EVP_PKEY_DSA:
 			digest=PKI_DIGEST_ALG_DSA_DEFAULT;
 			break;
@@ -605,9 +613,11 @@ PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 			ret = PKI_DIGEST_ALG_SHA1;
 			break;
 #endif
+#ifdef PKI_ALGOR_DSS1
 		case PKI_ALGOR_DSS1:
 			ret = PKI_DIGEST_ALG_DSS1;
 			break;
+#endif
 #ifdef ENABLE_SHA224
 		case PKI_ALGOR_SHA224:
 			ret = PKI_DIGEST_ALG_SHA224;
@@ -633,10 +643,12 @@ PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 			ret = PKI_DIGEST_ALG_RIPEMD160;
 			break;
 #endif
-#ifdef ENABLE_ECDSA
+#if OPENSSL_VERSION_NUMBER < 0x1000000fL
+# ifdef ENABLE_ECDSA
 		case PKI_ALGOR_ECDSA_DSS1:
 			ret = PKI_DIGEST_ALG_ECDSA_SHA1;
 			break;
+# endif
 #endif
 		default:
 			ret = PKI_DIGEST_ALG_UNKNOWN;

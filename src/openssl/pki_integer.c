@@ -91,16 +91,24 @@ PKI_INTEGER * PKI_INTEGER_dup ( PKI_INTEGER *a ) {
 
 PKI_INTEGER *PKI_INTEGER_new_bin ( unsigned char *data, size_t size ) {
 
-	if( !data ) return ( NULL );
+	BIGNUM *bn;
 
-	/*
-	if((ret = (PKI_INTEGER *) ASN1_INTEGER_new()) == NULL ) {
-		return ( NULL );
-	}
-	*/
+	// Input Checks
+	if (!data || !size) return NULL;
+
+	// Converts the String into a BIGNUM
+	if (!BN_dec2bn(&bn, (const char *)data)) return NULL;
+
+	// Returns the result
+	return (PKI_INTEGER *) BN_to_ASN1_INTEGER(bn, NULL);
+
+	/* DEPRECATED:
+	 *
+	 * Old (pre 1.0.0) version
 
 	return (PKI_INTEGER *) c2i_ASN1_INTEGER ( NULL, 
 			(const unsigned char ** ) &data, (long int) size );
+	*/
 
 }
 

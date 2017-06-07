@@ -31,10 +31,15 @@
 # define DECLARE_STACK_OF DEFINE_STACK_OF
 #endif
 
-#if OPENSSL_VERSION_NUMBER > 0x1000000fL
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+// EVP_MD_CTX Interface
 # define EVP_MD_CTX_new EVP_MD_CTX_create
 # define EVP_MD_CTX_free EVP_MD_CTX_destroy
 # define EVP_MD_CTX_reset EVP_MD_CTX_cleanup
+
+// HMAC Interface
+# define HMAC_CTX_reset HMAC_CTX_cleanup
 #endif
 
 typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
@@ -201,10 +206,25 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_RSA_RIPEMD160	NID_undef
 #endif
 
-#define PKI_ALGOR_DSA_SHA1	NID_dsaWithSHA1
+/* Old DSS1 Algorithm - not needed in OpenSSL v1.0.0+ */
+#if OPENSSL_VERSION_NUMBER < 0x1000000fL
 #define PKI_ALGOR_DSS1		60000
 #define PKI_ALGOR_ECDSA_DSS1	60001
 #define PKI_DIGEST_ALG_DSS1	(PKI_DIGEST_ALG *) EVP_dss1()
+#else
+#define PKI_ALGOR_DSS1		NID_undef
+#define PKI_ALGOR_ECDSA_DSS1	NID_undef
+#define PKI_DIGEST_ALG_DSS1	NULL
+#endif
+
+/* Begin - NID_dsaWithSHA1 */
+#ifdef NID_dsaWithSHA1
+#define ENABLE_DSA_SHA_1
+#define PKI_ALGOR_DSA_SHA1	NID_dsaWithSHA1
+#else
+#define PKI_ALGOR_DSA_SHA1	NID_undef
+#endif
+/* End - NID_dsaWithSHA1 */
 
 /* Begin - NID_dsa_with_SHA224 */
 #ifdef NID_dsa_with_SHA224 

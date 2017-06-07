@@ -102,9 +102,16 @@ char *PKI_TIME_get_parsed ( PKI_TIME *t ) {
 /*! \brief Returns a duplicate of the PKI_TIME object */
 
 PKI_TIME * PKI_TIME_dup ( PKI_TIME *time ) {
+
+	// Input Check
 	if ( !time ) return NULL;
 
-	return (PKI_TIME *) M_ASN1_TIME_dup ( (ASN1_TIME *) time );
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	return (PKI_TIME *) M_ASN1_TIME_dup((ASN1_TIME *)time);
+#else
+	return (PKI_TIME *) ASN1_STRING_dup((ASN1_TIME *)time);
+#endif
+
 }
 
 /*!

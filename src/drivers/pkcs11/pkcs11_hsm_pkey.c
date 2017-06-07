@@ -587,18 +587,19 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 
 	CK_MECHANISM RSA_MECH = { CKM_RSA_PKCS, NULL_PTR, 0 };
 
-	ASN1_TYPE parameter;
-	X509_ALGOR algor;
-
-	X509_SIG sig;
-
 	unsigned char *p = NULL;
 	unsigned char *s = NULL;
 	unsigned char *tmps = NULL;
 
-	int i, j, rc;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	X509_SIG sig;
+	X509_SIG * sig_pnt = &sig;
+#else
+	X509_SIG * sig_pnt = X509_SIG_new();
+#endif
 
-	ASN1_OCTET_STRING digest;
+	
+	int i, j, rc;
 
 	int keysize = 0;
 	CK_ULONG ck_sigsize = 0;
@@ -610,26 +611,25 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	PKI_log_debug("RSA::SIGN::PKCS#11::START");
 
 	/* Default checks for mis-passed pointers */
-	if (!m | !sigret | !siglen | !rsa ) 
-			return (0 /* 0 = PKI_ERR in OpenSSL */ );
+	if (!m || !sigret || !siglen || !rsa || !sig_pnt) goto err;
 
 	/* Retrieves the reference to the hsm */
 	if((driver = (HSM *) RSA_get_ex_data (rsa, KEYPAIR_DRIVER_HANDLER_IDX))
 								== NULL ) {
 		PKI_log_err ("HSM_PKCS11_rsa_sign()::Can't get Driver Handle");
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		goto err;
 	}
 
 	/* Retrieves the privkey object handler */
 	if((pHandle = (CK_OBJECT_HANDLE *) RSA_get_ex_data (rsa, 
 				KEYPAIR_PRIVKEY_HANDLER_IDX)) == NULL ) {
 		PKI_log_err ("HSM_PKCS11_rsa_sign()::Can't get pKey Handle");
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		goto err;
 	}
 
 	if ((lib = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
                 PKI_log_err("HSM_PKCS11_rsa_sign()::Can not get lib handler");
-                return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+                goto err;
         }
 
 	if(( HSM_PKCS11_session_new( lib->slot_id, &lib->session,
@@ -637,10 +637,15 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 
 		PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Failed in opening a "
 				"new session (R/W) with the token" );
-		return ( 0 );
+		goto err;
 	};
 
 	/* Now we need to check the real encoding */
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	ASN1_OCTET_STRING digest;
+	ASN1_TYPE parameter;
+	X509_ALGOR algor;
+
 	sig.algor = &algor;
 	if((sig.algor->algorithm = OBJ_nid2obj(type)) == NULL ) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::Algor not recognized");
@@ -660,27 +665,47 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	sig.digest->data = (unsigned char *) m;
 	sig.digest->length = (int) m_len;
 
-	i = i2d_X509_SIG( &sig, NULL);
+	i = i2d_X509_SIG(sig_pnt, NULL);
+
+#else
+	X509_ALGOR * alg = NULL;
+	ASN1_OCTET_STRING * data = NULL;
+
+	// Allocates a new signature
+	if ((sig_pnt = X509_SIG_new()) == NULL) goto err;
+
+	// Gets the modifiable algorithm and digest pointers
+	X509_SIG_getm(sig_pnt, &alg, &data);
+
+	// Sets the algorithm
+	if (!X509_ALGOR_set0(alg, OBJ_nid2obj(type), V_ASN1_NULL, NULL)) goto err;
+
+	// Sets the digest data
+	if (!ASN1_OCTET_STRING_set(data, (unsigned char *)m, (int) m_len)) goto err;
+
+	// Gets the size of the DER encoded signature
+	i = i2d_X509_SIG(sig_pnt, NULL);
+#endif
 
 	if((keysize = RSA_size ( rsa )) == 0 ) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::KEY size is 0");
-		return ( 0 );
+		goto err;
 	}
 
 	j=RSA_size(rsa);
 	if( i > ( j - RSA_PKCS1_PADDING_SIZE )) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::Digest too big");
-		return ( 0 );
+		goto err;
 	}
 
 	if((tmps = ( unsigned char *) PKI_Malloc ((unsigned int) j + 1 ))
 								== NULL ) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::Memory alloc error!");
 		return (0);
-	};
+	}
 	
 	p = tmps;
-	i2d_X509_SIG( &sig, &p );
+	i2d_X509_SIG(sig_pnt, &p);
 	s = tmps;
 
 	rc = pthread_mutex_lock( &lib->pkcs11_mutex );
@@ -700,7 +725,7 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 		pthread_cond_signal( &lib->pkcs11_cond );
 		pthread_mutex_unlock( &lib->pkcs11_mutex );
 
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		goto err;
 	}
 
 	ck_sigsize = *siglen;
@@ -731,11 +756,8 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 		pthread_mutex_unlock( &lib->pkcs11_mutex );
 
 		PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-		if( buf ) PKI_Free ( buf );
 
-		PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		goto err;
 	}
 
 	pthread_cond_signal( &lib->pkcs11_cond );
@@ -746,14 +768,30 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
 
 	PKI_log_debug("HSM_PKCS11_rsa_sign():: BUF Written = %d", ck_sigsize );
-	memcpy( sigret, buf, *siglen );
+	memcpy(sigret, buf, *siglen);
 
-	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-	if( tmps ) PKI_Free ( tmps );
-	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-	if( buf ) PKI_Free ( buf );
-	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+	// Free allocated memory
+	if (tmps) PKI_Free ( tmps );
+	if (buf) PKI_Free ( buf );
 
-	return ( 1 /* 1 = PKI_OK in OpenSSL */ );
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	if (sig_pnt) X509_SIG_free(sig_pnt);
+#endif
+
+	// Returns Success (1 is success in OpenSSL)
+	return 1;
+
+err:
+	// Frees associated memory
+	if (tmps) PKI_Free(tmps);
+	if (buf) PKI_Free(buf);
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	if (sig_pnt) X509_SIG_free(sig_pnt);
+#endif
+
+
+	// Returns the error (0 is error in OpenSSL)
+	return 0;
 }
 

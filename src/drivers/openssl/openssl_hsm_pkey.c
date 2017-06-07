@@ -140,7 +140,7 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 	PKI_EC_KEY *k = NULL;
 	EC_builtin_curve *curves = NULL;
 	EC_GROUP *group = NULL;
-	int num_curves = 0;
+	size_t num_curves = 0;
 	int degree = 0;
 
 	int bits 	= PKI_EC_KEY_DEFAULT_SIZE;
@@ -151,14 +151,18 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 	// struct __ec_key_st2 *ecKeyPnt = NULL;
 
 	/* Get the number of availabe ECDSA curves in OpenSSL */
-	if ((num_curves = (int) EC_get_builtin_curves(NULL, 0)) < 1 ) {
+	if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
 		/* No curves available! */
 		PKI_ERROR(PKI_ERR_OBJECT_CREATE, "Builtin EC curves");
 		return NULL;
 	}
 
 	/* Alloc the needed memory */
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	curves = OPENSSL_malloc((int)(sizeof(EC_builtin_curve) * num_curves));
+#else
 	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * num_curves);
+#endif
 
 	/* Check for memory allocation */
 	if (curves == NULL) return NULL;
@@ -439,8 +443,13 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
 			} break;
 #ifdef ENABLE_ECDSA
 		case EVP_PKEY_EC: {
+# if OPENSSL_VERSION_NUMBER < 0x1010000fL
 			ret = PEM_write_bio_ECPrivateKey(bp, 
 				x->pkey.ec, enc, (unsigned char *) kstr, klen, cb, u);
+# else
+			ret = PEM_write_bio_ECPrivateKey(bp, 
+				EVP_PKEY_get0_EC_KEY(x), enc, (unsigned char *) kstr, klen, cb, u);
+# endif
 			} break;
 #endif
 		default: {

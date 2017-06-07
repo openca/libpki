@@ -463,19 +463,22 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 	pkey = key->value;
 	ameth = (struct my_meth_st *) pkey->ameth;
 
-	if (digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE)
-	{
+# if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	if (digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE) {
 		if (!ameth || !OBJ_find_sigid_by_algs(&signid, EVP_MD_nid(digest), 
-			ameth->pkey_id))
-		{
+									ameth->pkey_id)) {
 			// ASN1_R_DIGEST_AND_KEY_TYPE_NOT_SUPPORTED
 			return PKI_ERR;
 		}
+	} else {
+		signid = digest->pkey_type;
 	}
-	else signid = digest->pkey_type;
+# else
+	signid = EVP_MD_pkey_type(digest);
+# endif
 
-    if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) paramtype = V_ASN1_NULL;
-    else paramtype = V_ASN1_UNDEF;
+	if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) paramtype = V_ASN1_NULL;
+	else paramtype = V_ASN1_UNDEF;
 
 	for (i = 0; i < 2; i++)
 	{
@@ -484,18 +487,24 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 #else
 	/* Get the pointers to the internal algor data - very OpenSSL related */
 	for ( i = 0; i < 2; i ++ ) {
+
+		int p_type = 0;
+
 		PKI_ALGOR *a = NULL;
 
 		a = algs[i];
 
-		if ( a == NULL ) continue;
+		if (a == NULL) continue;
 
-		if ( (digest->pkey_type == PKI_ALGOR_DSA_SHA1)
+		// Gets the Signature Algorithm
+		p_type = EVP_MD_pkey_type(digest);
+
+		if ((p_type == PKI_ALGOR_DSA_SHA1)
 #ifdef ENABLE_ECDSA
-			|| ( digest->pkey_type == PKI_ALGOR_ECDSA_SHA1 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA256 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA384 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA512 )
+			|| (p_type == PKI_ALGOR_ECDSA_SHA1 ) ||
+			( p_type == PKI_ALGOR_ECDSA_SHA256 ) ||
+			( p_type == PKI_ALGOR_ECDSA_SHA384 ) ||
+			( p_type == PKI_ALGOR_ECDSA_SHA512 )
 #endif
 				) {
 			if(a->parameter) ASN1_TYPE_free(a->parameter);
@@ -511,17 +520,20 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 			a->parameter->type=V_ASN1_NULL;
 		}
 
-		a->algorithm = OBJ_nid2obj( digest->pkey_type );
+		a->algorithm = OBJ_nid2obj(p_type );
 
 		if (a->algorithm == NULL) {
 			PKI_log_err ("Unknown Object Type");
 			return PKI_ERR;
 		};
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 		if (a->algorithm->length == 0) {
 			PKI_log_err ("Object Identifier not valid or unknown!");
 			return PKI_ERR;
 		}
+#endif
+
 	}
 #endif
 
@@ -782,7 +794,7 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 int PKI_verify_signature ( PKI_MEM *data, PKI_MEM *sig, PKI_ALGOR *alg,
 						PKI_X509_KEYPAIR *key )
 {
-	EVP_MD_CTX ctx;
+	EVP_MD_CTX *ctx = NULL;
 	PKI_DIGEST_ALG *dgst = NULL;
 
 	if( !data || !data->data || !sig || !sig->data ||
@@ -797,30 +809,42 @@ int PKI_verify_signature ( PKI_MEM *data, PKI_MEM *sig, PKI_ALGOR *alg,
 		return PKI_ERR;
 	}
 
-	EVP_MD_CTX_init(&ctx);
+	if ((ctx = EVP_MD_CTX_new()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR;
+	};
 
-	if((EVP_VerifyInit_ex(&ctx,dgst, NULL)) == 0 ) {
+	EVP_MD_CTX_init(ctx);
+
+	if((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0 ) {
 		PKI_log_debug( "PKI_verify_signature() verify init failed!");
 		goto err;
 	}
 
-	if((EVP_VerifyUpdate(&ctx,(unsigned char *)data->data,
+	if((EVP_VerifyUpdate(ctx,(unsigned char *)data->data,
 							data->size)) <= 0 ) {
 		PKI_log_debug( "PKI_verify_signature() verifyUpdate failed!");
 		goto err;
 	}
 
-	if (EVP_VerifyFinal(&ctx,(unsigned char *)sig->data,
+	if (EVP_VerifyFinal(ctx,(unsigned char *)sig->data,
                         (unsigned int)sig->size, key->value ) <= 0 ) {
 		PKI_log_debug( "PKI_verify_signature() verifyFinal failed!");
 		goto err;
 	}
 
-	EVP_MD_CTX_cleanup(&ctx);
+	EVP_MD_CTX_reset(ctx);
+	EVP_MD_CTX_free(ctx);
 	return PKI_OK;
 
 err:
-	EVP_MD_CTX_cleanup(&ctx);
+	// Free Memory
+	if (ctx) { 
+		EVP_MD_CTX_reset(ctx);
+		EVP_MD_CTX_free(ctx);
+	}
+
+	// Returns the error
 	return PKI_ERR;
 }
 

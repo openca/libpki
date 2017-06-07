@@ -866,7 +866,7 @@ int HSM_PKCS11_set_attr_sn ( CK_ATTRIBUTE_TYPE type, char *value,
 	return PKI_OK;
 }
 
-int HSM_PKCS11_set_attr_bn ( CK_ATTRIBUTE_TYPE type, BIGNUM *bn, 
+int HSM_PKCS11_set_attr_bn ( CK_ATTRIBUTE_TYPE type, const BIGNUM *bn, 
 						CK_ATTRIBUTE *attribute) {
 
 	int len = 0;

@@ -21,57 +21,44 @@ void PKI_DIGEST_free ( PKI_DIGEST *data )
 /*! \brief Calculate digest over data provided in a buffer
  */
 
-PKI_DIGEST *PKI_DIGEST_new ( PKI_DIGEST_ALG *alg, 
-					unsigned char *data, size_t size ) {
+PKI_DIGEST *PKI_DIGEST_new(PKI_DIGEST_ALG *alg, 
+		  	   unsigned char  *data,
+			   size_t          size ) {
 
-	EVP_MD_CTX md;
+	EVP_MD_CTX * md_ctx = NULL;
 	char buf[EVP_MAX_MD_SIZE];
 	size_t digest_size = 0;
 
 	PKI_DIGEST *ret = NULL;
 
-	if( !data || !alg ) return ( NULL );
+	// Input Checks
+	if (!data || !alg) return NULL;
+
+	// Allocate a new CTX
+	if ((md_ctx = EVP_MD_CTX_new()) == NULL) return NULL;
 
 	/* Let's initialize the MD context */
-	EVP_MD_CTX_init( &md );
+	EVP_MD_CTX_init(md_ctx);
 
 	/* Initialize the Digest by using the Alogrithm identifier */
-	if ((EVP_DigestInit_ex( &md, alg, NULL )) == 0 ) 
-	{
-		EVP_MD_CTX_cleanup( &md );
-		return( NULL );
-	}
+	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 0 ) goto err;
 
 	/* Update the digest - calculate over the data */
-	EVP_DigestUpdate(&md, data, size);
+	EVP_DigestUpdate(md_ctx, data, size);
 
-	if ((EVP_DigestFinal_ex(&md, (unsigned char *) buf, NULL)) == 0)
-	{
-		/* Error in finalizing the Digest */
-		EVP_MD_CTX_cleanup( &md );
-		return( NULL );
-	}
+	// Finalize the digest
+	if ((EVP_DigestFinal_ex(md_ctx, (unsigned char *) buf, NULL)) == 0) goto err;
 
 	/* Set the size of the md */
-	digest_size = (size_t) EVP_MD_CTX_size( &md );
+	digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
 
-	/* Allocate the return structure */
-	if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) == NULL)
-	{
-		/* Memory Allocation Error! */
-		EVP_MD_CTX_cleanup(&md);
-		return( NULL );
+	/* Allocate the return structure and the internal digest */
+	if (((ret = PKI_Malloc(sizeof(PKI_DIGEST))) == NULL) ||
+	    ((ret->digest = PKI_Malloc(size)) == NULL)) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
 	}
 	
-	/* Allocate the buffer */
-	if ((ret->digest = PKI_Malloc(size)) == NULL)
-	{
-		/* Memory Error */
-		EVP_MD_CTX_cleanup(&md);
-		PKI_Free (ret);
-		return(NULL);
-	}
-
 	/* Set the size of the Digest */
 	ret->size = digest_size;
 
@@ -82,11 +69,27 @@ PKI_DIGEST *PKI_DIGEST_new ( PKI_DIGEST_ALG *alg,
 	ret->algor = alg;
 
 	/* Let's clean everything up */
-	EVP_MD_CTX_cleanup(&md);
+	EVP_MD_CTX_reset(md_ctx);
+	EVP_MD_CTX_free(md_ctx);
 
 	/* Return the Digest Data structure */
-	return ( ret );
+	return ret;
 
+err:
+
+	if (md_ctx) {
+		// Cleanup the CTX
+		EVP_MD_CTX_reset(md_ctx);
+
+		// Free Memory
+		EVP_MD_CTX_free(md_ctx);
+	}
+
+	// Free Memory
+	if (ret) PKI_Free(ret);
+
+	// Nothing to return
+	return NULL;
 }
 
 /*! \brief Calculates a digest over data buffer

@@ -7,6 +7,34 @@ int _get_der ( void *data, int objType, int type, unsigned char **ret ) {
 
 	int len = 0;
 
+	X509_NAME * name = NULL;
+	ASN1_INTEGER * serial = NULL;
+
+	switch (type) {
+
+		case PKI_X509_DATA_SUBJECT: {
+			name = X509_get_subject_name((X509 *)data);
+			if (name) len = i2d_X509_NAME(name, ret);
+		} break;
+		
+		case PKI_X509_DATA_ISSUER: {
+			name = X509_get_issuer_name((X509 *)data);
+			if (name) len = i2d_X509_NAME(name, ret);
+		} break;	
+		
+		case PKI_X509_DATA_SERIAL: {
+			serial = X509_get_serialNumber((X509 *)data);
+			if (serial) i2d_ASN1_INTEGER(serial, ret);
+		} break;
+
+		default: {
+			return 0;
+		}
+	}
+
+	return len;
+
+	/*
 	int	(*func )()   = NULL;
 	void     *func_var = NULL;
 	void     *field = NULL;
@@ -34,27 +62,12 @@ int _get_der ( void *data, int objType, int type, unsigned char **ret ) {
 			return ( 0 );
 	}
 
-	/*
-	if((len = func ( field, NULL )) <= 0 ) {
-		return ( 0 );
-	};
-
-	if(( *ret = PKI_Malloc ( len )) == NULL ) {
-		return ( 0 );
-	}
-	*/
-
 	len = func( field, ret );
 	PKI_log_debug("%s:%d::DEBUG::DER LEN 2=>%d (%p)", 
 					__FILE__, __LINE__, len, *ret );
 
 	return ( len );
-			
-	/*
-	derlen = i2d_X509_NAME(x->cert_info->subject, NULL);
-        if ((der = dertmp = (unsigned char *)OPENSSL_malloc (derlen)) == NULL)
-                goto err;
-        i2d_X509_NAME(x->cert_info->subject, &dertmp);
+
 	*/
 }
 
@@ -573,28 +586,70 @@ PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
 
 	if( keyType == CKK_RSA ) {
 
-		if((rsa = RSA_new()) == NULL ) {
-			return ( NULL );
-		}
+		BIGNUM *e_bn = NULL;
+		BIGNUM *n_bn = NULL;
 
-		if( HSM_PKCS11_get_attr_bn( pubKey, &lib->session,
-				CKA_PUBLIC_EXPONENT, &rsa->e, lib) == PKI_ERR){
-			PKI_log_debug ( "Can not retrieve pub exponent from key (%s)");
+		if ((rsa = RSA_new()) == NULL) return NULL;
+
+		if( HSM_PKCS11_get_attr_bn(pubKey, 
+					   &lib->session,
+					   CKA_PUBLIC_EXPONENT, 
+					   &e_bn, 
+					   lib) == PKI_ERR){
+			// Reports the error
+			PKI_log_debug("Can not retrieve pub exponent from "
+				      "key (%s)", url->addr);
+			// Free the memory
 			RSA_free ( rsa );
-			return ( NULL );
+
+			// Returns NULL
+			return NULL;
 		}
 		
 		if( HSM_PKCS11_get_attr_bn( pubKey, &lib->session,
-				CKA_MODULUS, &rsa->n, lib) == PKI_ERR){
-			PKI_log_debug ( "Can not retrieve modulus from key");
+				CKA_MODULUS, &n_bn, lib) == PKI_ERR){
+			// Reports the error
+			PKI_log_debug ( "Can not retrieve modulus from key %s",
+					url->addr);
+			// Free Memory
+			if (e_bn) BN_free(e_bn);
 			RSA_free ( rsa );
-			return ( NULL );
+
+			// Returns NULL
+			return NULL;
 		}
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+		// OpenSSL old assign method
+		rsa->n = n_bn;
+		rsa->e = e_bn;
+
+		// Sets the Flags
+        	rsa->flags |= RSA_FLAG_SIGN_VER;
+#else
+		// OpenSSL v1.1.x+ assign method
+		if (!RSA_set0_key(rsa, n_bn, e_bn, NULL)) {
+			PKI_log_debug("Can not assign internal RSA values "
+				      "for key %s", url->addr);
+
+			// Free Memory
+			if (e_bn) BN_free(e_bn);
+			if (n_bn) BN_free(n_bn);
+			RSA_free(rsa);
+
+			// Returns NULL
+			return NULL;
+		}
+
+		// No Setting of the flags as the RSA_FLAG_SIGN_VER
+		// has been removed in OpenSSL v1.1.x+
+		// RSA_set_flags(rsa, RSA_FLAG_SIGN_VER);
+#endif
 		
 		/* Let's get the Attributes from the Keypair and store into the
         	   key's pointer */
-        	RSA_set_method( rsa, HSM_PKCS11_get_rsa_method());
-        	rsa->flags |= RSA_FLAG_SIGN_VER;
+        	RSA_set_method(rsa, HSM_PKCS11_get_rsa_method());
 
         	/* Push the priv and pub key handlers to the rsa->ex_data */
         	RSA_set_ex_data( rsa, KEYPAIR_DRIVER_HANDLER_IDX, hsm );
@@ -617,16 +672,20 @@ PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
 	} else if ( keyType == CKK_DSA ) {
 		PKI_log_debug("HSM_PKCS11_KEYPAIR_get_url()::"
 				"DSA support missing!");
-		return ( NULL );
-	} else if ( keyType == CKK_DSA ) {
+		return NULL;
+	} else if ( keyType == CKK_EC ) {
 #ifdef ENABLE_ECDSA
-#endif
 		PKI_log_debug("HSM_PKCS11_KEYPAIR_get_url()::"
-				"ECDSA support missing!");
-		return ( NULL );
+				"EC support not available, yet!");
+#else
+		PKI_log_debug("HSM_PKCS11_KEYPAIR_get_url()::"
+				"library does not have EC support!");
+#endif
+		return NULL;
 	}
 
-	if((ret = PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, hsm))== NULL ) {
+	if ((ret = PKI_X509_new(PKI_DATATYPE_X509_KEYPAIR, hsm)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		if ( val ) EVP_PKEY_free ( val );
 		return (NULL);
 	}
@@ -636,7 +695,8 @@ PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
 	/* Allocate the STACK for the return values */
 	if((ret_sk = PKI_STACK_X509_KEYPAIR_new()) == NULL ) {
 		/* Big trouble! */
-		if ( ret ) PKI_X509_KEYPAIR_free ( ret );
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		if (ret) PKI_X509_KEYPAIR_free(ret);
 		return ( NULL );
 	}
 
@@ -1268,6 +1328,7 @@ int HSM_PKCS11_KEYPAIR_add_url ( PKI_X509_KEYPAIR *x_key, URL *url,
 	HSM_PKCS11_set_attr_bool( CKA_SIGN, CK_TRUE, &templ[n++]);
 	HSM_PKCS11_set_attr_bool( CKA_SIGN_RECOVER, CK_TRUE, &templ[n++]);
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	HSM_PKCS11_set_attr_bn(CKA_MODULUS, rsa->n, &templ[n++]);
 	HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, rsa->e, &templ[n++]);
 	HSM_PKCS11_set_attr_bn(CKA_PRIVATE_EXPONENT, rsa->d, &templ[n++]);
@@ -1276,6 +1337,32 @@ int HSM_PKCS11_KEYPAIR_add_url ( PKI_X509_KEYPAIR *x_key, URL *url,
 	HSM_PKCS11_set_attr_bn(CKA_EXPONENT_1, rsa->dmp1, &templ[n++]);
 	HSM_PKCS11_set_attr_bn(CKA_EXPONENT_2, rsa->dmq1, &templ[n++]);
 	HSM_PKCS11_set_attr_bn(CKA_COEFFICIENT, rsa->iqmp, &templ[n++]);
+#else
+	const BIGNUM * n_bn;
+	const BIGNUM * e_bn;
+	const BIGNUM * d_bn;
+
+	const BIGNUM * p_bn;
+	const BIGNUM * q_bn;
+	const BIGNUM * dmp1_bn;
+	const BIGNUM * dmq1_bn;
+	const BIGNUM * iqmp_bn;
+
+	// Gets the References to the required internal attributes
+	RSA_get0_key(rsa, &n_bn, &e_bn, &d_bn);
+	RSA_get0_factors(rsa, &p_bn, &q_bn);
+	RSA_get0_crt_params(rsa, &dmp1_bn, &dmq1_bn, &iqmp_bn);
+
+	// Sets the attributes
+	HSM_PKCS11_set_attr_bn(CKA_MODULUS, n_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, e_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_PRIVATE_EXPONENT, d_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_PRIME_1, p_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_PRIME_2, q_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_EXPONENT_1, dmp1_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_EXPONENT_2, dmq1_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_COEFFICIENT, iqmp_bn, &templ[n++]);
+#endif
 
 	HSM_PKCS11_set_attr_bool( CKA_EXTRACTABLE, CK_FALSE, &templ[n++]);
 	HSM_PKCS11_set_attr_bool( CKA_MODIFIABLE, CK_TRUE, &templ[n++]);
@@ -1308,17 +1395,19 @@ int HSM_PKCS11_KEYPAIR_add_url ( PKI_X509_KEYPAIR *x_key, URL *url,
 	HSM_PKCS11_set_attr_bool( CKA_VERIFY, CK_TRUE, &templ[n++]);
 	HSM_PKCS11_set_attr_bool( CKA_WRAP, CK_TRUE, &templ[n++]);
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	HSM_PKCS11_set_attr_bn(CKA_MODULUS, rsa->n, &templ[n++]);
 	HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, rsa->e, &templ[n++]);
+#else
+	HSM_PKCS11_set_attr_bn(CKA_MODULUS, n_bn, &templ[n++]);
+	HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, e_bn, &templ[n++]);
+#endif
 
-	if ( id_len > 0 ) {
-		HSM_PKCS11_set_attr_sn(CKA_ID, id, (size_t)id_len, &templ[n++]);
-	}
+	if (id_len > 0) HSM_PKCS11_set_attr_sn(CKA_ID, id, 
+						(size_t)id_len, &templ[n++]);
 
-	if ( label != NULL ) {
-		HSM_PKCS11_set_attr_sn(CKA_LABEL, label, 
+	if ( label != NULL ) HSM_PKCS11_set_attr_sn(CKA_LABEL, label, 
 					strlen(label), &templ[n++]);
-	}
 
 	if((obj = HSM_PKCS11_create_obj( &lib->session, templ, n, lib))==NULL) {
 		PKI_log_debug("HSM_PKCS11_store_pub_key()::Object Create "
@@ -1425,18 +1514,43 @@ CK_OBJECT_HANDLE * HSM_PKCS11_X509_CERT_find_private_key ( PKI_X509_CERT *x,
 	idx = 0;
 	HSM_PKCS11_set_attr_int( CKA_CLASS, CKO_PRIVATE_KEY, &templ[idx++]);
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	key_type = EVP_PKEY_type ( ((EVP_PKEY*)pk)->type );
+#else
+	key_type = EVP_PKEY_type(EVP_PKEY_id(pk));
+#endif
 
 	if (key_type == EVP_PKEY_RSA)
 	{
 		PKI_RSA_KEY * rsa = NULL;
-		if((rsa = EVP_PKEY_get1_RSA( (EVP_PKEY *) pk )) == NULL ) {
-			goto err;
-		}
+
+		// Set Key Type
 		HSM_PKCS11_set_attr_int(CKA_KEY_TYPE, CKK_RSA,&templ[idx++]);
+
+		// Gets the reference to the RSA key
+		if ((rsa = EVP_PKEY_get1_RSA((EVP_PKEY *)pk)) == NULL) goto err;
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+		// Sets the parameters in the template
 		HSM_PKCS11_set_attr_bn(CKA_MODULUS, rsa->n, &templ[idx++]);
 		HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, rsa->e, 
 							&templ[idx++]);
+#else
+		const BIGNUM * n_bn;
+		const BIGNUM * e_bn;
+		const BIGNUM * d_bn;
+
+		// Gets the RSA public parameters
+		RSA_get0_key(rsa, &n_bn, &e_bn, &d_bn);
+
+		// Sets the parameters in the template
+		HSM_PKCS11_set_attr_bn(CKA_MODULUS, n_bn, &templ[idx++]);
+		HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, e_bn, &templ[idx++]);
+#endif
+		// Free the memory from the get1 operation
+		if (rsa) RSA_free(rsa);
+
 	} 
 	else if ( key_type == EVP_PKEY_DSA )
 	{
