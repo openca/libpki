@@ -332,7 +332,7 @@ PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
 
 /*! \brief Returns the first value found via the provided search path */
 
-char * PKI_CONFIG_get_value ( PKI_CONFIG *doc, char *search ) {
+char * PKI_CONFIG_get_value(const PKI_CONFIG *doc, const char *search ) {
 
 	PKI_CONFIG_ELEMENT *curr = NULL;
 

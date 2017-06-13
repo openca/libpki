@@ -406,7 +406,9 @@ typedef struct my_meth_st {
 } LIBPKI_METH;
 #endif
 
-int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
+int PKI_X509_sign(PKI_X509 *x, 
+		  const PKI_DIGEST_ALG *digest,
+		  const PKI_X509_KEYPAIR *key) {
 
 	PKI_MEM *der = NULL;
 	PKI_MEM *sig = NULL;
@@ -597,7 +599,8 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 		__set_algorithm(alg2, OBJ_nid2obj(digest->pkey_type), paramtype);
 	*/
 
-	if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
+	if ((der = PKI_X509_get_der_tbs(x)) == NULL) 
+	// if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
 	{
 		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, NULL, NULL )) == NULL)
 		{
@@ -645,7 +648,9 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 
 /*! \brief General signature function on data */
 
-PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
+PKI_MEM *PKI_sign(const PKI_MEM *der,
+		  const PKI_DIGEST_ALG *alg,
+		  const PKI_X509_KEYPAIR *key ) {
 
 	PKI_MEM *sig = NULL;
 	const HSM *hsm = NULL;
@@ -658,7 +663,7 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
 	}
 
 	// Uses the default algorithm if none was provided
-	if ( !alg ) alg = PKI_DIGEST_ALG_DEFAULT;
+	if ( !alg ) alg = (const PKI_DIGEST_ALG *)PKI_DIGEST_ALG_DEFAULT;
 
 	// If no HSM is provided, let's get the default one
 	if (key->hsm) hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());
@@ -666,7 +671,9 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
 	// Requires the use of the HSM's sign callback
 	if (hsm && hsm->callbacks && hsm->callbacks->sign)
 	{
-		sig = hsm->callbacks->sign(der, alg, key); 
+		sig = hsm->callbacks->sign((PKI_MEM *)der, 
+					   (PKI_DIGEST_ALG *)alg, 
+					   (PKI_X509_KEYPAIR *)key); 
 		if (sig) PKI_log_debug("Signature Size (%d bytes)", sig->size);
 	}
 	else
@@ -682,10 +689,10 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
  * \brief Verifies a PKI_X509 by using a key from a certificate
  */
 
-int PKI_X509_verify_cert ( PKI_X509 *x, PKI_X509_CERT *cert ) {
+int PKI_X509_verify_cert(const PKI_X509 *x, const PKI_X509_CERT *cert) {
 
 	PKI_X509_KEYPAIR *kp = NULL;
-	PKI_X509_KEYPAIR *kval = NULL;
+	const PKI_X509_KEYPAIR *kval = NULL;
 	int ret = -1;
 
 	if (!x || !x->value || !cert || !cert->value ) {
@@ -693,15 +700,16 @@ int PKI_X509_verify_cert ( PKI_X509 *x, PKI_X509_CERT *cert ) {
 		return PKI_ERR;
 	}
 
-	kval = PKI_X509_CERT_get_data ( cert, PKI_X509_DATA_PUBKEY );
+	kval = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_PUBKEY);
 	if ( !kval ) return PKI_ERR;
 
-	kp = PKI_X509_new_value ( PKI_DATATYPE_X509_KEYPAIR, kval, NULL);
+	kp = PKI_X509_new_value(PKI_DATATYPE_X509_KEYPAIR, 
+				(PKI_X509_KEYPAIR_VALUE *)kval, NULL);
 	if ( !kp ) return PKI_ERR;
 
-	ret = PKI_X509_verify ( x, kp );
+	ret = PKI_X509_verify(x, kp);
 	kp->value = NULL;
-	PKI_X509_KEYPAIR_free ( kp );
+	PKI_X509_KEYPAIR_free(kp);
 	
 	return ret;
 }
@@ -710,7 +718,7 @@ int PKI_X509_verify_cert ( PKI_X509 *x, PKI_X509_CERT *cert ) {
  * \brief Verifies a signature on a PKI_X509 object (not for PKCS7 ones)
  */
 
-int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
+int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 
 	int ret = PKI_ERR;
 	const HSM *hsm = NULL;
@@ -723,42 +731,45 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 
 	PKI_init_all();
 
-	if (!x || !x->value || !key || !key->value)
-	{
-		if (!x || !x->value) PKI_log_err("Missing data to verify");
-		if (!key || !key->value) PKI_log_err("Missing keypair to verify with");
+	if (!x || !x->value || !key || !key->value) {
+
+		if (!x || !x->value) 
+			PKI_log_err("Missing data to verify");
+
+		if (!key || !key->value) 
+			PKI_log_err("Missing keypair to verify with");
+
 		return PKI_ERR;
 	}
 
 	if ( key->hsm ) hsm = key->hsm;
 	else hsm = HSM_get_default();
 
-	if (( alg = PKI_X509_get_data ( x, PKI_X509_DATA_ALGORITHM )) == NULL)
-	{
+	if (( alg = PKI_X509_get_data( x, PKI_X509_DATA_ALGORITHM )) == NULL) {
 		PKI_log_err("Can not get algorithm from object!");
 		return PKI_ERR;
 	}
 
-	if ((data = PKI_X509_get_data (x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
-	{
+	if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
+	// if ((data = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
 		PKI_log_err("Can not get To Be signed object!");
 		return PKI_ERR;
 	}
 
-	if ((sig_value = PKI_X509_get_data (x, PKI_X509_DATA_SIGNATURE )) == NULL)
-	{
+	if ((sig_value = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE )) 
+								== NULL) {
 		PKI_log_err("Can not get Signature from the object!");
 		PKI_MEM_free ( data );
 		return PKI_ERR;
 	}
 
-	if((sig = PKI_MEM_new_null ()) == NULL ){
+	if((sig = PKI_MEM_new_null ()) == NULL ) {
 		PKI_MEM_free ( data );
 		return PKI_ERR;
 	}
 
-	if ((PKI_MEM_add(sig, (char *)sig_value->data, (size_t) sig_value->length)) == PKI_ERR)
-	{
+	if ((PKI_MEM_add(sig, (char *)sig_value->data, 
+			      (size_t)sig_value->length)) == PKI_ERR) {
 		PKI_MEM_free ( sig );
 		PKI_MEM_free ( data );
 		return PKI_ERR;
@@ -769,7 +780,10 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 	if (hsm && hsm->callbacks && hsm->callbacks->verify)
 	{
 		PKI_log_debug( "HSM verify() callback called " );
-		ret = hsm->callbacks->verify( data, sig, alg, key ); 
+		ret = hsm->callbacks->verify(data,
+					     sig,
+					     alg,
+					     (PKI_X509_KEYPAIR *)key ); 
 	}
 	else
 	{
@@ -780,10 +794,10 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 	if ( sig  ) PKI_MEM_free ( sig  );
 
 	// Provides some additional information in debug mode
-	if (ret != PKI_OK)
-	{
+	if (ret != PKI_OK) {
 		PKI_log_debug("Crypto Layer Error: %s (%d)", 
-			HSM_get_errdesc(HSM_get_errno(hsm), hsm), HSM_get_errno(hsm));
+			HSM_get_errdesc(HSM_get_errno(hsm), hsm), 
+			HSM_get_errno(hsm));
 	}
 
 	return (ret);
@@ -791,8 +805,10 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 
 /*! \brief Verifies a signature */
 
-int PKI_verify_signature ( PKI_MEM *data, PKI_MEM *sig, PKI_ALGOR *alg,
-						PKI_X509_KEYPAIR *key )
+int PKI_verify_signature(const PKI_MEM *data, 
+			 const PKI_MEM *sig,
+			 const PKI_ALGOR *alg,
+			const PKI_X509_KEYPAIR *key )
 {
 	EVP_MD_CTX *ctx = NULL;
 	PKI_DIGEST_ALG *dgst = NULL;

@@ -336,11 +336,12 @@ int PKI_X509_REQ_get_keysize ( PKI_X509_REQ *x ) {
 
 /*! \brief Returns an attribute of the Certificate Request */
 
-void * PKI_X509_REQ_get_data ( PKI_X509_REQ *req, 
-					PKI_X509_DATA type ) {
+const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req, 
+				   PKI_X509_DATA type ) {
 	
 	void *ret = NULL;
-	PKI_X509_REQ_VALUE *tmp_x = NULL;
+	LIBPKI_X509_REQ *tmp_x = NULL;
+	// PKI_X509_REQ_VALUE *tmp_x = NULL;
 	PKI_MEM *mem = NULL;
 
 	if( !req || !req->value ) return (NULL);

@@ -3,18 +3,18 @@
 #ifndef _LIBPKI_X509_EXTENSIONS_H
 #define _LIBPKI_X509_EXTENSIONS_H
 
-int PKI_X509_EXTENSIONS_cert_add_profile(PKI_X509_PROFILE *conf, 
-				         PKI_CONFIG       *oids,
+int PKI_X509_EXTENSIONS_cert_add_profile(const PKI_X509_PROFILE *conf, 
+				         const PKI_CONFIG       *oids,
                                          PKI_X509_CERT    *x, 
                                          PKI_TOKEN        *tk );
 
-int PKI_X509_EXTENSIONS_req_add_profile(PKI_X509_PROFILE *conf, 
-				        PKI_CONFIG       *oids, 
+int PKI_X509_EXTENSIONS_req_add_profile(const PKI_X509_PROFILE *conf, 
+				        const PKI_CONFIG       *oids, 
                                         PKI_X509_REQ     *req,
                                         PKI_TOKEN        *tk );
 
-int PKI_X509_EXTENSIONS_crl_add_profile(PKI_X509_PROFILE *conf, 
-				        PKI_CONFIG       *oids, 
+int PKI_X509_EXTENSIONS_crl_add_profile(const PKI_X509_PROFILE *conf, 
+				        const PKI_CONFIG       *oids, 
                                         PKI_X509_CRL     *crl,
                                         PKI_TOKEN        *tk );
 

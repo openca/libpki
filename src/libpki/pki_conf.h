@@ -32,29 +32,37 @@ typedef enum {
 int PKI_CONFIG_free ( PKI_CONFIG * doc );
 void PKI_CONFIG_free_void ( void * doc );
 
-PKI_CONFIG * PKI_CONFIG_load(char *urlPath);
-PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk );
-PKI_CONFIG_STACK * PKI_CONFIG_load_all ( char * dir );
+const PKI_CONFIG * PKI_CONFIG_load(const char *urlPath);
+const PKI_CONFIG_STACK * PKI_CONFIG_load_dir(const char *dir, 
+					     PKI_CONFIG_STACK *sk );
+PKI_CONFIG_STACK * PKI_CONFIG_load_all (const  char * dir );
 
-PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile );
-PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName );
+PKI_CONFIG * PKI_CONFIG_OID_load (const  char *oidFile );
+PKI_OID * PKI_CONFIG_OID_search (const PKI_CONFIG *doc, 
+				 const char *searchName );
 
 /* Config Options */
-char * PKI_CONFIG_get_value ( PKI_CONFIG *doc, char *search );
-PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search );
+const char * PKI_CONFIG_get_value (const  PKI_CONFIG *doc,
+				   const char *search );
+PKI_STACK * PKI_CONFIG_get_stack_value(const PKI_CONFIG *doc, 
+				       const char *search );
 
-PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack ( PKI_CONFIG *doc, 
-              char *search );
+const PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(
+	const PKI_CONFIG *doc, 
+        const char *search );
 
-char * PKI_CONFIG_get_element_name (PKI_CONFIG_ELEMENT *e);
-char * PKI_CONFIG_get_element_value (PKI_CONFIG_ELEMENT *e);
+const char * PKI_CONFIG_get_element_name (const PKI_CONFIG_ELEMENT *e);
+const char * PKI_CONFIG_get_element_value (const PKI_CONFIG_ELEMENT *e);
 
-char * PKI_CONFIG_get_attribute_value ( PKI_CONFIG *doc, 
-          char *search, char *attr_name );
+const char * PKI_CONFIG_get_attribute_value (const PKI_CONFIG *doc, 
+          				     const char *search, 
+					     const char *attr_name );
 
-PKI_CONFIG_ELEMENT * PKI_CONFIG_get_root ( PKI_CONFIG *doc );
-int PKI_CONFIG_get_elements_num ( PKI_CONFIG *doc, char *search );
-PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(PKI_CONFIG *doc, char *search, int num);
+const PKI_CONFIG_ELEMENT * PKI_CONFIG_get_root(const PKI_CONFIG *doc );
+int PKI_CONFIG_get_elements_num (const  PKI_CONFIG *doc, const char *search );
+const PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG *doc, 
+						  const char *search, 
+						  int num);
 
 PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element_child (PKI_CONFIG_ELEMENT *e);
 PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element_next (PKI_CONFIG_ELEMENT *e);
@@ -63,17 +71,28 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element_prev (PKI_CONFIG_ELEMENT *e);
 PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_children ( 
               PKI_CONFIG_ELEMENT *e);
 
-char * PKI_CONFIG_find ( char *dir, char *name );
-char * PKI_CONFIG_find_all ( char *dir, char *name, char *subdir );
+char * PKI_CONFIG_find(const char *dir, const char *name );
+char * PKI_CONFIG_find_all(const char *dir, 
+			   const char *name,
+			   const char *subdir );
 
-PKI_STACK *PKI_CONFIG_get_search_paths ( char *dir );
+PKI_STACK *PKI_CONFIG_get_search_paths(const char *dir );
 
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new ( char *name, char *value );
-int PKI_CONFIG_ELEMENT_add_attribute ( PKI_CONFIG *doc,
-    PKI_CONFIG_ELEMENT *node, char *name, char *value );
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child ( PKI_CONFIG *doc, 
-      PKI_CONFIG_ELEMENT *node, char *name, char *value );
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child_el ( PKI_CONFIG * doc, 
-      PKI_CONFIG_ELEMENT *node, PKI_CONFIG_ELEMENT *el);
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new(const char *name, 
+					   const char *value);
+
+int PKI_CONFIG_ELEMENT_add_attribute(PKI_CONFIG *doc,
+    				     PKI_CONFIG_ELEMENT *node, 
+				     const char *name,
+				     const char *value );
+
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child(PKI_CONFIG *doc, 
+      				     PKI_CONFIG_ELEMENT *node,
+				     const char *name, 
+				     const char *value );
+
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child_el(PKI_CONFIG * doc, 
+      				    PKI_CONFIG_ELEMENT *node,
+				    const PKI_CONFIG_ELEMENT *el);
 
 #endif

@@ -95,7 +95,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url_kp( PKI_KEYPARAMS *kp,
 /*! \brief Returns a char * with a string representation of the Keypair
  */
 
-char * PKI_X509_KEYPAIR_get_parsed ( PKI_X509_KEYPAIR *pkey ) {
+char * PKI_X509_KEYPAIR_get_parsed (const PKI_X509_KEYPAIR *pkey ) {
 
 	if( !pkey || !pkey->value ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -111,7 +111,7 @@ char * PKI_X509_KEYPAIR_get_parsed ( PKI_X509_KEYPAIR *pkey ) {
  * \brief Returns the signing scheme from a keypair
  */
 
-PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme ( PKI_X509_KEYPAIR *k ) {
+PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme (const PKI_X509_KEYPAIR *k ) {
 
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
 
@@ -129,7 +129,7 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme ( PKI_X509_KEYPAIR *k ) {
  * \brief Returns the signing scheme from a keypair value
  */
 
-PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme ( PKI_X509_KEYPAIR_VALUE *pVal ) {
+PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *pVal ) {
 
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 	int p_type = 0;
@@ -171,7 +171,7 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme ( PKI_X509_KEYPAIR_VALUE *pVal )
  * \brief Returns the default signing algorithm from a keypair
  */
 
-PKI_ALGOR * PKI_X509_KEYPAIR_get_algor ( PKI_X509_KEYPAIR *k ) {
+PKI_ALGOR * PKI_X509_KEYPAIR_get_algor (const PKI_X509_KEYPAIR *k ) {
 
 	PKI_ALGOR *ret = NULL;
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
@@ -191,7 +191,7 @@ PKI_ALGOR * PKI_X509_KEYPAIR_get_algor ( PKI_X509_KEYPAIR *k ) {
  * \brief Returns the default signing algorithm from a keypair value
  */
 
-PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor ( PKI_X509_KEYPAIR_VALUE *pVal )
+PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE *pVal )
 {
 	PKI_ALGOR *ret = NULL;
 	int p_type = 0;
@@ -245,7 +245,7 @@ PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor ( PKI_X509_KEYPAIR_VALUE *pVal )
  * \brief Returns the size (in bits) of a pubkey
  */
 
-int PKI_X509_KEYPAIR_get_size ( PKI_X509_KEYPAIR *k ) {
+int PKI_X509_KEYPAIR_get_size (const PKI_X509_KEYPAIR *k ) {
 
 	PKI_X509_KEYPAIR_VALUE *pKey = NULL;
 
@@ -263,7 +263,7 @@ int PKI_X509_KEYPAIR_get_size ( PKI_X509_KEYPAIR *k ) {
  * \brief Returns the size (in bits) of a pubkey value
  */
 
-int PKI_X509_KEYPAIR_VALUE_get_size ( PKI_X509_KEYPAIR_VALUE *pKey ) {
+int PKI_X509_KEYPAIR_VALUE_get_size (const PKI_X509_KEYPAIR_VALUE *pKey ) {
 
 	int ret = -1;
 
@@ -304,8 +304,8 @@ int PKI_X509_KEYPAIR_VALUE_get_size ( PKI_X509_KEYPAIR_VALUE *pKey ) {
 
 /*! \brief Returns the (unsigned char *) digest of a pubkey value */
 
-PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest ( PKI_X509_KEYPAIR_VALUE *pkey,
-							PKI_DIGEST_ALG *md ) {
+PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE *pkey,
+						const	PKI_DIGEST_ALG *md ) {
 
 	X509_PUBKEY *xpk = NULL;
 	PKI_DIGEST * ret = NULL;
@@ -320,7 +320,7 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest ( PKI_X509_KEYPAIR_VALUE *pkey,
 	if(!md) md = PKI_DIGEST_ALG_DEFAULT;
 
 	// Sets the Public Key
-	if(!X509_PUBKEY_set(&xpk, pkey)) {
+	if(!X509_PUBKEY_set(&xpk, (EVP_PKEY *)pkey)) {
 		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::Error building X509 "
 			"PUBKEY data");
 		return NULL;
@@ -370,8 +370,8 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest ( PKI_X509_KEYPAIR_VALUE *pkey,
 
 /*! \brief Returns the (unsigned char *) digest of the pubkey */
 
-PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest ( PKI_X509_KEYPAIR *k, 
-							PKI_DIGEST_ALG *md) {
+PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest (const PKI_X509_KEYPAIR *k, 
+						const PKI_DIGEST_ALG *md) {
 
 	if( !k || !k->value ) return ( NULL );
 
@@ -381,7 +381,7 @@ PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest ( PKI_X509_KEYPAIR *k,
 
 /*! \brief Returns the passed PKI_X509_KEYPAIR in PKCS#8 format */
 
-PKI_MEM *PKI_X509_KEYPAIR_get_p8 ( PKI_X509_KEYPAIR *k ) {
+PKI_MEM *PKI_X509_KEYPAIR_get_p8 (const PKI_X509_KEYPAIR *k ) {
 
 	BIO *mem = NULL;
 	PKI_MEM *ret = NULL;
@@ -409,7 +409,7 @@ PKI_MEM *PKI_X509_KEYPAIR_get_p8 ( PKI_X509_KEYPAIR *k ) {
 
 /*! \brief Reads a PKI_X509_KEYPAIR from a PKCS#8 format */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 ( PKI_MEM *buf ) {
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 (const PKI_MEM *buf ) {
 
 	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL );
 
@@ -420,7 +420,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 ( PKI_MEM *buf ) {
  * \brief Returns a DER encoded Public Key
  */
 
-PKI_MEM * PKI_X509_KEYPAIR_get_pubkey(PKI_X509_KEYPAIR *kp)
+PKI_MEM * PKI_X509_KEYPAIR_get_pubkey(const PKI_X509_KEYPAIR *kp)
 {
 	PKI_X509_KEYPAIR_VALUE *kVal = NULL;
 	PKI_MEM *ret = NULL;
@@ -448,7 +448,7 @@ PKI_MEM * PKI_X509_KEYPAIR_get_pubkey(PKI_X509_KEYPAIR *kp)
  * \brief Returns a Private Key in PKCS#8 format
  */
 
-PKI_MEM *PKI_X509_KEYPAIR_get_privkey(PKI_X509_KEYPAIR *kp)
+PKI_MEM *PKI_X509_KEYPAIR_get_privkey(const PKI_X509_KEYPAIR *kp)
 {
 	return PKI_X509_KEYPAIR_get_p8(kp);
 
@@ -477,7 +477,7 @@ PKI_MEM *PKI_X509_KEYPAIR_get_privkey(PKI_X509_KEYPAIR *kp)
  * \brief Returns the PKI_ID of the EC curve of the Key (EC keys only)
  */
 
-int PKI_X509_KEYPAIR_get_curve ( PKI_X509_KEYPAIR *kp )
+int PKI_X509_KEYPAIR_get_curve (const PKI_X509_KEYPAIR *kp )
 {
 #ifdef ENABLE_ECDSA
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;

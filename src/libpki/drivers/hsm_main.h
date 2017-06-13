@@ -44,13 +44,24 @@ int HSM_set_algor ( PKI_ALGOR *alg, HSM *hsm );
 
 /* ------------------ Signing Functions Prototypes ------------------- */
 
-int PKI_X509_sign ( PKI_X509 *x, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key );
-PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key );
+int PKI_X509_sign (PKI_X509 *x, 
+		   const PKI_DIGEST_ALG *alg,
+		   const PKI_X509_KEYPAIR *key );
 
-int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key );
-int PKI_X509_verify_cert ( PKI_X509 *x, PKI_X509_CERT *cert );
-int PKI_verify_signature ( PKI_MEM *data, PKI_MEM *sig, PKI_ALGOR *alg,
-						PKI_X509_KEYPAIR *key );
+PKI_MEM *PKI_sign (const PKI_MEM *der,
+		   const PKI_DIGEST_ALG *alg,
+		   const PKI_X509_KEYPAIR *key );
+
+int PKI_X509_verify(const PKI_X509 *x, 
+		    const PKI_X509_KEYPAIR *key );
+
+int PKI_X509_verify_cert(const PKI_X509 *x,
+			 const PKI_X509_CERT *cert );
+
+int PKI_verify_signature(const PKI_MEM *data,
+			 const PKI_MEM *sig,
+			 const PKI_ALGOR *alg,
+			 const PKI_X509_KEYPAIR *key );
 
 /* ------------------- PKI Object Retrieval ( Get ) ----------------------- */
 

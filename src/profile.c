@@ -4,7 +4,7 @@
 
 static xmlNsPtr _get_pki_ns ( PKI_CONFIG_ELEMENT *node );
 
-char * PKI_X509_PROFILE_get_value ( PKI_X509_PROFILE *doc, char *path ) {
+char * PKI_X509_PROFILE_get_value (PKI_X509_PROFILE *doc, char *path ) {
 	return PKI_CONFIG_get_value ( (PKI_CONFIG *) doc, path );
 }
 

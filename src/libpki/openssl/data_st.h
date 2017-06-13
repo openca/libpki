@@ -482,7 +482,7 @@ typedef struct pki_x509_cinf_full {
 /* typedef struct X509_REVOKED 	PKI_CRL_ENTRY; */
 
 typedef struct pki_digest_data {
-	PKI_DIGEST_ALG *algor;
+	const PKI_DIGEST_ALG *algor;
 	unsigned char *digest;
 	size_t size;
 } PKI_DIGEST;

@@ -21,8 +21,8 @@ void PKI_DIGEST_free ( PKI_DIGEST *data )
 /*! \brief Calculate digest over data provided in a buffer
  */
 
-PKI_DIGEST *PKI_DIGEST_new(PKI_DIGEST_ALG *alg, 
-		  	   unsigned char  *data,
+PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg, 
+		  	   const unsigned char  *data,
 			   size_t          size ) {
 
 	EVP_MD_CTX * md_ctx = NULL;
@@ -95,8 +95,9 @@ err:
 /*! \brief Calculates a digest over data buffer
  */
 
-PKI_DIGEST *PKI_DIGEST_new_by_name ( char *alg_name, 
-					unsigned char *data, size_t size ) {
+PKI_DIGEST *PKI_DIGEST_new_by_name(const char *alg_name, 
+				   const unsigned char *data,
+				   size_t size ) {
 
 	PKI_DIGEST_ALG *alg = NULL;
 
@@ -111,11 +112,12 @@ PKI_DIGEST *PKI_DIGEST_new_by_name ( char *alg_name,
 /*! \brief Calculates a digest over data contained in a PKI_MEM
  */
 
-PKI_DIGEST *PKI_DIGEST_MEM_new ( PKI_DIGEST_ALG *alg, PKI_MEM *data ) {
-	return ( PKI_DIGEST_new( alg, data->data, data->size ));
+PKI_DIGEST *PKI_DIGEST_MEM_new(const PKI_DIGEST_ALG *alg, const PKI_MEM *data) {
+	return (PKI_DIGEST_new(alg, data->data, data->size ));
 }
 
-PKI_DIGEST *PKI_DIGEST_MEM_new_by_name ( char *alg_name, PKI_MEM *data ) {
+PKI_DIGEST *PKI_DIGEST_MEM_new_by_name(const char *alg_name, 
+				       const PKI_MEM *data ) {
 
 	PKI_DIGEST_ALG *alg = NULL;
 
@@ -130,7 +132,7 @@ PKI_DIGEST *PKI_DIGEST_MEM_new_by_name ( char *alg_name, PKI_MEM *data ) {
 /*! \brief Calculate the digest of data retrieved via a URL
  */
 
-PKI_DIGEST *PKI_DIGEST_URL_new ( PKI_DIGEST_ALG *alg, URL *url ) {
+PKI_DIGEST *PKI_DIGEST_URL_new(const PKI_DIGEST_ALG *alg, const URL *url ) {
 
 	PKI_MEM_STACK * stack = NULL;
 	PKI_MEM *data = NULL;
@@ -160,7 +162,7 @@ PKI_DIGEST *PKI_DIGEST_URL_new ( PKI_DIGEST_ALG *alg, URL *url ) {
 	return ( ret );
 }
 
-PKI_DIGEST *PKI_DIGEST_URL_new_by_name ( char *alg_name, URL *url ) {
+PKI_DIGEST *PKI_DIGEST_URL_new_by_name(const char *alg_name, const URL *url) {
 
 	PKI_DIGEST_ALG *alg = NULL;
 
@@ -174,7 +176,7 @@ PKI_DIGEST *PKI_DIGEST_URL_new_by_name ( char *alg_name, URL *url ) {
 
 /*! \brief Returns the size of the output of the selected digest algorithm */
 
-ssize_t PKI_DIGEST_get_size(PKI_DIGEST_ALG *alg)
+ssize_t PKI_DIGEST_get_size(const PKI_DIGEST_ALG *alg)
 {
 	int digest_size = 0;
 	ssize_t ret = -1;
@@ -191,7 +193,7 @@ ssize_t PKI_DIGEST_get_size(PKI_DIGEST_ALG *alg)
 
 /*! \brief Returns the parsed (string) version of the digest content */
 
-char * PKI_DIGEST_get_parsed ( PKI_DIGEST *digest ) {
+char * PKI_DIGEST_get_parsed(const PKI_DIGEST *digest ) {
 
 	char *ret = NULL;
 	int i = 0;

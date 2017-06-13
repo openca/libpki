@@ -136,7 +136,7 @@ char *PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor ) {
 
 /*! \brief Returns a text representation of the algorithm identifier */
 
-const char * PKI_ALGOR_get_parsed ( PKI_ALGOR * algor ) {
+const char * PKI_ALGOR_get_parsed (const PKI_ALGOR * algor ) {
 
 	int id;
 
@@ -278,7 +278,7 @@ void PKI_ALGOR_free( PKI_ALGOR *algor)
 
 /* ! \brief Get a PKI_ALGOR from an PKI_ALGOR object */
 
-PKI_ALGOR_ID PKI_ALGOR_get_id( PKI_ALGOR *algor )
+PKI_ALGOR_ID PKI_ALGOR_get_id(const PKI_ALGOR *algor )
 {
 	PKI_ALGOR_ID ret = PKI_ALGOR_UNKNOWN;
 
@@ -300,7 +300,7 @@ PKI_ALGOR_ID PKI_ALGOR_get_id( PKI_ALGOR *algor )
 /*! \brief Get the Digest Algorithm from the passed PKI_ALGOR
  */
 
-PKI_DIGEST_ALG *PKI_ALGOR_get_digest ( PKI_ALGOR *algor ) {
+PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 
 	PKI_ALGOR_ID id;
 	PKI_DIGEST_ALG *ret = PKI_DIGEST_ALG_UNKNOWN;
@@ -392,7 +392,7 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest ( PKI_ALGOR *algor ) {
 
 /*! \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR */
 
-PKI_ALGOR_ID PKI_ALGOR_get_digest_id ( PKI_ALGOR *algor ) {
+PKI_ALGOR_ID PKI_ALGOR_get_digest_id (const PKI_ALGOR *algor ) {
 
 	int i = -1;
 	const EVP_MD *md = NULL;
@@ -409,7 +409,7 @@ PKI_ALGOR_ID PKI_ALGOR_get_digest_id ( PKI_ALGOR *algor ) {
 
 /*! \brief Returns the PKI_SCHEME_ID (signature scheme ID) of the algorithm */
 
-PKI_SCHEME_ID PKI_ALGOR_get_scheme (PKI_ALGOR *algor) {
+PKI_SCHEME_ID PKI_ALGOR_get_scheme (const PKI_ALGOR *algor) {
 
 	PKI_ALGOR_ID id;
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
@@ -496,7 +496,7 @@ PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name ) {
 
 /*! \brief Returns the string representation of a digest algorithm */
 
-const char * PKI_DIGEST_ALG_get_parsed ( PKI_DIGEST_ALG * alg ) {
+const char * PKI_DIGEST_ALG_get_parsed (const PKI_DIGEST_ALG * alg ) {
 
 	if ( !alg ) return NULL;
 
@@ -506,7 +506,7 @@ const char * PKI_DIGEST_ALG_get_parsed ( PKI_DIGEST_ALG * alg ) {
 
 /*! \brief Returns the digest algorithm based on the key */
 
-PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key ( PKI_X509_KEYPAIR *pkey ) {
+PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 
 	EVP_PKEY *pp = NULL;
 	PKI_DIGEST_ALG * digest = NULL;

@@ -20,14 +20,14 @@ int PKI_X509_NAME_free( PKI_X509_NAME *name ) {
 	return(1);
 }
 
-PKI_X509_NAME *PKI_X509_NAME_new (char *name) {
+PKI_X509_NAME *PKI_X509_NAME_new (const char *name) {
 
 	PKI_X509_NAME *ret = NULL;
 	int status = 0;
 
 	char *token = NULL;
-	char *start = NULL;
-	char *pnt = NULL;
+	const char *start = NULL;
+	const char *pnt = NULL;
 	int  mrdn = 0;
 
 	unsigned long ctype = MBSTRING_UTF8;
@@ -170,7 +170,7 @@ PKI_X509_NAME *PKI_X509_NAME_new (char *name) {
 
 /*! \brief Returns 0 if the two names are the same, non-zero otherwise */
 
-int PKI_X509_NAME_cmp ( PKI_X509_NAME *a, PKI_X509_NAME *b ) {
+int PKI_X509_NAME_cmp ( const PKI_X509_NAME *a, const PKI_X509_NAME *b ) {
 	if (!a || !b ) return ( -1 );
 
 	return X509_NAME_cmp ( a, b );
@@ -178,11 +178,11 @@ int PKI_X509_NAME_cmp ( PKI_X509_NAME *a, PKI_X509_NAME *b ) {
 
 /*! \brief Returns a pointer to a duplicate of the passed name */
 
-PKI_X509_NAME *PKI_X509_NAME_dup ( PKI_X509_NAME *name ) {
+PKI_X509_NAME *PKI_X509_NAME_dup ( const PKI_X509_NAME *name ) {
 
 	if( !name ) return (NULL);
 
-	return X509_NAME_dup ( name );
+	return X509_NAME_dup ((PKI_X509_NAME *)name );
 }
 
 /*! \brief Adds a new entry to the passed PKI_X509_NAME */
@@ -224,7 +224,7 @@ PKI_X509_NAME *PKI_X509_NAME_add ( PKI_X509_NAME *name, const char *entry ) {
 
 /*! \brief Returns a char * (utf8) representation of the name */
 
-char *PKI_X509_NAME_get_parsed ( PKI_X509_NAME *name ) {
+char *PKI_X509_NAME_get_parsed ( const PKI_X509_NAME *name ) {
 
 	char buf[BUFF_MAX_SIZE];
 	char *ret = NULL;
@@ -288,7 +288,8 @@ char *PKI_X509_NAME_get_parsed ( PKI_X509_NAME *name ) {
 
 /*! \brief Returns the digest of a PKI_X509_NAME */
 
-PKI_DIGEST * PKI_X509_NAME_get_digest(PKI_X509_NAME *name, PKI_DIGEST_ALG *alg)
+PKI_DIGEST * PKI_X509_NAME_get_digest(const PKI_X509_NAME *name, 
+				      const PKI_DIGEST_ALG *alg)
 {
 	ssize_t size = 0;
 	unsigned int ossl_size = 0;
@@ -326,7 +327,8 @@ PKI_DIGEST * PKI_X509_NAME_get_digest(PKI_X509_NAME *name, PKI_DIGEST_ALG *alg)
 
 /*! \brief Returns a NULL terminated list of PKI_X509_NAME_RDN from the name */
 
-PKI_X509_NAME_RDN **PKI_X509_NAME_get_list(PKI_X509_NAME *name, PKI_X509_NAME_TYPE filter)
+PKI_X509_NAME_RDN **PKI_X509_NAME_get_list(const PKI_X509_NAME *name, 
+					   PKI_X509_NAME_TYPE filter)
 {
 	PKI_X509_NAME_RDN ** ret = NULL;
 
@@ -440,7 +442,7 @@ void PKI_X509_NAME_list_free ( PKI_X509_NAME_RDN **list ) {
 
 /*! \brief Returns the value (char *) of an RDN */
 
-char *PKI_X509_NAME_RDN_value ( PKI_X509_NAME_RDN *rdn ) {
+char *PKI_X509_NAME_RDN_value(PKI_X509_NAME_RDN *rdn ) {
 	if (!rdn) return ( NULL);
 
 	return rdn->value;
@@ -448,7 +450,7 @@ char *PKI_X509_NAME_RDN_value ( PKI_X509_NAME_RDN *rdn ) {
 
 /*! \brief Returns the PKI_ID of a type of an RDN */
 
-PKI_X509_NAME_TYPE PKI_X509_NAME_RDN_type_id ( PKI_X509_NAME_RDN *rdn ) {
+PKI_X509_NAME_TYPE PKI_X509_NAME_RDN_type_id ( const PKI_X509_NAME_RDN *rdn ) {
 	if (!rdn ) return ( PKI_X509_NAME_TYPE_UNKNOWN );
 
 	return rdn->type;
@@ -456,7 +458,7 @@ PKI_X509_NAME_TYPE PKI_X509_NAME_RDN_type_id ( PKI_X509_NAME_RDN *rdn ) {
 
 /*! \brief Returns the text representation of the type of an RDN */
 
-const char *PKI_X509_NAME_RDN_type_text ( PKI_X509_NAME_RDN *rdn ) {
+const char *PKI_X509_NAME_RDN_type_text ( const PKI_X509_NAME_RDN *rdn ) {
 
 	PKI_OID *oid = NULL;
 
@@ -471,7 +473,7 @@ const char *PKI_X509_NAME_RDN_type_text ( PKI_X509_NAME_RDN *rdn ) {
 
 /*! \brief Returns the description of the type of an RDN */
 
-const char *PKI_X509_NAME_RDN_type_descr ( PKI_X509_NAME_RDN *rdn ) {
+const char *PKI_X509_NAME_RDN_type_descr ( const PKI_X509_NAME_RDN *rdn ) {
 
         PKI_OID *oid = NULL;
 

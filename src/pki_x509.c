@@ -132,8 +132,9 @@ PKI_X509 *PKI_X509_new_value (PKI_DATATYPE type, void *value,
 
 /*! \brief Allocates the memory for a new PKI_X509 and duplicates the data */
 
-PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, void *value, 
-						struct hsm_st *hsm ) {
+PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, 
+				  const void *value, 
+				  struct hsm_st *hsm ) {
 
 	PKI_X509 *ret = NULL;
 
@@ -299,7 +300,7 @@ int PKI_X509_set_value ( PKI_X509 *x, void *data ) {
 
 /*! \brief Duplicates the PKI_X509_XXX_VALUE from the passed PKI_X509 object */
 
-void * PKI_X509_dup_value ( PKI_X509 *x ) {
+void * PKI_X509_dup_value (const PKI_X509 *x ) {
 
 	void *ret = NULL;
 
@@ -313,7 +314,7 @@ void * PKI_X509_dup_value ( PKI_X509 *x ) {
 
 /*! \brief Duplicates a PKI_X509 object */
 
-PKI_X509 * PKI_X509_dup ( PKI_X509 *x ) {
+PKI_X509 * PKI_X509_dup (const PKI_X509 *x ) {
 
 	PKI_X509 *ret = NULL;
 
@@ -359,7 +360,7 @@ PKI_X509 * PKI_X509_dup ( PKI_X509 *x ) {
 
 /*! \brief Returns a ref to the X509 data (e.g., SUBJECT) within the passed PKI_X509 object */
 
-void * PKI_X509_get_data ( PKI_X509 *x, PKI_X509_DATA type ) {
+void * PKI_X509_get_data(const PKI_X509 *x, PKI_X509_DATA type ) {
 
 
 	if ( !x || !x->cb || !x->cb->get_data ) {
@@ -373,7 +374,7 @@ void * PKI_X509_get_data ( PKI_X509 *x, PKI_X509_DATA type ) {
 
 /*! \brief Returns PKI_OK if the PKI_X509 object is signed */
 
-int PKI_X509_is_signed( PKI_X509 *obj ) {
+int PKI_X509_is_signed(const PKI_X509 *obj ) {
 
 	if ( !obj || !obj->value ) return PKI_ERR;
 
@@ -387,7 +388,7 @@ int PKI_X509_is_signed( PKI_X509 *obj ) {
 /*! \brief Returns the parsed (char *, int *, etc.) version of the data in
            a PKI_X509 object */
 
-void * PKI_X509_get_parsed ( PKI_X509 *x, PKI_X509_DATA type ) {
+void * PKI_X509_get_parsed(const PKI_X509 *x, PKI_X509_DATA type ) {
 
 	if ( !x || !x->cb || !x->cb->get_parsed || !x->value ) return NULL;
 
@@ -397,7 +398,7 @@ void * PKI_X509_get_parsed ( PKI_X509 *x, PKI_X509_DATA type ) {
 
 /*! \brief Prints the parsed data from a PKI_X509 object to a file descriptor */
 
-int PKI_X509_print_parsed ( PKI_X509 *x, PKI_X509_DATA type, int fd ) {
+int PKI_X509_print_parsed(const PKI_X509 *x, PKI_X509_DATA type, int fd ) {
 
 	if ( !x || !x->cb->print_parsed || !x->value ) return PKI_ERR;
 

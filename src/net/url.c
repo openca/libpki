@@ -237,8 +237,8 @@ PKI_MEM_STACK *URL_get_data_file( URL *url, ssize_t size ) {
  * In case of failure NULL is returned.
  */
 
-PKI_MEM_STACK *URL_get_data ( char *url_s, int timeout, 
-					ssize_t size, PKI_SSL *ssl ) {
+PKI_MEM_STACK *URL_get_data(const char *url_s, int timeout, 
+				ssize_t size, PKI_SSL *ssl ) {
 
 	URL *url = NULL;
 	PKI_MEM_STACK *ret = NULL;
@@ -269,7 +269,7 @@ PKI_MEM_STACK *URL_get_data ( char *url_s, int timeout,
  * URI_PROTO_PKCS11, URI_PROTO_ID.
  */
 
-PKI_MEM_STACK *URL_get_data_url ( URL *url, int timeout, 
+PKI_MEM_STACK *URL_get_data_url(const URL *url, int timeout, 
 				ssize_t size, PKI_SSL *ssl ) {
 
 	PKI_MEM_STACK * ret = NULL;

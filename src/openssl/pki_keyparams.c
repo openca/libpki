@@ -6,7 +6,8 @@
  * \brief Allocates memory for a new PKI_KEYPARAMS (for key of type 'scheme')
  */
 
-PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, PKI_X509_PROFILE *prof ) {
+PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, 
+				  const PKI_X509_PROFILE *prof ) {
 
 	PKI_KEYPARAMS *kp = NULL;
 
@@ -22,7 +23,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, PKI_X509_PROFILE *prof )
 		char *tmp_s = NULL;
 
 		// Get the Profile value of Bits
-		if(( tmp_s = PKI_CONFIG_get_value ( prof, 
+		if ((tmp_s = PKI_CONFIG_get_value(prof, 
 					"/profile/keyParams/bits" )) != NULL ) {
 			kp->bits = atoi(tmp_s);
 			PKI_Free ( tmp_s );
@@ -162,7 +163,7 @@ void PKI_KEYPARAMS_free ( PKI_KEYPARAMS *kp ) {
  * \brief Returns the type (PKI_SCHEME_ID) of the PKI_KEYPARAMS
  */
 
-PKI_SCHEME_ID PKI_KEYPARAMS_get_type ( PKI_KEYPARAMS *kp ) {
+PKI_SCHEME_ID PKI_KEYPARAMS_get_type(const PKI_KEYPARAMS *kp) {
 
 	if (!kp) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);

@@ -126,18 +126,18 @@ const char *URL_proto_to_string ( URI_PROTO proto );
 char * URL_get_local_addr ( void );
 
 /* ----------------------- URL wrapping functions ---------------------- */
-PKI_MEM_STACK *URL_get_data ( char *url_s, int timeout, 
+PKI_MEM_STACK *URL_get_data (const char *url_s, int timeout, 
 				ssize_t max_size, PKI_SSL *ssl );
-PKI_MEM_STACK *URL_get_data_url ( URL *url, int timeout, 
+PKI_MEM_STACK *URL_get_data_url (const URL *url, int timeout, 
 				ssize_t max_size, PKI_SSL *ssl );
 PKI_MEM_STACK *URL_get_data_socket ( PKI_SOCKET *sock, int timeout, 
 				ssize_t size );
 
-int URL_put_data ( char *url_s, PKI_MEM *data, char *contType, 
+int URL_put_data (const char *url_s, PKI_MEM *data, char *contType, 
 			PKI_MEM_STACK **ret_sk, int timeout, ssize_t max_size, 
 				PKI_SSL *ssl );
 
-int URL_put_data_url ( URL *url, PKI_MEM *data, char *contType,
+int URL_put_data_url (const URL *url, PKI_MEM *data, char *contType,
 			PKI_MEM_STACK **ret_sk, int timeout, ssize_t max_size, 
 				PKI_SSL *ssl );
 
@@ -145,11 +145,11 @@ int URL_put_data_socket (PKI_SOCKET *sock, PKI_MEM *data, char *contType,
 		PKI_MEM_STACK **ret_sk, int timeout, ssize_t max_size );
 
 /* ------------------------ Actual I/O implementation ------------------- */
-PKI_MEM_STACK *URL_get_data_fd( URL *url, ssize_t size );
-PKI_MEM_STACK *URL_get_data_file( URL *url, ssize_t size );
+PKI_MEM_STACK *URL_get_data_fd(const URL *url, ssize_t size );
+PKI_MEM_STACK *URL_get_data_file(const URL *url, ssize_t size );
 
-int URL_put_data_fd ( URL *url, PKI_MEM *data );
-int URL_put_data_file ( URL *url, PKI_MEM *data );
+int URL_put_data_fd (const URL *url, PKI_MEM *data );
+int URL_put_data_file (const URL *url, PKI_MEM *data );
 
 /* ---------------------------- URL macros ------------------------------ */
 #define getParsedUrl( a ) URL_new ( a )

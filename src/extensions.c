@@ -7,8 +7,10 @@
  * \brief Adds extensions to a certificate according to the profile
  */
 
-int PKI_X509_EXTENSIONS_cert_add_profile ( PKI_X509_PROFILE *conf, 
-				PKI_CONFIG *oids, PKI_X509_CERT *x, PKI_TOKEN *tk ) {
+int PKI_X509_EXTENSIONS_cert_add_profile(const PKI_X509_PROFILE *conf, 
+					 const PKI_CONFIG *oids, 
+					 PKI_X509_CERT *x, 
+					 PKI_TOKEN *tk ) {
 
 	PKI_X509_EXTENSION *ext = NULL;
 
@@ -36,8 +38,10 @@ int PKI_X509_EXTENSIONS_cert_add_profile ( PKI_X509_PROFILE *conf,
 }
 
 
-int PKI_X509_EXTENSIONS_req_add_profile ( PKI_X509_PROFILE *conf, 
-				PKI_CONFIG *oids, PKI_X509_REQ *req, PKI_TOKEN *tk ) {
+int PKI_X509_EXTENSIONS_req_add_profile(const PKI_X509_PROFILE *conf, 
+					const PKI_CONFIG *oids, 
+					PKI_X509_REQ *req, 
+					PKI_TOKEN *tk ) {
 
 	PKI_X509_EXTENSION *ext = NULL;
 
@@ -67,8 +71,10 @@ int PKI_X509_EXTENSIONS_req_add_profile ( PKI_X509_PROFILE *conf,
  * \brief Adds extensions to a CRL according to the profile passed as argument
  */
 
-int PKI_X509_EXTENSIONS_crl_add_profile ( PKI_X509_PROFILE *conf, 
-				PKI_CONFIG *oids, PKI_X509_CRL *crl, PKI_TOKEN *tk ) {
+int PKI_X509_EXTENSIONS_crl_add_profile ( const PKI_X509_PROFILE *conf, 
+					  const PKI_CONFIG *oids, 
+					  PKI_X509_CRL *crl, 
+					  PKI_TOKEN *tk ) {
 
 	PKI_X509_EXTENSION *ext = NULL;
 

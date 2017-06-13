@@ -3,6 +3,8 @@
 #include <libpki/pki.h>
 #include <sys/utsname.h>
 
+#include "internal/x509_data_st.h"
+
 #if OPENSSL_VERSION_NUMBER < 0x00908000
 extern int NID_proxyCertInfo;
 #endif
@@ -28,7 +30,7 @@ void PKI_X509_CERT_free( PKI_X509_CERT *x ) {
 
 /*! \brief Returns a copy of the PKI_X509_CERT structure */
 
-PKI_X509_CERT *PKI_X509_CERT_dup ( PKI_X509_CERT *x ) {
+PKI_X509_CERT *PKI_X509_CERT_dup(const PKI_X509_CERT *x ) {
 
   if( !x ) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -40,10 +42,16 @@ PKI_X509_CERT *PKI_X509_CERT_dup ( PKI_X509_CERT *x ) {
 
 /*! \brief Generates a new certificate */
 
-PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert, 
-    PKI_X509_KEYPAIR *kPair, PKI_X509_REQ *req, char *subj_s, 
-    char *serial_s, uint64_t validity, PKI_X509_PROFILE *conf,
-    PKI_ALGOR *algor, PKI_CONFIG *oids, HSM *hsm )
+PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert, 
+    				   const PKI_X509_KEYPAIR *kPair,
+				   const PKI_X509_REQ *req,
+				   const char *subj_s, 
+    				   const char *serial_s,
+				   uint64_t validity,
+				   const PKI_X509_PROFILE *conf,
+    				   const PKI_ALGOR *algor,
+				   const PKI_CONFIG *oids,
+				   HSM *hsm )
 {
   PKI_X509_CERT *ret = NULL;
   PKI_X509_CERT_VALUE *val = NULL;
@@ -116,7 +124,7 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
   }
 
   if( ca_cert ) {
-    PKI_X509_NAME *ca_subject = NULL;
+    const PKI_X509_NAME *ca_subject = NULL;
 
     /* Let's get the ca_cert subject and dup that data */
     // ca_subject = (PKI_X509_NAME *) 
@@ -390,13 +398,23 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
         case PKI_SCHEME_ECDSA:
             if ( (int) kParams->ec.form > 0 )
             {
+# if OPENSSL_VERSION_NUMBER < 0x1010000fL
               EC_KEY_set_conv_form(certPubKeyVal->pkey.ec, 
+              			   (point_conversion_form_t) kParams->ec.form);
+# else
+              EC_KEY_set_conv_form(EVP_PKEY_get0_EC_KEY(certPubKeyVal), 
               (point_conversion_form_t) kParams->ec.form);
+# endif
             }
           if ( kParams->ec.asn1flags > -1 )
           {
-            EC_KEY_set_asn1_flag( certPubKeyVal->pkey.ec,
+# if OPENSSL_VERSION_NUMBER < 0x1010000fL
+            EC_KEY_set_asn1_flag(certPubKeyVal->pkey.ec,
               kParams->ec.asn1flags );
+# else
+            EC_KEY_set_asn1_flag(EVP_PKEY_get0_EC_KEY(certPubKeyVal),
+              kParams->ec.asn1flags );
+# endif
           }
           break;
 #endif
@@ -430,15 +448,15 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
 
     if (ca_cert)
     {
-      PKI_TOKEN_set_cacert(tk, ca_cert);
+      PKI_TOKEN_set_cacert(tk, (PKI_X509_CERT *)ca_cert);
     }
     else
     {
-      PKI_TOKEN_set_cacert ( tk, ret );
+      PKI_TOKEN_set_cacert ( tk, (PKI_X509_CERT *)ret );
     }
 
-    if (req) PKI_TOKEN_set_req ( tk, req );
-    if (kPair) PKI_TOKEN_set_keypair ( tk, kPair );
+    if (req) PKI_TOKEN_set_req ( tk, (PKI_X509_REQ *)req );
+    if (kPair) PKI_TOKEN_set_keypair ( tk, (PKI_X509_KEYPAIR *)kPair );
 
     rv = PKI_X509_EXTENSIONS_cert_add_profile(conf, oids, ret, tk);
     if (rv != PKI_OK)
@@ -530,6 +548,8 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
   }
 
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
+
+# if OPENSSL_VERSION_NUMBER < 0x1010000fL
   PKI_X509_CERT_VALUE *cVal = (PKI_X509_CERT_VALUE *) ret->value;
 
   if (cVal && cVal->cert_info)
@@ -537,6 +557,7 @@ PKI_X509_CERT * PKI_X509_CERT_new ( PKI_X509_CERT *ca_cert,
     PKI_log_debug("Signature = %s", 
       PKI_ALGOR_get_parsed(cVal->cert_info->signature));
   }
+# endif
 
   //  PKI_X509_CINF_FULL *cFull = NULL;
   //  cFull = (PKI_X509_CINF_FULL *) cVal->cert_info;
@@ -578,29 +599,28 @@ err:
 int PKI_X509_CERT_sign(PKI_X509_CERT *cert, PKI_X509_KEYPAIR *kp,
     PKI_DIGEST_ALG *digest) {
 
-  PKI_ALGOR *alg = NULL;
+  const PKI_ALGOR *alg = NULL;
 
   if( !cert || !cert->value || !kp || !kp->value ) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return PKI_ERR;
-  };
+  }
 
   if(!digest) {
-    if((alg = PKI_X509_CERT_get_data(cert, 
-        PKI_X509_DATA_ALGORITHM))!=NULL) {
+    if((alg = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_ALGORITHM))!=NULL) {
       digest = PKI_ALGOR_get_digest ( alg );
-      };
-  };
+    }
+  }
 
   if(!digest) {
     if((digest = PKI_DIGEST_ALG_get_by_key(kp)) == NULL) {
       PKI_log_err("PKI_X509_CERT_new()::Can not get digest algor "
           "from key");
       return PKI_ERR;
-    };
-  };
+    }
+  }
 
-  if( PKI_X509_sign ( cert, digest, kp ) == PKI_ERR ) {
+  if( PKI_X509_sign(cert, digest, kp) == PKI_ERR) {
     PKI_log_err ("PKI_X509_CERT_new()::Can not sign certificate [%s]",
       ERR_error_string(ERR_get_error(), NULL ));
     return PKI_ERR;
@@ -639,7 +659,8 @@ int PKI_X509_CERT_sign_tk ( PKI_X509_CERT *cert, PKI_TOKEN *tk,
 /*! \brief Adds a specific extension to a certificate
  */
 
-int PKI_X509_CERT_add_extension(PKI_X509_CERT *x, PKI_X509_EXTENSION *ext) {
+int PKI_X509_CERT_add_extension(PKI_X509_CERT *x, 
+				const PKI_X509_EXTENSION *ext) {
 
   PKI_X509_CERT_VALUE *val = NULL;
 
@@ -656,7 +677,7 @@ int PKI_X509_CERT_add_extension(PKI_X509_CERT *x, PKI_X509_EXTENSION *ext) {
  */
 
 int PKI_X509_CERT_add_extension_stack(PKI_X509_CERT *x, 
-          PKI_X509_EXTENSION_STACK *ext) {
+          			      const PKI_X509_EXTENSION_STACK *ext) {
 
   int i = 0;
   PKI_X509_EXTENSION *ossl_ext = NULL;
@@ -681,33 +702,32 @@ int PKI_X509_CERT_add_extension_stack(PKI_X509_CERT *x,
 /*! \brief Returns the size of the certificate public key
  */
 
-int PKI_X509_CERT_get_keysize ( PKI_X509_CERT *x ) {
+int PKI_X509_CERT_get_keysize(const PKI_X509_CERT *x ) {
 
-  int keysize = 0;
-  PKI_X509_KEYPAIR_VALUE *pkey = NULL;
+  const PKI_X509_KEYPAIR_VALUE *pkey = NULL;
 
-  if( !x || !x->value ) return (0);
+  if (!x || !x->value) return (0);
 
-  if((pkey = PKI_X509_CERT_get_data(x, 
-        PKI_X509_DATA_KEYPAIR_VALUE))==NULL){
+  if ((pkey = PKI_X509_CERT_get_data(x, 
+				     PKI_X509_DATA_KEYPAIR_VALUE)) == NULL) {
     return (0);
   }
 
-  keysize = PKI_X509_KEYPAIR_VALUE_get_size( pkey );
- 
-  return keysize;
+  return PKI_X509_KEYPAIR_VALUE_get_size(pkey);
 }
 
 
 /*! \brief Returns a pointer to a specified data field in a certificate
  */
 
-void * PKI_X509_CERT_get_data ( PKI_X509_CERT *x, PKI_X509_DATA type ) {
+const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
+				    PKI_X509_DATA type) {
 
-  void *ret = NULL;
-  PKI_X509_CERT_VALUE *tmp_x = NULL;
-  PKI_MEM *mem = NULL;
-  int *tmp_int = NULL;
+  const void *ret = NULL;
+  LIBPKI_X509_CERT *tmp_x = NULL;
+  // PKI_X509_CERT_VALUE *tmp_x = NULL;
+  // PKI_MEM *mem = NULL;
+  // int *tmp_int = NULL;
 
   if( !x || !x->value ) return (NULL);
 
@@ -716,27 +736,38 @@ void * PKI_X509_CERT_get_data ( PKI_X509_CERT *x, PKI_X509_DATA type ) {
   switch (type)
   {
     case PKI_X509_DATA_VERSION:
-      ret = (tmp_x)->cert_info->version;
+      ret = (tmp_x)->cert_info.version;
       break;
 
     case PKI_X509_DATA_SERIAL:
-      ret = X509_get_serialNumber ( (X509 *) x->value );
+      ret = &((tmp_x)->cert_info.serialNumber);
+      // ret = X509_get_serialNumber ( (X509 *) x->value );
       break;
 
     case PKI_X509_DATA_SUBJECT:
-      ret = X509_get_subject_name( (X509 *) x->value );
+      ret = (tmp_x)->cert_info.subject;
+      // ret = X509_get_subject_name( (X509 *) x->value );
       break;
 
     case PKI_X509_DATA_ISSUER:
-      ret = X509_get_issuer_name( (X509 *) x->value );
+      ret = (tmp_x)->cert_info.issuer;
+      // ret = X509_get_issuer_name( (X509 *) x->value );
       break;
 
     case PKI_X509_DATA_NOTBEFORE:
-      ret = X509_get_notBefore( (X509 *) x->value );
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      ret = (tmp_x)->cert_info.validity.notBefore;
+#else
+      ret = X509_get0_notBefore((X509 *)x->value);
+#endif
       break;
 
     case PKI_X509_DATA_NOTAFTER:
-      ret = X509_get_notAfter( (X509 *) x->value );
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      ret = (tmp_x)->cert_info.validity.notAfter;
+#else
+      ret = X509_get0_notAfter((X509 *)x->value);
+#endif
       break;
 
     case PKI_X509_DATA_KEYPAIR_VALUE:
@@ -745,27 +776,42 @@ void * PKI_X509_CERT_get_data ( PKI_X509_CERT *x, PKI_X509_DATA type ) {
       break;
 
     case PKI_X509_DATA_PUBKEY_BITSTRING:
-      ret = X509_get0_pubkey_bitstr( (X509 *) x->value);
+      ret = X509_get0_pubkey_bitstr((X509 *)x->value);
       break;
 
     case PKI_X509_DATA_SIGNATURE:
-      ret = (void *) (tmp_x)->signature;
+      ret = &(tmp_x)->signature;
       break;
 
+    // Signature Algorithm within the certInfo structure
     case PKI_X509_DATA_ALGORITHM:
     case PKI_X509_DATA_SIGNATURE_ALG1:
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
       if (tmp_x->cert_info && tmp_x->cert_info->signature)
         ret = tmp_x->cert_info->signature;
+#else
+	ret = X509_get0_tbs_sigalg((const X509 *)x->value);
+#endif
       break;
 
     case PKI_X509_DATA_SIGNATURE_ALG2:
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
       if (tmp_x->sig_alg) ret = tmp_x->sig_alg;
+#else
+      ret = &tmp_x->sig_alg;
+#endif
       break;
 
     case PKI_X509_DATA_KEYSIZE:
+    case PKI_X509_DATA_TBS_MEM_ASN1:
+    case PKI_X509_DATA_CERT_TYPE:
+      PKI_ERROR(PKI_ERR_PARAM_TYPE, "Deprecated Cert Datatype");
+      break;
+
+/*
+    case PKI_X509_DATA_KEYSIZE:
       tmp_int = PKI_Malloc ( sizeof( int ));
-      *tmp_int = EVP_PKEY_size(
-      X509_get_pubkey ( (X509 *) x->value ));
+      *tmp_int = EVP_PKEY_size(X509_get_pubkey((X509 *)x->value));
       ret = tmp_int;
       break;
 
@@ -780,14 +826,50 @@ void * PKI_X509_CERT_get_data ( PKI_X509_CERT *x, PKI_X509_DATA type ) {
       tmp_int = PKI_Malloc ( sizeof ( int ));
       *tmp_int = PKI_X509_CERT_get_type( x );
       break;
+*/
 
     case PKI_X509_DATA_EXTENSIONS:
+      ret = tmp_x->cert_info.extensions;
+      break;
+
     default:
       /* Not Recognized/Supported DATATYPE */
       return (NULL);
   }
 
   return (ret);
+}
+
+
+/* !\brief Returns the DER encoded toBeSigned part of the certificate
+ * */
+
+PKI_MEM * PKI_X509_get_der_tbs(const PKI_X509_CERT *x ) {
+
+	PKI_MEM * mem = NULL;
+	LIBPKI_X509_CERT * tmp_x = NULL;
+
+	// Input Check
+	if (!x || !x->value || x->type != PKI_DATATYPE_X509_CERT)
+		return NULL;
+
+	// Gets the internal value
+	tmp_x = x->value;
+
+	// Allocates the return object
+      	if ((mem = PKI_MEM_new_null()) != NULL) {
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+		mem->size = (size_t) ASN1_item_i2d((void *)tmp_x->cert_info, 
+        					   &(mem->data),
+						   &X509_CINF_it);
+#else
+		mem->size = (size_t) ASN1_item_i2d((void *)&tmp_x->cert_info, 
+        					   &(mem->data),
+						   &X509_CINF_it);
+#endif
+	}
+
+	return mem;
 }
 
 /*!
@@ -804,16 +886,20 @@ int PKI_X509_CERT_set_data(PKI_X509_CERT *x, int type, void *data) {
 
   int ret = 0;
 
-  PKI_X509_CERT_VALUE *xVal = NULL;
+  LIBPKI_X509_CERT *xVal = NULL;
+  LIBPKI_X509_ALGOR *alg = NULL;
+  // PKI_X509_CERT_VALUE *xVal = NULL;
 
-  if( !x || !x->value || !data) {
+  if ( !x || !x->value || !data || x->type != PKI_DATATYPE_X509_CERT) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return (PKI_ERR);
   }
 
-  xVal = PKI_X509_get_value( x );
+  // xVal = PKI_X509_get_value( x );
+  xVal = x->value;
 
   switch( type ) {
+
     case PKI_X509_DATA_VERSION:
       aLong = (long *) data;
       ret = X509_set_version( xVal, *aLong );
@@ -851,16 +937,50 @@ int PKI_X509_CERT_set_data(PKI_X509_CERT *x, int type, void *data) {
 
     case PKI_X509_DATA_ALGORITHM:
     case PKI_X509_DATA_SIGNATURE_ALG1:
+      alg = data;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
       if (xVal->cert_info != NULL)
-      {
-        // if (xVal->cert_info->signature != NULL) X509_ALGOR_free(xVal->cert_info->signature);
-        xVal->cert_info->signature = (X509_ALGOR *) data;
-      }
+        xVal->cert_info->signature = alg;
+#else
+      // Transfer Ownership
+      xVal->cert_info.signature.algorithm = alg->algorithm;
+      xVal->cert_info.signature.parameter = alg->parameter;
+
+      // Remove the transfered data
+      alg->algorithm = NULL;
+      alg->parameter = NULL;
+
+      // Free memory
+      X509_ALGOR_free((X509_ALGOR *)data);
+      data = NULL;
+
+#endif
+	// Ok
+	ret = 1;
       break;
 
     case PKI_X509_DATA_SIGNATURE_ALG2:
       // if (xVal->sig_alg != NULL ) X509_ALGOR_free(xVal->sig_alg);
-      xVal->sig_alg = (X509_ALGOR *) data;
+      alg = data;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      xVal->sig_alg = alg;
+#else
+      // Transfer Ownership
+      xVal->sig_alg.algorithm = alg->algorithm;
+      xVal->sig_alg.parameter = alg->parameter;
+
+      // Remove the transfered data
+      alg->algorithm = NULL;
+      alg->parameter = NULL;
+
+      // Free memory
+      X509_ALGOR_free((X509_ALGOR *)alg);
+      data = NULL;
+
+      // Ok
+      ret = 1;
+
+#endif
       break;
 
     default:
@@ -879,8 +999,9 @@ int PKI_X509_CERT_set_data(PKI_X509_CERT *x, int type, void *data) {
  *         the file descriptor (fd)
  */
 
-int PKI_X509_CERT_print_parsed( PKI_X509_CERT *x, 
-          PKI_X509_DATA type, int fd ) {
+int PKI_X509_CERT_print_parsed(const PKI_X509_CERT *x, 
+          		       PKI_X509_DATA type,
+			       int fd ) {
 
   char * data = NULL;
   int ret = PKI_OK;
@@ -904,47 +1025,52 @@ int PKI_X509_CERT_print_parsed( PKI_X509_CERT *x,
  *         data type (type)
  */
 
-char * PKI_X509_CERT_get_parsed( PKI_X509_CERT *x, PKI_X509_DATA type ) {
+char * PKI_X509_CERT_get_parsed(const PKI_X509_CERT *x,
+				PKI_X509_DATA type ) {
 
   char *ret = NULL;
 
   PKI_X509_KEYPAIR *k = NULL;
-  PKI_X509_KEYPAIR_VALUE *pkey = NULL;
+  const PKI_X509_KEYPAIR_VALUE *pkey = NULL;
 
 
   if( !x ) return (NULL);
 
   switch( type ) {
-          case PKI_X509_DATA_SERIAL:
-      ret = PKI_INTEGER_get_parsed( (PKI_INTEGER *)
-        PKI_X509_CERT_get_data( x, type ));
+    case PKI_X509_DATA_SERIAL:
+      ret = PKI_INTEGER_get_parsed((PKI_INTEGER *) 
+		      		   PKI_X509_CERT_get_data(x, type));
       break;
+
     case PKI_X509_DATA_SUBJECT:
-          case PKI_X509_DATA_ISSUER:
-      ret = PKI_X509_NAME_get_parsed( (PKI_X509_NAME *) 
-        PKI_X509_CERT_get_data ( x, type ));
+    case PKI_X509_DATA_ISSUER:
+      ret = PKI_X509_NAME_get_parsed((PKI_X509_NAME *) 
+		      		     PKI_X509_CERT_get_data(x, type));
       break;
+
     case PKI_X509_DATA_NOTBEFORE:
     case PKI_X509_DATA_NOTAFTER:
-      ret = PKI_TIME_get_parsed( (PKI_TIME *)
-        PKI_X509_CERT_get_data(x, type));
+      ret = PKI_TIME_get_parsed((PKI_TIME *)PKI_X509_CERT_get_data(x, type));
       break;
-          case PKI_X509_DATA_ALGORITHM:
-      ret = (char *) PKI_ALGOR_get_parsed ( (PKI_ALGOR *) 
-        PKI_X509_CERT_get_data( x, type ));
+
+    case PKI_X509_DATA_ALGORITHM:
+      ret = (char *) PKI_ALGOR_get_parsed((PKI_ALGOR *) 
+		      			  PKI_X509_CERT_get_data(x,type));
       break;
+
     case PKI_X509_DATA_PUBKEY:
     case PKI_X509_DATA_KEYPAIR_VALUE:
-      if((pkey = PKI_X509_CERT_get_data( x, type )) != NULL) {
-        k = PKI_X509_new_dup_value ( 
-          PKI_DATATYPE_X509_KEYPAIR, pkey, NULL );
+      if ((pkey = PKI_X509_CERT_get_data(x, type)) != NULL) {
+        k = PKI_X509_new_dup_value(PKI_DATATYPE_X509_KEYPAIR, pkey, NULL);
         ret = PKI_X509_KEYPAIR_get_parsed( k );
-        PKI_X509_KEYPAIR_free ( k );
+        PKI_X509_KEYPAIR_free(k);
       }
       break;
-          case PKI_X509_DATA_KEYSIZE:
-      ret = PKI_X509_CERT_get_data( x, type);
+
+    case PKI_X509_DATA_KEYSIZE:
+      PKI_ERROR(PKI_ERR_PARAM_TYPE, "Deprecated Cert Datatype");
       break;
+
     case PKI_X509_DATA_CERT_TYPE:
     case PKI_X509_DATA_SIGNATURE:
     case PKI_X509_DATA_EXTENSIONS:
@@ -958,7 +1084,7 @@ char * PKI_X509_CERT_get_parsed( PKI_X509_CERT *x, PKI_X509_DATA type ) {
 
 /*! \brief Returns the stack of URL for the CRL Distribution Point(s) */
 
-PKI_STACK *PKI_X509_CERT_get_cdp ( PKI_X509_CERT *x ) {
+PKI_STACK *PKI_X509_CERT_get_cdp (const PKI_X509_CERT *x) {
 
   STACK_OF(DIST_POINT) *sk_cdp = NULL;
         DIST_POINT *cdp = NULL;
@@ -1037,7 +1163,8 @@ PKI_STACK *PKI_X509_CERT_get_cdp ( PKI_X509_CERT *x ) {
  *         passed digest algorithm identifier
  */
 
-PKI_DIGEST *PKI_X509_CERT_fingerprint ( PKI_X509_CERT *x, PKI_DIGEST_ALG *alg ){
+PKI_DIGEST *PKI_X509_CERT_fingerprint(const PKI_X509_CERT *x,
+				      const PKI_DIGEST_ALG *alg ){
 
   PKI_DIGEST *ret = NULL;
   PKI_X509_CERT_VALUE *cert = NULL;
@@ -1092,7 +1219,8 @@ PKI_DIGEST *PKI_X509_CERT_fingerprint ( PKI_X509_CERT *x, PKI_DIGEST_ALG *alg ){
  *         passed digest string (char *) identifier
  */
 
-PKI_DIGEST *PKI_X509_CERT_fingerprint_by_name( PKI_X509_CERT *x, char *alg ) {
+PKI_DIGEST *PKI_X509_CERT_fingerprint_by_name(const PKI_X509_CERT *x,
+					      const char *alg ) {
 
   PKI_DIGEST_ALG *alg_id = NULL;
 
@@ -1103,23 +1231,21 @@ PKI_DIGEST *PKI_X509_CERT_fingerprint_by_name( PKI_X509_CERT *x, char *alg ) {
 
 /*! \brief Calculates the Hash of the Public Key of the certificate */
 
-PKI_DIGEST *PKI_X509_CERT_key_hash ( PKI_X509_CERT *x, PKI_DIGEST_ALG *alg ) {
+PKI_DIGEST *PKI_X509_CERT_key_hash(const PKI_X509_CERT *x,
+				   const PKI_DIGEST_ALG *alg ) {
 
-  PKI_X509_KEYPAIR_VALUE *key = NULL;
+  const PKI_X509_KEYPAIR_VALUE *key = NULL;
   PKI_DIGEST *keyHash = NULL;
 
   if ( !x || !x->value ) return NULL;
 
   if ( !alg ) alg = PKI_DIGEST_ALG_DEFAULT;
 
-  if(( key = PKI_X509_CERT_get_data ( x, 
-        PKI_X509_DATA_KEYPAIR_VALUE )) == NULL ) {
+  if ((key = PKI_X509_CERT_get_data(x, PKI_X509_DATA_KEYPAIR_VALUE)) == NULL)
     return NULL;
-  };
 
-  if(( keyHash = PKI_X509_KEYPAIR_VALUE_pub_digest ( key, alg )) == NULL ) {
+  if ((keyHash = PKI_X509_KEYPAIR_VALUE_pub_digest(key, alg)) == NULL)
     return NULL;
-  }
 
   return keyHash;
 }
@@ -1127,7 +1253,8 @@ PKI_DIGEST *PKI_X509_CERT_key_hash ( PKI_X509_CERT *x, PKI_DIGEST_ALG *alg ) {
 /*! \brief Calculates the Hash of the Public Key of the certificate by using
  *         the hash algorithm passed as a (char *) */
 
-PKI_DIGEST *PKI_X509_CERT_key_hash_by_name ( PKI_X509_CERT *x, char *alg ) {
+PKI_DIGEST *PKI_X509_CERT_key_hash_by_name (const PKI_X509_CERT *x,
+					    const char *alg ) {
   PKI_DIGEST_ALG *alg_id = NULL;
 
   alg_id = PKI_DIGEST_ALG_get_by_name ( alg );
@@ -1138,11 +1265,11 @@ PKI_DIGEST *PKI_X509_CERT_key_hash_by_name ( PKI_X509_CERT *x, char *alg ) {
 
 /*! \brief Returs PKI_X509_CERT_TYPE (an int) with the type of certificate */
 
-PKI_X509_CERT_TYPE PKI_X509_CERT_get_type ( PKI_X509_CERT *x ) {
+PKI_X509_CERT_TYPE PKI_X509_CERT_get_type(const PKI_X509_CERT *x) {
 
   PKI_X509_CERT_TYPE ret = PKI_X509_CERT_TYPE_USER;
-  PKI_X509_NAME *subj = NULL;
-  PKI_X509_NAME *issuer = NULL;
+  const PKI_X509_NAME *subj = NULL;
+  const PKI_X509_NAME *issuer = NULL;
   BASIC_CONSTRAINTS *bs = NULL;
   PKI_X509_EXTENSION *ext = NULL;
 
@@ -1185,10 +1312,10 @@ PKI_X509_CERT_TYPE PKI_X509_CERT_get_type ( PKI_X509_CERT *x ) {
 
 /*! \brief Returns PKI_OK if a certificate is self-signed, PKI_ERR otherwise */
 
-int PKI_X509_CERT_is_selfsigned ( PKI_X509_CERT *x ) {
+int PKI_X509_CERT_is_selfsigned(const PKI_X509_CERT *x ) {
 
   PKI_X509_KEYPAIR *kp = NULL;
-  PKI_X509_KEYPAIR *kval = NULL;
+  const PKI_X509_KEYPAIR *kval = NULL;
   int ret = -1;
 
   if (!x) return PKI_ERR;
@@ -1196,11 +1323,10 @@ int PKI_X509_CERT_is_selfsigned ( PKI_X509_CERT *x ) {
   kval = PKI_X509_CERT_get_data ( x, PKI_X509_DATA_PUBKEY );
   if ( !kval ) return PKI_ERR;
 
-  kp = PKI_X509_new_value ( PKI_DATATYPE_X509_KEYPAIR, kval, NULL);
+  kp = PKI_X509_new_dup_value(PKI_DATATYPE_X509_KEYPAIR, kval, NULL);
   if ( !kp ) return PKI_ERR;
 
   ret = PKI_X509_verify ( x, kp );
-  kp->value = NULL;
   PKI_X509_KEYPAIR_free ( kp );
   
   return ret;
@@ -1209,33 +1335,33 @@ int PKI_X509_CERT_is_selfsigned ( PKI_X509_CERT *x ) {
 
 /*! \brief Returns PKI_OK if a certificate is allowed to sign certs */
 
-int PKI_X509_CERT_is_ca ( PKI_X509_CERT *x ) {
-  PKI_log_debug("Code still missing!");
-  return PKI_ERR;
+int PKI_X509_CERT_is_ca(const PKI_X509_CERT *x) {
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+	return PKI_ERR;
 }
 
 /*! \brief Returns PKI_OK if a certificate is a Proxy Certificate */
 
-int PKI_X509_CERT_is_proxy ( PKI_X509_CERT *x ) {
-  PKI_log_debug("Code still missing!");
-  return PKI_ERR;
+int PKI_X509_CERT_is_proxy ( const PKI_X509_CERT *x ) {
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+	return PKI_ERR;
 }
 
 /*! \brief Returns PKI_OK if a certificate is allowed to be used with the
            passed domain name */
 
-int PKI_X509_CERT_check_domain ( PKI_X509_CERT *x, char *domain ) {
-  PKI_log_debug("Code still missing!");
-  return PKI_ERR;
+int PKI_X509_CERT_check_domain ( const PKI_X509_CERT *x, const char *domain ) {
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+	return PKI_ERR;
 }
 
 /*! \brief Returns the list of subject's email addresses embedded in the cert */
 
-PKI_STACK * PKI_X509_CERT_get_email ( PKI_X509_CERT *x ) {
+PKI_STACK * PKI_X509_CERT_get_email (const PKI_X509_CERT *x ) {
 
   PKI_STACK *sk = NULL;
   PKI_X509_NAME_RDN **list = NULL;
-  PKI_X509_NAME *name = NULL;
+  const PKI_X509_NAME *name = NULL;
 
   // PKI_X509_EXTENSION_STACK * ext_list = NULL;
 
@@ -1271,8 +1397,8 @@ PKI_STACK * PKI_X509_CERT_get_email ( PKI_X509_CERT *x ) {
   return sk;
 }
 
-PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_id ( PKI_X509_CERT  *x, 
-                PKI_ID num ) {
+PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_id(const PKI_X509_CERT  *x, 
+                				       PKI_ID num ) {
   PKI_OID *oid = NULL;
 
   oid = PKI_OID_new_id ( num );
@@ -1282,22 +1408,21 @@ PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_id ( PKI_X509_CERT  *x,
   return PKI_X509_CERT_get_extension_by_oid ( x, oid );
 }
 
-PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_name ( PKI_X509_CERT *x, 
-                char * name ) {
+PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_name(const PKI_X509_CERT *x,
+                					 const char * name ) {
 
   PKI_OID *oid = NULL;
 
   if ( !x || !name ) return NULL;
 
-  if (( oid = PKI_OID_new_text ( name )) == NULL ) 
-    return NULL;
+  if ((oid = PKI_OID_new_text(name)) == NULL ) return NULL;
 
   return PKI_X509_CERT_get_extension_by_oid ( x, oid );
 }
 
 
-PKI_X509_EXTENSION *PKI_X509_CERT_get_extension_by_oid ( PKI_X509_CERT  *x, 
-                PKI_OID *id ) {
+PKI_X509_EXTENSION *PKI_X509_CERT_get_extension_by_oid(const PKI_X509_CERT  *x, 
+                				       const PKI_OID *id ) {
   PKI_ID nid = PKI_ID_UNKNOWN;
   PKI_X509_EXTENSION *ext = NULL;
 
@@ -1320,7 +1445,7 @@ PKI_X509_EXTENSION *PKI_X509_CERT_get_extension_by_oid ( PKI_X509_CERT  *x,
   return ext;
 }
 
-PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions ( PKI_X509_CERT *x ) {
+PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions(const PKI_X509_CERT *x) {
 
   PKI_X509_EXTENSION_STACK *ret = NULL;
 
@@ -1332,7 +1457,8 @@ PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions ( PKI_X509_CERT *x ) {
   if ((ext_count = X509_get_ext_count (x->value)) <= 0 ) return NULL;
 
   for ( i=0; i < ext_count; i++ ) {
-    PKI_X509_EXTENSION_VALUE *ext = NULL;
+    LIBPKI_X509_EXTENSION *ext = NULL;
+    // PKI_X509_EXTENSION_VALUE *ext = NULL;
     PKI_X509_EXTENSION *pki_ext = NULL;
     
     if((ext = X509_get_ext ( x->value, i )) == NULL ) {
@@ -1362,15 +1488,16 @@ PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions ( PKI_X509_CERT *x ) {
   return ret;
 }
 
-int PKI_X509_CERT_check_pubkey(PKI_X509_CERT *x, PKI_X509_KEYPAIR *k)
+int PKI_X509_CERT_check_pubkey(const PKI_X509_CERT *x, 
+			       const PKI_X509_KEYPAIR *k)
 {
   int ret = 0;
 
   X509_PUBKEY *pub_key = NULL;
   PKI_X509_KEYPAIR_VALUE *k_val = NULL;
 
-  PKI_STRING *c_pubkey = NULL;
-  PKI_STRING *k_pubkey = NULL;
+  const PKI_STRING *c_pubkey = NULL;
+  const PKI_STRING *k_pubkey = NULL;
 
   // Input checks
   if (!x || !x->value || !k || !k->value) return -1;
@@ -1392,7 +1519,11 @@ int PKI_X509_CERT_check_pubkey(PKI_X509_CERT *x, PKI_X509_KEYPAIR *k)
   if (!X509_PUBKEY_set(&pub_key, k_val)) return -99;
 
   // Now let's point to tke KeyPair's public key
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
   k_pubkey = pub_key->public_key;
+#else
+  X509_PUBKEY_get();
+#endif
 
   // Compares the two bit strings
   ret = PKI_STRING_cmp(c_pubkey, k_pubkey);
