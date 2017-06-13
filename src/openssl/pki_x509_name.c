@@ -235,7 +235,7 @@ char *PKI_X509_NAME_get_parsed ( const PKI_X509_NAME *name ) {
 	if(!name) return (NULL);
 
 	memset(buf, 0, sizeof( buf ));
-	X509_NAME_oneline(name, buf, sizeof buf);
+	X509_NAME_oneline((PKI_X509_NAME *)name, buf, sizeof buf);
 	size = strlen( buf );
 	if( size > 0 ) {
 		int i = 0;

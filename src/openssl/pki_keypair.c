@@ -272,7 +272,7 @@ int PKI_X509_KEYPAIR_VALUE_get_size (const PKI_X509_KEYPAIR_VALUE *pKey ) {
 		return ret;
 	};
 
-	return EVP_PKEY_bits( pKey );
+	return EVP_PKEY_bits((PKI_X509_KEYPAIR_VALUE *)pKey);
 
 /*
 	switch ( PKI_X509_KEYPAIR_VALUE_get_scheme( pKey ) ) {
@@ -492,7 +492,7 @@ int PKI_X509_KEYPAIR_get_curve (const PKI_X509_KEYPAIR *kp )
 	size_t num_curves = 0;
 	int i;
 
-	BIGNUM *order;
+	BIGNUM *order = NULL;
 
 	unsigned long long keyBits = 0;
 	unsigned long long curveBits = 0;
@@ -512,7 +512,7 @@ int PKI_X509_KEYPAIR_get_curve (const PKI_X509_KEYPAIR *kp )
 		default: {
 			goto err;
 		} break;
-	};
+	}
 
 	if ((gr = EC_KEY_get0_group(ec)) == NULL) return PKI_ID_UNKNOWN;
 

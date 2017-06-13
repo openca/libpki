@@ -175,8 +175,9 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
     goto err;
   }
 
-  if( serial_s ) {
-    serial = s2i_ASN1_INTEGER( NULL, serial_s);
+  if (serial_s) {
+    char * tmp_s = (char *) serial_s;
+    serial = s2i_ASN1_INTEGER(NULL, tmp_s);
   } else {
     // If cacert we assume it is a normal cert - let's create a
     // random serial number, otherwise - it's a self-signed, use
@@ -736,27 +737,43 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
   switch (type)
   {
     case PKI_X509_DATA_VERSION:
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      if (tmp_x->cert_info) ret = (tmp_x)->cert_info->version;
+#else
       ret = (tmp_x)->cert_info.version;
+#endif
       break;
 
     case PKI_X509_DATA_SERIAL:
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      if (tmp_x->cert_info) ret = tmp_x->cert_info->serialNumber;
+#else
       ret = &((tmp_x)->cert_info.serialNumber);
+#endif
       // ret = X509_get_serialNumber ( (X509 *) x->value );
       break;
 
     case PKI_X509_DATA_SUBJECT:
-      ret = (tmp_x)->cert_info.subject;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      if (tmp_x->cert_info) ret = tmp_x->cert_info->subject;
+#else
+      ret = tmp_x->cert_info.subject;
+#endif
       // ret = X509_get_subject_name( (X509 *) x->value );
       break;
 
     case PKI_X509_DATA_ISSUER:
-      ret = (tmp_x)->cert_info.issuer;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      if (tmp_x->cert_info) ret = tmp_x->cert_info->issuer;
+#else
+      ret = tmp_x->cert_info.issuer;
+#endif
       // ret = X509_get_issuer_name( (X509 *) x->value );
       break;
 
     case PKI_X509_DATA_NOTBEFORE:
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-      ret = (tmp_x)->cert_info.validity.notBefore;
+      ret = tmp_x->cert_info->validity->notBefore;
 #else
       ret = X509_get0_notBefore((X509 *)x->value);
 #endif
@@ -764,7 +781,7 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
 
     case PKI_X509_DATA_NOTAFTER:
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-      ret = (tmp_x)->cert_info.validity.notAfter;
+      ret = tmp_x->cert_info->validity->notAfter;
 #else
       ret = X509_get0_notAfter((X509 *)x->value);
 #endif
@@ -829,7 +846,11 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
 */
 
     case PKI_X509_DATA_EXTENSIONS:
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      ret = tmp_x->cert_info->extensions;
+#else
       ret = tmp_x->cert_info.extensions;
+#endif
       break;
 
     default:
