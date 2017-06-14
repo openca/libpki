@@ -14,19 +14,40 @@ enum bag_datatype_st {
 };
 
 /* Prototypes */
-static STACK_OF(PKCS12_SAFEBAG) * _get_bags (PKI_X509_PKCS12 *p12, char *pwd);
-static void * _get_bags_data ( STACK_OF(PKCS12_SAFEBAG) *bags, 
-          int dataType, char *pwd );
-static void * _get_bag_value ( PKCS12_SAFEBAG *bag, int dataType, char *pwd );
-static PKI_X509_CERT * _get_cacert (PKI_X509_PKCS12 *p12, 
-            PKI_X509_CERT *x, char *pwd);
-static PKI_X509_CERT_STACK * _get_othercerts_stack(PKI_X509_PKCS12 *p12, 
-            PKI_X509_CERT *x, char *pwd);
-static PKI_X509_KEYPAIR_STACK * _get_keypair_stack ( PKI_X509_PKCS12 *p12, char *pwd);
+
+static STACK_OF(PKCS12_SAFEBAG) * _get_bags(
+		const PKI_X509_PKCS12 * const p12,
+		const char * const pwd);
+
+static void * _get_bags_data(
+		STACK_OF(PKCS12_SAFEBAG) *bags, 
+          	int dataType,
+		const char * const pwd );
+
+static void * _get_bag_value(
+		PKCS12_SAFEBAG *bag,
+		int dataType,
+		const char * const pwd );
+
+static PKI_X509_CERT * _get_cacert(
+		const PKI_X509_PKCS12 * const p12, 
+            	const PKI_X509_CERT * const x,
+		const char *pwd);
+
+static PKI_X509_CERT_STACK * _get_othercerts_stack(
+		const PKI_X509_PKCS12 * const p12, 
+            	const PKI_X509_CERT * const x,
+		const char * const pwd);
+
+static PKI_X509_KEYPAIR_STACK * _get_keypair_stack(
+		const PKI_X509_PKCS12 * const p12, 
+                const char * const pwd);
 
 /* Internal Functions */
 
-static STACK_OF(PKCS12_SAFEBAG) * _get_bags (PKI_X509_PKCS12 *p12, char *pwd) {
+static STACK_OF(PKCS12_SAFEBAG) * _get_bags(
+		const PKI_X509_PKCS12 * const p12,
+		const char * const pwd) {
 
   STACK_OF(PKCS7) *asafes = NULL;
   STACK_OF(PKCS12_SAFEBAG) *bags = NULL;
@@ -41,11 +62,9 @@ static STACK_OF(PKCS12_SAFEBAG) * _get_bags (PKI_X509_PKCS12 *p12, char *pwd) {
     return (NULL);
 
   if((ret = sk_PKCS12_SAFEBAG_new_null()) == NULL ) {
-    PKI_log_debug("%s:%d::Memory Error!", __FILE__, __LINE__ );
-    return ( NULL );
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    return NULL;
   }
-
-  // PKI_log_debug("Found %d PKCS7", sk_PKCS7_num (asafes) );
 
   for (i = 0; i < sk_PKCS7_num (asafes); i++) {
     PKCS12_SAFEBAG *oneBag = NULL;
@@ -65,33 +84,16 @@ static STACK_OF(PKCS12_SAFEBAG) * _get_bags (PKI_X509_PKCS12 *p12, char *pwd) {
     }
 
     if (!bags) {
-      PKI_log_debug("No Bags got from PKCS7 # %d", i );
+      PKI_DEBUG("No Bags got from PKCS7 # %d", i);
       continue;
     }
-
-    // PKI_log_debug("Got # %d Bags from PKCS7 # %d",
-    //   sk_PKCS12_SAFEBAG_num ( bags ), i );
 
     while ((oneBag = sk_PKCS12_SAFEBAG_pop ( bags )) != NULL ){
       sk_PKCS12_SAFEBAG_push( ret, oneBag );
     }
 
-    // for( j = 0; j < sk_PKCS12_SAFEBAG_num( bags ); j++ ) {
-    //   oneBag = sk_PKCS12_SAFEBAG_value( bags, j);
-    //   sk_PKCS12_SAFEBAG_push( ret, oneBag );
-    // };
-
-    /*
-                if (!dump_certs_pkeys_bags (out, bags, pass, passlen,
-                                                 options, pempass)) {
-                        sk_PKCS12_SAFEBAG_pop_free (bags, PKCS12_SAFEBAG_free);
-                        goto err;
-                }
-                sk_PKCS12_SAFEBAG_pop_free (bags, PKCS12_SAFEBAG_free);
-    */
-
     sk_PKCS12_SAFEBAG_free ( bags );
-                bags = NULL;
+    bags = NULL;
   }
 
   if( sk_PKCS12_SAFEBAG_num( ret ) < 1 ) {
@@ -104,8 +106,10 @@ static STACK_OF(PKCS12_SAFEBAG) * _get_bags (PKI_X509_PKCS12 *p12, char *pwd) {
   return ( ret );
 }
 
-static void * _get_bags_data ( STACK_OF(PKCS12_SAFEBAG) *bags, 
-          int dataType, char *pwd ) {
+static void * _get_bags_data (
+		STACK_OF(PKCS12_SAFEBAG) *bags, 
+          	int dataType,
+		const char * const pwd ) {
 
   int i;
 
@@ -166,7 +170,10 @@ static void * _get_bags_data ( STACK_OF(PKCS12_SAFEBAG) *bags,
 }
 
 
-static void * _get_bag_value ( PKCS12_SAFEBAG *bag, int dataType, char *pwd ) {
+static void * _get_bag_value(
+		PKCS12_SAFEBAG *bag, 
+		int dataType,
+		const char * const pwd ) {
 
   int type;
 
@@ -179,19 +186,14 @@ static void * _get_bag_value ( PKCS12_SAFEBAG *bag, int dataType, char *pwd ) {
   void *ret = NULL;
   PKI_STACK *sk = NULL;
 
-  // PKI_log_debug("_get_bag_value()::Start - dataType = %d", dataType );
   type = M_PKCS12_bag_type ( bag );
-
-  // PKI_log_debug("_get_bag_value()::Bag Type = %d", type );
 
   switch ( type ) {
 
     case NID_keyBag: {
-        // PKI_log_debug("Found Bag => TYPE is NID_keyBag");
         if( dataType != BAG_DATATYPE_KEYPAIR ) {
           return ( NULL );
         };
-        // print_attribs (out, bag->attrib, "Bag Attributes");
         p8 = bag->value.keybag;
         if (!(pkey = EVP_PKCS82PKEY (p8))) {
           return (NULL);
@@ -208,7 +210,6 @@ static void * _get_bag_value ( PKCS12_SAFEBAG *bag, int dataType, char *pwd ) {
       } break;
 
     case NID_pkcs8ShroudedKeyBag: {
-      // PKI_log_debug("Found Bag => TYPE is NID_pkcs8ShroudedKeyBag");
       if( dataType != BAG_DATATYPE_KEYPAIR ) {
         return ( NULL );
       };
@@ -224,25 +225,16 @@ static void * _get_bag_value ( PKCS12_SAFEBAG *bag, int dataType, char *pwd ) {
       }
       k->value = pkey;
       ret = k;
-      // PKI_log_debug("Got a key!");
     } break;
 
     case NID_certBag: {
-      // PKI_log_debug("Found Bag => TYPE is NID_certBag");
       if( (dataType != BAG_DATATYPE_CERT ) && 
           ( dataType != BAG_DATATYPE_CACERT ) &&
           (dataType != BAG_DATATYPE_OTHERCERTS)) {
         return ( NULL );
-      };
+      }
       if (PKCS12_get_attr(bag, NID_localKeyID)) {
-        /* Client Certificate */
-        // if( dataType == BAG_DATATYPE_CACERT ) {
-        //   PKI_log_debug("Requested CACERT"
-        //     " - this is a local Cert!");
-        // };
-        if( dataType != BAG_DATATYPE_CERT ) return ( NULL );
-      } else {
-        // PKI_log_debug("Found a Non local Cert (CA?)");
+        if (dataType != BAG_DATATYPE_CERT) return NULL;
       }
 
       // print_attribs (out, bag->attrib, "Bag Attributes");
@@ -292,7 +284,9 @@ static void * _get_bag_value ( PKCS12_SAFEBAG *bag, int dataType, char *pwd ) {
   return ( sk );
 }
 
-static PKI_X509_CERT_STACK * _get_cert_stack (PKI_X509_PKCS12 *p12, char *pwd) {
+static PKI_X509_CERT_STACK * _get_cert_stack(
+		const PKI_X509_PKCS12 * const p12, 
+		const char * const pwd) {
 
   STACK_OF(PKCS12_SAFEBAG) *sk_bags = NULL;
   PKI_X509_CERT_STACK *ret = NULL;
@@ -315,28 +309,27 @@ static PKI_X509_CERT_STACK * _get_cert_stack (PKI_X509_PKCS12 *p12, char *pwd) {
 }
 
 
-static PKI_X509_CERT * _get_cacert (PKI_X509_PKCS12 *p12, 
-          PKI_X509_CERT *client, char *pwd) {
+static PKI_X509_CERT * _get_cacert (
+		const PKI_X509_PKCS12 * const p12, 
+          	const PKI_X509_CERT * const client,
+		const char * const pwd) {
 
   STACK_OF(PKCS12_SAFEBAG) *sk_bags = NULL;
   PKI_X509_CERT_STACK *ca_sk = NULL;
 
   PKI_X509_CERT *cacert = NULL;
   PKI_X509_CERT *ret = NULL;
-  PKI_X509_CERT *x = NULL;
+
+  const PKI_X509_CERT *x = NULL;
 
   PKI_CRED cred;
   PKI_CRED *cred_pnt = NULL;
 
   int i = 0;
 
-  if ( !p12 || !p12->value ) return NULL;
+  if (!p12 || !p12->value) return NULL;
 
-  // PKI_log_debug("_get_cacert()::Start()!");
-  if((sk_bags = _get_bags ( p12, pwd )) == NULL ) {
-    // PKI_log_debug("_get_cacert()::No Bags found()!");
-    return ( NULL );
-  }
+  if ((sk_bags = _get_bags(p12, pwd)) == NULL) return NULL;
 
   x = client;
 
@@ -345,60 +338,49 @@ static PKI_X509_CERT * _get_cacert (PKI_X509_PKCS12 *p12,
     cred_pnt = &cred;
   }
 
-  if( x == NULL ) {
-    PKI_log_debug("_get_cacert()::Getting Client Cert()!");
-    if((x = PKI_X509_PKCS12_get_cert( p12, cred_pnt )) == NULL ) {
-      // PKI_log_err("Can not find user cert in P12");
-      return ( NULL );
+  if (x == NULL) {
+    if ((x = PKI_X509_PKCS12_get_cert( p12, cred_pnt )) == NULL ) {
+      PKI_DEBUG("Can not find user cert in P12");
+      return NULL;
     }
   }
 
-  if((ca_sk = _get_bags_data ( sk_bags, 
-        BAG_DATATYPE_CACERT, pwd )) == NULL ) {
-    //PKI_log_debug("_get_cacert()::No Bags DATA found()!");
-    return ( NULL );
+  if ((ca_sk = _get_bags_data(sk_bags, BAG_DATATYPE_CACERT, pwd)) == NULL) {
+    // No Bags DATA found
+    return NULL;
   }
 
-  for(i = 0; i < PKI_STACK_X509_CERT_elements ( ca_sk ); i++ ) {
+  for (i = 0; i < PKI_STACK_X509_CERT_elements(ca_sk); i++ ) {
 
-    // char *subj = NULL;
-    // PKI_log_debug("_get_cacert()::Getting CA Cert (n=%d)!", i);
+    if ((cacert = PKI_STACK_X509_CERT_get_num(ca_sk, i)) == NULL) continue;
 
-    if((cacert = PKI_STACK_X509_CERT_get_num( ca_sk, i )) == NULL){
-      // PKI_log_debug("_get_cacert()::ERROR in getting CA Cert!");
-      continue;
-    }
-
-    /*
-    if((subj = PKI_X509_CERT_get_parsed ( cacert, 
-          PKI_X509_DATA_SUBJECT )) != NULL ) {
-      PKI_log_debug("Checking if cert is the issuer [%s]",
-                subj);
-      PKI_Free ( subj );
-    }
-    */
-
-    if((X509_check_issued( cacert->value, x->value )) ==X509_V_OK) {
-      // PKI_log_debug("_get_cacert()::Found CA Cert! Exit Cycle");
+    if ((X509_check_issued(cacert->value, x->value)) == X509_V_OK) {
+      // Found CA Cert - Exit Cycle
       break;
     }
 
+    // Resets the pointer
     cacert = NULL;
   }
 
-  if(cacert) ret = PKI_X509_CERT_dup ( cacert );
+  // Duplicate the CA certificate
+  if (cacert) ret = PKI_X509_CERT_dup(cacert);
 
-  if( !client && x ) PKI_X509_CERT_free ( x );
-  if( ca_sk ) PKI_STACK_X509_CERT_free ( ca_sk );
+  // Free allocated memory
+  if (!client && x) PKI_X509_CERT_free((PKI_X509_CERT *)x);
+  if (ca_sk) PKI_STACK_X509_CERT_free(ca_sk);
 
-  return ( ret );
+  return ret;
 }
 
-static PKI_X509_CERT_STACK * _get_othercerts_stack (PKI_X509_PKCS12 *p12, 
-          PKI_X509_CERT *cacert, char *pwd){
+static PKI_X509_CERT_STACK * _get_othercerts_stack(
+			const PKI_X509_PKCS12 * const p12, 
+          		const PKI_X509_CERT * const cacert,
+			const char * const pwd){
+
   STACK_OF(PKCS12_SAFEBAG) *sk_bags = NULL;
   PKI_X509_CERT_STACK *x_sk = NULL;
-  PKI_X509_CERT *ca_cert = NULL;
+  const PKI_X509_CERT *ca_cert = NULL;
   PKI_X509_CERT *user_cert = NULL;
   PKI_X509_CERT_VALUE *ca_cert_val = NULL;
   PKI_X509_CERT_VALUE *user_cert_val = NULL;
@@ -408,32 +390,28 @@ static PKI_X509_CERT_STACK * _get_othercerts_stack (PKI_X509_PKCS12 *p12,
 
   memset ( &cred, 0L, sizeof( cred ));
 
-  if( !p12 || !p12->value ) return NULL;
+  if (!p12 || !p12->value) return NULL;
 
-  if((sk_bags = _get_bags ( p12, pwd )) == NULL ) {
-    return ( NULL );
-  }
+  if ((sk_bags = _get_bags(p12, pwd)) == NULL) return NULL;
 
-  if((x_sk = _get_bags_data ( sk_bags, BAG_DATATYPE_OTHERCERTS, pwd ))
-                == NULL ) {
+  if ((x_sk = _get_bags_data(sk_bags, BAG_DATATYPE_OTHERCERTS, pwd)) == NULL) {
     return ( x_sk );
-  };
-
-  if( pwd ) cred.password = pwd;
-
-  if ( !cacert ) {
-    ca_cert = _get_cacert( p12, NULL, pwd);
-  } else {
-    ca_cert = cacert;
   }
-  if ( ca_cert ) ca_cert_val = ca_cert->value;
 
-  user_cert = PKI_X509_PKCS12_get_cert ( p12, &cred );
-  if ( user_cert ) user_cert_val = user_cert->value;
+  if (pwd) cred.password = pwd;
 
-  if( !ca_cert_val && !user_cert_val ) return ( x_sk );
+  if (!cacert) ca_cert = _get_cacert( p12, NULL, pwd);
+  else ca_cert = cacert;
 
-  for ( i=0; i < PKI_STACK_X509_CERT_elements( x_sk ); i++ ) {
+  if (ca_cert) ca_cert_val = ca_cert->value;
+
+  user_cert = PKI_X509_PKCS12_get_cert(p12, &cred);
+  if (user_cert) user_cert_val = user_cert->value;
+
+  if (!ca_cert_val && !user_cert_val) return x_sk;
+
+  for (i = 0; i < PKI_STACK_X509_CERT_elements(x_sk); i++) {
+
     PKI_X509_CERT *x = NULL;
 
     x = PKI_STACK_X509_CERT_get_num ( x_sk, i );
@@ -441,40 +419,40 @@ static PKI_X509_CERT_STACK * _get_othercerts_stack (PKI_X509_PKCS12 *p12,
       x = PKI_STACK_X509_CERT_del_num ( x_sk, i );
       PKI_X509_CERT_free ( x );
       continue;
-    };
+    }
 
-    if ( (user_cert_val) && (X509_cmp (x->value, 
-            user_cert_val ) == 0) ) {
+    if (user_cert_val && X509_cmp (x->value, user_cert_val ) == 0) {
       x = PKI_STACK_X509_CERT_del_num ( x_sk, i );
       PKI_X509_CERT_free ( x );
       continue;
-    };
+    }
   }
 
-  if( !cacert && ca_cert ) PKI_X509_CERT_free ( ca_cert );
-  if( user_cert ) PKI_X509_CERT_free ( user_cert );
+  if (!cacert && ca_cert) PKI_X509_CERT_free((PKI_X509_CERT *)ca_cert);
+  if (user_cert) PKI_X509_CERT_free (user_cert);
 
   return ( x_sk );
 }
 
-static PKI_X509_KEYPAIR_STACK * _get_keypair_stack ( PKI_X509_PKCS12 *p12, 
-                char *pwd) {
+static PKI_X509_KEYPAIR_STACK * _get_keypair_stack(
+		const PKI_X509_PKCS12 * const p12, 
+                const char * const pwd) {
+
   STACK_OF(PKCS12_SAFEBAG) *sk_bags = NULL;
   PKI_X509_KEYPAIR_STACK *ret = NULL;
 
-  if((sk_bags = _get_bags ( p12, pwd )) == NULL ) {
-    PKI_log_debug("_get_keypair_stack::No Keypair found");
-    return ( NULL );
+  if ((sk_bags = _get_bags ( p12, pwd )) == NULL) {
+    PKI_DEBUG("No Keypair found");
+    return NULL;
   }
 
-  // PKI_log_debug("_get_keypair_stack::Got %d Bags", 
-  //         sk_PKCS12_SAFEBAG_num ( sk_bags ));
-  ret = _get_bags_data ( sk_bags, BAG_DATATYPE_KEYPAIR, pwd );
+  ret = _get_bags_data(sk_bags, BAG_DATATYPE_KEYPAIR, pwd);
   return ( ret );
 }
 
 static int _pki_p12_copy_bag_attr(PKCS12_SAFEBAG *bag, 
-  PKI_X509_KEYPAIR *k, int nid){
+  				  const PKI_X509_KEYPAIR * const k,
+				  int nid) {
 
   int idx;
   X509_ATTRIBUTE *attr;
@@ -524,7 +502,8 @@ void PKI_X509_PKCS12_free_void ( void *p12 ) {
 
 /*! \brief Verifies the MAC against the passed credentials */
 
-int PKI_X509_PKCS12_verify_cred ( PKI_X509_PKCS12 *p12, PKI_CRED *cred ) {
+int PKI_X509_PKCS12_verify_cred(const PKI_X509_PKCS12 * const p12,
+				const PKI_CRED * const cred ) {
 
   int macVerified = PKI_ERR;
 
@@ -541,8 +520,9 @@ int PKI_X509_PKCS12_verify_cred ( PKI_X509_PKCS12 *p12, PKI_CRED *cred ) {
 
 /*! \brief Returns the keypair present in a PKI_X509_PKCS12 object */
 
-PKI_X509_KEYPAIR *PKI_X509_PKCS12_get_keypair ( PKI_X509_PKCS12 *p12, 
-              PKI_CRED *cred ) {
+PKI_X509_KEYPAIR *PKI_X509_PKCS12_get_keypair(
+				const PKI_X509_PKCS12 * const p12, 
+              			const PKI_CRED * const cred ) {
 
   PKI_X509_KEYPAIR_STACK *sk = NULL;
   PKI_X509_KEYPAIR *ret = NULL;
@@ -563,9 +543,12 @@ PKI_X509_KEYPAIR *PKI_X509_PKCS12_get_keypair ( PKI_X509_PKCS12 *p12,
   return ( ret );
 }
 
-/*! \brief Returns the client (user) cert present in a PKI_X509_PKCS12 object */
+/*! \brief Returns a copy of the client (user) cert present 
+ *         in a PKI_X509_PKCS12 object */
 
-PKI_X509_CERT *PKI_X509_PKCS12_get_cert ( PKI_X509_PKCS12 *p12, PKI_CRED *cred ) {
+PKI_X509_CERT *PKI_X509_PKCS12_get_cert(
+			const PKI_X509_PKCS12 * const p12,
+			const PKI_CRED * const cred ) {
 
   PKI_X509_CERT_STACK *sk = NULL;
   PKI_X509_CERT *ret = NULL;
@@ -617,19 +600,18 @@ PKI_X509_CERT *PKI_X509_PKCS12_get_cert ( PKI_X509_PKCS12 *p12, PKI_CRED *cred )
 
 /*! \brief Returns the CA cert present (if) in a PKI_X509_PKCS12 object */
 
-PKI_X509_CERT *PKI_X509_PKCS12_get_cacert ( PKI_X509_PKCS12 *p12, 
-              PKI_CRED *cred ) {
+PKI_X509_CERT *PKI_X509_PKCS12_get_cacert(
+			const PKI_X509_PKCS12 * const p12, 
+              		const PKI_CRED * const cred ) {
 
   PKI_X509_CERT *ret = NULL;
   char *pwd = NULL;
 
-  if( !p12 || !p12->value ) return NULL;
+  if (!p12 || !p12->value) return NULL;
 
-  if( cred ) pwd = (char *) cred->password;
+  if (cred) pwd = (char *) cred->password;
 
-  if((ret = _get_cacert( p12, NULL, pwd)) == NULL ) {
-    return ( NULL );
-  }
+  if ((ret = _get_cacert( p12, NULL, pwd)) == NULL) return NULL;
 
   return ( ret );
 }
@@ -637,31 +619,31 @@ PKI_X509_CERT *PKI_X509_PKCS12_get_cacert ( PKI_X509_PKCS12 *p12,
 /*! \brief Returns all the certs besides the CA and the user cert present (if)
  *         in a PKI_X509_PKCS12 object */
 
-PKI_X509_CERT_STACK *PKI_X509_PKCS12_get_otherCerts ( PKI_X509_PKCS12 *p12, 
-              PKI_CRED *cred) {
+PKI_X509_CERT_STACK *PKI_X509_PKCS12_get_otherCerts(
+			const PKI_X509_PKCS12 * const p12, 
+              		const PKI_CRED * const cred) {
+
   PKI_X509_CERT_STACK *sk = NULL;
   PKI_X509_CERT *cacert = NULL;
   char *pwd = NULL;
 
-  if( !p12 || !p12->value ) return NULL;
+  if (!p12 || !p12->value) return NULL;
 
-  if( cred ) pwd = (char *) cred->password;
+  if (cred) pwd = (char *) cred->password;
 
-  cacert = _get_cacert ( p12, NULL, pwd );
+  if ((cacert = _get_cacert(p12, NULL, pwd)) != NULL)
+  	sk = _get_othercerts_stack( p12, cacert, pwd);
 
-  if((sk = _get_othercerts_stack( p12, cacert, pwd)) == NULL ) {
-    return ( NULL );
-  }
-
-  return ( sk );
+  return sk;
 }
 
-int PKI_X509_PKCS12_TOKEN_export ( PKI_TOKEN *tk, URL *url, int format, 
-                HSM *hsm ) {
+int PKI_X509_PKCS12_TOKEN_export(
+			const PKI_TOKEN * const tk,
+			const URL * const url,
+			int format, 
+                	HSM *hsm ) {
 
-  // PKCS12 *p12 = NULL;
-
-  if( !tk || !url ) return (PKI_ERR);
+  if (!tk || !url) return PKI_ERR;
 
   /*
   p12 = PKCS12_create(cpass, name, key, ucert, certs,
@@ -684,8 +666,10 @@ int PKI_X509_PKCS12_TOKEN_export ( PKI_TOKEN *tk, URL *url, int format,
 
 /*! \brief Generates a new PKI_X509_PKCS12 object from a PKI_X509_PKCS12_DATA obj */
 
-PKI_X509_PKCS12 * PKI_X509_PKCS12_new ( PKI_X509_PKCS12_DATA *p12_data, 
-              PKI_CRED *cred ) {
+PKI_X509_PKCS12 * PKI_X509_PKCS12_new(
+			const PKI_X509_PKCS12_DATA * const p12_data, 
+              		const PKI_CRED * const cred) {
+
   PKI_X509_PKCS12 *ret = NULL;
   char *pass = NULL;
   int mac_iter = -1;
@@ -697,7 +681,8 @@ PKI_X509_PKCS12 * PKI_X509_PKCS12_new ( PKI_X509_PKCS12_DATA *p12_data,
   }
 
   /* let's add the safes */
-  if((ret->value = PKCS12_add_safes(p12_data, 0)) == NULL ) {
+  if((ret->value = PKCS12_add_safes((PKI_X509_PKCS12_DATA *)p12_data, 
+				  			0)) == NULL ) {
     PKI_X509_PKCS12_free ( ret );
     return NULL;
   }
@@ -744,10 +729,12 @@ void PKI_X509_PKCS12_DATA_free ( PKI_X509_PKCS12_DATA *p12_data ) {
 
 /*! \brief Adds a Keypair (LocalKey) to the PKCS12 */
 
-int PKI_X509_PKCS12_DATA_add_keypair ( PKI_X509_PKCS12_DATA *data, 
-        PKI_X509_KEYPAIR *keypair, PKI_CRED *cred ) {
+int PKI_X509_PKCS12_DATA_add_keypair(
+			PKI_X509_PKCS12_DATA *data, 
+        		const PKI_X509_KEYPAIR * const keypair,
+			const PKI_CRED * const cred ) {
 
-        STACK_OF(PKCS12_SAFEBAG) *bags = NULL;
+  STACK_OF(PKCS12_SAFEBAG) *bags = NULL;
   PKCS12_SAFEBAG *bag = NULL;
   char *pass = NULL;
 
@@ -775,8 +762,7 @@ int PKI_X509_PKCS12_DATA_add_keypair ( PKI_X509_PKCS12_DATA *data,
     goto err;
   }
 
-  if ((_pki_p12_copy_bag_attr(bag, keypair, 
-          NID_ms_csp_name)) == PKI_ERR ) {
+  if ((_pki_p12_copy_bag_attr(bag, keypair, NID_ms_csp_name)) == PKI_ERR ) {
     PKI_log_debug("ERROR::Can not copy bag attributes(%s)!",
       ERR_error_string(ERR_get_error(),NULL));
     goto err;
@@ -818,15 +804,19 @@ err:
 
 /*! \brief Adds user certificate, cacertificate and trusted certs to P12 */
 
-int PKI_X509_PKCS12_DATA_add_certs (PKI_X509_PKCS12_DATA *data, 
-    PKI_X509_CERT *cert, PKI_X509_CERT *cacert, 
-      PKI_X509_CERT_STACK *trusted, PKI_CRED *cred ) {
+int PKI_X509_PKCS12_DATA_add_certs (
+			PKI_X509_PKCS12_DATA *data, 
+   			const PKI_X509_CERT * const cert,
+			const PKI_X509_CERT * const cacert, 
+      			const PKI_X509_CERT_STACK * const trusted,
+			const PKI_CRED * const cred ) {
 
   STACK_OF(PKCS12_SAFEBAG) *bags = NULL;
   PKCS12_SAFEBAG *bag = NULL;
-  PKI_X509_KEYPAIR_VALUE *pubKey = NULL;
   PKI_X509_KEYPAIR *keypair = NULL;
   PKI_DIGEST *keyid = NULL;
+
+  const PKI_X509_KEYPAIR_VALUE *pubKey = NULL;
 
   char *name = NULL;
   char *pass = NULL;
@@ -839,23 +829,21 @@ int PKI_X509_PKCS12_DATA_add_certs (PKI_X509_PKCS12_DATA *data,
   if (cred && cred->password) pass = (char *) cred->password;
 
   /* Get the Digest of the Public key */
-  pubKey = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_KEYPAIR_VALUE);
-  if (pubKey == NULL ) 
-  {
+  if ((pubKey = PKI_X509_CERT_get_data(cert, 
+				       PKI_X509_DATA_KEYPAIR_VALUE)) == NULL) {
     PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve pubKey from the certificate");
     return ( PKI_ERR );
   }
 
-  keypair = PKI_X509_new_value(PKI_DATATYPE_X509_KEYPAIR, pubKey, NULL);
-  if (keypair == NULL)
-  {
+  if ((keypair = PKI_X509_new(PKI_DATATYPE_X509_KEYPAIR, NULL)) == NULL) {
     PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
     return PKI_ERR;
   }
 
-  keyid = PKI_X509_KEYPAIR_pub_digest(keypair, PKI_DIGEST_ALG_SHA1);
-  if (keyid == NULL)
-  {
+  keypair->value = (PKI_X509_KEYPAIR *)pubKey;
+
+  if ((keyid = PKI_X509_KEYPAIR_pub_digest(keypair, 
+				  	   PKI_DIGEST_ALG_SHA1)) == NULL) {
     PKI_ERROR(PKI_ERR_GENERAL, "Can not get keypair digest");
     return ( PKI_ERR );
   }
@@ -931,8 +919,10 @@ int PKI_X509_PKCS12_DATA_add_certs (PKI_X509_PKCS12_DATA *data,
 
 /*! \brief Adds a 'generic' list of certs to P12 */
 
-int PKI_X509_PKCS12_DATA_add_other_certs ( PKI_X509_PKCS12_DATA *data, 
-        PKI_X509_CERT_STACK *sk, PKI_CRED *cred ) {
+int PKI_X509_PKCS12_DATA_add_other_certs(
+			PKI_X509_PKCS12_DATA *data, 
+        		const PKI_X509_CERT_STACK * const sk,
+			const PKI_CRED * const cred ) {
 
   STACK_OF(PKCS12_SAFEBAG) *bags = NULL;
   char *pass = NULL;
@@ -984,7 +974,9 @@ PKI_X509_PKCS12_VALUE *PEM_read_bio_PKCS12( PKI_IO *bp ) {
 #endif
 }
 
-int PEM_write_bio_PKCS12( PKI_IO *bp, PKI_X509_PKCS12_VALUE *o ) {
+int PEM_write_bio_PKCS12( PKI_IO *bp, 
+			  const PKI_X509_PKCS12_VALUE * o ) {
+
   return PEM_ASN1_write_bio ( (int (*)())i2d_PKCS12, 
       PKI_X509_PKCS12_PEM_ARMOUR, bp, (char *) o, NULL, 
         NULL, 0, NULL, NULL );

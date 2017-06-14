@@ -182,7 +182,7 @@ char * PKI_OID_get_str ( const PKI_OID *a ) {
 		return ( NULL );
 	}
 
-	i2a_ASN1_OBJECT( mem, a );
+	i2a_ASN1_OBJECT(mem, (ASN1_OBJECT *)a);
 
 	/* Copy the data from the BIO to the PKI_MEM structure */
 	BIO_get_mem_ptr(mem, &buf_mem);

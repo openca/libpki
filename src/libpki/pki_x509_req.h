@@ -42,8 +42,8 @@ const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_name(
 /* Retrieve Data from a REQ object */
 int PKI_X509_REQ_get_keysize ( const PKI_X509_REQ *x );
 
-void * PKI_X509_REQ_get_data ( const PKI_X509_REQ *req, 
-			       PKI_X509_DATA type );
+const void * PKI_X509_REQ_get_data ( const PKI_X509_REQ *req, 
+				     PKI_X509_DATA type );
 
 const char * PKI_X509_REQ_get_parsed(const PKI_X509_REQ *req,
 				     PKI_X509_DATA type);

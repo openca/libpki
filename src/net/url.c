@@ -100,7 +100,7 @@ const char *URL_proto_to_string ( URI_PROTO proto ) {
 	return ( (const char * ) pnt->string );
 }
 
-PKI_MEM_STACK *URL_get_data_fd( URL *url, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_fd(const URL *url, ssize_t size ) {
 
 	PKI_MEM_STACK * ret = NULL;
 	PKI_MEM * obj = NULL;
@@ -179,7 +179,7 @@ PKI_MEM_STACK *URL_get_data_fd( URL *url, ssize_t size ) {
  * its protocol.
  */
 
-PKI_MEM_STACK *URL_get_data_file( URL *url, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_file(const URL *url, ssize_t size ) {
 
 	PKI_MEM_STACK * ret = NULL;
 	PKI_MEM * obj = NULL;
@@ -243,10 +243,8 @@ PKI_MEM_STACK *URL_get_data(const char *url_s, int timeout,
 	URL *url = NULL;
 	PKI_MEM_STACK *ret = NULL;
 
-	if( !url_s ) return (NULL);
-	if(( url = URL_new(url_s)) == NULL ) {
-		return (NULL);
-	}
+	if (!url_s) return NULL;
+	if ((url = URL_new(url_s)) == NULL) return NULL;
 
 	ret = URL_get_data_url( url, timeout, size, ssl );
 
@@ -586,7 +584,7 @@ char *URL_get_parsed ( URL *url )
  * pkcs11:// (URI_PROTO_PKCS11), dns://(URI_PROTO_DNS), socket://(URI_PROTO_SOCKET)
  */
 
-URL *URL_new ( char *url_s ) {
+URL *URL_new(const char * const url_s ) {
 
 	URL *ret = NULL;
 	char *tmp_s = NULL;

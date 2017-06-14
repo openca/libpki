@@ -119,7 +119,7 @@ typedef struct http_headers {
 
 /* ----------------------- URL Function prototypes --------------------- */
 void URL_free ( URL *url );
-URL *URL_new ( char *url );
+URL *URL_new (const char * const url );
 char *URL_get_parsed ( URL *url );
 
 const char *URL_proto_to_string ( URI_PROTO proto );

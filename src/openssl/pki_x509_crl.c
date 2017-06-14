@@ -59,9 +59,14 @@ void PKI_X509_CRL_free_void( void *x ) {
  * entry the PKI_X509_CRL_ENTRY_new() function has to be used.
  */
 
-PKI_X509_CRL *PKI_X509_CRL_new ( PKI_X509_KEYPAIR *k, PKI_X509_CERT *cert, 
-	char * crlNumber_s, unsigned long validity, PKI_X509_CRL_ENTRY_STACK *sk, 
-			PKI_X509_PROFILE *profile, PKI_CONFIG *oids, HSM *hsm) {
+PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR *k,
+			       const PKI_X509_CERT *cert, 
+			       const char * crlNumber_s,
+			       unsigned long validity,
+			       const PKI_X509_CRL_ENTRY_STACK *sk, 
+			       const PKI_X509_PROFILE *profile,
+			       const PKI_CONFIG *oids,
+			       HSM *hsm) {
 
 	PKI_X509_CRL *ret = NULL;
 	PKI_X509_CRL_VALUE *val = NULL;
@@ -282,8 +287,8 @@ PKI_X509_CRL *PKI_X509_CRL_new ( PKI_X509_KEYPAIR *k, PKI_X509_CERT *cert,
 			return NULL;
 		}
 
-		PKI_TOKEN_set_cert ( tk, cert );
-		PKI_TOKEN_set_keypair ( tk, k );
+		PKI_TOKEN_set_cert(tk, (PKI_X509_CERT *)cert);
+		PKI_TOKEN_set_keypair(tk, (PKI_X509_KEYPAIR *)k);
 
 		if(PKI_X509_EXTENSIONS_crl_add_profile( profile, oids, ret, tk) == 0 ) {
 					PKI_log_debug( "ERROR, can not set extensions!");
@@ -382,9 +387,10 @@ int PKI_X509_CRL_REASON_CODE_num ( void ) {
  * order to generate a new CRL.
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new ( PKI_X509_CERT *cert, 
-		PKI_X509_CRL_REASON reason, PKI_TIME * revDate,
-						PKI_X509_PROFILE *profile ) {
+PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new(const PKI_X509_CERT *cert, 
+					    PKI_X509_CRL_REASON reason,
+					    const PKI_TIME * revDate,
+					    const PKI_X509_PROFILE *profile ) {
 
 	PKI_X509_CRL_ENTRY *entry = NULL;
 	char *ser_s = NULL;
@@ -409,9 +415,11 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new ( PKI_X509_CERT *cert,
  * is used to add extensions to the entry (when needed)
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial ( char *serial, 
-		PKI_X509_CRL_REASON reason, PKI_TIME *revDate,
-					PKI_X509_PROFILE *profile ) {
+PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
+					const char *serial, 
+					PKI_X509_CRL_REASON reason,
+					const PKI_TIME *revDate,
+					const PKI_X509_PROFILE *profile ) {
 
 	PKI_X509_CRL_ENTRY *entry = NULL;
 
@@ -442,11 +450,20 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial ( char *serial,
 		{
 			case PKI_CRL_REASON_CERTIFICATE_HOLD:
 			case PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT:
-				if (!X509_REVOKED_add1_ext_i2d(entry, NID_hold_instruction_code, PKI_OID_get("holdInstructionReject"), 0, 0))
+				if (!X509_REVOKED_add1_ext_i2d(
+					entry,
+					NID_hold_instruction_code,
+					PKI_OID_get("holdInstructionReject"), 
+									0, 0)) {
 					goto err;
+				}
 
-				if (revDate && !X509_REVOKED_add1_ext_i2d(entry, NID_invalidity_date, revDate, 0, 0))
+				if (revDate && !X509_REVOKED_add1_ext_i2d(
+						entry,
+						NID_invalidity_date,
+						(PKI_TIME *)revDate, 0, 0)) {
 					goto err;
+				}
 
 				supported_reason = PKI_CRL_REASON_CERTIFICATE_HOLD;
 				break;
@@ -466,11 +483,21 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial ( char *serial,
 			*/
 
 			case PKI_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER:
-				if (!X509_REVOKED_add1_ext_i2d(entry, NID_hold_instruction_code, 
-						PKI_OID_get( "holdInstructionCallIssuer"), 0, 0)) goto err;
+				if (!X509_REVOKED_add1_ext_i2d(
+					entry, 
+					NID_hold_instruction_code, 
+					PKI_OID_get( 
+					  "holdInstructionCallIssuer"), 0, 0)) {
+					goto err;
+				}
 
-				if( revDate && !X509_REVOKED_add1_ext_i2d ( entry, 
-						NID_invalidity_date, revDate, 0, 0)) goto err;
+				if( revDate && !X509_REVOKED_add1_ext_i2d(
+							entry, 
+							NID_invalidity_date, 
+							(PKI_TIME *)revDate, 
+							0, 0)) {
+					goto err;
+				}
 
 				supported_reason = PKI_CRL_REASON_CERTIFICATE_HOLD;
 				break;
@@ -573,10 +600,10 @@ int PKI_X509_CRL_ENTRY_free ( PKI_X509_CRL_ENTRY *entry ) {
  * more point to a valid memory area.
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup( PKI_X509_CRL *x, 
-						PKI_INTEGER *s ) {
+const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup(const PKI_X509_CRL *x, 
+					       const PKI_INTEGER *s ) {
 
-	PKI_X509_CRL_ENTRY *r = NULL;
+	const PKI_X509_CRL_ENTRY *r = NULL;
 	X509_CRL *crl = NULL;
 
         long long curr = 0;
@@ -613,23 +640,21 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup( PKI_X509_CRL *x,
  * more point to a valid memory area.
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_serial( PKI_X509_CRL *x, 
-							char *serial ) {
+const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_serial(const PKI_X509_CRL *x, 
+						      const char *serial ) {
 
 	ASN1_INTEGER *s = NULL;
-	PKI_X509_CRL_ENTRY *r = NULL;
+	const PKI_X509_CRL_ENTRY *r = NULL;
 
-	if( !x || !serial ) return (NULL);
+	if (!x || !serial) return (NULL);
 
-	if((s = PKI_INTEGER_new_char ( serial )) == NULL ) {
-		return ( NULL );
-	}
+	if ((s = PKI_INTEGER_new_char ( serial )) == NULL) return NULL;
 
 	r = PKI_X509_CRL_lookup ( x, s );
 
-	if ( s ) PKI_INTEGER_free ( s );
+	if (s) PKI_INTEGER_free(s);
 
-	return( r );
+	return r;
 }
 
 /*! \brief Find an entry in a CRL by using a certificate
@@ -641,45 +666,29 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_serial( PKI_X509_CRL *x,
  * area.
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_cert ( PKI_X509_CRL *x, 
-							PKI_X509_CERT *cert ) {
+const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_cert(const PKI_X509_CRL *x, 
+						    const PKI_X509_CERT *cert) {
 
-	// ASN1_INTEGER *serial = NULL;
-	PKI_INTEGER *serial = NULL;
+	const PKI_INTEGER *serial = NULL;
 
-	if( !x || !cert ) return (NULL);
+	if (!x || !cert) return NULL;
 
-	if((serial = PKI_X509_CERT_get_data ( cert, 
-			PKI_X509_DATA_SERIAL )) == NULL ) {
+	if ((serial = PKI_X509_CERT_get_data(cert, 
+					     PKI_X509_DATA_SERIAL )) == NULL ) {
 		return ( NULL );
 	}
 
-	/*
-	if((serial = X509_get_serialNumber( (X509 *) cert )) == NULL ) {
-		return (NULL);
-	}
-
-	if((serial_s = i2s_ASN1_INTEGER( NULL, serial )) == NULL ) {
-		return(NULL);
-	}
-
-	entry = PKI_X509_CRL_lookup_serial( x, serial_s );
-	*/
-
-	/* Now let's free the serial_s */
-	// if( serial_s ) PKI_Free ( serial_s );
-
 	return PKI_X509_CRL_lookup ( x, serial );
-	// return( entry );
 }
 
 /*! \brief Lookup for a serial (long long) in a PKI_X509_CRL and returns the
  *         PKI_X509_CRL_ENTRY entry if found */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_long(PKI_X509_CRL *x, long long s ) {
+const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_long(const PKI_X509_CRL *x,
+						    long long s ) {
 
 	PKI_INTEGER * serial = NULL;
-	PKI_X509_CRL_ENTRY *entry = NULL;
+	const PKI_X509_CRL_ENTRY *entry = NULL;
 
 	if ( !x ) return NULL;
 
@@ -736,9 +745,10 @@ int PKI_X509_CRL_add_extension_stack(PKI_X509_CRL *x,
 /*! \brief Get Data from a CRL object
  */
 
-void * PKI_X509_CRL_get_data ( PKI_X509_CRL *x, PKI_X509_DATA type ) {
+const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
+				   PKI_X509_DATA type ) {
 
-	void *ret = NULL;
+	const void *ret = NULL;
 	PKI_X509_CRL_VALUE *tmp_x = NULL;
 	PKI_MEM *mem = NULL;
 
@@ -793,52 +803,54 @@ void * PKI_X509_CRL_get_data ( PKI_X509_CRL *x, PKI_X509_DATA type ) {
 	return (ret);
 }
 
-char * PKI_X509_CRL_get_parsed( PKI_X509_CRL *x, PKI_X509_DATA type ) {
+char * PKI_X509_CRL_get_parsed(const PKI_X509_CRL *x, PKI_X509_DATA type ) {
 
 	char *ret = NULL;
-	PKI_ALGOR *al = NULL;
+	const PKI_ALGOR *al = NULL;
 
-	if( !x || !x->value ) return (NULL);
-
-	// PKI_X509_CRL_VALUE *x_val = NULL;
-	// x_val = x->value;
+	if (!x || !x->value) return NULL;
 
 	switch (type)
 	{
 		case PKI_X509_DATA_VERSION:
-			ret = PKI_INTEGER_get_parsed(PKI_X509_CRL_get_data(x, type));
-			if (!ret) ret = strdup ("NONE");
+			ret = PKI_INTEGER_get_parsed(
+					PKI_X509_CRL_get_data(x, type));
+			if (!ret) ret = strdup("NONE");
 			break;
 
 		case PKI_X509_DATA_ISSUER:
-			ret = PKI_X509_NAME_get_parsed(PKI_X509_CRL_get_data(x, type));
-			if (!ret) ret = strdup ("NONE");
+			ret = PKI_X509_NAME_get_parsed(
+					PKI_X509_CRL_get_data(x, type));
+			if (!ret) ret = strdup("NONE");
 			break;
 
 		case PKI_X509_DATA_ALGORITHM:
-			if ((al = PKI_X509_CRL_get_data ( x, type )) != NULL)
-				ret = strdup ( PKI_OID_get_descr ( al->algorithm));
+			if ((al = PKI_X509_CRL_get_data(x, type)) != NULL)
+				ret = strdup(PKI_OID_get_descr(al->algorithm));
 			else
-				ret = strdup ("NONE");
+				ret = strdup("NONE");
 			break;
 
 		case PKI_X509_DATA_LASTUPDATE:
 		case PKI_X509_DATA_NEXTUPDATE:
 		case PKI_X509_DATA_NOTBEFORE:
 		case PKI_X509_DATA_NOTAFTER:
-			ret = PKI_TIME_get_parsed(PKI_X509_CRL_get_data(x, type));
-			if (!ret) ret = strdup ("NONE");
+			ret = PKI_TIME_get_parsed(
+					PKI_X509_CRL_get_data(x, type));
+			if (!ret) ret = strdup("NONE");
 			break;
 
 		default:
 			/* Not Recognized/Supported DATATYPE */
-			return (NULL);
+			return NULL;
 	}
 
-	return (ret);
+	return ret;
 }
 
-int PKI_X509_CRL_print_parsed(PKI_X509_CRL *x, PKI_X509_DATA type, int fd){
+int PKI_X509_CRL_print_parsed(const PKI_X509_CRL *x,
+			      PKI_X509_DATA type,
+			      int fd){
 
 	const char *str = NULL;
 	ssize_t rv = 0;
@@ -857,7 +869,9 @@ int PKI_X509_CRL_print_parsed(PKI_X509_CRL *x, PKI_X509_DATA type, int fd){
 		rv = write(fd, str, (size_t) strlen(str));
 		if (rv < strlen(str))
 		{
-			PKI_ERROR(PKI_ERR_GENERAL, "Error writing bytes (%d vs %d)", rv, strlen(str));
+			PKI_ERROR(PKI_ERR_GENERAL, 
+				  "Error writing bytes (%d vs %d)", 
+				  rv, strlen(str));
 			return PKI_ERR;
 		}
 	}
@@ -865,41 +879,3 @@ int PKI_X509_CRL_print_parsed(PKI_X509_CRL *x, PKI_X509_DATA type, int fd){
 	return PKI_OK;
 }
 
-/*! \brief Puts a CRL in a PKI_MEM structure */
-/*
-PKI_MEM *PKI_X509_CRL_put_mem ( PKI_X509_CRL *x, int format ) {
-
-	PKI_X509_CRL_STACK *sk = NULL;
-	PKI_MEM *pki_mem = NULL;
-
-	if( !x ) return ( NULL );
-
-	if((sk = PKI_STACK_X509_CRL_new()) == NULL ) {
-		PKI_log_err ( "PKI_X509_CRL_STACK_put_mem()::Memory Error!");
-		return ( NULL );
-	}
-
-	if( PKI_STACK_X509_CRL_push ( sk, x ) == PKI_ERR ) {
-		PKI_log_err ( "PKI_X509_CRL_STACK_put_mem()::Memory Error!");
-		if( sk ) PKI_STACK_X509_CRL_free ( sk );
-		return ( NULL );
-	}
-
-	if((pki_mem = PKI_MEM_new_null()) == NULL ) {
-		PKI_log_err ( "PKI_X509_CRL_STACK_put_mem()::Memory Error!");
-		if( sk ) PKI_STACK_X509_CRL_free ( sk );
-		return ( NULL );
-	}
-
-	if((PKI_X509_CRL_STACK_put_mem(sk, format, pki_mem, NULL, 0)) 
-								== PKI_ERR) {
-		if( sk ) PKI_STACK_X509_CRL_free ( sk );
-		if ( pki_mem ) PKI_MEM_free ( pki_mem );
-		return ( NULL );
-	}
-
-	if ( sk ) PKI_STACK_X509_CRL_free_all (sk);
-
-	return ( pki_mem );
-}
-*/

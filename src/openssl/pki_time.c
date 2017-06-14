@@ -77,7 +77,7 @@ int PKI_TIME_adj( PKI_TIME *time, long long offset ) {
  * \brief Returns a Human readable version of a PKI_TIME
  */
 
-char *PKI_TIME_get_parsed ( PKI_TIME *t ) {
+char *PKI_TIME_get_parsed(const PKI_TIME *t ) {
 
 	BUF_MEM *bm = NULL;
 	BIO *mem = NULL;
@@ -101,7 +101,7 @@ char *PKI_TIME_get_parsed ( PKI_TIME *t ) {
 
 /*! \brief Returns a duplicate of the PKI_TIME object */
 
-PKI_TIME * PKI_TIME_dup ( PKI_TIME *time ) {
+PKI_TIME * PKI_TIME_dup(const PKI_TIME *time) {
 
 	// Input Check
 	if ( !time ) return NULL;
@@ -118,22 +118,21 @@ PKI_TIME * PKI_TIME_dup ( PKI_TIME *time ) {
  * \brief Prints a PKI_TIME to standard output
  */
 
-int PKI_TIME_print ( PKI_TIME *time ) {
-	return ( PKI_TIME_print_fp( stdout, time ));
+int PKI_TIME_print(const PKI_TIME *time) {
+	return PKI_TIME_print_fp(stdout, time);
 }
 
 /*!
  * \brief Prints out a PKI_TIME to a FILE stream
  */
 
-int PKI_TIME_print_fp ( FILE *fp, PKI_TIME *time ) {
+int PKI_TIME_print_fp(const FILE *fp, const PKI_TIME *time ) {
 
 	BIO *out = NULL;
-	if( !time || !fp ) return ( PKI_ERR );
 
-	if((out = BIO_new_fp( fp, BIO_NOCLOSE )) == NULL ) {
-		return( PKI_ERR );
-	}
+	if (!time || !fp) return PKI_ERR;
+
+	if ((out = BIO_new_fp((FILE *)fp, BIO_NOCLOSE)) == NULL) return PKI_ERR;
 	
 	ASN1_GENERALIZEDTIME_print(out, time);
 

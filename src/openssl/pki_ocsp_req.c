@@ -64,7 +64,7 @@ int PKI_X509_OCSP_REQ_add_nonce ( PKI_X509_OCSP_REQ *req, size_t size ) {
 int PKI_X509_OCSP_REQ_add_serial ( PKI_X509_OCSP_REQ *req, PKI_INTEGER *serial,
 			PKI_X509_CERT *issuer, PKI_DIGEST_ALG *digest ) {
 
-	PKI_X509_NAME *iname = NULL;
+	const PKI_X509_NAME *iname = NULL;
 	ASN1_BIT_STRING *ikey = NULL;
 
 	OCSP_CERTID *id = NULL;
@@ -81,11 +81,14 @@ int PKI_X509_OCSP_REQ_add_serial ( PKI_X509_OCSP_REQ *req, PKI_INTEGER *serial,
 	iname = PKI_X509_CERT_get_data(issuer, PKI_X509_DATA_SUBJECT);
 	ikey = X509_get0_pubkey_bitstr(issuer->value);
 
-	if((id = OCSP_cert_id_new( md, iname, ikey, serial)) == NULL)
+	if((id = OCSP_cert_id_new(md, 
+				  (PKI_X509_NAME *)iname,
+				  ikey,
+				  serial)) == NULL) {
 		return PKI_ERR;
+	}
 
-	if(!OCSP_request_add0_id(req->value, id))
-		return PKI_ERR;
+	if(!OCSP_request_add0_id(req->value, id)) return PKI_ERR;
 
 	return PKI_OK;
 }
@@ -96,16 +99,19 @@ int PKI_X509_OCSP_REQ_add_serial ( PKI_X509_OCSP_REQ *req, PKI_INTEGER *serial,
 int PKI_X509_OCSP_REQ_add_cert ( PKI_X509_OCSP_REQ *req, PKI_X509_CERT *cert, 
 			PKI_X509_CERT *issuer, PKI_DIGEST_ALG *digest ) {
 
-	PKI_INTEGER *serial = NULL;
+	const PKI_INTEGER *serial = NULL;
 
-	if ( !req || !cert || !issuer ) return PKI_ERR;
+	if (!req || !cert || !issuer) return PKI_ERR;
 
-	if((serial = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_SERIAL)) == NULL)
-	{
+	if ((serial = PKI_X509_CERT_get_data(cert, 
+					     PKI_X509_DATA_SERIAL)) == NULL) {
 		return PKI_ERR;
 	}
 
-	return PKI_X509_OCSP_REQ_add_serial(req, serial, issuer, digest);
+	return PKI_X509_OCSP_REQ_add_serial(req, 
+					    (PKI_INTEGER *)serial, 
+					    issuer,
+					    digest);
 }
 
 /*! \brief Adds one basic request (one certificate) to the request by using
@@ -310,7 +316,8 @@ int PKI_X509_OCSP_REQ_sign ( PKI_X509_OCSP_REQ *req, PKI_X509_KEYPAIR *keypair,
 
 	if( cert ) {
 		OCSP_request_set1_name ( val,  
-			PKI_X509_CERT_get_data ( cert, PKI_X509_DATA_SUBJECT));
+			(PKI_X509_NAME *)PKI_X509_CERT_get_data(cert, 
+						PKI_X509_DATA_SUBJECT));
 	}
 
 	if((PKI_X509_OCSP_REQ_DATA_sign( req, keypair, 

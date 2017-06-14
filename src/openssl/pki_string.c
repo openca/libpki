@@ -104,7 +104,7 @@ int PKI_STRING_get_type(const PKI_STRING *s )
 
 	if( !s ) return ( ret );
 
-	type = ASN1_STRING_type ( s );
+	type = ASN1_STRING_type((ASN1_STRING *)s);
 
 	switch( type ) {
 		case PKI_STRING_IA5:
@@ -171,9 +171,10 @@ char * PKI_STRING_get_utf8( const PKI_STRING *s ) {
 
 	char *ret = NULL;
 
-	if( !s ) return ( NULL );
+	if (!s) return NULL;
 
-	if((ASN1_STRING_to_UTF8( (unsigned char **) &ret, s )) < 0 ) {
+	if ((ASN1_STRING_to_UTF8((unsigned char **)&ret, 
+						(ASN1_STRING *)s)) < 0 ) {
 		PKI_log_debug("Error, can not convert string to utf8!"
 					" [type %d]", s->type );
 		return NULL;

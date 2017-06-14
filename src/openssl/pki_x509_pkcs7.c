@@ -4,7 +4,7 @@
 
 /* ------------------------------ internal (static ) ------------------------- */
 
-static STACK_OF(X509) * __get_chain ( PKI_X509_PKCS7 *p7 ) {
+static const STACK_OF(X509) * __get_chain (const PKI_X509_PKCS7 * const p7) {
 
 	STACK_OF(X509) *x_sk = NULL;
 	int type = 0;
@@ -31,7 +31,7 @@ static STACK_OF(X509) * __get_chain ( PKI_X509_PKCS7 *p7 ) {
 	return x_sk;
 }
 
-static STACK_OF(X509_CRL) *__get_crl ( PKI_X509_PKCS7 *p7 ) {
+static const STACK_OF(X509_CRL) *__get_crl (const PKI_X509_PKCS7 * const p7 ) {
 
 	STACK_OF(X509_CRL) *x_sk = NULL;
 	int type = 0;
@@ -62,7 +62,7 @@ static STACK_OF(X509_CRL) *__get_crl ( PKI_X509_PKCS7 *p7 ) {
 
 /*! \brief Returns the number of recipients */
 
-int PKI_X509_PKCS7_get_recipients_num ( PKI_X509_PKCS7 *p7 ) {
+int PKI_X509_PKCS7_get_recipients_num(const PKI_X509_PKCS7 * const p7 ) {
 
 	STACK_OF(PKCS7_RECIP_INFO) *r_sk = NULL;
 	PKI_X509_PKCS7_VALUE *p7val = NULL;
@@ -133,8 +133,9 @@ int PKI_X509_PKCS7_get_signers_num ( PKI_X509_PKCS7 *p7 ) {
 	return ret;
 }
 
-PKCS7_RECIP_INFO * PKI_X509_PKCS7_get_recipient_info ( PKI_X509_PKCS7 *p7,
-							int idx ) {
+const PKCS7_RECIP_INFO * PKI_X509_PKCS7_get_recipient_info(
+					const PKI_X509_PKCS7 * const p7,
+					int idx ) {
 
 	int type = 0;
 	int recipients_num = 0;
@@ -174,9 +175,11 @@ PKCS7_RECIP_INFO * PKI_X509_PKCS7_get_recipient_info ( PKI_X509_PKCS7 *p7,
 
 /*! \brief Returns a copy of the n-th recipient certificate */
 
-PKI_X509_CERT * PKI_X509_PKCS7_get_recipient_cert ( PKI_X509_PKCS7 *p7,
-							int idx ) {
-	PKCS7_RECIP_INFO *r_info = NULL;
+PKI_X509_CERT * PKI_X509_PKCS7_get_recipient_cert(
+				const PKI_X509_PKCS7 * const p7,
+				int idx ) {
+
+	const PKCS7_RECIP_INFO *r_info = NULL;
 	PKI_X509_CERT *ret = NULL;
 
 	r_info = PKI_X509_PKCS7_get_recipient_info ( p7, idx );
@@ -191,7 +194,8 @@ PKI_X509_CERT * PKI_X509_PKCS7_get_recipient_cert ( PKI_X509_PKCS7 *p7,
 
 /*! \brief Returns the encryption algorithm */
 
-PKI_ALGOR * PKI_X509_PKCS7_get_encode_alg ( PKI_X509_PKCS7 *p7 ) {
+const PKI_ALGOR * PKI_X509_PKCS7_get_encode_alg(
+				const PKI_X509_PKCS7 * const p7) {
 
 	PKI_ALGOR *ret = NULL;
 	PKI_X509_PKCS7_VALUE *val = NULL;
@@ -214,13 +218,14 @@ PKI_ALGOR * PKI_X509_PKCS7_get_encode_alg ( PKI_X509_PKCS7 *p7 ) {
 	return ret;
 }
 
-PKCS7_SIGNER_INFO * PKI_X509_PKCS7_get_signer_info ( PKI_X509_PKCS7 *p7, 
-								int idx ) {
+const PKCS7_SIGNER_INFO * PKI_X509_PKCS7_get_signer_info(
+					const PKI_X509_PKCS7 * const p7, 
+					int idx ) {
 
 	int type = 0;
 	int cnt = 0;
-	STACK_OF(PKCS7_SIGNER_INFO) *sk = NULL;
-	PKCS7_SIGNER_INFO *ret = NULL;
+	const STACK_OF(PKCS7_SIGNER_INFO) *sk = NULL;
+	const PKCS7_SIGNER_INFO *ret = NULL;
 
 	PKI_X509_PKCS7_VALUE *value = NULL;
 
@@ -256,7 +261,7 @@ PKCS7_SIGNER_INFO * PKI_X509_PKCS7_get_signer_info ( PKI_X509_PKCS7 *p7,
 		ret = sk_PKCS7_SIGNER_INFO_value( sk, cnt-1 );
 	}
 	
-	return (ret);
+	return ret;
 }
 
 /* ----------------------- Exported Functions -------------------------*/
@@ -320,7 +325,7 @@ PKI_X509_PKCS7 *PKI_X509_PKCS7_new ( PKI_X509_PKCS7_TYPE type ) {
  * \brief Returns the type of the PKI_X509_PKCS7 data (see PKI_X509_PKCS7_TYPE)
  */
 
-PKI_X509_PKCS7_TYPE PKI_X509_PKCS7_get_type ( PKI_X509_PKCS7 *p7 ) {
+PKI_X509_PKCS7_TYPE PKI_X509_PKCS7_get_type(const PKI_X509_PKCS7 * const p7 ) {
 
 	PKI_ID type = PKI_ID_UNKNOWN;
 	PKI_X509_PKCS7_VALUE *value = NULL;
@@ -358,7 +363,8 @@ PKI_X509_PKCS7_TYPE PKI_X509_PKCS7_get_type ( PKI_X509_PKCS7 *p7 ) {
 }
 
 
-int PKI_X509_PKCS7_add_crl ( PKI_X509_PKCS7 *p7, PKI_X509_CRL *crl ) {
+int PKI_X509_PKCS7_add_crl(const PKI_X509_PKCS7 *p7,
+			   const PKI_X509_CRL * const crl ) {
 
 	if ( !p7 || !p7->value || !crl ) {
 		PKI_log_err( "PKI_X509_PKCS7_add_crl()::Missing CRL");
@@ -370,8 +376,8 @@ int PKI_X509_PKCS7_add_crl ( PKI_X509_PKCS7 *p7, PKI_X509_CRL *crl ) {
 	return( PKI_OK );
 }
 
-int PKI_X509_PKCS7_add_crl_stack ( PKI_X509_PKCS7 *p7, 
-						PKI_X509_CRL_STACK *crl_sk ) {
+int PKI_X509_PKCS7_add_crl_stack(const PKI_X509_PKCS7 *p7, 
+				 const PKI_X509_CRL_STACK * const crl_sk ) {
 	int i;
 
 	if( !p7 || !p7->value || !crl_sk ) {
@@ -382,11 +388,10 @@ int PKI_X509_PKCS7_add_crl_stack ( PKI_X509_PKCS7 *p7,
 	for( i=0; i < PKI_STACK_X509_CRL_elements( crl_sk ); i++ ) {
 		PKI_X509_CRL *crl = NULL;
 
-		if(( crl = PKI_STACK_X509_CRL_get_num ( crl_sk, i )) == NULL ){
+		if ((crl = PKI_STACK_X509_CRL_get_num(crl_sk, i)) == NULL)
 			continue;
-		}
 
-		PKCS7_add_crl ( p7->value, crl->value );
+		PKCS7_add_crl( p7->value, crl->value);
 	}
 
 	return PKI_OK;
@@ -395,49 +400,43 @@ int PKI_X509_PKCS7_add_crl_stack ( PKI_X509_PKCS7 *p7,
 
 /*! \brief Returns the number of CRLs present in the signature */
 
-int PKI_X509_PKCS7_get_crls_num ( PKI_X509_PKCS7 *p7 ) {
+int PKI_X509_PKCS7_get_crls_num(const PKI_X509_PKCS7 * const p7 ) {
 
-	STACK_OF(X509_CRL) *x_sk = NULL;
+	const STACK_OF(X509_CRL) *x_sk = NULL;
 
-	if((x_sk = __get_crl ( p7 )) == NULL ) {
-		return -1;
-	}
+	if ((x_sk = __get_crl(p7)) == NULL) return -1;
 
-	return sk_X509_CRL_num ( x_sk );
+	return sk_X509_CRL_num((STACK_OF(X509_CRL) *) x_sk);
 }
 
 
 /*! \brief Returns a copy of the n-th CRL from the signature */
 
-PKI_X509_CERT *PKI_X509_PKCS7_get_crl (PKI_X509_PKCS7 *p7, int idx) {
+PKI_X509_CRL *PKI_X509_PKCS7_get_crl(const PKI_X509_PKCS7 * const p7,
+				     int idx) {
 
 	PKI_X509_CRL_VALUE *x = NULL;
-	STACK_OF(X509_CRL) *x_sk = NULL;
+	const STACK_OF(X509_CRL) *x_sk = NULL;
 
-	if( !p7 || !p7->value ) return ( NULL );
+	if (!p7 || !p7->value) return ( NULL );
 
-	if((x_sk = __get_crl ( p7 )) == NULL ) {
-		return NULL;
-	}
-
-	// num_crl = sk_X509_CRL_num ( x_sk );
+	if ((x_sk = __get_crl(p7)) == NULL) return NULL;
 
 	if ( idx < 0 ) idx = 0;
 
-	if((x = sk_X509_CRL_value ( x_sk, idx )) == NULL ) {
-		return NULL;
-	}
+	if ((x = sk_X509_CRL_value(x_sk, idx)) == NULL) return NULL;
 
-	return PKI_X509_new_dup_value ( PKI_DATATYPE_X509_CRL, x, NULL );
+	return PKI_X509_new_dup_value(PKI_DATATYPE_X509_CRL, x, NULL);
 
 }
 
 /*! \brief Adds a certificate to the signature's certificate chain */
 
-int PKI_X509_PKCS7_add_cert (PKI_X509_PKCS7 *p7, PKI_X509_CERT *x) {
+int PKI_X509_PKCS7_add_cert(const PKI_X509_PKCS7 *p7, 
+			    const PKI_X509_CERT * const x) {
 
-	if ( !p7 || !p7->value || !x || !x->value ) {
-		PKI_log_err( "PKI_X509_PKCS7_add_cert()::Missing required param!");
+	if (!p7 || !p7->value || !x || !x->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
 	}
 
@@ -448,8 +447,8 @@ int PKI_X509_PKCS7_add_cert (PKI_X509_PKCS7 *p7, PKI_X509_CERT *x) {
 
 /*! \brief Adds a stack of certificates to the signature's certificate chain */
 
-int PKI_X509_PKCS7_add_cert_stack ( PKI_X509_PKCS7 *p7, 
-						PKI_X509_CERT_STACK *x_sk ) {
+int PKI_X509_PKCS7_add_cert_stack(const PKI_X509_PKCS7 *p7, 
+				  const PKI_X509_CERT_STACK * const x_sk ) {
 	int i;
 
 	if( !p7 || !p7->value || !x_sk ) {
@@ -472,38 +471,31 @@ int PKI_X509_PKCS7_add_cert_stack ( PKI_X509_PKCS7 *p7,
 
 /*! \brief Returns the number of certificates present in the signature chain */
 
-int PKI_X509_PKCS7_get_certs_num ( PKI_X509_PKCS7 *p7 ) {
+int PKI_X509_PKCS7_get_certs_num(const PKI_X509_PKCS7 * const p7 ) {
 
-	STACK_OF(X509) *x_sk = NULL;
+	const STACK_OF(X509) *x_sk = NULL;
 
-	if((x_sk = __get_chain ( p7 )) == NULL ) {
-		return -1;
-	}
+	if ((x_sk = __get_chain(p7)) == NULL) return -1;
 
-	return sk_X509_num ( x_sk );
+	return sk_X509_num((STACK_OF(X509) *)x_sk);
 }
 
 
-/*! \brief Returns the n-th cert from a singed/signed&enc PKCS7 */
+/*! \brief Returns a copy of the n-th cert from a singed/signed&enc PKCS7 */
 
-PKI_X509_CERT *PKI_X509_PKCS7_get_cert (PKI_X509_PKCS7 *p7, int idx) {
+PKI_X509_CERT *PKI_X509_PKCS7_get_cert(const PKI_X509_PKCS7 * const p7,
+				       int idx) {
 
 	PKI_X509_CERT_VALUE *x = NULL;
-	STACK_OF(X509) *x_sk = NULL;
+	const STACK_OF(X509) *x_sk = NULL;
 
-	if( !p7 || !p7->value ) return ( NULL );
+	if (!p7 || !p7->value) return NULL;
 
-	if((x_sk = __get_chain ( p7 )) == NULL ) {
-		return NULL;
-	}
-
-	// num_certs = sk_X509_num ( x_sk );
+	if ((x_sk = __get_chain(p7)) == NULL) return NULL;
 
 	if ( idx < 0 ) idx = 0;
 
-	if((x = sk_X509_value ( x_sk, idx )) == NULL ) {
-		return NULL;
-	}
+	if ((x = sk_X509_value(x_sk, idx)) == NULL) return NULL;
 
 	return PKI_X509_new_dup_value ( PKI_DATATYPE_X509_CERT, x, NULL );
 
@@ -512,38 +504,38 @@ PKI_X509_CERT *PKI_X509_PKCS7_get_cert (PKI_X509_PKCS7 *p7, int idx) {
 
 /*! \brief Clears the chain of certificate for the signer */
 
-int PKI_X509_PKCS7_clear_certs ( PKI_X509_PKCS7 *p7 ) {
+int PKI_X509_PKCS7_clear_certs(const PKI_X509_PKCS7 * p7) {
 
-	STACK_OF(X509) *x_sk = NULL;
+	const STACK_OF(X509) *x_sk = NULL;
 
-	if ((x_sk = __get_chain ( p7 )) == NULL ) {
-		return PKI_ERR;
-	}
-	if ( !x_sk ) return ( PKI_OK );
+	if ((x_sk = __get_chain(p7)) == NULL) return PKI_ERR;
 
-	sk_X509_free ( x_sk );
+	sk_X509_free(x_sk );
 
-	return ( PKI_OK );
+	return PKI_OK;
 }
 
 /*!
  * \brief Returns a signed version of the PKI_X509_PKCS7 by using the passed token
  */
 
-int PKI_X509_PKCS7_add_signer_tk ( PKI_X509_PKCS7 *p7, PKI_TOKEN *tk, 
-							PKI_DIGEST_ALG *md){
+int PKI_X509_PKCS7_add_signer_tk(const PKI_X509_PKCS7 *p7,
+				 const PKI_TOKEN * const tk, 
+				 const PKI_DIGEST_ALG *md){
 
-	if( !p7 || !p7->value ) return PKI_ERR;
+	if (!p7 || !p7->value) return PKI_ERR;
 
-	return PKI_X509_PKCS7_add_signer( p7, tk->cert, tk->keypair, md );
+	return PKI_X509_PKCS7_add_signer(p7, tk->cert, tk->keypair, md);
 }
 
 /*!
  * \brief Signs a PKI_X509_PKCS7 (must be of SIGNED type)
  */
 
-int PKI_X509_PKCS7_add_signer ( PKI_X509_PKCS7 *p7, PKI_X509_CERT *signer,
-			PKI_X509_KEYPAIR *k, PKI_DIGEST_ALG *md ) {
+int PKI_X509_PKCS7_add_signer(const PKI_X509_PKCS7 *p7,
+			      const PKI_X509_CERT * const signer,
+			      const PKI_X509_KEYPAIR * const k,
+			      const PKI_DIGEST_ALG *md ) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
@@ -577,7 +569,7 @@ int PKI_X509_PKCS7_add_signer ( PKI_X509_PKCS7 *p7, PKI_X509_CERT *signer,
  *         otherwise
  */
 
-int PKI_X509_PKCS7_has_signers ( PKI_X509_PKCS7 *p7 ) {
+int PKI_X509_PKCS7_has_signers(const PKI_X509_PKCS7 * const p7 ) {
 
 	int type = 0;
 
@@ -603,7 +595,7 @@ int PKI_X509_PKCS7_has_signers ( PKI_X509_PKCS7 *p7 ) {
  *         otherwise
  */
 
-int PKI_X509_PKCS7_has_recipients ( PKI_X509_PKCS7 *p7 ) {
+int PKI_X509_PKCS7_has_recipients(const PKI_X509_PKCS7 * const p7) {
 
 	int type = 0;
 	PKI_X509_PKCS7_VALUE *value = NULL;
@@ -636,11 +628,12 @@ int PKI_X509_PKCS7_has_recipients ( PKI_X509_PKCS7 *p7 ) {
  * \brief Encode a PKI_X509_PKCS7 by performing sign/encrypt operation
  */
 
-int PKI_X509_PKCS7_encode ( PKI_X509_PKCS7 *p7, unsigned char *data, 
-							size_t size ) {
+int PKI_X509_PKCS7_encode(const PKI_X509_PKCS7 * const p7,
+			  unsigned char *data, 
+			  size_t size ) {
 
 	int type = NID_pkcs7_signed;
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO * signerInfo = NULL;
 	BIO *bio = NULL;
 
 	if( !p7 || !p7->value ) return ( PKI_ERR );
@@ -665,8 +658,10 @@ int PKI_X509_PKCS7_encode ( PKI_X509_PKCS7 *p7, unsigned char *data,
 			return ( PKI_ERR );
 		}
 
-		PKCS7_add_signed_attribute ( signerInfo, NID_pkcs9_contentType,
-			V_ASN1_OBJECT, OBJ_nid2obj(NID_pkcs7_data));
+		PKCS7_add_signed_attribute((PKCS7_SIGNER_INFO *)signerInfo,
+					    NID_pkcs9_contentType,
+					    V_ASN1_OBJECT,
+					    OBJ_nid2obj(NID_pkcs7_data));
 	}
 
 	if((bio = PKCS7_dataInit(p7->value, NULL)) == NULL ) {
@@ -699,7 +694,7 @@ int PKI_X509_PKCS7_encode ( PKI_X509_PKCS7 *p7, unsigned char *data,
  * \brief Returns the raw data contained in a PKI_X509_PKCS7 (any type)
  */
 
-PKI_MEM *PKI_X509_PKCS7_get_raw_data( PKI_X509_PKCS7 *p7 ) {
+PKI_MEM *PKI_X509_PKCS7_get_raw_data(const PKI_X509_PKCS7 * const p7 ) {
 
 	unsigned char *data = NULL;
 	ssize_t len = -1;
@@ -787,21 +782,21 @@ PKI_MEM *PKI_X509_PKCS7_get_raw_data( PKI_X509_PKCS7 *p7 ) {
  *        keypair and, if present, cert of the PKI_TOKEN argument.
  */
 
-PKI_MEM *PKI_X509_PKCS7_get_data_tk ( PKI_X509_PKCS7 *p7, PKI_TOKEN *tk ) {
+PKI_MEM *PKI_X509_PKCS7_get_data_tk(const PKI_X509_PKCS7 * const p7,
+				    const PKI_TOKEN * const tk ) {
 
-	if (!p7 || !tk ) {
-		return ( NULL );
-	}
+	if (!p7 || !tk ) return NULL;
 
-	return ( PKI_X509_PKCS7_get_data( p7, tk->keypair, tk->cert ));
+	return PKI_X509_PKCS7_get_data(p7, tk->keypair, tk->cert);
 }
 
 /*!
  * \brief Decrypts (if needed) and returns the data from a PKI_X509_PKCS7
  */
 
-PKI_MEM *PKI_X509_PKCS7_get_data ( PKI_X509_PKCS7 *p7, PKI_X509_KEYPAIR *k,
-					PKI_X509_CERT *x ) {
+PKI_MEM *PKI_X509_PKCS7_get_data(const PKI_X509_PKCS7 * const p7,
+				 const PKI_X509_KEYPAIR * const k,
+				 const PKI_X509_CERT * const x ) {
 
 	PKI_ID type;
 
@@ -826,8 +821,9 @@ PKI_MEM *PKI_X509_PKCS7_get_data ( PKI_X509_PKCS7 *p7, PKI_X509_KEYPAIR *k,
  */
 
 
-PKI_MEM *PKI_X509_PKCS7_decode ( PKI_X509_PKCS7 *p7, PKI_X509_KEYPAIR *k, 
-						PKI_X509_CERT *x ) {
+PKI_MEM *PKI_X509_PKCS7_decode(const PKI_X509_PKCS7 * const p7,
+			       const PKI_X509_KEYPAIR * const k, 
+			       const PKI_X509_CERT * const x ) {
 
 	BIO *bio = NULL;
 	PKI_MEM *mem = NULL;
@@ -874,7 +870,8 @@ PKI_MEM *PKI_X509_PKCS7_decode ( PKI_X509_PKCS7 *p7, PKI_X509_KEYPAIR *k,
 
 /*! \brief Set the cipher in a encrypted (or signed and encrypted) PKCS7 */
 
-int PKI_X509_PKCS7_set_cipher ( PKI_X509_PKCS7 *p7, PKI_CIPHER *cipher ) {
+int PKI_X509_PKCS7_set_cipher(const PKI_X509_PKCS7 *p7,
+			      const PKI_CIPHER * cipher ) {
 
 	int type;
 
@@ -901,8 +898,8 @@ int PKI_X509_PKCS7_set_cipher ( PKI_X509_PKCS7 *p7, PKI_CIPHER *cipher ) {
 
 /*! \brief Sets the recipients for a PKI_X509_PKCS7 */
 
-int PKI_X509_PKCS7_set_recipients ( PKI_X509_PKCS7 *p7, 
-					PKI_X509_CERT_STACK *x_sk ) {
+int PKI_X509_PKCS7_set_recipients(const PKI_X509_PKCS7 *p7, 
+				  const PKI_X509_CERT_STACK * const x_sk ) {
 
 	int i = 0;
 	int type;
@@ -929,191 +926,182 @@ int PKI_X509_PKCS7_set_recipients ( PKI_X509_PKCS7 *p7,
 }
 
 /*! \brief Adds a new recipient for the PKI_X509_PKCS7 */
-int PKI_X509_PKCS7_add_recipient ( PKI_X509_PKCS7 *p7, PKI_X509_CERT *x ) {
+int PKI_X509_PKCS7_add_recipient(const PKI_X509_PKCS7 *p7,
+				 const PKI_X509_CERT * const x ) {
 
-	if( !p7 || !p7->value || !x || !x->value ) return ( PKI_ERR );
+	if (!p7 || !p7->value || !x || !x->value) return PKI_ERR;
 
 	PKCS7_add_recipient( p7->value, x->value );
-	PKI_X509_PKCS7_add_cert ( p7, x );
+	PKI_X509_PKCS7_add_cert(p7, x);
 
 	return PKI_OK;
 }
 
 /* -------------------------------- Add Attributes ---------------------- */
 
-int PKI_X509_PKCS7_add_signed_attribute (PKI_X509_PKCS7 *p7, 
-						PKI_X509_ATTRIBUTE *a) {
+int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 *p7, 
+					const PKI_X509_ATTRIBUTE * const a) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-	if( !p7 || !p7->value || !a ) return ( PKI_ERR );
+	if (!p7 || !p7->value || !a) return PKI_ERR;
 
-	if((signerInfo = PKI_X509_PKCS7_get_signer_info (p7, -1)) == NULL ) {
-		PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-			"not present in P7!");
-		return ( PKI_ERR );
+	if ((signerInfo = (PKCS7_SIGNER_INFO *)
+			PKI_X509_PKCS7_get_signer_info (p7, -1)) == NULL ) {
+		PKI_ERROR(PKI_ERR_GENERAL, "signerInfo not present in PKCS7");
+		return PKI_ERR;
 	}
 
-	if( signerInfo->auth_attr == NULL ) {
+	if (signerInfo->auth_attr == NULL) {
 		signerInfo->auth_attr = PKI_STACK_X509_ATTRIBUTE_new_null();
 	}
 
-	return ( PKI_STACK_X509_ATTRIBUTE_add( signerInfo->auth_attr, a ));
+	return PKI_STACK_X509_ATTRIBUTE_add(signerInfo->auth_attr, a);
 
 }
 
-int PKI_X509_PKCS7_add_attribute ( PKI_X509_PKCS7 *p7, PKI_X509_ATTRIBUTE *a ) {
+int PKI_X509_PKCS7_add_attribute(const PKI_X509_PKCS7 *p7,
+				 const PKI_X509_ATTRIBUTE * const a ) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
 	if( !p7 || !p7->value || !a ) return ( PKI_ERR );
 
-	if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-		PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-			"not present in P7!");
-		return ( PKI_ERR );
+	if ((signerInfo = (PKCS7_SIGNER_INFO *) 
+			PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
+		PKI_DEBUG("signerInfo not present in PKCS#7");
+		return PKI_ERR;
 	}
 
-	if( signerInfo->unauth_attr == NULL ) {
+	if (signerInfo->unauth_attr == NULL) {
 		signerInfo->unauth_attr = PKI_STACK_X509_ATTRIBUTE_new_null();
 	}
 
-	return ( PKI_STACK_X509_ATTRIBUTE_add( signerInfo->unauth_attr, a ));
+	return PKI_STACK_X509_ATTRIBUTE_add( signerInfo->unauth_attr, a);
 
 }
 
 /* -------------------------------- Get Attributes ---------------------- */
 
-PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute(PKI_X509_PKCS7 *p7, 
-								PKI_ID id) {
+const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute(
+					const PKI_X509_PKCS7 * const p7, 
+					PKI_ID id) {
 
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-        if( !p7 || !p7->value ) return ( NULL );
+        if (!p7 || !p7->value) return NULL;
 
-        if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-                PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-                        "not present in P7!");
-                return ( NULL  );
+        if ((signerInfo = PKI_X509_PKCS7_get_signer_info( p7, -1)) == NULL ) {
+		PKI_DEBUG("signerInfo not present in PKCS#7");
+                return NULL;
         }
 
-        if( signerInfo->auth_attr == NULL ) {
-                return ( NULL );
-        }
+        if (signerInfo->auth_attr == NULL) return NULL;
 
-	return ( PKI_STACK_X509_ATTRIBUTE_get( signerInfo->auth_attr, id));
+	return PKI_STACK_X509_ATTRIBUTE_get(signerInfo->auth_attr, id);
 }
 
-PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute(PKI_X509_PKCS7 *p7, 
-								PKI_ID id ) {
+const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute(
+					const PKI_X509_PKCS7 * const p7, 
+					PKI_ID id ) {
 
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-        if( !p7 || !p7->value ) return ( NULL  );
+        if (!p7 || !p7->value) return NULL;
 
-        if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-                PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-                        "not present in P7!");
-                return ( NULL  );
+        if ((signerInfo = PKI_X509_PKCS7_get_signer_info(p7, -1)) == NULL) {
+		PKI_DEBUG("signerInfo missing in PKCS7");
+                return NULL;
         }
 
-        if( signerInfo->unauth_attr == NULL ) {
-                return ( NULL );
-        }
-	return ( PKI_STACK_X509_ATTRIBUTE_get( signerInfo->auth_attr, id));
+        if (signerInfo->unauth_attr == NULL) return NULL;
+
+	return PKI_STACK_X509_ATTRIBUTE_get(signerInfo->auth_attr, id);
 }
 
-PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute_by_name( 
-					PKI_X509_PKCS7 *p7, char *name ) {
+const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute_by_name( 
+					const PKI_X509_PKCS7 * const p7,
+					const char *name ) {
 
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-        if( !p7 || !p7->value ) return ( NULL  );
+        if (!p7 || !p7->value) return NULL;
 
-        if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-                PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-                        "not present in P7!");
-                return ( NULL  );
+        if ((signerInfo = PKI_X509_PKCS7_get_signer_info(p7, -1)) == NULL) {
+                PKI_DEBUG("signerInfo not present in PKCS7");
+                return NULL;
         }
 
-        if( signerInfo->auth_attr == NULL ) {
-                return ( NULL );
-        }
+        if (signerInfo->auth_attr == NULL) return NULL;
 
-	return ( PKI_STACK_X509_ATTRIBUTE_get_by_name( signerInfo->auth_attr, 
-			name));
+	return PKI_STACK_X509_ATTRIBUTE_get_by_name(signerInfo->auth_attr, 
+						    name);
 }
 
-PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute_by_name(PKI_X509_PKCS7 *p7, 
-								char *name) {
+const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute_by_name(
+					const PKI_X509_PKCS7 * const p7, 
+					const char *name) {
 
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-        if( !p7 || !p7->value ) return ( NULL  );
+        if (!p7 || !p7->value) return NULL;
 
-        if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-                PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-                        "not present in P7!");
-                return ( NULL  );
+        if ((signerInfo = PKI_X509_PKCS7_get_signer_info(p7, -1)) == NULL) {
+                PKI_DEBUG("signerInfo not present in PKCS7");
+                return NULL;
         }
 
-        if( signerInfo->unauth_attr == NULL ) {
-                return ( NULL );
-        }
-	return ( PKI_STACK_X509_ATTRIBUTE_get_by_name( signerInfo->auth_attr, 
-			name));
+        if (signerInfo->unauth_attr == NULL) return ( NULL );
+
+	return PKI_STACK_X509_ATTRIBUTE_get_by_name(signerInfo->auth_attr, 
+						    name);
 }
 
 /* ------------------------------- Delete Attributes ---------------------- */
 
 /*! \brief Deletes a signed attribute (id) from a PKI_X509_PKCS7 */
 
-int PKI_X509_PKCS7_delete_signed_attribute ( PKI_X509_PKCS7 *p7, PKI_ID id ) {
+int PKI_X509_PKCS7_delete_signed_attribute(const PKI_X509_PKCS7 *p7, 
+					   PKI_ID id) {
 
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-	if( !p7 || !p7->value ) return ( PKI_ERR );
+	if (!p7 || !p7->value) return PKI_ERR;
 
-	if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-		PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-			"not present in P7!");
-		return ( PKI_ERR );
+	if ((signerInfo = PKI_X509_PKCS7_get_signer_info(p7, -1)) == NULL) {
+		PKI_DEBUG("signerInfo not present in PKCS7");
+		return PKI_ERR;
 	}
 
-	if( signerInfo->auth_attr == NULL ) {
-		return ( PKI_OK );
-	}
+	if (signerInfo->auth_attr == NULL) return PKI_OK;
 
-	return ( PKI_STACK_X509_ATTRIBUTE_delete( signerInfo->auth_attr, id ));
+	return PKI_STACK_X509_ATTRIBUTE_delete(signerInfo->auth_attr, id);
 
 }
 
 /*! \brief Deletes an attribute (id) from a PKI_X509_PKCS7 */
 
-int PKI_X509_PKCS7_delete_attribute ( PKI_X509_PKCS7 *p7, PKI_ID id ) {
+int PKI_X509_PKCS7_delete_attribute(const PKI_X509_PKCS7 *p7, PKI_ID id ) {
 
-	PKCS7_SIGNER_INFO *signerInfo = NULL;
+	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
-	if( !p7 || !p7->value ) return ( PKI_ERR );
+	if (!p7 || !p7->value) return PKI_ERR;
 
-	if((signerInfo = PKI_X509_PKCS7_get_signer_info ( p7, -1 )) == NULL ) {
-		PKI_log_debug ( "PKI_X509_PKCS7_add_signed_attribute()::Signer Info "
-			"not present in P7!");
+	if ((signerInfo = PKI_X509_PKCS7_get_signer_info(p7, -1)) == NULL ) {
+		PKI_DEBUG("signerInfo not present in PKCS7");
 		return ( PKI_ERR );
 	}
 
-	if( signerInfo->unauth_attr == NULL ) {
-		signerInfo->unauth_attr = PKI_STACK_X509_ATTRIBUTE_new_null();
-	}
+	if (signerInfo->unauth_attr == NULL) return PKI_OK;
 
-	return ( PKI_STACK_X509_ATTRIBUTE_delete( signerInfo->unauth_attr, id));
+	return PKI_STACK_X509_ATTRIBUTE_delete(signerInfo->unauth_attr, id);
 
 }
 
 /* ---------------------------- TEXT Format ---------------------------- */
 
 int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio, 
-				PKI_X509_PKCS7_VALUE *p7val ) {
+				     const PKI_X509_PKCS7_VALUE *p7val ) {
 
 	int type;
 	int i,j;
@@ -1124,10 +1112,11 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 	char *tmp_str = NULL;
 
 	PKI_X509_PKCS7 *msg = NULL;
-	PKCS7_SIGNER_INFO *si = NULL;
 	PKI_X509_CERT *cert = NULL;
 	PKI_DIGEST *digest = NULL;
 	PKI_MEM *mem = NULL;
+
+	const PKCS7_SIGNER_INFO *si = NULL;
 
 	if (!bio || !p7val ) return PKI_ERR;
 
@@ -1302,14 +1291,14 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 		for ( i=0; i < rec_num; i++ ) {
 			rec = PKI_X509_PKCS7_get_recipient_cert ( msg, i );
 			if ( !rec ) {
-				PKCS7_RECIP_INFO *ri = NULL;
+				const PKCS7_RECIP_INFO *ri = NULL;
 				PKCS7_ISSUER_AND_SERIAL *ias = NULL;
 
 				BIO_printf( bio, "        "
 					"[%d of %d] Recipient Details:\r\n", 
 						i+1, rec_num );
 
-				ri = PKI_X509_PKCS7_get_recipient_info ( msg,i);
+				ri = PKI_X509_PKCS7_get_recipient_info(msg,i);
 				if (!ri) {
 					BIO_printf(bio,"            <ERROR>");
 					continue;

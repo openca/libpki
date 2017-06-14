@@ -114,17 +114,17 @@ PKI_X509 *PKI_X509_new_value (PKI_DATATYPE type, void *value,
 
 	PKI_X509 *ret = NULL;
 
-	if (!value) return NULL;
-
 	if (( ret = PKI_X509_new ( type, hsm )) == NULL ) {
 		PKI_log_debug ( "Can not initialized a new PKI_X509 object.");
 		return NULL;
 	}
 
-	if((PKI_X509_set_value ( ret, value )) == PKI_ERR ) {
-		PKI_log_debug ( "Can not set the value in the PKI_X509 object");
-		PKI_X509_free ( ret );
-		return NULL;
+	if (value) {
+		if((PKI_X509_set_value ( ret, value )) == PKI_ERR ) {
+			PKI_DEBUG( "Error setting value in the PKI_X509 obj");
+			PKI_X509_free ( ret );
+			return NULL;
+		}
 	}
 
 	return ret;

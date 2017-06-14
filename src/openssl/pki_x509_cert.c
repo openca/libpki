@@ -102,8 +102,13 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
   }
   else if ( req )
   {
+    const PKI_X509_NAME * req_subj = NULL;
+
     /* Copy the name from the request */
-    subj = PKI_X509_REQ_get_data( req, PKI_X509_DATA_SUBJECT );
+    if ((req_subj = PKI_X509_REQ_get_data(req, 
+				    PKI_X509_DATA_SUBJECT)) != NULL) {
+	    subj = PKI_X509_NAME_dup(req_subj);
+    }
   }
   else
   {

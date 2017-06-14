@@ -2,6 +2,7 @@
 
 #include <libpki/pki.h>
 #include <sys/utsname.h>
+#include "internal/x509_data_st.h"
 
 PKI_X509_REQ * PKI_X509_REQ_new_null ( void ) {
 	return (PKI_X509_REQ *) PKI_X509_new ( PKI_DATATYPE_X509_REQ, NULL );
@@ -25,9 +26,12 @@ void PKI_X509_REQ_free( PKI_X509_REQ *x ) {
 
 /*! \brief Generates a signed Certificate Request Object */
 
-PKI_X509_REQ *PKI_X509_REQ_new ( PKI_X509_KEYPAIR *k, char *subj_s,
-                        PKI_X509_PROFILE *req_cnf, PKI_CONFIG *oids,
-                                PKI_DIGEST_ALG *digest, HSM *hsm ) {
+PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k, 
+			       const char *subj_s,
+                               const PKI_X509_PROFILE *req_cnf,
+			       const PKI_CONFIG *oids,
+                               const PKI_DIGEST_ALG *digest, 
+			       HSM *hsm ) {
 
 	PKI_X509_REQ *req = NULL;
 	PKI_X509_REQ_VALUE *val = NULL;
@@ -126,8 +130,8 @@ PKI_X509_REQ *PKI_X509_REQ_new ( PKI_X509_KEYPAIR *k, char *subj_s,
 			return NULL;
 		}
 
-		PKI_TOKEN_set_keypair ( tk, k );
-		PKI_TOKEN_set_req ( tk, req );
+		PKI_TOKEN_set_keypair(tk, (PKI_X509_KEYPAIR *) k);
+		PKI_TOKEN_set_req(tk, (PKI_X509_REQ *)req);
 
 		/* Add Request Extensions */
 		rv = PKI_X509_EXTENSIONS_req_add_profile( req_cnf, 
@@ -317,7 +321,7 @@ int PKI_X509_REQ_add_extension_stack(PKI_X509_REQ *x,
 /*! \brief Returns the size of the public key in the Certificate Request
  */
 
-int PKI_X509_REQ_get_keysize ( PKI_X509_REQ *x ) {
+int PKI_X509_REQ_get_keysize(const PKI_X509_REQ *x) {
 
 	int keysize = 0;
 	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
@@ -383,11 +387,12 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
  *         request
  */
 
-const char * PKI_X509_REQ_get_parsed ( PKI_X509_REQ *req, PKI_X509_DATA type ) {
+const char * PKI_X509_REQ_get_parsed(const PKI_X509_REQ *req,
+		                     PKI_X509_DATA type ) {
 
 	const char *ret = NULL;
 
-	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
+	const PKI_X509_KEYPAIR_VALUE *pkey = NULL;
 	PKI_X509_KEYPAIR *k = NULL;
 
 	if( !req || !req->value ) return ( NULL );
@@ -436,8 +441,9 @@ const char * PKI_X509_REQ_get_parsed ( PKI_X509_REQ *req, PKI_X509_DATA type ) {
  * 	   passed as an argument
  */
 
-int PKI_X509_REQ_print_parsed ( PKI_X509_REQ *req, 
-					PKI_X509_DATA type, int fd ) {
+int PKI_X509_REQ_print_parsed(const PKI_X509_REQ *req, 
+			      PKI_X509_DATA type,
+			      int fd ) {
 
 	const char *str = NULL;
 	int ret = PKI_OK;
@@ -544,7 +550,7 @@ int PKI_X509_REQ_clear_attributes ( PKI_X509_REQ *req ) {
 
 /*! \brief Gets the number of attributes present in a PKI_X509_REQ */
 
-int PKI_X509_REQ_get_attributes_num ( PKI_X509_REQ *req ) {
+int PKI_X509_REQ_get_attributes_num(const PKI_X509_REQ *req) {
 
 	PKI_X509_REQ_VALUE *val = NULL;
 
@@ -558,7 +564,9 @@ int PKI_X509_REQ_get_attributes_num ( PKI_X509_REQ *req ) {
 
 /*! \brief Returns an attribute from a PKI_X509_REQ by its number (position) */
 
-PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_num( PKI_X509_REQ *req, int num) {
+const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_num(
+						const PKI_X509_REQ *req, 
+						int num) {
 
 	PKI_X509_REQ_VALUE *val = NULL;
 
@@ -572,7 +580,8 @@ PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_num( PKI_X509_REQ *req, int nu
 
 /*! \brief Returns an attribute from a PKI_X509_REQ by its type (PKI_ID) */
 
-PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute ( PKI_X509_REQ *req, PKI_ID type ) {
+const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute(const PKI_X509_REQ *req,
+						     PKI_ID type ) {
 
 	PKI_X509_REQ_VALUE *val = NULL;
 
@@ -587,8 +596,10 @@ PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute ( PKI_X509_REQ *req, PKI_ID type 
 
 /*! \brief Returns an attribute from a PKI_X509_REQ by its name */
 
-PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_name ( PKI_X509_REQ *req, 
-						char * name ) {
+const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_name(
+					const PKI_X509_REQ *req, 
+					const char * name ) {
+
 	PKI_X509_REQ_VALUE *val = NULL;
 
 	if ( !req || !req->value || !name ) return NULL;
@@ -597,23 +608,28 @@ PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_name ( PKI_X509_REQ *req,
 
 	if ( !val->req_info ) return NULL;
 
-	return ( PKI_STACK_X509_ATTRIBUTE_get_by_name( val->req_info->attributes,
-								 name));
+	return PKI_STACK_X509_ATTRIBUTE_get_by_name(
+			val->req_info->attributes, name);
 }
 
 /* ---------------------------- X509 REQ Extensions --------------------------- */
 
-int PKI_X509_REQ_get_extension_by_num ( PKI_X509_REQ *req, int num ) {
+int PKI_X509_REQ_get_extension_by_num(const PKI_X509_REQ *req,
+				      int num ) {
+
 	PKI_log_debug("%s:%d::Code still missing!",__FILE__, __LINE__ );
 	return ( PKI_ERR );
 }
 
-int PKI_X509_REQ_get_extension_by_oid ( PKI_X509_REQ *req, PKI_OID *oid ) {
+int PKI_X509_REQ_get_extension_by_oid(const PKI_X509_REQ *req, 
+				      const PKI_OID *oid ) {
+
 	PKI_log_debug("%s:%d::Code still missing!",__FILE__, __LINE__ );
 	return ( PKI_ERR );
 }
 
-int PKI_X509_REQ_get_extension_by_name ( PKI_X509_REQ *req, char * name ) {
+int PKI_X509_REQ_get_extension_by_name(const PKI_X509_REQ *req,
+				       const char * name ) {
 	PKI_log_debug("%s:%d::Code still missing!",__FILE__, __LINE__ );
 	return ( PKI_ERR );
 }

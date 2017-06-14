@@ -5,7 +5,7 @@
 
 #include <openssl/x509.h>
 
-# if OPENSSL_VERSION_NUMBER > 0x1010000fL
+# if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 
 // =================
 // X509 Certificates

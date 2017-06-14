@@ -25,7 +25,9 @@ PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_null ( void ) {
 }
 
 PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new( PKI_ID attribute_id,
-			int data_type, unsigned char *value, size_t size ) {
+					    int data_type, 
+					    const unsigned char *value, 
+					    size_t size ) {
 
 	return ( X509_ATTRIBUTE_create_by_NID( NULL, attribute_id, data_type,
 			(const char *) value, (int) size ));
@@ -33,8 +35,10 @@ PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new( PKI_ID attribute_id,
 
 /*! \brief Returns a PKI_X509_ATTRIBUTE from a string description */
 
-PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_name( char *name,
-		int data_type, char *value, size_t size ) {
+PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_name(const char *name,
+						int data_type,
+						const char *value,
+						size_t size ) {
 
 	return ( X509_ATTRIBUTE_create_by_txt( NULL, name, data_type,
 			(unsigned char *) value, (int) size ));
@@ -42,7 +46,7 @@ PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_name( char *name,
 
 /*! \brief Frees the memory associated with a stack of PKI_X509_ATTRIBUTE */
 
-void PKI_STACK_X509_ATTRIBUTE_free ( PKI_X509_ATTRIBUTE_STACK *sk ) {
+void PKI_STACK_X509_ATTRIBUTE_free( PKI_X509_ATTRIBUTE_STACK *sk ) {
 	if( !sk ) return;
 
 	sk_X509_ATTRIBUTE_free ( sk );
@@ -64,7 +68,8 @@ void PKI_STACK_X509_ATTRIBUTE_free_all ( PKI_X509_ATTRIBUTE_STACK *sk ) {
 	return;
 }
 
-PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get(PKI_X509_ATTRIBUTE_STACK *a_sk,
+const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get(
+				const PKI_X509_ATTRIBUTE_STACK *a_sk,
 				PKI_ID attribute_id ) {
 
 	PKI_X509_ATTRIBUTE *ret = NULL;
@@ -78,8 +83,9 @@ PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get(PKI_X509_ATTRIBUTE_STACK *a_sk,
 	return ( ret );
 }
 
-PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_num ( 
-				PKI_X509_ATTRIBUTE_STACK *a_sk, int num ) {
+const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_num ( 
+					const PKI_X509_ATTRIBUTE_STACK *a_sk, 
+					int num ) {
 
 	if ( !a_sk || num >= sk_X509_ATTRIBUTE_num ( a_sk )) 
 		return NULL;
@@ -87,8 +93,9 @@ PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_num (
 	return X509at_get_attr ( a_sk, num );
 }
 
-PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_name (
-			PKI_X509_ATTRIBUTE_STACK *a_sk, char *name ) {
+const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_name (
+			const PKI_X509_ATTRIBUTE_STACK * const a_sk,
+			const char * const name ) {
 
 	int pos = -1;
 	PKI_OID *obj = NULL;
@@ -113,29 +120,26 @@ PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_name (
 	return ( ret );
 }
 
-int PKI_STACK_X509_ATTRIBUTE_delete ( PKI_X509_ATTRIBUTE_STACK *a_sk, 
-							PKI_ID attr ) {
+int PKI_STACK_X509_ATTRIBUTE_delete(PKI_X509_ATTRIBUTE_STACK *a_sk, 
+				    PKI_ID attr ) {
 	int pos = -1;
 	int found = 0;
 
-	if( !a_sk ) {
-		return ( PKI_ERR );
-	}
+	if (!a_sk) return PKI_ERR;
 
-	while((pos = X509at_get_attr_by_NID(a_sk, attr, -1)) >= 0 ) {
+	while ((pos = X509at_get_attr_by_NID(a_sk, attr, -1)) >= 0 ) {
 		found++;
-		if(!X509at_delete_attr( a_sk, pos )) {
-			return PKI_ERR;
-		}
+		if (!X509at_delete_attr( a_sk, pos )) return PKI_ERR;
 	}
 
-	if ( found == 0 ) return PKI_ERR;
+	if (found == 0) return PKI_ERR;
 
 	return PKI_OK;
 		
 }
 
-int PKI_STACK_X509_ATTRIBUTE_delete_by_num (PKI_X509_ATTRIBUTE_STACK *a_sk, int num){
+int PKI_STACK_X509_ATTRIBUTE_delete_by_num(PKI_X509_ATTRIBUTE_STACK *a_sk,
+					   int num){
 
 	if ( !a_sk ) return PKI_ERR;
 
@@ -152,8 +156,8 @@ int PKI_STACK_X509_ATTRIBUTE_num ( PKI_X509_ATTRIBUTE_STACK *a_sk ) {
 	return sk_X509_ATTRIBUTE_num ( a_sk );
 }
 
-int PKI_STACK_X509_ATTRIBUTE_delete_by_name ( PKI_X509_ATTRIBUTE_STACK *a_sk, 
-								char *name ) {
+int PKI_STACK_X509_ATTRIBUTE_delete_by_name(PKI_X509_ATTRIBUTE_STACK *a_sk, 
+					    const char * const name ) {
 
 	PKI_OID *obj = NULL;
 	PKI_ID id = 0;
@@ -169,16 +173,16 @@ int PKI_STACK_X509_ATTRIBUTE_delete_by_name ( PKI_X509_ATTRIBUTE_STACK *a_sk,
 	return PKI_STACK_X509_ATTRIBUTE_delete ( a_sk, id );
 }
 
-int PKI_STACK_X509_ATTRIBUTE_add ( PKI_X509_ATTRIBUTE_STACK *a_sk,
-					PKI_X509_ATTRIBUTE *a ) {
-	if(!sk_X509_ATTRIBUTE_push ( a_sk, a ))
-		return ( PKI_ERR );
+int PKI_STACK_X509_ATTRIBUTE_add(PKI_X509_ATTRIBUTE_STACK *a_sk,
+				 const PKI_X509_ATTRIBUTE * const a) {
+
+	if (!sk_X509_ATTRIBUTE_push(a_sk, a)) return PKI_ERR;
 
 	return PKI_OK;
 }
 
-int PKI_STACK_X509_ATTRIBUTE_replace ( PKI_X509_ATTRIBUTE_STACK *a_sk, 
-						PKI_X509_ATTRIBUTE *a ) {
+int PKI_STACK_X509_ATTRIBUTE_replace(PKI_X509_ATTRIBUTE_STACK *a_sk, 
+				     const PKI_X509_ATTRIBUTE * const a) {
 
 	PKI_OID *obj = NULL;
 	PKI_ID id = 0;
@@ -204,21 +208,24 @@ int PKI_STACK_X509_ATTRIBUTE_replace ( PKI_X509_ATTRIBUTE_STACK *a_sk,
 	return PKI_STACK_X509_ATTRIBUTE_add ( a_sk, a );
 }
 
-const char *PKI_X509_ATTRIBUTE_get_descr ( PKI_X509_ATTRIBUTE *a ) {
+const char *PKI_X509_ATTRIBUTE_get_descr(const PKI_X509_ATTRIBUTE * const a) {
+
 	if ( !a || !a->object ) return "Unknown";
 
 	return PKI_OID_get_descr ( a->object );
 }
 
-PKI_STRING *PKI_X509_ATTRIBUTE_get_value ( PKI_X509_ATTRIBUTE *a ) {
+const PKI_STRING *PKI_X509_ATTRIBUTE_get_value(
+					const PKI_X509_ATTRIBUTE * const a ) {
 
 	ASN1_TYPE *a_type = NULL;
 	int string_type = 0;
 
 	if( !a ) return ( NULL );
 
-	if((a_type = X509_ATTRIBUTE_get0_type( a, 0 )) == NULL ) {
-		return ( NULL );
+	if ((a_type = X509_ATTRIBUTE_get0_type((X509_ATTRIBUTE *)a, 0 )) 
+								== NULL ) {
+		return NULL;
 	}
 
 	/* Check that the value and the type are set */
@@ -278,7 +285,7 @@ PKI_STRING *PKI_X509_ATTRIBUTE_get_value ( PKI_X509_ATTRIBUTE *a ) {
 	return NULL;
 }
 
-char *PKI_X509_ATTRIBUTE_get_parsed ( PKI_X509_ATTRIBUTE *a ) {
+char * PKI_X509_ATTRIBUTE_get_parsed(const PKI_X509_ATTRIBUTE * const a ) {
 
 	int attr_type = 0;
 	char *ret = NULL;
@@ -290,7 +297,8 @@ char *PKI_X509_ATTRIBUTE_get_parsed ( PKI_X509_ATTRIBUTE *a ) {
 
 	if ( !a ) return NULL;
 
-	if((a_type = X509_ATTRIBUTE_get0_type( a, 0 )) == NULL ) {
+	if((a_type = X509_ATTRIBUTE_get0_type((X509_ATTRIBUTE *)a, 0 ))
+		       						== NULL ) {
 		return strdup("<Unavailable>");
 	}
 
@@ -298,15 +306,15 @@ char *PKI_X509_ATTRIBUTE_get_parsed ( PKI_X509_ATTRIBUTE *a ) {
 
 	switch ( attr_type ) {
                 case V_ASN1_OBJECT:
-				ret = (char *) strdup ( PKI_OID_get_descr( 
+			ret = (char *) strdup ( PKI_OID_get_descr( 
 						a_type->value.object));
 			break;
                 case V_ASN1_BOOLEAN:
 				// ret = strdup ( a_type->value.boolean->value );
-				ret = strdup ("BOOLEAN");
+			ret = strdup ("BOOLEAN");
 			break;
                 case V_ASN1_INTEGER:
-				ret = PKI_INTEGER_get_parsed (
+			ret = PKI_INTEGER_get_parsed (
 					a_type->value.integer);
 			break;
                 // case V_ASN1_STRING:
@@ -314,53 +322,58 @@ char *PKI_X509_ATTRIBUTE_get_parsed ( PKI_X509_ATTRIBUTE *a ) {
 		// 				a->single->asn1_string);
 		// 	break;
                 case V_ASN1_BIT_STRING:
-				ret = PKI_STRING_get_parsed (
-						a_type->value.bit_string);
+			ret = PKI_STRING_get_parsed(a_type->value.bit_string);
 			break;
+
                 case V_ASN1_OCTET_STRING:
-				ret = PKI_STRING_get_parsed (
-						a_type->value.octet_string);
+			ret = PKI_STRING_get_parsed(a_type->value.octet_string);
 			break;
+
                 case V_ASN1_PRINTABLESTRING:
-				ret = PKI_STRING_get_parsed (
+			ret = PKI_STRING_get_parsed(
 						a_type->value.printablestring);
 			break;
+
                 case V_ASN1_T61STRING:
-				ret = PKI_STRING_get_parsed (
-						a_type->value.t61string);
+			ret = PKI_STRING_get_parsed(a_type->value.t61string);
 			break;
+
                 case V_ASN1_IA5STRING:
-				ret = PKI_STRING_get_parsed (
-						a_type->value.ia5string);
+			ret = PKI_STRING_get_parsed(a_type->value.ia5string);
 			break;
+
                 case V_ASN1_GENERALSTRING:
-				ret = PKI_STRING_get_parsed (
+			ret = PKI_STRING_get_parsed(
 						a_type->value.generalstring);
 			break;
+
                 case V_ASN1_BMPSTRING:
-				ret = PKI_STRING_get_parsed (
-						a_type->value.bmpstring);
+			ret = PKI_STRING_get_parsed(a_type->value.bmpstring);
 			break;
+
                 case V_ASN1_UNIVERSALSTRING:
-				ret = PKI_STRING_get_parsed (
+			ret = PKI_STRING_get_parsed(
 						a_type->value.universalstring);
 			break;
+
                 case V_ASN1_VISIBLESTRING:
-				ret = PKI_STRING_get_parsed (
+			ret = PKI_STRING_get_parsed(
 						a_type->value.visiblestring);
 			break;
+
                 case V_ASN1_UTF8STRING:
-				ret = PKI_STRING_get_parsed (
-						a_type->value.utf8string);
+			ret = PKI_STRING_get_parsed(a_type->value.utf8string);
 			break;
+
                 case V_ASN1_UTCTIME:
-				ret = PKI_TIME_get_parsed (
-						a_type->value.utctime );
+			ret = PKI_TIME_get_parsed(a_type->value.utctime);
 			break;
+
                 case V_ASN1_GENERALIZEDTIME:
-				ret = PKI_TIME_get_parsed (
-						a_type->value.generalizedtime );
+			ret = PKI_TIME_get_parsed(
+						a_type->value.generalizedtime);
 			break;
+
                 /* set and sequence are left complete and still
  *                  * contain the set or sequence bytes */
                 case V_ASN1_ENUMERATED: // enumerated;
@@ -375,29 +388,5 @@ char *PKI_X509_ATTRIBUTE_get_parsed ( PKI_X509_ATTRIBUTE *a ) {
 	if ( !ret ) ret = strdup ("<Unknown>");
 
 	return ret;
-	/*
-	if( ASN1_TYPE_get( a_type ) == V_ASN1_PRINTABLESTRING ) {
-		ret = strdup ( mem->data );
-		PKI_MEM_free ( mem );
-		return ret;
-	}
-
-	size = mem->size * 3;
-	if ((ret = PKI_Malloc ( size )) == NULL ) {
-		PKI_log_debug ("Memory Failure!");
-		PKI_MEM_free ( mem );
-		return NULL;
-	}
-
-	count = 0;
-	for ( i = 0; i < mem->size; i++ ) {
-		sprintf( &ret[count], "%2.2x:", mem->data[i] );
-		count += 3;
-	} ret[size] = '\x0';
-
-	PKI_MEM_free ( mem );
-
-	return ret;
-	*/
 }
 

@@ -4,7 +4,7 @@
 
 /*! \brief Returns a PKI_INTEGER object from a string */
 
-PKI_INTEGER *PKI_INTEGER_new_char( char *val ) {
+PKI_INTEGER *PKI_INTEGER_new_char( const char *val ) {
 	char *buf = NULL;
 	PKI_INTEGER *ret = NULL;
 
@@ -55,7 +55,7 @@ int PKI_INTEGER_free( PKI_INTEGER *i ) {
 
 /*! \brief Returns a string representation of the PKI_INTEGER */
 
-char *PKI_INTEGER_get_parsed ( PKI_INTEGER *i ) {
+char *PKI_INTEGER_get_parsed ( const PKI_INTEGER *i ) {
 
 	char *ret = NULL;
 
@@ -69,7 +69,7 @@ char *PKI_INTEGER_get_parsed ( PKI_INTEGER *i ) {
 
 /*! \brief Compare two PKI_INTEGERs */
 
-int PKI_INTEGER_cmp ( PKI_INTEGER *a, PKI_INTEGER *b ) {
+int PKI_INTEGER_cmp (const PKI_INTEGER *a, const PKI_INTEGER *b ) {
 
 	if (!a || !b ) return ( -1 );
 
@@ -79,7 +79,7 @@ int PKI_INTEGER_cmp ( PKI_INTEGER *a, PKI_INTEGER *b ) {
 
 /*! \brief Duplicates a PKI_INTEGER data structure */
 
-PKI_INTEGER * PKI_INTEGER_dup ( PKI_INTEGER *a ) {
+PKI_INTEGER * PKI_INTEGER_dup (const PKI_INTEGER *a ) {
 
 	if (!a ) return NULL;
 
@@ -89,7 +89,7 @@ PKI_INTEGER * PKI_INTEGER_dup ( PKI_INTEGER *a ) {
 
 /*! \brief Generate a new PKI_INTEGER from raw bit data */
 
-PKI_INTEGER *PKI_INTEGER_new_bin ( unsigned char *data, size_t size ) {
+PKI_INTEGER *PKI_INTEGER_new_bin (const unsigned char *data, size_t size ) {
 
 	BIGNUM *bn;
 
@@ -114,13 +114,13 @@ PKI_INTEGER *PKI_INTEGER_new_bin ( unsigned char *data, size_t size ) {
 
 /*! \brief Prints the contents of a PKI_INTEGER to Standard Output */
 
-int PKI_INTEGER_print( PKI_INTEGER *s ) {
+int PKI_INTEGER_print( const PKI_INTEGER *s ) {
 	return ( PKI_INTEGER_print_fp( stdout, s ));
 }
 
 /*! \brief Prints the contents of a PKI_INTEGER to a FILE pointer (eg.,stdout)*/
 
-int PKI_INTEGER_print_fp( FILE *fp, PKI_INTEGER *s ) {
+int PKI_INTEGER_print_fp( FILE *fp, const PKI_INTEGER *s ) {
 
 	char *str = NULL;
 

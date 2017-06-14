@@ -13,7 +13,7 @@
  * of success, otherwise it returns NULL.
  */
 
-PKI_CRED *PKI_CRED_new ( char *user, char *pwd ) {
+PKI_CRED *PKI_CRED_new ( const char * const user, const char * const pwd ) {
 
 	PKI_CRED * cred = NULL;
 
@@ -84,7 +84,7 @@ void PKI_CRED_free( PKI_CRED *cred ) {
 
 /*! \brief Duplicates a PKI_CRED data structure */
 
-PKI_CRED *PKI_CRED_dup ( PKI_CRED *cred ) {
+PKI_CRED *PKI_CRED_dup ( const PKI_CRED * const cred ) {
 
 	PKI_CRED *ret = NULL;
 
@@ -113,7 +113,7 @@ PKI_CRED *PKI_CRED_dup ( PKI_CRED *cred ) {
 
 /*! \brief Sets the SSL configuration for Creds */
 
-int PKI_CRED_set_ssl ( PKI_CRED *cred, struct pki_ssl_t *ssl ) {
+int PKI_CRED_set_ssl ( const PKI_CRED *cred, struct pki_ssl_t *ssl ) {
 
 	if ( !cred || !ssl ) return PKI_ERR;
 
@@ -128,7 +128,7 @@ int PKI_CRED_set_ssl ( PKI_CRED *cred, struct pki_ssl_t *ssl ) {
 
 /*! \brief Gets the pointer to the PKI_SSL structure inside a CRED */
 
-struct pki_ssl_t * PKI_CRED_get_ssl ( PKI_CRED *cred ) {
+struct pki_ssl_t * PKI_CRED_get_ssl (const PKI_CRED * cred ) {
 
 	if ( !cred || !cred->ssl ) return NULL;
 
