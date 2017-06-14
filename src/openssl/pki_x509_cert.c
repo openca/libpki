@@ -1514,11 +1514,19 @@ int PKI_X509_CERT_check_pubkey(const PKI_X509_CERT *x,
 {
   int ret = 0;
 
-  X509_PUBKEY *pub_key = NULL;
+  // X509_PUBKEY *pub_key = NULL;
   PKI_X509_KEYPAIR_VALUE *k_val = NULL;
 
+  // Const Pointer to the Certificate's Pubkey
   const PKI_STRING *c_pubkey = NULL;
-  const PKI_STRING *k_pubkey = NULL;
+
+  // Pointer to the encoded public key of KeyPair
+  PKI_STRING *k_pubkey = NULL;
+
+  // Temporary Buffer
+  ssize_t buf_size = 0;
+  unsigned char buf[2048];
+  unsigned char *pnt = buf;
 
   // Input checks
   if (!x || !x->value || !k || !k->value) return -1;
@@ -1528,14 +1536,20 @@ int PKI_X509_CERT_check_pubkey(const PKI_X509_CERT *x,
   if (!c_pubkey) return -99;
 
   // Gets the Key Value from the KeyPair
-  k_val = PKI_X509_get_value(k);
-  if (!k_val) 
-  {
+  if ((k_val = PKI_X509_get_value(k)) == NULL) {
     // Let's return ok, because in HSMs we might not have
     // access to the pubkey data
     return 0;
   }
 
+  // Let's Encode the KeyPair's Public Key Bits
+  if ((buf_size = i2d_PUBKEY(k_val, &pnt)) <= 0 ||
+      (k_pubkey = PKI_STRING_new(PKI_STRING_BIT, (char *)buf, buf_size))) {
+      // ERROR: We can not decode or allocate memory
+      return -98;
+  }
+
+/*
   // Gets the KeyPair public key bits
   if (!X509_PUBKEY_set(&pub_key, k_val)) return -99;
 
@@ -1545,12 +1559,18 @@ int PKI_X509_CERT_check_pubkey(const PKI_X509_CERT *x,
 #else
   X509_PUBKEY_get();
 #endif
+*/
 
   // Compares the two bit strings
   ret = PKI_STRING_cmp(c_pubkey, k_pubkey);
   
+  // Free Memory
+  if (k_pubkey) PKI_STRING_free(k_pubkey);
+
+/*
   // Frees the memory
   X509_PUBKEY_free(pub_key);
+*/
 
   // Let's return the result of the operation
   return ret;
