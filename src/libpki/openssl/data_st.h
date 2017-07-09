@@ -478,6 +478,17 @@ typedef struct pki_x509_cinf_full {
 	ASN1_ENCODING enc;
 } PKI_X509_CINF_FULL;
 
+typedef struct X509_crl_info_full {
+    ASN1_INTEGER *version;      /* version: defaults to v1(0) so may be NULL */
+    X509_ALGOR sig_alg;         /* signature algorithm */
+    X509_NAME *issuer;          /* CRL issuer name */
+    ASN1_TIME *lastUpdate;      /* lastUpdate field */
+    ASN1_TIME *nextUpdate;      /* nextUpdate field: optional */
+    STACK_OF(X509_REVOKED) *revoked;        /* revoked entries: optional */
+    STACK_OF(X509_EXTENSION) *extensions;   /* extensions: optional */
+    ASN1_ENCODING enc;                      /* encoding of signed portion of CRL */
+} PKI_X509_CRL_INFO;
+
 #define PKI_X509_CRL_ENTRY	X509_REVOKED
 /* typedef struct X509_REVOKED 	PKI_CRL_ENTRY; */
 

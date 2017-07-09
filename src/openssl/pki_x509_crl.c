@@ -422,24 +422,65 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
 					const PKI_X509_PROFILE *profile ) {
 
 	PKI_X509_CRL_ENTRY *entry = NULL;
+	  // Entry to be added to the CRL
 
-	if( !serial ) return (NULL);
+	PKI_INTEGER * s_int = NULL;
+	  // ASN1 Integer
 
+	PKI_TIME * a_date = NULL;
+	  // ASN1 Rev Date
+
+	// Input check
+	if (!serial) {
+	  PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing serial number");
+	  return (NULL);
+	}
+
+	// Allocates the Memory for the entry
 	if((entry = (PKI_X509_CRL_ENTRY *) X509_REVOKED_new()) == NULL ) {
-		/* Memory alloc error */
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return (NULL);
+	  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	  return (NULL);
 	}
 
-	if((entry->serialNumber = PKI_INTEGER_new_char(serial)) == NULL ) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not convert serial %s to Integer");
-		goto err;
+	// If no revocation date is provided, let's use "now"
+	if (!revDate && (a_date = PKI_TIME_new(0)) == NULL) {
+
+	  // Can not allocate the revocation date time
+	  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	  return NULL;
+
+	} else {
+	  // Gets the Pointer from the caller
+	  a_date = (PKI_TIME *)revDate;
 	}
 
-	if (!revDate) revDate = PKI_TIME_new( 0 );
+	// Generates the integer carrying the serial number
+	if ((s_int = PKI_INTEGER_new_char(serial)) != NULL) {
 
-	if (!X509_REVOKED_set_revocationDate((X509_REVOKED *) entry, (ASN1_TIME *) revDate))
+	  // Sets the serial number in the X509_REVOKED structure
+	  if (X509_REVOKED_set_serialNumber(entry, s_int) == 1) {
+
+            // Sets the revocation date
+	    if (!X509_REVOKED_set_revocationDate((X509_REVOKED *) entry, a_date)) {
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not assign revocation date");
 		goto err;
+	    }
+
+	    // All Ok here
+
+	  } else {
+
+	    // Error While assigning the serial
+	    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not assign the serial (%s)", serial);
+	    goto err;
+          }
+
+	} else {
+
+	  // Error generating the ASN1 Integer
+	  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not convert serial %s to Integer", serial);
+	  goto err;
+	}
 
 	if (reason != PKI_CRL_REASON_UNSPECIFIED)
 	{
@@ -564,12 +605,22 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
 
 */
 
-	return( entry );
+	// Free Allocated Memory
+	if (s_int) PKI_INTEGER_free(s_int);
+	if (a_date && !revDate) PKI_TIME_free(a_date);
+
+	// Returns the created entry
+	return entry;
 
 err:
 
-	if( entry ) X509_REVOKED_free ( (X509_REVOKED *) entry );
-	return (NULL);
+	// Free Allocated memory
+	if (s_int) PKI_INTEGER_free(s_int);
+	if (a_date && !revDate) PKI_TIME_free(a_date);
+	if (entry) X509_REVOKED_free((X509_REVOKED *) entry);
+
+	// Returns null (error)
+	return NULL;
 }
 
 void PKI_X509_CRL_ENTRY_free_void ( void *entry ) {
@@ -603,33 +654,64 @@ int PKI_X509_CRL_ENTRY_free ( PKI_X509_CRL_ENTRY *entry ) {
 const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup(const PKI_X509_CRL *x, 
 					       const PKI_INTEGER *s ) {
 
-	const PKI_X509_CRL_ENTRY *r = NULL;
+	const STACK_OF(X509_REVOKED) * r_sk = NULL;
+
 	X509_CRL *crl = NULL;
 
         long long curr = 0;
         long long end, cmp_val;
 
-	if( !x || !s ) return (NULL);
+	// Input Checks
+	if (!x || !s) return (NULL);
+
+	// Gets the revoked stack
+	if ((r_sk = X509_CRL_get_REVOKED(crl)) == NULL) {
+		// No Entries in the CRL
+		return NULL;
+	}
 
 	/* Set the end point to the last one */
-	end = (long long) sk_X509_REVOKED_num(crl->crl->revoked) - 1;
-	if( end < 0 ) return (r);
+	if ((end = (long long) sk_X509_REVOKED_num(r_sk) - 1) < 0)
+		return NULL;
 
+	// Gets a casted pointer
 	crl = (X509_CRL *) x;
 
         /* Look for serial number of certificate in CRL */
         // rtmp.serialNumber = (ASN1_INTEGER *) serial;
         // ok = sk_X509_REVOKED_find(crl->crl->revoked, &rtmp);
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+
+	PKI_X509_CRL_ENTRY *r = NULL;
+
+	// Gets the reference in r
+	X509_CRL_get0_by_serial(crl, &r, (PKI_INTEGER *)s);
+
+#else
+
 	for( curr = 0 ; curr <= end ; curr++ ) {
-		r = sk_X509_REVOKED_value( crl->crl->revoked, (int) curr );
-                if(( cmp_val = ASN1_INTEGER_cmp(r->serialNumber, s)) == 0 ) {
-			/* Found */
-			break;
+ 
+		const PKI_X509_CRL_ENTRY *r = NULL;
+		const PKI_INTEGER * s_pnt;
+			// Pointer to the SN in the X509_REVOKED struct
+
+		// Gets the X509_REVOKED entry
+		if ((r = sk_X509_REVOKED_value( r_sk, (int) curr )) != NULL) {
+			// Gets the Serial Number
+			if ((s_pnt = X509_REVOKED_get0_serialNumber(r)) != NULL) {
+				// Checks the value against the CRL
+                		if ((cmp_val = ASN1_INTEGER_cmp(s_pnt, s)) == 0) {
+					// Found
+					break;
+				}
+			}
 		}
 	}
 
-	return( r );
+#endif
+
+	return r;
 }
 
 /*! \brief Find an entry within a CRL
@@ -758,7 +840,8 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
 
 	switch( type ) {
 		case PKI_X509_DATA_VERSION:
-			ret = (tmp_x)->crl->version;
+			// ret = (tmp_x)->crl->version;
+			ret = ((PKI_X509_CRL_INFO *)tmp_x)->version;
 			// ret = X509_CRL_get_version((X509_CRL *) x);
 			break;
 		case PKI_X509_DATA_ISSUER:
@@ -766,11 +849,19 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
 			break;
 		case PKI_X509_DATA_NOTAFTER:
 		case PKI_X509_DATA_NEXTUPDATE:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			ret = X509_CRL_get0_nextUpdate ((X509_CRL *) tmp_x);
+#else
 			ret = X509_CRL_get_nextUpdate ((X509_CRL *) tmp_x);
+#endif
 			break;
 		case PKI_X509_DATA_NOTBEFORE:
 		case PKI_X509_DATA_LASTUPDATE:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			ret = X509_CRL_get0_lastUpdate ((X509_CRL *) tmp_x);
+#else
 			ret = X509_CRL_get_lastUpdate ((X509_CRL *) tmp_x);
+#endif
 			break;
 		case PKI_X509_DATA_EXTENSIONS:
 			// ret = X509_CRL_get_extensions((X509_CRL *) x );
@@ -779,7 +870,12 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
 			// ret = X509_CRL_get_algor((X509_CRL *) x );
 			break;
 		case PKI_X509_DATA_SIGNATURE:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			ret = X509_CRL_get0_signature((X509_CRL *)tmp_x);
+#else
 			ret = tmp_x->signature;
+#endif
+			// ret = tmp_x->signature;
 			// ret = X509_CRL_get_signature ((X509_CRL *) x);
 			break;
 		case PKI_X509_DATA_SIGNATURE_ALG1:
