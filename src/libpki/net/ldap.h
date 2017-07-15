@@ -20,8 +20,8 @@
 	defined(LDAP_VENDOR_MICROSOFT)
 #include <ldap.h>
 
-LDAP *URL_LDAP_connect( URL *url, int timeout );
-PKI_MEM_STACK *URL_get_data_ldap_url(URL *url, int timeout, ssize_t size);
+LDAP *URL_LDAP_connect(const URL *url, int timeout );
+PKI_MEM_STACK *URL_get_data_ldap_url(const URL *url, int timeout, ssize_t size);
 
 #endif
 

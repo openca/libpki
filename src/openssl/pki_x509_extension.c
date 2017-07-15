@@ -101,8 +101,10 @@ void PKI_X509_EXTENSION_free ( PKI_X509_EXTENSION *ext ) {
 
 
 PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile ( 
-		PKI_X509_PROFILE *profile, PKI_CONFIG *oids, 
-			PKI_CONFIG_ELEMENT *extNode, PKI_TOKEN *tk ) {
+						const PKI_X509_PROFILE   * profile,
+						const PKI_CONFIG         * oids,
+						const PKI_CONFIG_ELEMENT * extNode,
+						const PKI_TOKEN          * tk) {
 
 	/* TODO: Implement the extended version of the extensions, this
 	   should allow better extensions management. That is, the value
@@ -146,10 +148,9 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	char *valString = NULL;
 	int crit = 0;
 
-	if( !profile || !extNode ) {
-		PKI_log_debug("ERROR, no profile or extNode provided in "
-				"PKI_X509_EXTENSION_value_new_profile()");
-		return (NULL);
+	if (!profile || !extNode) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "No profile or extNode provided");
+		return NULL;
 	}
 
 	if((crit_s = xmlGetProp( extNode, BAD_CAST "critical" )) != NULL ) {
@@ -180,19 +181,6 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 		PKI_OID_free ( oid );
 	}
 
-	/*
-	int nid = NID_undef;
-	if((nid = OBJ_sn2nid( (char *) name_s )) == NID_undef ) {
-		PKI_OID *oid = NULL;
-
-		oid = PKI_CONFIG_OID_search ( oids, (char *) name_s );
-		if( !oid ) {
-			PKI_log_debug( "ERROR, can not create object (%s)!",
-				name_s );
-			return( NULL );
-		}
-	}
-	*/
 
 	if ((valString = (char *) PKI_Malloc(BUFF_MAX_SIZE)) == NULL)
 	{
@@ -283,9 +271,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 			if( oid_s ) xmlFree ( oid_s );
 			if( tag_s ) xmlFree ( tag_s );
 			if( value_s ) xmlFree ( value_s );
-        	}
+        }
 	}
-	//PKI_log_debug("INFO, Encoding %s=%s", name_s, valString);
 
 	v3_ctx.db = NULL;
 	v3_ctx.db_meth = NULL;

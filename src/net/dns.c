@@ -35,7 +35,8 @@
 // Return value is -1 on Error and 0 on success
 
 /*! \brief Returns a MEM STACK with the requested DNS records */
-PKI_MEM_STACK *URL_get_data_dns_url(URL *url, ssize_t size) {
+PKI_MEM_STACK *URL_get_data_dns_url(const URL * url,
+		                            ssize_t     size) {
 
 	PKI_MEM_STACK *ret = NULL;
 
@@ -238,7 +239,7 @@ PKI_MEM_STACK *URL_get_data_dns_url(URL *url, ssize_t size) {
 };
 
 /*! \brief Returns the type of DNS records identified by the passed char * arg */
-int URL_get_dns_type(char *str) {
+int URL_get_dns_type(const char *str) {
 
 	int ret = -1;
 	if (!str) return ret;

@@ -237,8 +237,10 @@ PKI_MEM_STACK *URL_get_data_file(const URL *url, ssize_t size ) {
  * In case of failure NULL is returned.
  */
 
-PKI_MEM_STACK *URL_get_data(const char *url_s, int timeout, 
-				ssize_t size, PKI_SSL *ssl ) {
+PKI_MEM_STACK *URL_get_data(const char *    url_s,
+		                    int             timeout,
+				            ssize_t         size,
+							const PKI_SSL * ssl ) {
 
 	URL *url = NULL;
 	PKI_MEM_STACK *ret = NULL;
@@ -246,9 +248,10 @@ PKI_MEM_STACK *URL_get_data(const char *url_s, int timeout,
 	if (!url_s) return NULL;
 	if ((url = URL_new(url_s)) == NULL) return NULL;
 
-	ret = URL_get_data_url( url, timeout, size, ssl );
+	ret = URL_get_data_url(url, timeout, size, ssl);
 
-	if( url ) URL_free ( url );
+	if (url) URL_free(url);
+
 	return ret;
 }
 
@@ -267,8 +270,10 @@ PKI_MEM_STACK *URL_get_data(const char *url_s, int timeout,
  * URI_PROTO_PKCS11, URI_PROTO_ID.
  */
 
-PKI_MEM_STACK *URL_get_data_url(const URL *url, int timeout, 
-				ssize_t size, PKI_SSL *ssl ) {
+PKI_MEM_STACK *URL_get_data_url(const URL       * url,
+		                        int               timeout,
+				                ssize_t           size,
+								const PKI_SSL   * ssl ) {
 
 	PKI_MEM_STACK * ret = NULL;
 
@@ -336,8 +341,9 @@ PKI_MEM_STACK *URL_get_data_url(const URL *url, int timeout,
  * URI_PROTO_PKCS11, URI_PROTO_ID.
  */
 
-PKI_MEM_STACK *URL_get_data_socket ( PKI_SOCKET *sock, int timeout, 
-				ssize_t size ) {
+PKI_MEM_STACK * URL_get_data_socket(const PKI_SOCKET * sock,
+		                            int                timeout,
+				                    ssize_t size) {
 
 	PKI_MEM_STACK * ret = NULL;
 
@@ -398,9 +404,13 @@ PKI_MEM_STACK *URL_get_data_socket ( PKI_SOCKET *sock, int timeout,
  * URI_PROTO_MYSQL, URI_PROTO_PG.
  */
 
-int URL_put_data ( char *url_s, PKI_MEM *data, char *contType, 
-		PKI_MEM_STACK **ret_sk, int timeout, ssize_t max_size,
-			PKI_SSL *ssl ) {
+int URL_put_data(const char     * url_s,
+		         const PKI_MEM  * data,
+				 const char     * contType,
+		         PKI_MEM_STACK ** ret_sk,
+				 int              timeout,
+				 ssize_t          max_size,
+			     const PKI_SSL  * ssl ) {
 
 	URL *url = NULL;
 	int ret = 0;
@@ -421,7 +431,8 @@ int URL_put_data ( char *url_s, PKI_MEM *data, char *contType,
 	return( ret );
 }
 
-int URL_put_data_fd ( URL *url, PKI_MEM *data ) {
+int URL_put_data_fd (const URL     * url,
+		             const PKI_MEM * data ) {
 
 	int fd = 0;
 
@@ -437,7 +448,8 @@ int URL_put_data_fd ( URL *url, PKI_MEM *data ) {
 	return ( PKI_OK );
 }
 
-int URL_put_data_file ( URL *url, PKI_MEM *data ) {
+int URL_put_data_file(const URL     * url,
+		              const PKI_MEM * data) {
 
 	int fd = 0;
 
@@ -459,9 +471,13 @@ int URL_put_data_file ( URL *url, PKI_MEM *data ) {
 	
 }
 
-int URL_put_data_url (URL *url, PKI_MEM *data, char *contType, 
-		PKI_MEM_STACK **ret_sk, int timeout, ssize_t max_size,
-			PKI_SSL *ssl ) {
+int URL_put_data_url(const URL      * url,
+		             const PKI_MEM  * data,
+					 const char     * contType,
+		             PKI_MEM_STACK ** ret_sk,
+					 int              timeout,
+					 ssize_t          max_size,
+			         const PKI_SSL  * ssl) {
 
 	int ret = PKI_OK;
 
@@ -511,8 +527,12 @@ int URL_put_data_url (URL *url, PKI_MEM *data, char *contType,
 }
 
 
-int URL_put_data_socket (PKI_SOCKET *sock, PKI_MEM *data, char *contType, 
-		PKI_MEM_STACK **ret_sk, int timeout, ssize_t max_size ) {
+int URL_put_data_socket(const PKI_SOCKET * sock,
+		                const PKI_MEM    * data,
+						const char       * contType,
+		                PKI_MEM_STACK   ** ret_sk,
+						int                timeout,
+						ssize_t            max_size) {
 
 	int ret = PKI_OK;
 
@@ -565,9 +585,9 @@ int URL_put_data_socket (PKI_SOCKET *sock, PKI_MEM *data, char *contType,
  * \brief Returns the text representation of a URL
  */
 
-char *URL_get_parsed ( URL *url )
+const char *URL_get_parsed(const URL *url)
 {
-	if ( !url || !url->url_s ) return NULL;
+	if (!url || !url->url_s) return NULL;
 
 	return url->url_s;
 }
@@ -584,7 +604,7 @@ char *URL_get_parsed ( URL *url )
  * pkcs11:// (URI_PROTO_PKCS11), dns://(URI_PROTO_DNS), socket://(URI_PROTO_SOCKET)
  */
 
-URL *URL_new(const char * const url_s ) {
+URL *URL_new(const char * url_s ) {
 
 	URL *ret = NULL;
 	char *tmp_s = NULL;
@@ -592,12 +612,15 @@ URL *URL_new(const char * const url_s ) {
 	char *tmp_s3 = NULL;
 	char *tmp_s4 = NULL;
 	char *is_alloc = NULL;
+
 	size_t len = 0;
 
-	if (!url_s)
-	{
-		is_alloc = url_s = strdup("stdin");
+	// If no URL is passed, we assume stdin was meant
+	if (url_s == NULL)	{
+		is_alloc = strdup("stdin");
+		url_s = (const char *) is_alloc;
 	}
+
 
 	ret = (URL *) PKI_Malloc ( sizeof( URL ));
 	if(ret == 0) 
@@ -862,33 +885,7 @@ URL *URL_new(const char * const url_s ) {
 				ret->attrs = (char *) malloc ( len );
 				memset( ret->attrs, 0, len );
 				memcpy( ret->attrs, tmp_attrs + 1, len);
-				/*
-				while( ((tmp_s3 = 
-					strchr(tmp_s2,'(')) != NULL) && 
-							(tmp_s3 < tmp_s4) ) {
-					char *tmp_s5 = NULL;
-					char *tmp_s6 = NULL;
 
-					if( (tmp_s5 = strchr(tmp_s3, ')')) 
-								== NULL) {
-						URL_free( ret );
-						return(NULL);
-					}
-					tmp_s3++;
-					tmp_s6 = strchr(tmp_s3, '=');
-					if( tmp_s6 > tmp_s5 ) {
-						URL_free( ret );
-						return(NULL);
-					}
-					tmp_s6 = (char *) malloc ( tmp_s5 - tmp_s3+1);
-					memset( tmp_s6, 0, tmp_s5 - tmp_s3 + 1);
-					memcpy( tmp_s6, tmp_s3, tmp_s5 - tmp_s3);
-					PKI_STACK_push( ret->attrs, tmp_s6 );
-
-					tmp_s2 = tmp_s3;
-				}
-				tmp_s = tmp_s4;
-				*/
 				len = (size_t) (tmp_attrs - tmp_s2);
 				ret->path = (char *) PKI_Malloc(len+1);
 				memcpy(ret->path, tmp_s2, len);
@@ -1015,33 +1012,7 @@ URL *URL_new(const char * const url_s ) {
 				ret->attrs = (char *) malloc ( len );
 				memset( ret->attrs, 0, len );
 				memcpy( ret->attrs, tmp_attrs + 1, len);
-				/*
-				while( ((tmp_s3 = 
-					strchr(tmp_s2,'(')) != NULL) && 
-							(tmp_s3 < tmp_s4) ) {
-					char *tmp_s5 = NULL;
-					char *tmp_s6 = NULL;
 
-					if( (tmp_s5 = strchr(tmp_s3, ')')) 
-								== NULL) {
-						URL_free( ret );
-						return(NULL);
-					}
-					tmp_s3++;
-					tmp_s6 = strchr(tmp_s3, '=');
-					if( tmp_s6 > tmp_s5 ) {
-						URL_free( ret );
-						return(NULL);
-					}
-					tmp_s6 = (char *) malloc ( tmp_s5 - tmp_s3+1);
-					memset( tmp_s6, 0, tmp_s5 - tmp_s3 + 1);
-					memcpy( tmp_s6, tmp_s3, tmp_s5 - tmp_s3);
-					PKI_STACK_push( ret->attrs, tmp_s6 );
-
-					tmp_s2 = tmp_s3;
-				}
-				tmp_s = tmp_s4;
-				*/
 				len = (size_t) (tmp_attrs - tmp_s2);
 				ret->path = (char *) malloc ( len );
 				memset( ret->path, 0, len);
@@ -1184,103 +1155,6 @@ URL *URL_new(const char * const url_s ) {
 				ret->addr = strdup("");
 			}
 		}
-
-		/*
-		tmp_s = &ret->url_s[5];
-
-		if((tmp_s3 = strchr(tmp_s, '@')) != NULL ) {
-			tmp_s4 = strchr(tmp_s, '/');
-			if( tmp_s4 && tmp_s3 < tmp_s4 ) {
-				tmp_s2 = strchr( tmp_s, ':' );
-
-				if( !tmp_s2 || (tmp_s3 < tmp_s2)) {
-					return (NULL);
-				}
-				len = (int) ( (long) tmp_s2 - (long) tmp_s );
-				ret->usr = (char *) malloc (len+1);
-				memset( ret->usr, 0, len+1);
-				strncpy( ret->usr, tmp_s, len);
-				ret->usr[len] = '\x0';
-			
-				tmp_s = tmp_s2+1;
-				tmp_s2 = strchr( tmp_s,'@');
-
-				len = (int) ( (long) tmp_s2 - (long) tmp_s );
-				ret->pwd = (char *) malloc (len+1);
-				memset( ret->pwd, 0, len+1);
-				strncpy( ret->pwd, tmp_s, len);
-				ret->pwd[len] = '\x0';
-
-				tmp_s = tmp_s2+1;
-			}
-		}
-
-		if( strchr( tmp_s, ':' )) {
-			tmp_s2 = strchr(tmp_s,':');
-
-			len = (int) ( (long) tmp_s2 - (long) tmp_s );
-			ret->addr = (char *) malloc (len+1);
-			memset( ret->addr, 0, len+1 );
-
-			strncpy( ret->addr, tmp_s, len);
-			ret->addr[len] = '\x0';
-
-			tmp_s = tmp_s2+1;
-			ret->port = atoi( tmp_s );
-			if( ret->port == 0 ) {
-				Error in parsing the port number!
-				URL_free ( ret );
-				return(NULL);
-			}
-
-			if( (tmp_s2 = strchr( tmp_s, '/' )) != NULL ) {
-				tmp_s =  tmp_s2;
-			} else {
-				tmp_s = &ret->url_s[7];
-			}
-		}
-
-		if( (tmp_s2 = strchr( tmp_s, '/' )) != NULL ) {
-			char *tmp_attrs = NULL;
-			tmp_s2++;
-
-			if((tmp_attrs = strchr( tmp_s, '?' )) != NULL) {
-				len = strlen( tmp_attrs );
-				ret->attrs = (char *) malloc ( len );
-				memset( ret->attrs, 0, len );
-				memcpy( ret->attrs, tmp_attrs + 1, len);
-
-				len = tmp_attrs - tmp_s2;
-				ret->path = (char *) malloc ( len );
-				memset( ret->path, 0, len);
-				memcpy( ret->path, tmp_s2, len - 1);
-
-				if( !ret->addr ) {
-					len = (int) (tmp_s2 - tmp_s - 1);
-					ret->addr = (char *) malloc (len+1);
-					memset( ret->addr, 0, len+1);
-					strncpy( ret->addr, tmp_s, len);
-					ret->addr[len] = '\x0';
-				}
-			} else {
-				if( !ret->addr ) {
-					len = (int) 
-						((long) tmp_s2 - (long) tmp_s);
-					ret->addr = (char *) malloc (len+1);
-					memset( ret->addr, 0, len+1);
-					strncpy( ret->addr, tmp_s, len);
-					ret->addr[len] = '\x0';
-				}
-
-				tmp_s = tmp_s2;
-				ret->path = strdup( tmp_s );
-			}
-		} else {
-			if( !ret->addr )
-				ret->addr = strdup( tmp_s );
-			ret->path = "/";
-		}
-		*/
 	}
 	else if( strncmp("http://", ret->url_s, 7 ) == 0)
 	{
@@ -1598,10 +1472,7 @@ URL *URL_new(const char * const url_s ) {
 		if (strchr( tmp_s, ':'))
 		{
 			/* Shall we be more liberal ??? */
-			// if (ret) URL_free ( ret );
 			PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
-			// ret = NULL;
-			// return ( NULL );
 			goto err;
 
 			tmp_s2 = strchr(tmp_s,':');
@@ -1619,10 +1490,7 @@ URL *URL_new(const char * const url_s ) {
 		}
 		else
 		{
-			// char tmp_val[BUFF_MAX_SIZE];
 			size_t len = 0;
-
-			// memset(tmp_val, 0, BUFF_MAX_SIZE);
 
 			ret->port = -1;
 			ret->proto = URI_PROTO_FILE;
@@ -1636,8 +1504,6 @@ URL *URL_new(const char * const url_s ) {
 			}
 			else
 			{
-				// if (ret) URL_free (ret);
-				// ret = NULL;
 				PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
 
 				// return NULL;
@@ -1660,7 +1526,7 @@ err:
 
 /*! \brief Releases the Memory associated to a URL data structure */
 
-void URL_free ( URL *url ) {
+void URL_free(URL *url) {
 
 	if( !url ) return;
 

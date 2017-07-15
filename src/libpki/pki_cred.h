@@ -21,10 +21,10 @@ typedef struct pki_cred_st {
 PKI_CRED *PKI_CRED_new_null ( void );
 PKI_CRED *PKI_CRED_new ( const char * const user, const char * const pwd );
 
-void PKI_CRED_free( PKI_CRED *cred );
+void PKI_CRED_free(PKI_CRED *cred);
 PKI_CRED *PKI_CRED_dup ( const PKI_CRED * const cred );
 
-struct pki_ssl_t * PKI_CRED_get_ssl (const PKI_CRED * const cred );
-int PKI_CRED_set_ssl ( const PKI_CRED *cred, struct pki_ssl_t *ssl );
+const struct pki_ssl_t * PKI_CRED_get_ssl(const PKI_CRED * const cred);
+int PKI_CRED_set_ssl(PKI_CRED *cred, struct pki_ssl_t * const ssl);
 
 #endif

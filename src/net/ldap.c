@@ -18,7 +18,7 @@
 #ifdef HAVE_LDAP
 
 
-LDAP *URL_LDAP_connect( URL *url, int tout ) {
+LDAP *URL_LDAP_connect(const URL *url, int tout ) {
 
 	LDAP		*ld = NULL;
 	int			protocol = -1;
@@ -116,7 +116,7 @@ err:
 	return NULL;
 }
 
-PKI_MEM_STACK *URL_get_data_ldap_url( URL *url, int timeout, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_ldap_url(const URL *url, int timeout, ssize_t size ) {
 
 #ifdef _WINDOWS
 	struct l_timeval	zerotime;

@@ -562,21 +562,14 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 		} else {
 			tk->type = HSM_TYPE_OTHER;
 		}
-	} else {
+	}
+	else
+	{
 		tk->type = HSM_TYPE_SOFTWARE;
 	}
 
-/*
-	hsm_name = PKI_CONFIG_get_value(tk->config, "/tokenConfig/hsm");
-
-PKI_log_debug("[2] hsm_name = %s", hsm_name ? hsm_name : "n/a");
-PKI_log_debug("[2] type set to (%d)", tk->type);
-PKI_log_debug("[2] is hardware token ? %s", (((tk->type != HSM_TYPE_SOFTWARE) && (hsm_name != NULL)) ? "true" : "false"));
-*/
-
 	if ((tk->type != HSM_TYPE_SOFTWARE) && ((hsm_name = 
-			PKI_CONFIG_get_value( tk->config, "/tokenConfig/hsm"))
-								!= NULL))
+			PKI_CONFIG_get_value( tk->config, "/tokenConfig/hsm")) != NULL))
 	{
 		PKI_log_debug("TK: Hardware Token: Name is %s", hsm_name );
 
@@ -709,8 +702,6 @@ PKI_log_debug("[2] is hardware token ? %s", (((tk->type != HSM_TYPE_SOFTWARE) &&
 		alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
 		if (alg) PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
 
-		// tk->algor = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
-	
 		// Assign the name
 		tk->cert_id = strdup( tmp_s );
 		PKI_Free ( tmp_s );

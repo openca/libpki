@@ -8,7 +8,7 @@
 #define _LIBPKI_ERR_H
 
 typedef enum {
-	/* General Errors */
+	// General Errors
 	PKI_ERR_UNKNOWN 	= 0,
 	PKI_ERR_GENERAL,
 	PKI_ERR_NOT_IMPLEMENTED,
@@ -20,9 +20,12 @@ typedef enum {
 	PKI_ERR_PARAM_TYPE,
 	PKI_ERR_PKI_FORMAT_UNKNOW,
 	PKI_ERR_DATA_FORMAT_UNKNOWN,
-	/* PKI MEM Errors */
+	// PKI MEM Errors
 	PKI_ERR_MEM_,
-	/* URI related Errors */
+	// PKI DIGEST Errors
+	PKI_ERR_DIGEST_TYPE_UNKNOWN,
+	PKI_ERR_DIGEST_VALUE_NULL,
+	// URI related Errors
 	PKI_ERR_URI_UNSUPPORTED,
 	PKI_ERR_URI_GENERAL,
 	PKI_ERR_URI_PARSE,
@@ -33,7 +36,7 @@ typedef enum {
 	PKI_ERR_URI_DNS,
 	PKI_ERR_URI_SSL,
 	PKI_ERR_URI_SSL_TRUST,
-	/* HSM Related */
+	// HSM Related
 	PKI_ERR_HSM_INIT,
 	PKI_ERR_HSM_LOGIN,
 	PKI_ERR_HSM_SET_ALGOR,
@@ -45,14 +48,14 @@ typedef enum {
 	PKI_ERR_HSM_KEYPAIR_GENERATE,
 	PKI_ERR_HSM_SCHEME_UNSUPPORTED,
 	PKI_ERR_HSM_,
-	/* Configuration Related */
+	// Configuration Related
 	PKI_ERR_CONFIG_MISSING,
 	PKI_ERR_CONFIG_LOAD,
 	PKI_ERR_CONFIG_SAVE,
 	PKI_ERR_CONFIG_,
-	/* Profile Related */
+	// Profile Related
 	PKI_ERR_X509_PROFILE_,
-	/* Token Related */
+	// Token Related
 	PKI_ERR_TOKEN_INIT,
 	PKI_ERR_TOKEN_LOGIN,
 	PKI_ERR_TOKEN_KEYPAIR_LOAD,
@@ -66,13 +69,13 @@ typedef enum {
 	PKI_ERR_TOKEN_SET_ALGOR,
 	PKI_ERR_TOKEN_GET_ALGOR,
 	PKI_ERR_TOKEN_,
-	/* Key Operations */
+	// Key Operations
 	PKI_ERR_X509_KEYPAIR_SIZE,
 	PKI_ERR_X509_KEYPAIR_SIZE_SHORT,
 	PKI_ERR_X509_KEYPAIR_SIZE_LONG,
 	PKI_ERR_X509_KEYPAIR_GENERATION,
 	PKI_ERR_X509_KEYPAIR_,
-	/* Certificate Operations */
+	// Certificate Operations
 	PKI_ERR_X509_CERT_CREATE,
 	PKI_ERR_X509_CERT_CREATE_SUBJECT,
 	PKI_ERR_X509_CERT_CREATE_VERSION,
@@ -82,7 +85,7 @@ typedef enum {
 	PKI_ERR_X509_CERT_CREATE_SERIAL,
 	PKI_ERR_X509_CERT_,
 	PKI_ERR_X509_CERT_VERIFY_,
-	/* Request Operations */
+	// Request Operations
 	PKI_ERR_X509_REQ_CREATE,
 	PKI_ERR_X509_REQ_CREATE_SUBJECT,
 	PKI_ERR_X509_REQ_CREATE_VERSION,
@@ -91,9 +94,13 @@ typedef enum {
 	PKI_ERR_X509_REQ_CREATE_PUBKEY,
 	PKI_ERR_X509_REQ_CREATE_ALGORITHM,
 	PKI_ERR_X509_REQ_,
-	/* CRL Errors */
+	// CRL Errors
 	PKI_ERR_X509_CRL,
-	/* OCSP Ops */
+	// PKI X509 PKCS7 ERRORS
+	PKI_ERR_X509_PKCS7_TYPE_UNKNOWN,
+	PKI_ERR_X509_PKCS7_SIGNER_INFO_NULL,
+	PKI_ERR_X509_PKCS7_CIPHER,
+	// OCSP Ops
 	PKI_ERR_OCSP_RESP_ENCODE,
 	PKI_ERR_OCSP_RESP_DECODE,
 	PKI_ERR_OCSP_RESP_SIGN,
@@ -102,19 +109,19 @@ typedef enum {
 	PKI_ERR_OCSP_REQ_SIGN,
 	PKI_ERR_OCSP_NONCE_COPY,
 	PKI_ERR_OCSP_,
-	/* PRQP Ops */
+	// PRQP Ops */
 	PKI_ERR_PRQP_,
-	/* PKI Message Operations */
+	// PKI Message Operations
 	PKI_ERR_MSG_,
-	/* Enrollment Protocol Related */
+	// Enrollment Protocol Related
 	PKI_ERR_ENROLL_,
-	/* Signatures Related Errors */
+	// Signatures Related Errors
 	PKI_ERR_SIGN_,
 	PKI_ERR_SIGN_VERIFY,
-	/* Network Related Errors */
+	// Network Related Errors
 	PKI_ERR_NET_OPEN,
 	PKI_ERR_NET_,
-	/* SSL/TLS Related Errors */
+	// SSL/TLS Related Errors
 	PKI_ERR_NET_SSL_NOT_SUPPORTED,
 	PKI_ERR_NET_SSL_NO_CIPHER,
 	PKI_ERR_NET_SSL_VERIFY,
@@ -126,11 +133,14 @@ typedef enum {
 	PKI_ERR_NET_SSL_CONNECT,
 	PKI_ERR_NET_SSL_PEER_CERTIFICATE,
 	PKI_ERR_NET_SSL_,
+	// SCEP Related Errors
+	PKI_ERR_SCEP_ATTRIBUTE_UNKNOWN,
+	PKI_ERR_SCEP_,
 } PKI_ERR_CODE;
 
 typedef struct pki_err_st {
-	PKI_ERR_CODE code;
-	char *descr;
+	PKI_ERR_CODE   code;
+	char         * descr;
 } PKI_ERR_ST;
 
 /* We define the actual object of strings only if we are compiling
@@ -139,7 +149,7 @@ typedef struct pki_err_st {
 #ifdef __LIBPKI_ERR__
 
 const PKI_ERR_ST __libpki_errors_st[] = {
-	/* General Errors */
+	// General Errors
 	{ PKI_ERR_UNKNOWN, "Unknown Error" },
 	{ PKI_ERR_GENERAL, "General Error" },
 	{ PKI_ERR_NOT_IMPLEMENTED, "Not Implemented" },
@@ -151,9 +161,12 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_PARAM_TYPE, "Wrong Paramenter Type" },
 	{ PKI_ERR_PKI_FORMAT_UNKNOW, "Unknow PKI Format" },
 	{ PKI_ERR_DATA_FORMAT_UNKNOWN, "Unknown Data Format" },
-	/* PKI MEM Errors */
+	// PKI MEM Errors
 	{ PKI_ERR_MEM_, "" },
-	/* URI Related Operations */
+	// PKI DIGEST Errors
+	{ PKI_ERR_DIGEST_TYPE_UNKNOWN, "Digest Type Unknown" },
+	{ PKI_ERR_DIGEST_VALUE_NULL, "Digest Value not available" },
+	// URI Related Operations
 	{ PKI_ERR_URI_UNSUPPORTED, "Unsupported URI Schema" },
 	{ PKI_ERR_URI_GENERAL, "URI General Error" },
 	{ PKI_ERR_URI_PARSE, "URI parsing Error" },
@@ -224,6 +237,10 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_REQ_, "" },
 	/* CRL Errors */
 	{ PKI_ERR_X509_CRL, "" },
+	// PKI X509 PKCS7 ERRORS
+	{ PKI_ERR_X509_PKCS7_TYPE_UNKNOWN, "Unknown PKCS#7 Type" },
+	{ PKI_ERR_X509_PKCS7_SIGNER_INFO_NULL, "Missing SignerInfo Structure" },
+	{ PKI_ERR_X509_PKCS7_CIPHER, "Cipher not supported" },
 	/* OCSP Ops */
 	{ PKI_ERR_OCSP_RESP_ENCODE, "Can not encode OCSP response" },
 	{ PKI_ERR_OCSP_RESP_DECODE, "Can not decode OCSP response" },
@@ -245,7 +262,7 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	/* Network Related Errors */
 	{ PKI_ERR_NET_OPEN, "Can not open socket connection" },
 	{ PKI_ERR_NET_, "" },
-  /* SSL/TLS Related Errors */
+    /* SSL/TLS Related Errors */
 	{ PKI_ERR_NET_SSL_NOT_SUPPORTED , "Not supported by SSL/TLS" },
 	{ PKI_ERR_NET_SSL_NO_CIPHER , "No valid cipher (algorithm)" },
 	{ PKI_ERR_NET_SSL_VERIFY , "TLS/SSL certificate verify error" },
@@ -257,6 +274,9 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_NET_SSL_CONNECT , "Can not connect via SSL/TLS protocol" },
 	{ PKI_ERR_NET_SSL_PEER_CERTIFICATE , "Can not process peer certificate" },
 	{ PKI_ERR_NET_SSL_ , "" },
+	// SCEP Related Errors
+	{ PKI_ERR_SCEP_ATTRIBUTE_UNKNOWN , "Unknown Attribute Type" },
+	{ PKI_ERR_SCEP_ , "" },
 	/* List Boundary */
 	{ 0, 0 }
 };

@@ -690,6 +690,8 @@ const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup(const PKI_X509_CRL *x,
 
 #else
 
+	const PKI_X509_CRL_ENTRY *r = NULL;
+
 	for( curr = 0 ; curr <= end ; curr++ ) {
  
 		const PKI_X509_CRL_ENTRY *r = NULL;
@@ -698,6 +700,8 @@ const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup(const PKI_X509_CRL *x,
 
 		// Gets the X509_REVOKED entry
 		if ((r = sk_X509_REVOKED_value( r_sk, (int) curr )) != NULL) {
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 			// Gets the Serial Number
 			if ((s_pnt = X509_REVOKED_get0_serialNumber(r)) != NULL) {
 				// Checks the value against the CRL
@@ -706,6 +710,15 @@ const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup(const PKI_X509_CRL *x,
 					break;
 				}
 			}
+#else
+			if ((s_pnt = r->serialNumber) != NULL) {
+				// Checks the value against the CRL
+				if ((cmp_val = ASN1_INTEGER_cmp(s_pnt, s)) == 0) {
+					// Found
+					break;
+				}
+			}
+#endif
 		}
 	}
 

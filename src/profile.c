@@ -127,8 +127,8 @@ PKI_X509_PROFILE *PKI_X509_PROFILE_update ( PKI_X509_PROFILE *doc ) {
 
 int PKI_X509_PROFILE_get_exts_num ( PKI_X509_PROFILE *doc ) {
 
-	PKI_CONFIG_ELEMENT *curr = NULL;
-	PKI_CONFIG_ELEMENT *exts = NULL;
+	const PKI_CONFIG_ELEMENT *curr = NULL;
+	const PKI_CONFIG_ELEMENT *exts = NULL;
 
 	int size = 0;
 
@@ -139,33 +139,22 @@ int PKI_X509_PROFILE_get_exts_num ( PKI_X509_PROFILE *doc ) {
 		return PKI_ERR;
 	}
 
-	// PKI_log_debug("GET number of exts... ");
 	if ( (curr = exts->children ) == NULL ) return 0;
 
-	/*
-	while( (curr = xmlNextElementSibling ( curr )) != NULL ) {
-		size++;
-	}
-	*/
-
-	while ( curr ) {
-		if( curr->type == XML_ELEMENT_NODE ) {
-			// PKI_log_debug("get_exts_num()::curr->name=%s", curr->name );
-			size++;
-		}
+	while (curr) {
+		if (curr->type == XML_ELEMENT_NODE)	size++;
 		curr = curr->next;
 	}
-
-	// PKI_log_debug("NUMBER OF EXTENSIONS is %d", size );
 
 	return size;
 }
 
-PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num (PKI_X509_PROFILE *doc, 
-								int num, PKI_TOKEN *tk ){
+PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num(PKI_X509_PROFILE * doc,
+													int                num,
+													PKI_TOKEN        * tk ){
 
-	PKI_CONFIG_ELEMENT *curr = NULL;
-	PKI_CONFIG_ELEMENT *exts = NULL;
+	const PKI_CONFIG_ELEMENT *curr = NULL;
+	const PKI_CONFIG_ELEMENT *exts = NULL;
 
 	int size = 0;
 
@@ -174,22 +163,25 @@ PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num (PKI_X509_PROFILE *doc,
 		return NULL;
 	};
 
-	if((exts = PKI_X509_PROFILE_get_extensions ( doc )) == NULL ) {
-		return PKI_ERR;
+	if ((exts = PKI_X509_PROFILE_get_extensions(doc)) == NULL) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "No Extensions found");
+		return NULL;
 	}
 
-	for ( curr = exts->children; curr ; curr = curr->next ) {
-		if ( curr->type == XML_ELEMENT_NODE ) {
-			// PKI_log_debug("GET EXT by NUM: %s (%d)", 
-			// 			curr->name, size );
-			if ( size == num )  {
-				break;
-			};
+	for (curr = exts->children; curr ; curr = curr->next) {
+
+		if (curr->type == XML_ELEMENT_NODE) {
+
+			// If got to the right number, let's stop
+			if (size == num) break;
+
+			// Increment the counter
 			size++;
 		}
 	}
 
-	return PKI_X509_EXTENSION_value_new_profile ( doc, NULL, curr, tk );
+	// Returns the Value of the node
+	return PKI_X509_EXTENSION_value_new_profile(doc, NULL, curr, tk);
 }
 
 PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions ( PKI_X509_PROFILE *doc ) {
