@@ -464,6 +464,8 @@ typedef struct pki_keyparams_st {
 
 } PKI_KEYPARAMS;
 
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
 typedef struct pki_x509_cinf_full {
         ASN1_INTEGER *version;          /* [ 0 ] default of v1 */
         ASN1_INTEGER *serialNumber;
@@ -478,6 +480,11 @@ typedef struct pki_x509_cinf_full {
 	ASN1_ENCODING enc;
 } PKI_X509_CINF_FULL;
 
+#endif
+
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
 typedef struct X509_crl_info_full {
     ASN1_INTEGER *version;      /* version: defaults to v1(0) so may be NULL */
     X509_ALGOR sig_alg;         /* signature algorithm */
@@ -489,8 +496,18 @@ typedef struct X509_crl_info_full {
     ASN1_ENCODING enc;                      /* encoding of signed portion of CRL */
 } PKI_X509_CRL_INFO;
 
-#define PKI_X509_CRL_ENTRY	X509_REVOKED
-/* typedef struct X509_REVOKED 	PKI_CRL_ENTRY; */
+#endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
+typedef struct X509_crl_st {
+    PKI_X509_CRL_INFO crl;          /* signed CRL data */
+    X509_ALGOR sig_alg;         /* CRL signature algorithm */
+    ASN1_BIT_STRING signature;  /* CRL signature */
+    // The rest of the structure is still blinded
+} PKI_X509_CRL_FULL;
+
+#endif
 
 typedef struct pki_digest_data {
 	const PKI_DIGEST_ALG *algor;

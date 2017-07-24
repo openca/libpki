@@ -847,14 +847,17 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
 	PKI_X509_CRL_VALUE *tmp_x = NULL;
 	PKI_MEM *mem = NULL;
 
-	if( !x || !x->value ) return (NULL);
+	if (!x || !x->value) return NULL;
 
 	tmp_x = x->value;
 
 	switch( type ) {
 		case PKI_X509_DATA_VERSION:
-			// ret = (tmp_x)->crl->version;
-			ret = ((PKI_X509_CRL_INFO *)tmp_x)->version;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			ret = (tmp_x)->crl.version;
+#else
+			ret = (tmp_x)->crl->version;
+#endif
 			// ret = X509_CRL_get_version((X509_CRL *) x);
 			break;
 		case PKI_X509_DATA_ISSUER:
@@ -884,7 +887,8 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
 			break;
 		case PKI_X509_DATA_SIGNATURE:
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
-			ret = X509_CRL_get0_signature((X509_CRL *)tmp_x);
+			X509_CRL_get0_signature((X509_CRL *)tmp_x, 
+					        (const ASN1_BIT_STRING **)&ret, NULL);
 #else
 			ret = tmp_x->signature;
 #endif
@@ -892,11 +896,22 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL *x,
 			// ret = X509_CRL_get_signature ((X509_CRL *) x);
 			break;
 		case PKI_X509_DATA_SIGNATURE_ALG1:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			// X509_CRL_get0_signature((X509_CRL *)tmp_x, 
+			// 		        NULL, (const X509_ALGOR **)&ret);
+			ret = ((PKI_X509_CRL_FULL *)tmp_x)->crl.sig_alg;
+#else
 			if (tmp_x->crl) ret = tmp_x->crl->sig_alg;
+#endif
 			break;
 		case PKI_X509_DATA_ALGORITHM:
 		case PKI_X509_DATA_SIGNATURE_ALG2:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			X509_CRL_get0_signature((X509_CRL *)tmp_x, 
+					        NULL, (const X509_ALGOR **)&ret);
+#else
 			ret = tmp_x->sig_alg;
+#endif
 			break;
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if((mem = PKI_MEM_new_null()) == NULL ) break;
