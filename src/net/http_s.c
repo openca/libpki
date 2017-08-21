@@ -542,14 +542,14 @@ err:
  */
 
 int PKI_HTTP_get_url (const URL      * url,
-		              const char     * data,
-					  size_t           data_size,
-			          const char     * content_type,
-					  int              method,
-					  int              timeout,
-			          size_t           max_size,
-					  PKI_MEM_STACK ** sk,
-					  const PKI_SSL  * ssl ) {
+		      const char     * data,
+		      size_t           data_size,
+		      const char     * content_type,
+		      int              method,
+		      int              timeout,
+		      size_t           max_size,
+		      PKI_MEM_STACK ** sk,
+		      PKI_SSL        * ssl) {
 
 	PKI_SOCKET *sock = NULL;
 	int ret = 0;
@@ -557,7 +557,7 @@ int PKI_HTTP_get_url (const URL      * url,
 	if (!url) return PKI_ERR;
 
 	sock = PKI_SOCKET_new();
-	if ( ssl ) PKI_SOCKET_set_ssl ( sock, ssl );
+	if (ssl) PKI_SOCKET_set_ssl(sock, ssl);
 
 	if (PKI_SOCKET_open_url(sock, url, timeout) == PKI_ERR)
 	{
@@ -577,13 +577,13 @@ int PKI_HTTP_get_url (const URL      * url,
 /*! \brief Reads a data from an HTTP server */
 
 int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
-		                 const char       * data,
-						 size_t             data_size,
-			             const char       * content_type,
-						 int                method,
-						 int                timeout,
-			             size_t             max_size,
-						 PKI_MEM_STACK   ** sk ) {
+	                 const char       * data,
+			 size_t             data_size,
+		         const char       * content_type,
+			 int                method,
+			 int                timeout,
+	                 size_t             max_size,
+			 PKI_MEM_STACK   ** sk ) {
 
 	size_t len = 0;
 
@@ -855,10 +855,10 @@ err:
 /*! \brief Returns the data from an HTTP source by using the GET command */
 
 int PKI_HTTP_GET_data (const char     * url_s,
-		               int              timeout,
-					   size_t           max_size,
-					   PKI_MEM_STACK ** ret,
-					   const PKI_SSL  * ssl ) {
+	               int              timeout,
+		       size_t           max_size,
+		       PKI_MEM_STACK ** ret,
+		       PKI_SSL  * ssl ) {
 
 	URL *url = NULL;
 	int rv = PKI_OK;
@@ -882,7 +882,7 @@ int PKI_HTTP_GET_data_url (const URL      * url,
 		                   int              timeout,
 						   size_t           max_size,
 					       PKI_MEM_STACK ** ret,
-						   const PKI_SSL  * ssl ) {
+						   PKI_SSL  * ssl ) {
 
 	if ( !url ) return PKI_ERR;
 
@@ -917,7 +917,7 @@ int PKI_HTTP_POST_data (const char     * url_s,
 						int              timeout,
 						size_t           max_size,
 				        PKI_MEM_STACK ** ret_sk,
-						const PKI_SSL  * ssl ) {
+						PKI_SSL  * ssl ) {
 
 	URL *url = NULL;
 	int ret = PKI_OK;
@@ -952,7 +952,7 @@ int PKI_HTTP_POST_data_url (const URL    * url,
 							int            timeout,
 							size_t         max_size,
 				            PKI_MEM_STACK **ret_sk,
-							const PKI_SSL *ssl ) {
+							PKI_SSL *ssl ) {
 
 
 	if ( !url ) return PKI_ERR;

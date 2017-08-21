@@ -29,6 +29,10 @@ const char * PKI_X509_get_type_parsed (const PKI_X509 *obj );
 
 int PKI_X509_is_signed(const PKI_X509 *obj );
 
+PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void * v, 
+		                      const PKI_DATATYPE     type);
+PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x);
+
 void * PKI_X509_get_data (const PKI_X509 *x, PKI_X509_DATA type );
 void * PKI_X509_get_parsed (const PKI_X509 *x, PKI_X509_DATA type );
 int PKI_X509_print_parsed (const PKI_X509 *x, PKI_X509_DATA type, int fd );

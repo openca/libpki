@@ -726,16 +726,16 @@ int PKI_X509_CERT_get_keysize(const PKI_X509_CERT *x ) {
 /*! \brief Returns a pointer to a specified data field in a certificate
  */
 
-const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
-				    PKI_X509_DATA type) {
+const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
+				    PKI_X509_DATA         type) {
 
   const void *ret = NULL;
   LIBPKI_X509_CERT *tmp_x = NULL;
-  // PKI_X509_CERT_VALUE *tmp_x = NULL;
-  // PKI_MEM *mem = NULL;
-  // int *tmp_int = NULL;
 
-  if( !x || !x->value ) return (NULL);
+  if (!x || !x->value) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return (NULL);
+  }
 
   tmp_x = x->value;
 
@@ -825,7 +825,6 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
       break;
 
     case PKI_X509_DATA_KEYSIZE:
-    case PKI_X509_DATA_TBS_MEM_ASN1:
     case PKI_X509_DATA_CERT_TYPE:
       PKI_ERROR(PKI_ERR_PARAM_TYPE, "Deprecated Cert Datatype");
       break;
@@ -835,13 +834,6 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x,
       tmp_int = PKI_Malloc ( sizeof( int ));
       *tmp_int = EVP_PKEY_size(X509_get_pubkey((X509 *)x->value));
       ret = tmp_int;
-      break;
-
-    case PKI_X509_DATA_TBS_MEM_ASN1:
-      if((mem = PKI_MEM_new_null()) == NULL ) break;
-      mem->size = (size_t) ASN1_item_i2d ( (void *) tmp_x->cert_info, 
-        &(mem->data), &X509_CINF_it );
-      ret = mem;
       break;
 
     case PKI_X509_DATA_CERT_TYPE:

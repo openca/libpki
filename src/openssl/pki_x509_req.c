@@ -163,7 +163,12 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 #ifdef ENABLE_ECDSA
 				case PKI_SCHEME_ECDSA:
     				if ( kParams->ec.form != PKI_EC_KEY_FORM_UNKNOWN ) {
+# if OPENSSL_VERSION_NUMBER > 0x1010000fL
+    					EC_KEY_set_conv_form(EVP_PKEY_get0_EC_KEY(kVal),
+							     (point_conversion_form_t)kParams->ec.form);
+# else
     					EC_KEY_set_conv_form(kVal->pkey.ec, (point_conversion_form_t)kParams->ec.form);
+# endif
     				};
 					break;
 #endif
@@ -365,10 +370,15 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
 			break;
 		case PKI_X509_DATA_ALGORITHM:
 		case PKI_X509_DATA_SIGNATURE_ALG1:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			ret = &(tmp_x->sig_alg);
+#else
 			ret = tmp_x->sig_alg;
+#endif
 			break;
 		case PKI_X509_DATA_SIGNATURE_ALG2:
 			break;
+/*
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if((mem = PKI_MEM_new_null()) == NULL ) 
 				break;
@@ -376,6 +386,7 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
 				&(mem->data), &X509_REQ_INFO_it );
 			ret = mem;
 			break;
+*/
 		default:
 			return( NULL );
 	}
@@ -474,108 +485,191 @@ int PKI_X509_REQ_add_attribute ( PKI_X509_REQ *req, PKI_X509_ATTRIBUTE *attr ) {
 	if ( !req || !req->value || !attr ) return PKI_ERR;
 
 	val = req->value;
-	if ( !val->req_info ) return PKI_ERR;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	if (val->req_info != NULL) {
+		return PKI_STACK_X509_ATTRIBUTE_add(val->req_info->attributes, attr);
+	} else {
+		return PKI_ERR;
+	}
+#else
+	return PKI_STACK_X509_ATTRIBUTE_add(val->req_info.attributes, attr);
+#endif
 
-	return PKI_STACK_X509_ATTRIBUTE_add( val->req_info->attributes, attr );
 }
 
 /*! \brief Deletes an attribute by using its PKI_ID */
 
 int PKI_X509_REQ_delete_attribute ( PKI_X509_REQ *req, PKI_ID id ) {
 
+	int ret = PKI_OK;
 	PKI_X509_REQ_VALUE *val = NULL;
 
 	if ( !req || !req->value ) return PKI_ERR;
 
 	val = req->value;
 
-	if ( !val->req_info || !val->req_info->attributes ) {
-		PKI_log_debug("delete_attribute()::No attributes present!");
-		return PKI_ERR;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	if (!val->req_info.attributes) {
+		ret = PKI_ERROR(PKI_ERR_PARAM_NULL, "No Attributes present");
+	} else {
+		ret = PKI_STACK_X509_ATTRIBUTE_delete(val->req_info.attributes, id );
 	}
+#else
+	if (!val->req_info || !val->req_info->attributes) {
+		ret = PKI_ERROR(PKI_ERR_PARAM_NULL, "No Attributes present");
+	} else {
+		ret = PKI_STACK_X509_ATTRIBUTE_delete(val->req_info->attributes, id);
+	}
+#endif
 
-	return PKI_STACK_X509_ATTRIBUTE_delete ( val->req_info->attributes, id );
+	return ret;
 }
 
 /*! \brief Deletes an attribute by using its number (position) */
 
 int PKI_X509_REQ_delete_attribute_by_num ( PKI_X509_REQ *req, int pos ) {
 
+	int ret = PKI_ERR;
 	PKI_X509_REQ_VALUE *val = NULL;
 
 	if ( !req || !req->value ) return PKI_ERR;
 
 	val = req->value;
 
-	if ( !val->req_info || !val->req_info->attributes ) return PKI_ERR;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	if (val->req_info.attributes != NULL) {
+		ret = PKI_STACK_X509_ATTRIBUTE_delete_by_num(
+				val->req_info.attributes, pos);
+	}
+#else
+	if (val->req_info && val->req_info->attributes) {
+		ret = PKI_STACK_X509_ATTRIBUTE_delete_by_num(
+				val->req_info->attributes, pos);
+	}
+#endif
 
-	return PKI_STACK_X509_ATTRIBUTE_delete_by_num ( val->req_info->attributes, 
-								pos );
+	return ret;
 }
 
 /*! \brief Deletes an attribute by using its name */
 
 int PKI_X509_REQ_delete_attribute_by_name ( PKI_X509_REQ *req, char *name ) {
 
+	int ret = PKI_ERR;
 	PKI_X509_REQ_VALUE *val = NULL;
 
-	if ( !req || !req->value || !name ) return PKI_ERR;
+	if (!req || !req->value || !name) return PKI_ERR;
 	val = req->value;
 
-	if ( !val->req_info || !val->req_info->attributes ) return PKI_ERR;
-	return PKI_STACK_X509_ATTRIBUTE_delete_by_name ( val->req_info->attributes, 
-									name );
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	if (val->req_info.attributes != NULL) {
+		ret = PKI_STACK_X509_ATTRIBUTE_delete_by_name(
+				val->req_info.attributes, name);
+	}
+#else
+	if (val->req_info && val->req_info->attributes) {
+		ret = PKI_STACK_X509_ATTRIBUTE_delete_by_name(
+				val->req_info->attributes, name);
+	}
+#endif
+
+	return ret;
 }
 
 /*! \brief Clears the stack of attributes from a PKI_X509_REQ */
 
 int PKI_X509_REQ_clear_attributes ( PKI_X509_REQ *req ) {
 
+	int ret = PKI_ERR;
 	PKI_X509_REQ_VALUE *val = NULL;
 	PKI_X509_ATTRIBUTE *attr = NULL;
 
-	if ( !req || !req->value ) return PKI_ERR;
+	if (!req || !req->value) return PKI_ERR;
 
 	val = req->value;
 
-	if ( !val->req_info || !val->req_info->attributes ) return PKI_OK;
 
-	while ( (attr = PKI_STACK_X509_ATTRIBUTE_pop (
-				val->req_info->attributes )) != NULL ) {
-		PKI_X509_ATTRIBUTE_free ( attr );
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	if (val->req_info.attributes != NULL) {
+		while ((attr = PKI_STACK_X509_ATTRIBUTE_pop (
+				val->req_info.attributes )) != NULL) {
+			PKI_X509_ATTRIBUTE_free(attr);
+		}
+		ret = PKI_OK;
 	}
+#else
+	if (val->req_info && val->req_info->attributes) {
+		while ((attr = PKI_STACK_X509_ATTRIBUTE_pop (
+				val->req_info->attributes )) != NULL) {
+			PKI_X509_ATTRIBUTE_free ( attr );
+		}
+		ret = PKI_OK;
+	}
+#endif
 
-	return PKI_OK;
+	return ret;
 }
 
 /*! \brief Gets the number of attributes present in a PKI_X509_REQ */
 
 int PKI_X509_REQ_get_attributes_num(const PKI_X509_REQ *req) {
 
+	int ret = 0;
 	PKI_X509_REQ_VALUE *val = NULL;
 
+	// Input Checks
 	if ( !req || !req->value ) return PKI_ERR;
+
+	// Retrieve the internal value
 	val = req->value;
 
-	if ( !val->req_info || !val->req_info->attributes ) return 0;
+	// If Attributes are present, get the number
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	if (val->req_info.attributes) {
+		ret = PKI_STACK_X509_ATTRIBUTE_elements(val->req_info.attributes);
+	}
+#else
+	// If Attribtues are present, get the number
+	if (val->req_info && val->req_info->attributes) {
+		ret = PKI_STACK_X509_ATTRIBUTE_elements(val->req_info->attributes);
+	}
+#endif
 
-	return PKI_STACK_X509_ATTRIBUTE_elements ( val->req_info->attributes );
+	// Return the retrieved number
+	return ret;
 }
 
 /*! \brief Returns an attribute from a PKI_X509_REQ by its number (position) */
 
-const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_num(
-						const PKI_X509_REQ *req, 
-						int num) {
+const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_num(const PKI_X509_REQ * req, 
+							    int                  num) {
+
+	const PKI_X509_ATTRIBUTE * ret = NULL;
+		// Return Value
 
 	PKI_X509_REQ_VALUE *val = NULL;
+		// Pointer to the request value
 
+	// Input Checks
 	if ( !req || !req->value ) return NULL;
 
+	// Gets the internal pointer
 	val = req->value;
-	if ( !val->req_info ) return NULL;
 
-	return (PKI_STACK_X509_ATTRIBUTE_get_by_num(val->req_info->attributes,num));
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	// Gets the attribute 'num'
+	ret = PKI_STACK_X509_ATTRIBUTE_get_by_num(val->req_info.attributes, num);
+#else
+	// Checks for the info structure to be there
+	if (val->req_info != NULL) {
+		// Gets the attribute by 'num'
+		ret = PKI_STACK_X509_ATTRIBUTE_get_by_num(val->req_info->attributes,num);
+	}
+#endif
+
+	// Returns the Attribute or NULL
+	return ret;
+
 }
 
 /*! \brief Returns an attribute from a PKI_X509_REQ by its type (PKI_ID) */
@@ -583,15 +677,33 @@ const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_num(
 const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute(const PKI_X509_REQ *req,
 						     PKI_ID type ) {
 
-	PKI_X509_REQ_VALUE *val = NULL;
+	const PKI_X509_ATTRIBUTE * ret = NULL;
+		// Return Value
 
+	PKI_X509_REQ_VALUE *val = NULL;
+		// Pointer to the Internal Value
+
+	// Input check
 	if ( !req || !req->value ) return NULL;
 
+	// Gets the internal value
 	val = req->value;
 
-	if ( !val->req_info ) return NULL;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	// If we have a valid attributes structure
+	if (val->req_info.attributes != NULL) {
+		// Gets the Attributes
+		ret = PKI_STACK_X509_ATTRIBUTE_get( val->req_info.attributes, type);
+	}
+#else
+	// If we have a valid req_info structure
+	if (val->req_info != NULL && val->req_info_attributes != NULL) {
+		// Gets the Attribute
+		ret = PKI_STACK_X509_ATTRIBUTE_get(val->req_info->attributes, type);
+	}
+#endif
 
-	return ( PKI_STACK_X509_ATTRIBUTE_get( val->req_info->attributes, type));
+	return ret;
 }
 
 /*! \brief Returns an attribute from a PKI_X509_REQ by its name */
@@ -600,16 +712,35 @@ const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute_by_name(
 					const PKI_X509_REQ *req, 
 					const char * name ) {
 
+	const PKI_X509_ATTRIBUTE * ret = NULL;
+		// Return Pointer for the attribute
+
 	PKI_X509_REQ_VALUE *val = NULL;
+		// Pointer to the internal value
 
-	if ( !req || !req->value || !name ) return NULL;
+	// Input Checks
+	if (!req || !req->value || !name) return NULL;
 
+	// Gets the Internal Value
 	val = req->value;
 
-	if ( !val->req_info ) return NULL;
-
-	return PKI_STACK_X509_ATTRIBUTE_get_by_name(
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	// If we have a valid attributes structure...
+	if (val->req_info.attributes) {
+		// ... get the attribute pointer by name
+		ret = PKI_STACK_X509_ATTRIBUTE_get_by_name(
+			val->req_info.attributes, name);
+	}
+#else
+	// If we have a valid req_info and attributes structure...
+	if (val->req_info && val->req_info->attributes) {
+		// ... get the pointer to the attribute
+		ret = PKI_STACK_X509_ATTRIBUTE_get_by_name(
 			val->req_info->attributes, name);
+	}
+#endif
+	// Returns the attribute pointer or NULL
+	return ret;
 }
 
 /* ---------------------------- X509 REQ Extensions --------------------------- */

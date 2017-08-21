@@ -310,8 +310,13 @@ int PKI_SSL_connect ( PKI_SSL *ssl, char *url_s, int timeout );
 int PKI_SSL_start_ssl ( PKI_SSL *ssl, int fd );
 int PKI_SSL_close ( PKI_SSL *ssl );
 
-ssize_t PKI_SSL_write ( PKI_SSL *ssl, char * buf, ssize_t size );
-ssize_t PKI_SSL_read ( PKI_SSL *ssl, char * buf, ssize_t size );
+ssize_t PKI_SSL_write(const PKI_SSL * ssl,
+		      const char    * buf,
+		      ssize_t         size);
+
+ssize_t PKI_SSL_read(const PKI_SSL * ssl,
+		     const char    * buf,
+		     ssize_t         size );
 
 struct pki_x509_st * PKI_SSL_get_peer_cert ( PKI_SSL *ssl );
 PKI_X509_CERT_STACK * PKI_SSL_get_peer_chain ( PKI_SSL *ssl );

@@ -414,14 +414,13 @@ typedef struct pki_x509_name_rdn {
 
 /* PKI_X509_EXTENSION */
 
-#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
-
 typedef struct pki_x509_extension_st {
 	PKI_OID *oid;
 	int critical;
 	void *value;
 } PKI_X509_EXTENSION;
 
+#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
 
 #ifdef ENABLE_ECDSA
 typedef enum {
@@ -500,6 +499,26 @@ typedef struct X509_crl_info_full {
 
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 
+/* a sequence of these are used */
+typedef struct x509_attributes_st {
+    ASN1_OBJECT *object;
+    int single;                 /* 0 for a set, 1 for a single item (which is
+                                 * wrong) */
+    union {
+        char *ptr;
+        /*
+         * 0
+         */ STACK_OF(ASN1_TYPE) *set;
+        /*
+         * 1
+         */ ASN1_TYPE *single;
+    } value;
+} PKI_X509_ATTRIBUTE_FULL;
+
+#endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
 typedef struct X509_crl_st {
     PKI_X509_CRL_INFO crl;          /* signed CRL data */
     X509_ALGOR sig_alg;         /* CRL signature algorithm */
@@ -508,6 +527,86 @@ typedef struct X509_crl_st {
 } PKI_X509_CRL_FULL;
 
 #endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
+// OCSP Generic
+
+typedef struct ocsp_cert_id_st {
+    X509_ALGOR hashAlgorithm;
+    ASN1_OCTET_STRING issuerNameHash;
+    ASN1_OCTET_STRING issuerKeyHash;
+    ASN1_INTEGER serialNumber;
+} OSSL_OCSP_CERTID;
+
+// OCSP Request
+typedef struct ocsp_req_info_st {
+    ASN1_INTEGER *version;
+    GENERAL_NAME *requestorName;
+    STACK_OF(OCSP_ONEREQ) *requestList;
+    STACK_OF(X509_EXTENSION) *requestExtensions;
+} OSSL_OCSP_REQ_INFO;
+
+typedef struct ocsp_signature_st {
+    X509_ALGOR signatureAlgorithm;
+    ASN1_BIT_STRING *signature;
+    STACK_OF(X509) *certs;
+} OSSL_OCSP_SIGNATURE;
+
+typedef struct ocsp_request_st {
+    OCSP_REQINFO tbsRequest;
+    OCSP_SIGNATURE *optionalSignature; /* OPTIONAL */
+} OSSL_OCSP_REQUEST;
+
+// OCSP Responses
+
+struct ocsp_single_response_st {
+    OSSL_OCSP_CERTID *certId;
+    OCSP_CERTSTATUS *certStatus;
+    ASN1_GENERALIZEDTIME *thisUpdate;
+    ASN1_GENERALIZEDTIME *nextUpdate;
+    STACK_OF(X509_EXTENSION) *singleExtensions;
+} OSSL_OCSP_SINGLERESP;
+
+typedef struct ocsp_responder_id_st {
+    int type;
+    union {
+        X509_NAME *byName;
+        ASN1_OCTET_STRING *byKey;
+    } value;
+} OSSL_OCSP_RESPID;
+
+typedef struct ocsp_response_data_st {
+    ASN1_INTEGER *version;
+    OCSP_RESPID responderId;
+    ASN1_GENERALIZEDTIME *producedAt;
+    STACK_OF(OSSL_OCSP_SINGLERESP) *responses;
+    STACK_OF(X509_EXTENSION) *responseExtensions;
+} OSSL_OCSP_RESPDATA;
+
+typedef struct ocsp_basic_response_st {
+    OSSL_OCSP_RESPDATA tbsResponseData;
+    X509_ALGOR signatureAlgorithm;
+    ASN1_BIT_STRING *signature;
+    STACK_OF(X509) *certs;
+} OSSL_OCSP_BASICRESP;
+
+typedef struct ocsp_resp_bytes_st {
+    ASN1_OBJECT *responseType;
+    ASN1_OCTET_STRING *response;
+} OSS_OCSP_RESPBYTES;
+
+typedef struct ocsp_response_st {
+    ASN1_ENUMERATED *responseStatus;
+    OCSP_RESPBYTES *responseBytes;
+} OSSL_OCSP_RESPONSE;
+
+#else
+
+
+#endif
+
+typedef X509_REVOKED	PKI_X509_CRL_ENTRY;
 
 typedef struct pki_digest_data {
 	const PKI_DIGEST_ALG *algor;
@@ -547,8 +646,13 @@ typedef struct pki_store_st {
 #define PKI_X509_OCSP_REQ		PKI_X509
 
 typedef struct pki_ocsp_resp_st {
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	OSSL_OCSP_RESPONSE * resp;
+	OSSL_OCSP_BASICRESP * bs;
+#else
 	OCSP_RESPONSE * resp;
 	OCSP_BASICRESP *bs;
+#endif
 } PKI_OCSP_RESP;
 
 typedef enum {

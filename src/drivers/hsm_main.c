@@ -454,9 +454,8 @@ int PKI_X509_sign(PKI_X509 *x,
 	*/
 
 	// Check we got at least one
-	if( !algs[0] && !algs[1] )
-	{
-		PKI_log_debug("Can not retrieve sign algorithm!");
+	if (!algs[0] && !algs[1]) {
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve the signing algorithm!");
 		return PKI_ERR;
 	}
 
@@ -503,10 +502,10 @@ int PKI_X509_sign(PKI_X509 *x,
 
 		if ((p_type == PKI_ALGOR_DSA_SHA1)
 #ifdef ENABLE_ECDSA
-			|| (p_type == PKI_ALGOR_ECDSA_SHA1 ) ||
-			( p_type == PKI_ALGOR_ECDSA_SHA256 ) ||
-			( p_type == PKI_ALGOR_ECDSA_SHA384 ) ||
-			( p_type == PKI_ALGOR_ECDSA_SHA512 )
+			|| (p_type == PKI_ALGOR_ECDSA_SHA1 )    ||
+			   ( p_type == PKI_ALGOR_ECDSA_SHA256 ) ||
+			   ( p_type == PKI_ALGOR_ECDSA_SHA384 ) ||
+			   ( p_type == PKI_ALGOR_ECDSA_SHA512 )
 #endif
 				) {
 			if(a->parameter) ASN1_TYPE_free(a->parameter);
@@ -618,8 +617,7 @@ int PKI_X509_sign(PKI_X509 *x,
 	/* der work is finished, let's free the memory */
 	PKI_MEM_free ( der );
 
-	if((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE))==NULL)
-	{
+	if ((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE))==NULL) {
 		PKI_MEM_free (sig);
 		PKI_log_debug("Can't get signature data");
 		return PKI_ERR;
@@ -631,7 +629,7 @@ int PKI_X509_sign(PKI_X509 *x,
 	signature->length = (int) sig->size;
 
 	signature->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT|0x07);
-  signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
+	signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
 
 	// We can not free the data in the sig PKI_MEM because that is
 	// actually owned by the signature now, so let's change the
@@ -648,9 +646,9 @@ int PKI_X509_sign(PKI_X509 *x,
 
 /*! \brief General signature function on data */
 
-PKI_MEM *PKI_sign(const PKI_MEM *der,
-		  const PKI_DIGEST_ALG *alg,
-		  const PKI_X509_KEYPAIR *key ) {
+PKI_MEM *PKI_sign(const PKI_MEM          * der,
+		  const PKI_DIGEST_ALG   * alg,
+		  const PKI_X509_KEYPAIR * key ) {
 
 	PKI_MEM *sig = NULL;
 	const HSM *hsm = NULL;

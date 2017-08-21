@@ -254,8 +254,9 @@ PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial ( PKI_X509_OCSP_REQ *req,
 	return ret;
 }
 
-int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ *req, 
-			PKI_X509_KEYPAIR *k, PKI_DIGEST_ALG *md ) {
+int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ * req, 
+				 PKI_X509_KEYPAIR  * k,
+				 PKI_DIGEST_ALG    * md ) {
 
 	int ret = 0;
 
@@ -280,7 +281,7 @@ int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ *req,
 		}
 	}
 
-	ret = PKI_X509_sign ( req, md, k );
+	ret = PKI_X509_sign(req, md, k);
 
 	if (ret == PKI_ERR)
 	{
@@ -294,9 +295,12 @@ int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ *req,
 }
 
 /*! \brief Signs a PKI_X509_OCSP_REQ, for a simpler API use PKI_X509_OCSP_REQ_sign_tk */
-int PKI_X509_OCSP_REQ_sign ( PKI_X509_OCSP_REQ *req, PKI_X509_KEYPAIR *keypair,
-		PKI_X509_CERT *cert, PKI_X509_CERT *issuer, 
-		PKI_X509_CERT_STACK * otherCerts, PKI_DIGEST_ALG *digest ) {
+int PKI_X509_OCSP_REQ_sign(PKI_X509_OCSP_REQ   * req,
+			   PKI_X509_KEYPAIR    * keypair,
+			   PKI_X509_CERT       * cert, 
+			   PKI_X509_CERT       * issuer, 
+			   PKI_X509_CERT_STACK * otherCerts, 
+			   PKI_DIGEST_ALG      * digest) {
 
 	OCSP_SIGNATURE *psig = NULL;
 	PKI_X509_OCSP_REQ_VALUE *val = NULL;
@@ -314,16 +318,34 @@ int PKI_X509_OCSP_REQ_sign ( PKI_X509_OCSP_REQ *req, PKI_X509_KEYPAIR *keypair,
 
 	val = req->value;
 
-	if( cert ) {
-		OCSP_request_set1_name ( val,  
+	if (cert) {
+		OCSP_request_set1_name (val,  
 			(PKI_X509_NAME *)PKI_X509_CERT_get_data(cert, 
 						PKI_X509_DATA_SUBJECT));
 	}
 
-	if((PKI_X509_OCSP_REQ_DATA_sign( req, keypair, 
-					digest )) == PKI_ERR ) {
+	if ((PKI_X509_OCSP_REQ_DATA_sign(req,
+					 keypair, 
+					 digest )) == PKI_ERR ) {
 		return PKI_ERR;
 	}
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	if (cert && cert->value) OCSP_request_add1_cert(val, cert->value);
+
+	if (otherCerts)
+	{
+		int i = 0;
+		for (i = 0; i < PKI_STACK_X509_CERT_elements(otherCerts); i++) {
+			PKI_X509_CERT *x = NULL;
+
+			x = PKI_STACK_X509_CERT_get_num (otherCerts, i);
+			if (x && x->value) {
+				OCSP_request_add1_cert(val, x->value);
+			}
+		}
+	}
+#else
 
 	psig = val->optionalSignature;
 
@@ -358,6 +380,7 @@ int PKI_X509_OCSP_REQ_sign ( PKI_X509_OCSP_REQ *req, PKI_X509_KEYPAIR *keypair,
 			}
 		}
 	}
+#endif
 
 	return PKI_OK;
 
@@ -392,7 +415,12 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 	void * ret = NULL;
 	int idx = -1;
 
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	OSSL_OCSP_REQUEST *tmp_x = NULL;
+#else
 	PKI_X509_OCSP_REQ_VALUE *tmp_x = NULL;
+#endif
+
 	PKI_MEM *mem = NULL;
 
 	if( !req ) return NULL;
@@ -406,8 +434,16 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 			if (idx >= 0)
 			{
 				X509_EXTENSION *ext = OCSP_REQUEST_get_ext(tmp_x, idx);
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+				if (ext) ret = X509_EXTENSION_get_data(ext);
+#else
+				if (ext) ret = ext->value;
+/*
 				if (ext) ret = PKI_STRING_new(ext->value->type,
-						(char *)ext->value->data, (ssize_t) ext->value->length);
+						              (char *)ext->value->data,
+							      (ssize_t) ext->value->length);
+*/
+#endif
 			}
 			break;
 
@@ -424,19 +460,21 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 		case PKI_X509_DATA_ALGORITHM:
 		case PKI_X509_DATA_SIGNATURE_ALG1:
 			if ( tmp_x && tmp_x->optionalSignature ) {
-				ret = tmp_x->optionalSignature->signatureAlgorithm;
+				ret = (void *) &(tmp_x->optionalSignature->signatureAlgorithm);
 			}
 			break;
 
 		case PKI_X509_DATA_SIGNATURE_ALG2:
 			break;
 
+		/*
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if((mem = PKI_MEM_new_null()) == NULL) break;
 			mem->size = (size_t) ASN1_item_i2d ( (void *) tmp_x->tbsRequest, 
 				&(mem->data), &OCSP_REQINFO_it );
 			ret = mem;
 			break;
+		*/
 
 		default:
 			return NULL;

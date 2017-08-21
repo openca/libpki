@@ -9,19 +9,19 @@ typedef struct parsed_datatypes_st {
 
 struct parsed_datatypes_st __parsed_datatypes[] = {
 	/* X509 types */
-	{ "Unknown",						PKI_DATATYPE_UNKNOWN },
-	{ "Public KeyPair", 				PKI_DATATYPE_X509_KEYPAIR },
+	{ "Unknown",				PKI_DATATYPE_UNKNOWN },
+	{ "Public KeyPair", 			PKI_DATATYPE_X509_KEYPAIR },
 	{ "X509 Public Key Certificate", 	PKI_DATATYPE_X509_CERT },
-	{ "X509 CRL", 						PKI_DATATYPE_X509_CRL },
+	{ "X509 CRL", 				PKI_DATATYPE_X509_CRL },
 	{ "PKCS#10 Certificate Request", 	PKI_DATATYPE_X509_REQ },
-	{ "PKCS#7 Message", 				PKI_DATATYPE_X509_PKCS7 },
-	{ "PKCS#12 PMI Object", 			PKI_DATATYPE_X509_PKCS12 },
-	{ "OCSP Request", 					PKI_DATATYPE_X509_OCSP_REQ },
-	{ "OCSP Response", 					PKI_DATATYPE_X509_OCSP_RESP },
-	{ "PRQP Request", 					PKI_DATATYPE_X509_PRQP_REQ },
-	{ "PRQP Response", 					PKI_DATATYPE_X509_PRQP_RESP },
+	{ "PKCS#7 Message", 			PKI_DATATYPE_X509_PKCS7 },
+	{ "PKCS#12 PMI Object", 		PKI_DATATYPE_X509_PKCS12 },
+	{ "OCSP Request", 			PKI_DATATYPE_X509_OCSP_REQ },
+	{ "OCSP Response", 			PKI_DATATYPE_X509_OCSP_RESP },
+	{ "PRQP Request", 			PKI_DATATYPE_X509_PRQP_REQ },
+	{ "PRQP Response", 			PKI_DATATYPE_X509_PRQP_RESP },
 	{ "Cross Certificate Pair", 		PKI_DATATYPE_X509_XPAIR },
-	{ "CMS Message", 					PKI_DATATYPE_X509_CMS_MSG },
+	{ "CMS Message", 			PKI_DATATYPE_X509_CMS_MSG },
 	{ NULL, -1 }
 };
 
@@ -362,12 +362,10 @@ PKI_X509 * PKI_X509_dup (const PKI_X509 *x ) {
 
 void * PKI_X509_get_data(const PKI_X509 *x, PKI_X509_DATA type ) {
 
-
-	if ( !x || !x->cb || !x->cb->get_data ) {
-		PKI_log_debug ( "ERROR, no x, cb or get_data!");
+	if (!x || !x->cb || !x->value || !x->cb->get_data) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
 	}
-
-	if( !x || !x->cb || !x->cb->get_data || !x->value ) return NULL;
 
 	return x->cb->get_data ( x, type );
 }
@@ -384,6 +382,115 @@ int PKI_X509_is_signed(const PKI_X509 *obj ) {
 
 	return PKI_OK;
 }
+
+/*! \brief Returns the DER encoded version of the toBeSigned portion of
+ *         the PKI_X509_VALUE structure
+ */
+
+PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v, 
+		                      const PKI_DATATYPE   type) {
+
+	ASN1_ITEM * it = NULL;
+	PKI_MEM   * mem = NULL;
+
+	void * p = NULL;
+
+	// Input Checks
+	if (!v || !it) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Gets the Type needed to get the tbSigned
+	// encoded ASN1 data
+	switch (type) {
+
+		case PKI_DATATYPE_X509_CERT : {
+			it = X509_CINF_it;
+			p = ((PKI_X509_CERT_VALUE *)v)->cert_info;
+		} break;
+
+		case PKI_DATATYPE_X509_CRL : {
+			it = X509_CRL_INFO_it;
+			p = ((PKI_X509_CRL_VALUE *)v)->crl;
+		} break;
+
+		case PKI_DATATYPE_X509_REQ : {
+			it = X509_REQ_INFO_it;
+			p = ((LIBPKI_X509_REQ *)v)->req_info;
+		} break;
+
+		case PKI_DATATYPE_X509_OCSP_REQ : {
+			it = OCSP_REQINFO_it;
+			p = ((PKI_X509_OCSP_REQ_VALUE *)v)->tbsRequest;
+		} break;
+
+		case PKI_DATATYPE_X509_OCSP_RESP : {
+			it = OCSP_RESPDATA_it;
+			p = ((PKI_OCSP_RESP *)v)->bs->tbsResponseData;
+		} break;
+
+		case PKI_DATATYPE_X509_PRQP_REQ : {
+			it = PKI_PRQP_REQ_it;
+			p = ((PKI_X509_PRQP_RESP_VALUE *)v)->requestData;
+		} break;
+
+		case PKI_DATATYPE_X509_PRQP_RESP : {
+			it = PKI_PRQP_RESP_it;
+			p = ((PKI_X509_PRQP_RESP_VALUE *)v)->respData;
+		} break;
+
+		case PKI_DATATYPE_X509_CMS_MSG: {
+			it = X509_CMS_it;
+		} break;
+
+		default: {
+			PKI_ERROR(PKI_ERR_DATATYPE_UNKNOWN, "Not Supported Datatype");
+			return NULL;
+		}
+	}
+
+	// Allocates the PKI_MEM data structure
+	if ((mem = PKI_MEM_new_null()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	mem->size = (size_t) ASN1_item_i2d((void *)p,
+                                                   &(mem->data),
+                                                   &it);
+#else
+        mem->size = (size_t) ASN1_item_i2d((void *)&p,
+                                                   &(mem->data),
+                                                   &it);
+#endif
+
+}
+
+/*! \brief Returns the DER encoded version of the toBeSigned portion of
+ *         the X509 structure
+ */
+
+PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
+	
+	// Input Checks
+	if (!x || !x->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	if (!x->cb || !x->cb->get_tbs) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	return x->cb->get_tbs(x, type);
+
+	// Returns the encoded value
+	// return PKI_X509_get_tbs_asn1(x->value, x->it);
+}
+
 
 /*! \brief Returns the parsed (char *, int *, etc.) version of the data in
            a PKI_X509 object */

@@ -81,6 +81,9 @@ typedef struct pki_x509_st {
 	/* Callbacks */
 	const PKI_X509_CALLBACKS *cb;
 
+	/* Template Reference */
+	ASN1_ITEM * it;
+
 } PKI_X509;
 
 /* End of _LIBPKI_PKI_X509_DATA_ST_H */

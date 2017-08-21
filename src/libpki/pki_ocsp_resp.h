@@ -48,7 +48,7 @@ int PKI_X509_OCSP_RESP_sign_tk ( PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk,
 
 /* ------------------------------ Data Parsing --------------------------- */
 
-void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type );
+const void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type );
 char * PKI_X509_OCSP_RESP_get_parsed ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type );
 
 int PKI_X509_OCSP_RESP_print_parsed ( PKI_X509_OCSP_RESP *r, 

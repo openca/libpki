@@ -4,7 +4,7 @@
 
 /* ------------------------------ internal (static ) ------------------------- */
 
-static const STACK_OF(X509) * __get_chain (const PKI_X509_PKCS7 * const p7) {
+static STACK_OF(X509) * __get_chain (const PKI_X509_PKCS7 * const p7) {
 
 	STACK_OF(X509) *x_sk = NULL;
 	int type = 0;
@@ -337,7 +337,7 @@ PKI_X509_PKCS7 *PKI_X509_PKCS7_new(PKI_X509_PKCS7_TYPE type) {
 	}
 
 	// Allocates the new structure with the generated value
-	if ((p7 = PKI_X509_new(PKI_DATATYPE_X509_PKCS7, value)) == NULL) {
+	if ((p7 = PKI_X509_new_value(PKI_DATATYPE_X509_PKCS7, value, NULL)) == NULL) {
 
 		// Reports the error
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
@@ -406,13 +406,12 @@ int PKI_X509_PKCS7_add_crl(PKI_X509_PKCS7     * p7,
 	return PKI_OK;
 }
 
-int PKI_X509_PKCS7_add_crl_stack(const PKI_X509_PKCS7 *p7, 
+int PKI_X509_PKCS7_add_crl_stack(PKI_X509_PKCS7           * p7, 
 				 const PKI_X509_CRL_STACK * const crl_sk ) {
 	int i;
 
 	if( !p7 || !p7->value || !crl_sk ) {
-		PKI_log_err( "PKI_X509_PKCS7_add_crl_stack()::Missing param!");
-		return PKI_ERR;
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
 	for( i=0; i < PKI_STACK_X509_CRL_elements( crl_sk ); i++ ) {
@@ -462,8 +461,8 @@ PKI_X509_CRL *PKI_X509_PKCS7_get_crl(const PKI_X509_PKCS7 * const p7,
 
 /*! \brief Adds a certificate to the signature's certificate chain */
 
-int PKI_X509_PKCS7_add_cert(const PKI_X509_PKCS7 *p7, 
-			    const PKI_X509_CERT * const x) {
+int PKI_X509_PKCS7_add_cert(const PKI_X509_PKCS7 * p7, 
+			    const PKI_X509_CERT  * const x) {
 
 	if (!p7 || !p7->value || !x || !x->value) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -477,8 +476,8 @@ int PKI_X509_PKCS7_add_cert(const PKI_X509_PKCS7 *p7,
 
 /*! \brief Adds a stack of certificates to the signature's certificate chain */
 
-int PKI_X509_PKCS7_add_cert_stack(const PKI_X509_PKCS7 *p7, 
-				  const PKI_X509_CERT_STACK * const x_sk ) {
+int PKI_X509_PKCS7_add_cert_stack(const PKI_X509_PKCS7      * p7, 
+				  const PKI_X509_CERT_STACK * const x_sk) {
 	int i;
 
 	if( !p7 || !p7->value || !x_sk ) {
@@ -536,12 +535,17 @@ PKI_X509_CERT *PKI_X509_PKCS7_get_cert(const PKI_X509_PKCS7 * const p7,
 
 int PKI_X509_PKCS7_clear_certs(const PKI_X509_PKCS7 * p7) {
 
-	const STACK_OF(X509) *x_sk = NULL;
+	STACK_OF(X509) *x_sk = NULL;
+		// Pointer to the stack of certificates
 
-	if ((x_sk = __get_chain(p7)) == NULL) return PKI_ERR;
+	// Gets the pointer to the stack structure
+	if ((x_sk = __get_chain(p7)) == NULL)
+		return PKI_ERR;
 
-	sk_X509_free(x_sk );
+	// Frees the certificates stack
+	sk_X509_free(x_sk);
 
+	// All Done
 	return PKI_OK;
 }
 
@@ -549,23 +553,26 @@ int PKI_X509_PKCS7_clear_certs(const PKI_X509_PKCS7 * p7) {
  * \brief Returns a signed version of the PKI_X509_PKCS7 by using the passed token
  */
 
-int PKI_X509_PKCS7_add_signer_tk(const PKI_X509_PKCS7 *p7,
-				 const PKI_TOKEN * const tk, 
-				 const PKI_DIGEST_ALG *md){
+int PKI_X509_PKCS7_add_signer_tk(PKI_X509_PKCS7       * p7,
+				 const PKI_TOKEN      * const tk, 
+				 const PKI_DIGEST_ALG * md){
 
 	if (!p7 || !p7->value) return PKI_ERR;
 
-	return PKI_X509_PKCS7_add_signer(p7, tk->cert, tk->keypair, md);
+	return PKI_X509_PKCS7_add_signer(p7,
+					 tk->cert,
+					 tk->keypair,
+					 md);
 }
 
 /*!
  * \brief Signs a PKI_X509_PKCS7 (must be of SIGNED type)
  */
 
-int PKI_X509_PKCS7_add_signer(const PKI_X509_PKCS7 *p7,
-			      const PKI_X509_CERT * const signer,
+int PKI_X509_PKCS7_add_signer(const PKI_X509_PKCS7   * p7,
+			      const PKI_X509_CERT    * const signer,
 			      const PKI_X509_KEYPAIR * const k,
-			      const PKI_DIGEST_ALG *md ) {
+			      const PKI_DIGEST_ALG   * md ) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
@@ -900,8 +907,8 @@ PKI_MEM *PKI_X509_PKCS7_decode(const PKI_X509_PKCS7 * const p7,
 
 /*! \brief Set the cipher in a encrypted (or signed and encrypted) PKCS7 */
 
-int PKI_X509_PKCS7_set_cipher(const PKI_X509_PKCS7 *p7,
-			      const PKI_CIPHER * cipher ) {
+int PKI_X509_PKCS7_set_cipher(const PKI_X509_PKCS7 * p7,
+			      const PKI_CIPHER     * const cipher) {
 
 	int type;
 
@@ -956,8 +963,8 @@ int PKI_X509_PKCS7_set_recipients(const PKI_X509_PKCS7 *p7,
 }
 
 /*! \brief Adds a new recipient for the PKI_X509_PKCS7 */
-int PKI_X509_PKCS7_add_recipient(const PKI_X509_PKCS7 *p7,
-				 const PKI_X509_CERT * const x ) {
+int PKI_X509_PKCS7_add_recipient(const PKI_X509_PKCS7 * p7,
+				 const PKI_X509_CERT  * x ) {
 
 	if (!p7 || !p7->value || !x || !x->value) return PKI_ERR;
 
@@ -969,8 +976,8 @@ int PKI_X509_PKCS7_add_recipient(const PKI_X509_PKCS7 *p7,
 
 /* -------------------------------- Add Attributes ---------------------- */
 
-int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 *p7, 
-					const PKI_X509_ATTRIBUTE * const a) {
+int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 * p7, 
+					PKI_X509_ATTRIBUTE   * a) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
@@ -990,8 +997,8 @@ int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 *p7,
 
 }
 
-int PKI_X509_PKCS7_add_attribute(const PKI_X509_PKCS7 *p7,
-				 const PKI_X509_ATTRIBUTE * const a ) {
+int PKI_X509_PKCS7_add_attribute(const PKI_X509_PKCS7 * p7,
+				 PKI_X509_ATTRIBUTE   * a) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
@@ -1243,7 +1250,7 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 
 		BIO_printf( bio, "        Signed Attributes:\r\n");
 		if ( si->auth_attr ) {
-			PKI_X509_ATTRIBUTE *a = NULL;
+			PKI_X509_ATTRIBUTE_FULL *a = NULL;
 			int attr_num = 0;
 			char * tmp_str = NULL;
 
@@ -1316,7 +1323,7 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 		BIO_printf( bio, "        No Recipients\r\n");
 	} else {
 		int rec_num = 0;
-		PKI_X509_CERT *rec = NULL;
+		const PKI_X509_CERT *rec = NULL;
 
 		rec_num = PKI_X509_PKCS7_get_recipients_num ( msg );
 		for ( i=0; i < rec_num; i++ ) {

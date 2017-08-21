@@ -72,9 +72,8 @@ static int __ssl_find_trusted(X509_STORE_CTX      *ctx,
 		}
 	}
 
-	if ( ret == PKI_OK ) {
-		ctx->error = X509_V_OK;
-	}
+	if ( ret == PKI_OK ) X509_STORE_CTX_set_error(ctx, X509_V_OK);
+	// ctx->error = X509_V_OK;
 
 	PKI_log_debug("__ssl_find_trusted()-> Return code is %d", ret );
 	PKI_X509_free ( curr_cert );
@@ -146,7 +145,8 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 			if ( (!sk) && ( PKI_SSL_check_verify ( pki_ssl, 
 					PKI_SSL_VERIFY_CRL_REQUIRE ) == PKI_OK) ) {
 				PKI_log_debug( "Required CRL check failed");
-				ctx->error = X509_V_ERR_UNABLE_TO_GET_CRL;
+				X509_STORE_CTX_set_error(ctx, X509_V_ERR_UNABLE_TO_GET_CRL);
+				// ctx->error = X509_V_ERR_UNABLE_TO_GET_CRL;
 			} else {
 				int i = 0;
 
@@ -160,7 +160,8 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 	}
 	}
 
-	if (code == 1) ctx->error = X509_V_OK;
+	// if (code == 1) ctx->error = X509_V_OK;
+	if (code == 1) X509_STORE_CTX_set_error(ctx, X509_V_OK);
 
 	/*
 	if( 1 ) {
@@ -445,7 +446,8 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 			/* No trusted certificate is present in the chain! */
 			PKI_log_err("None of the peer chain certificates is "
 					"trusted");
-			ctx->error = X509_V_ERR_CERT_UNTRUSTED;
+			// ctx->error = X509_V_ERR_CERT_UNTRUSTED;
+			X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_UNTRUSTED);
 			ret = 0;
 		} else {
 			ret = 1;
@@ -1209,7 +1211,9 @@ void PKI_SSL_free ( PKI_SSL *ssl ) {
 
 /*! \brief Writes data to a connected PKI_SSL */
 
-ssize_t PKI_SSL_write ( PKI_SSL *ssl, char * buf, ssize_t size ) {
+ssize_t PKI_SSL_write(const PKI_SSL * ssl, 
+		      const char    * buf,
+		      ssize_t         size ) {
 
 	ssize_t ret = 0;
 
@@ -1235,8 +1239,9 @@ ssize_t PKI_SSL_write ( PKI_SSL *ssl, char * buf, ssize_t size ) {
 
 /*! \brief Reads data from a connected PKI_SSL */
 
-ssize_t PKI_SSL_read(PKI_SSL *ssl, char * buf, ssize_t size)
-{
+ssize_t PKI_SSL_read(const PKI_SSL * ssl, 
+		     const char    * buf,
+		     ssize_t         size) {
 	ssize_t ret = 0;
 
 	if( !ssl || !ssl->ssl || !ssl->connected || !buf || size <= 0) 
@@ -1245,7 +1250,7 @@ ssize_t PKI_SSL_read(PKI_SSL *ssl, char * buf, ssize_t size)
 		return -1;
 	}
 
-	if ((ret = SSL_read(ssl->ssl, buf, (int) size )) < 0)
+	if ((ret = SSL_read((SSL *)ssl->ssl, (char *)buf, (int) size )) < 0)
 	{
 		PKI_log_err("SSL read error (%s)",
 			ERR_error_string(ERR_get_error(),NULL));
