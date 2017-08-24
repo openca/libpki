@@ -127,8 +127,9 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 
 	  */
 
-	PKI_CONFIG_ELEMENT *valNode = NULL;
 	PKI_X509_EXTENSION *ret = NULL;
+
+	PKI_CONFIG_ELEMENT *valNode = NULL;
 	PKI_X509_EXTENSION_VALUE *ext = NULL;
 
 	xmlChar *type_s = NULL;
@@ -205,8 +206,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 			tag_s = xmlGetProp( valNode, BAD_CAST "tag" );
 			oid_s = xmlGetProp( valNode, BAD_CAST "oid" );
 
-			value_s = xmlNodeListGetString( profile, 
-						valNode->xmlChildrenNode, 0);
+			value_s = xmlNodeListGetString((PKI_X509_PROFILE *)profile, 
+						       valNode->xmlChildrenNode, 0);
 
 			if( oid_s ) {
 				/* Let's be sure the OID is created */
@@ -271,7 +272,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 			if( oid_s ) xmlFree ( oid_s );
 			if( tag_s ) xmlFree ( tag_s );
 			if( value_s ) xmlFree ( value_s );
-        }
+        	}
 	}
 
 	v3_ctx.db = NULL;
@@ -307,19 +308,19 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	}
 
 	if( !ext ) {
-		PKI_log_debug("EXT::ERR::%s",
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 
 			ERR_error_string(ERR_get_error(), NULL ));
 		return NULL;
 	}
 
-	if(( ret = PKI_X509_EXTENSION_new()) == NULL ) {
+        if(( ret = PKI_X509_EXTENSION_new()) == NULL ) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		X509_EXTENSION_free ( ext );
 		return NULL;
 	}
 
 	ret->value = ext;
-	ret->oid = ext->object;
+	ret->oid = X509_EXTENSION_get_object(ext);
 
 	if( name_s ) xmlFree ( name_s );
 	if( crit_s ) xmlFree (crit_s );
@@ -330,8 +331,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	return ( ret );
 }
 
-PKI_X509_EXTENSION_STACK *PKI_X509_EXTENSION_get_list ( void *x, 
-						PKI_X509_DATA type ) {
+PKI_X509_EXTENSION_STACK *PKI_X509_EXTENSION_get_list(void          * x, 
+						      PKI_X509_DATA   type ) {
 
 	PKI_X509_EXTENSION_STACK *ret = NULL;
 
@@ -357,8 +358,9 @@ PKI_X509_EXTENSION_STACK *PKI_X509_EXTENSION_get_list ( void *x,
 			continue;
 		}
 
-		pki_ext->oid = ext->object;
-		pki_ext->critical = ext->critical;
+
+		pki_ext->oid = X509_EXTENSION_get_object(ext);
+		pki_ext->critical = X509_EXTENSION_get_critical(ext);
 
 		if((pki_ext->value = X509V3_EXT_d2i ( ext )) == NULL ) {
 			PKI_log_debug( "Extension %d -- not parsable", i);

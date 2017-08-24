@@ -47,27 +47,51 @@ PKI_SOCKET *PKI_SOCKET_new_ssl ( PKI_SSL *ssl );
 PKI_SOCKET *PKI_SOCKET_new_fd ( int fd );
 void PKI_SOCKET_free ( PKI_SOCKET *sock);
 
-int PKI_SOCKET_set_flags ( PKI_SOCKET *sock, int flags );
-int PKI_SOCKET_set_trusted ( PKI_SOCKET *sock, PKI_X509_CERT_STACK *sk );
+int PKI_SOCKET_set_flags(PKI_SOCKET * sock,
+		         int          flags);
 
-int PKI_SOCKET_open ( PKI_SOCKET *sock, char *url_s, int timeout);
-int PKI_SOCKET_open_url ( PKI_SOCKET *sock, URL *url_s, int timeout);
-int PKI_SOCKET_connect ( PKI_SOCKET *sock, URL *url, int timeout );
-int PKI_SOCKET_connect_ssl ( PKI_SOCKET *sock, URL *url, int timeout );
+int PKI_SOCKET_set_trusted(PKI_SOCKET          * sock,
+		           PKI_X509_CERT_STACK * sk);
 
-int PKI_SOCKET_close ( PKI_SOCKET *sock );
+int PKI_SOCKET_open(PKI_SOCKET * sock,
+		    const char * url_s,
+		    int          timeout);
 
-int PKI_SOCKET_set_ssl ( PKI_SOCKET *sock, PKI_SSL *ssl );
-PKI_SSL *PKI_SOCKET_get_ssl ( PKI_SOCKET *sock );
+int PKI_SOCKET_open_url(PKI_SOCKET * sock,
+		        const URL  * url_s,
+			int          timeout);
 
-int PKI_SOCKET_set_fd  ( PKI_SOCKET *sock, int fd );
-int PKI_SOCKET_get_fd ( PKI_SOCKET *sock );
+int PKI_SOCKET_connect(PKI_SOCKET * sock,
+		       const URL  * url,
+		       int          timeout );
 
-int PKI_SOCKET_start_ssl ( PKI_SOCKET *sock );
+int PKI_SOCKET_connect_ssl(PKI_SOCKET * sock,
+		           const URL  * url,
+			   int          timeout );
 
-ssize_t PKI_SOCKET_read ( PKI_SOCKET *sock, char *buf, size_t n, int timeout );
-ssize_t PKI_SOCKET_write ( PKI_SOCKET *sock, char *buf, size_t n );
+int PKI_SOCKET_close(PKI_SOCKET *sock);
 
-URL *PKI_SOCKET_get_url ( PKI_SOCKET *sock );
+int PKI_SOCKET_set_ssl(PKI_SOCKET * sock,
+		       PKI_SSL    * ssl );
+
+const PKI_SSL * PKI_SOCKET_get_ssl(const PKI_SOCKET *sock);
+
+int PKI_SOCKET_set_fd(PKI_SOCKET * sock,
+		      int          fd );
+
+int PKI_SOCKET_get_fd(const PKI_SOCKET * sock);
+
+int PKI_SOCKET_start_ssl(PKI_SOCKET * sock);
+
+ssize_t PKI_SOCKET_read(const PKI_SOCKET * sock,
+		        const char       * buf,
+			size_t             n,
+			int                timeout );
+
+ssize_t PKI_SOCKET_write(const PKI_SOCKET * sock,
+		         const char       * buf,
+			 size_t             n);
+
+const URL * PKI_SOCKET_get_url(const PKI_SOCKET * sock);
 
 #endif

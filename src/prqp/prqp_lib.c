@@ -220,10 +220,13 @@ int PRQP_init_all_services ( void ) {
 
 /*! \brief Generates a new CERT_IDENTIFIER to be used in a PRQP request */
 
-CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert ( PKI_X509_CERT *caCert, 
-		PKI_X509_CERT *issuerCert, PKI_X509_CERT *issuedCert,
-		char *subject_s, char *serial_s, PKI_DIGEST_ALG * dgst)
-{
+CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert, 
+					   PKI_X509_CERT  * issuerCert,
+					   PKI_X509_CERT  * issuedCert,
+					   char           * subject_s,
+					   char           * serial_s,
+					   PKI_DIGEST_ALG * dgst) {
+
 	PKI_X509_NAME *s_name = NULL;
 	PKI_X509_NAME *i_name = NULL;
 	PKI_INTEGER *serial = NULL;

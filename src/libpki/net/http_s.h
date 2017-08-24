@@ -46,23 +46,23 @@ PKI_HTTP *PKI_HTTP_get_message(const PKI_SOCKET * sock,
 /* --------------------- HTTP Generic GET/POST Functions ---------------- */
 
 int PKI_HTTP_get_url (const URL      * url,
-		              const char     * data,
-					  size_t           data_size,
-			          const char     * content_type,
-					  int              method,
-					  int              timeout,
-			          size_t           max_size,
-					  PKI_MEM_STACK ** sk,
-					  const PKI_SSL  * ssl );
+	              const char     * data,
+		      size_t           data_size,
+		      const char     * content_type,
+		      int              method,
+		      int              timeout,
+	              size_t           max_size,
+	              PKI_MEM_STACK ** sk,
+	              PKI_SSL  * ssl );
 
 int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
-		                 const char       * data,
-						 size_t             data_size,
-			             const char       * content_type,
-						 int                method,
-						 int                timeout,
-			             size_t             max_size,
-						 PKI_MEM_STACK   ** sk );
+		         const char       * data,
+			 size_t             data_size,
+		         const char       * content_type,
+			 int                method,
+			 int                timeout,
+		         size_t             max_size,
+			 PKI_MEM_STACK   ** sk );
 
 /* ------------------------------ HTTP Get Functions -------------------- */
 
@@ -70,13 +70,13 @@ int PKI_HTTP_GET_data(const char     * url_s,
 		              int              timeout,
 					  size_t           max_size,
 					  PKI_MEM_STACK ** ret,
-					  const PKI_SSL  * ssl);
+					  PKI_SSL  * ssl);
 
 int PKI_HTTP_GET_data_url(const URL      * url,
 		                  int              timeout,
 						  size_t           max_size,
 					      PKI_MEM_STACK ** ret,
-						  const PKI_SSL  * ssl);
+					      PKI_SSL  * ssl);
 
 int PKI_HTTP_GET_data_socket(const PKI_SOCKET * url,
 		                     int                timeout,
@@ -92,7 +92,7 @@ int PKI_HTTP_POST_data(const char     * url_s,
 					   int              timeout,
 					   size_t           max_size,
 				       PKI_MEM_STACK ** ret_sk,
-					   const PKI_SSL  * ssl);
+					   PKI_SSL  * ssl);
 
 int PKI_HTTP_POST_data_url(const URL      * url,
 		                   const char     * data,
@@ -101,7 +101,7 @@ int PKI_HTTP_POST_data_url(const URL      * url,
 						   int              timeout,
 						   size_t           max_size,
 				           PKI_MEM_STACK ** ret_sk,
-						   const PKI_SSL  * ssl);
+						   PKI_SSL  * ssl);
 
 int PKI_HTTP_POST_data_socket(const PKI_SOCKET *sock,
 		                      const char       * data,

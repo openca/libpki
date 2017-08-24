@@ -24,7 +24,7 @@ int _Socket (int family, int type, int protocol) {
 }
 
 #pragma GCC diagnostic ignored "-Wconversion" 
-int _Listen (char *hostname, int port, PKI_NET_SOCK_TYPE type) {
+int _Listen (const char *hostname, int port, PKI_NET_SOCK_TYPE type) {
 
 	int fd = 0;
 	int reuse_addr = 1;
@@ -117,43 +117,14 @@ int _Listen (char *hostname, int port, PKI_NET_SOCK_TYPE type) {
 # pragma GCC diagnostic pop
 #endif
 
-/*
-#pragma GCC diagnostic error "-Wconversion" 
-
-int _Accept (int listen_sockfd, struct sockaddr * cliaddr,
-					socklen_t *addrlenp) {
-
-	int n;
-	struct sockaddr addr;
-	socklen_t len;
-
-again:
-
-	if( !cliaddr || !addrlenp ) {
-		len=sizeof(addr);
-		n = accept(listen_sockfd, &addr, &len);
-	} else {
-		n = accept(listen_sockfd, cliaddr, addrlenp);
-	}
-		
-	if ( n < 0) {
-		if (INTERRUPTED_BY_SIGNAL)
-			goto again;
-
-		PKI_log(PKI_LOG_ERR,"[%d:%ld:%d] Error while (ACCEPT) [%s:%s]",
-			n, h_errno, errno, hstrerror( h_errno ), 
-				strerror(errno));
-  	}
-	return(n);
-}
-*/
-
-ssize_t _Read (int fd, void *bufptr, size_t nbytes) {
+ssize_t _Read (int          fd,
+	       const void * bufptr,
+	       size_t       nbytes) {
 
 	ssize_t n;
 
 again:
-	if ((n = read(fd,bufptr,nbytes)) < 0)
+	if ((n = read(fd, (void *)bufptr, nbytes)) < 0)
 	{
 		if (INTERRUPTED_BY_SIGNAL)
 		{
@@ -168,12 +139,14 @@ again:
 	return(n);
 }
 
-ssize_t _Write (int fd, void *bufptr, size_t nbytes) {
+ssize_t _Write (int          fd,
+		const void * bufptr,
+		size_t       nbytes) {
 
 	ssize_t n;
 
 again:
-	if ((n = write(fd,bufptr,nbytes)) < 0)
+	if ((n = write(fd, (void *)bufptr, nbytes)) < 0)
 	{
 		if (INTERRUPTED_BY_SIGNAL)
 		{
@@ -244,7 +217,7 @@ struct hostent *Gethostbyname (const char *hostname) {
 }
 
 #pragma GCC diagnostic ignored "-Wconversion" 
-int inet_connect ( URL *url ) {
+int inet_connect (const URL *url) {
 
 	int sockfd;
 	int ret = 0;
@@ -324,7 +297,7 @@ int PKI_NET_socket ( int family, int type, int protocol ) {
 }
 
 /*! \brief Returns a reference to a listen socket */
-int PKI_NET_listen ( char *host, int port, PKI_NET_SOCK_TYPE type ) {
+int PKI_NET_listen (const char *host, int port, PKI_NET_SOCK_TYPE type ) {
 	int sock = -1;
 
 	sock = _Listen ( host, port, type );
@@ -338,7 +311,7 @@ int PKI_NET_listen ( char *host, int port, PKI_NET_SOCK_TYPE type ) {
 
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 /*! \brief Returns the connected socket as a result of an Accept */
-int PKI_NET_accept ( int sock, int timeout ) {
+int PKI_NET_accept(int sock, int timeout ) {
 
 	int n;
 	struct sockaddr addr;
@@ -423,7 +396,7 @@ int PKI_NET_accept ( int sock, int timeout ) {
 #endif
 
 /*! \brief Connects to an host and returns the connected socket */
-int PKI_NET_open ( URL *url, int timeout ) {
+int PKI_NET_open(const URL * url, int timeout ) {
 	return inet_connect ( url );
 }
 
@@ -433,13 +406,13 @@ int PKI_NET_close ( int sock ) {
 }
 
 /*! \brief Writes n bytes of data to a socket */
-ssize_t PKI_NET_write (int fd, void *bufptr, size_t nbytes) {
+ssize_t PKI_NET_write (int fd, const void *bufptr, size_t nbytes) {
 	return _Write( fd, bufptr, nbytes );
 }
 
 /*! \brief Reads n-bytes of data from a socket */
 #pragma GCC diagnostic ignored "-Wsign-conversion"
-ssize_t PKI_NET_read (int fd, void *bufptr, size_t nbytes, int timeout ) {
+ssize_t PKI_NET_read (int fd, const void *bufptr, size_t nbytes, int timeout ) {
 
 	ssize_t n = 0;
 
@@ -488,7 +461,7 @@ ssize_t PKI_NET_read (int fd, void *bufptr, size_t nbytes, int timeout ) {
 		}
 
 		if (FD_ISSET (fd, &readset)) {
-			if((n = recv(fd, bufptr, nbytes, 0 )) == 0 ) {
+			if((n = recv(fd, (void *)bufptr, nbytes, 0 )) == 0 ) {
 				break;
 			};
 
@@ -562,9 +535,12 @@ PKI_MEM *PKI_NET_get_data ( int fd, int timeout, size_t max_size ) {
 }
 
 /*! \brief Gets a DGRAM packet */
-ssize_t PKI_NET_recvfrom (int fd, void *bufptr, size_t nbytes, 
-	struct sockaddr_in *cli, socklen_t cli_len)
-{
+ssize_t PKI_NET_recvfrom (int                        fd, 
+		          const void               * bufptr,
+			  size_t                     nbytes, 
+			  const struct sockaddr_in * cli,
+			  socklen_t                  cli_len) {
+
 	ssize_t rv = 0;
 	struct sockaddr_in cli_addr;
 	socklen_t slen = sizeof(cli_addr);
@@ -575,13 +551,13 @@ ssize_t PKI_NET_recvfrom (int fd, void *bufptr, size_t nbytes,
 
 	if (cli && cli_len > 0)
 	{
-		rv = recvfrom(fd, bufptr, nbytes, 0, (struct sockaddr *)cli, &cli_len);
+		rv = recvfrom(fd, (char *)bufptr, nbytes, 0, (struct sockaddr *)cli, &cli_len);
 		PKI_log_debug("[UDP] Packet from %s:%d", 
 			inet_ntoa(cli->sin_addr), ntohl(cli->sin_port));
 	}
 	else
 	{
-		rv = recvfrom(fd, bufptr, nbytes, 0, (struct sockaddr *)&cli_addr, &slen);
+		rv = recvfrom(fd, (char *)bufptr, nbytes, 0, (struct sockaddr *)&cli_addr, &slen);
 		PKI_log_debug("[UDP] Packet from %s:%d", 
 			inet_ntoa(cli_addr.sin_addr), ntohl(cli_addr.sin_port));
 	}
@@ -596,8 +572,11 @@ ssize_t PKI_NET_recvfrom (int fd, void *bufptr, size_t nbytes,
 }
 
 /*!\brief Sends a datagram to a host */
-ssize_t PKI_NET_sendto (int sock, char *host, int port, void *data, size_t len)
-{
+ssize_t PKI_NET_sendto(int          sock,
+		       const char * host,
+		       int          port,
+		       const void * data,
+		       size_t       len) {
 	ssize_t ret = 0;
 
 	// Check the input
@@ -615,31 +594,6 @@ ssize_t PKI_NET_sendto (int sock, char *host, int port, void *data, size_t len)
 	socklen_t slen = sizeof(serv);
 	memset(&serv, 0, sizeof(struct sockaddr_in));
 	serv.sin_family = AF_INET;
-
-	/*
-	// Set the origin
-	if (from || from_port > 0)
-	{
-		if (from)
-		{
-			if (inet_aton(from, &serv.sin_addr) == -1)
-			{
-				PKI_log_err("ERROR: Can not convert address (%s)", from);
-				return -1;
-			}
-		}
-		else
-		{
-			serv.sin_addr.s_addr = INADDR_ANY;
-		}
-		serv.sin_port = htons(from_port);
-		if (bind(sock, (struct sockaddr *) &serv, sizeof(struct sockaddr_in)) == -1 )
-		{
-			PKI_log_err("ERROR: Can not bind to port %d", from_port);
-			return -1;
-		}
-	}
-	*/
 
 	// Set the destination
 	serv.sin_port = (in_port_t) htonl((uint32_t) port);

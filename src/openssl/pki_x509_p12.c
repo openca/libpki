@@ -20,14 +20,13 @@ static STACK_OF(PKCS12_SAFEBAG) * _get_bags(
 		const char * const pwd);
 
 static void * _get_bags_data(
-		STACK_OF(PKCS12_SAFEBAG) *bags, 
-          	int dataType,
-		const char * const pwd );
+		const STACK_OF(PKCS12_SAFEBAG) * bags, 
+          	int                              dataType,
+		const char                     * const pwd );
 
-static void * _get_bag_value(
-		PKCS12_SAFEBAG *bag,
-		int dataType,
-		const char * const pwd );
+static void * _get_bag_value(PKCS12_SAFEBAG * bag,
+		int                           dataType,
+		const char                  * const pwd );
 
 static PKI_X509_CERT * _get_cacert(
 		const PKI_X509_PKCS12 * const p12, 
@@ -107,9 +106,9 @@ static STACK_OF(PKCS12_SAFEBAG) * _get_bags(
 }
 
 static void * _get_bags_data (
-		STACK_OF(PKCS12_SAFEBAG) *bags, 
-          	int dataType,
-		const char * const pwd ) {
+		const STACK_OF(PKCS12_SAFEBAG) * bags, 
+          	int                              dataType,
+		const char                     * const pwd ) {
 
   int i;
 
@@ -179,9 +178,10 @@ static void * _get_bag_value(
 
   PKI_X509_KEYPAIR_VALUE *pkey = NULL;
   PKI_X509_KEYPAIR *k = NULL;
-  PKCS8_PRIV_KEY_INFO *p8 = NULL;
   PKI_X509_CERT *cert = NULL;
   PKI_X509_CERT_VALUE *cert_val = NULL;
+
+  const PKCS8_PRIV_KEY_INFO *p8 = NULL;
 
   void *ret = NULL;
   PKI_STACK *sk = NULL;
@@ -194,7 +194,11 @@ static void * _get_bag_value(
         if( dataType != BAG_DATATYPE_KEYPAIR ) {
           return ( NULL );
         };
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	p8 = PKCS12_SAFEBAG_get0_p8inf(bag);
+#else
         p8 = bag->value.keybag;
+#endif
         if (!(pkey = EVP_PKCS82PKEY (p8))) {
           return (NULL);
         }
@@ -217,7 +221,7 @@ static void * _get_bag_value(
         return ( NULL );
       }
       if (!(pkey = EVP_PKCS82PKEY (p8))) {
-        PKCS8_PRIV_KEY_INFO_free(p8);
+        // PKCS8_PRIV_KEY_INFO_free(p8);
         return (NULL);
       }
       if (( k = PKI_X509_KEYPAIR_new_null()) == NULL ) {
@@ -233,9 +237,17 @@ static void * _get_bag_value(
           (dataType != BAG_DATATYPE_OTHERCERTS)) {
         return ( NULL );
       }
+
+      // Checks it is not a key bag
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+      if (PKCS12_SAFEBAG_get0_attr(bag, NID_localKeyID)) {
+        if (dataType != BAG_DATATYPE_CERT) return NULL;
+      }
+#else
       if (PKCS12_get_attr(bag, NID_localKeyID)) {
         if (dataType != BAG_DATATYPE_CERT) return NULL;
       }
+#endif
 
       // print_attribs (out, bag->attrib, "Bag Attributes");
       if (M_PKCS12_cert_bag_type(bag) != NID_x509Certificate ) {
@@ -255,7 +267,21 @@ static void * _get_bag_value(
 
     case NID_safeContentsBag: {
       // PKI_log_debug("Found Bag => TYPE is NID_safeContentsBag");
-      return _get_bags_data ( bag->value.safes, dataType, pwd );
+      const STACK_OF(PKCS12_SAFEBAG) * safes = NULL;
+
+      // Get the SafeBags
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+      safes = PKCS12_SAFEBAG_get0_safes(bag);
+#else
+      safes = bag->value.safes;
+#endif
+
+      // If no safe bags, let's return NULL
+      if (!safes) return NULL;
+
+      // Returns the SafeBags Data
+      return _get_bags_data(safes, dataType, pwd);
+
     } break;
 
     default: {
@@ -450,12 +476,13 @@ static PKI_X509_KEYPAIR_STACK * _get_keypair_stack(
   return ( ret );
 }
 
-static int _pki_p12_copy_bag_attr(PKCS12_SAFEBAG *bag, 
+static int _pki_p12_copy_bag_attr(PKCS12_SAFEBAG         * bag, 
   				  const PKI_X509_KEYPAIR * const k,
-				  int nid) {
+				  int                      nid) {
 
   int idx;
   X509_ATTRIBUTE *attr;
+  STACK_OF(X509_ATTRIBUTE) * attr_sk = NULL;
 
   if( !k || !k->value || !bag ) return PKI_ERR;
 
@@ -464,7 +491,13 @@ static int _pki_p12_copy_bag_attr(PKCS12_SAFEBAG *bag,
   if (idx < 0) return (PKI_OK);
 
   attr = EVP_PKEY_get_attr(k->value, idx);
-  if (!X509at_add1_attr(&bag->attrib, attr)) return (PKI_ERR);
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+  attr_sk = (STACK_OF(X509_ATTRIBUTE) *)PKCS12_SAFEBAG_get0_attrs(bag);
+#else
+  attr_sk = bag->attrib;
+#endif
+
+  if (!X509at_add1_attr(&attr_sk, attr)) return PKI_ERR;
 
   return (PKI_OK);
 }

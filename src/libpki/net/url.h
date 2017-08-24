@@ -132,12 +132,12 @@ char * URL_get_local_addr(void);
 PKI_MEM_STACK * URL_get_data(const char *url_s,
 		                     int timeout,
 				             ssize_t max_size,
-							 const PKI_SSL *ssl);
+							 PKI_SSL *ssl);
 
 PKI_MEM_STACK * URL_get_data_url(const URL * url,
 		                         int         timeout,
 				                 ssize_t     max_size,
-								 const PKI_SSL *ssl);
+								 PKI_SSL *ssl);
 
 PKI_MEM_STACK * URL_get_data_socket(const PKI_SOCKET *sock,
 		                            int timeout,
@@ -149,7 +149,7 @@ int URL_put_data(const char     * url_s,
 			     PKI_MEM_STACK ** ret_sk,
 				 int              timeout,
 				 ssize_t          max_size,
-				 const PKI_SSL  * ssl);
+				 PKI_SSL  * ssl);
 
 int URL_put_data_url(const URL      * url,
 		             const PKI_MEM  * data,
@@ -157,7 +157,7 @@ int URL_put_data_url(const URL      * url,
 			         PKI_MEM_STACK ** ret_sk,
 					 int              timeout,
 					 ssize_t          max_size,
-				     const PKI_SSL  * ssl);
+				     PKI_SSL  * ssl);
 
 int URL_put_data_socket(const PKI_SOCKET * sock,
 		                const PKI_MEM    * data,

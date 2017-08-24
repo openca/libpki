@@ -212,10 +212,10 @@ int PKI_X509_SCEP_MSG_set_attribute_int(PKI_X509_SCEP_MSG * msg,
 PKI_MEM * PKI_X509_SCEP_MSG_get_attr_value(const PKI_X509_SCEP_MSG * const msg,
 		                                   SCEP_ATTRIBUTE_TYPE             type) {
 
-	PKI_X509_ATTRIBUTE *attr = NULL;
+	const PKI_X509_ATTRIBUTE *attr = NULL;
 	PKI_MEM *ret = NULL;
 
-	PKI_STRING *st = NULL;
+	const PKI_STRING *st = NULL;
 	int nid = NID_undef;
 
 	// Input Check
