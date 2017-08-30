@@ -12,6 +12,8 @@ Project's Next Steps:
 
 - Provide support for OpenSSL v1.1+ (currently supported OpenSSL v0.9.x-v1.0.x
 
+- Provide support for SSLv3-disabled OpenSSL versions
+
 - Update the includes structure to avoid the inclusion of non-essentials
   headers in each file to speedup the compilation of the library
 
