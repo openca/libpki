@@ -697,7 +697,7 @@ const PKI_X509_ATTRIBUTE *PKI_X509_REQ_get_attribute(const PKI_X509_REQ *req,
 	}
 #else
 	// If we have a valid req_info structure
-	if (val->req_info != NULL && val->req_info_attributes != NULL) {
+	if (val->req_info != NULL && val->req_info->attributes != NULL) {
 		// Gets the Attribute
 		ret = PKI_STACK_X509_ATTRIBUTE_get(val->req_info->attributes, type);
 	}
