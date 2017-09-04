@@ -227,7 +227,7 @@ CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert,
 					   char           * serial_s,
 					   PKI_DIGEST_ALG * dgst) {
 
-	PKI_X509_NAME *s_name = NULL;
+	const PKI_X509_NAME *s_name = NULL;
 	PKI_X509_NAME *i_name = NULL;
 	PKI_INTEGER *serial = NULL;
 	/* BIT STRINGS */

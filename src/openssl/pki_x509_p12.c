@@ -199,7 +199,7 @@ static void * _get_bag_value(
 #else
         p8 = bag->value.keybag;
 #endif
-        if (!(pkey = EVP_PKCS82PKEY (p8))) {
+        if (!(pkey = EVP_PKCS82PKEY((PKCS8_PRIV_KEY_INFO *)p8))) {
           return (NULL);
         }
         // print_attribs (out, p8->attributes, "Key Attributes");
@@ -220,7 +220,7 @@ static void * _get_bag_value(
       if (!(p8 = PKCS12_decrypt_skey(bag, pwd, (int) strlen(pwd)))) {
         return ( NULL );
       }
-      if (!(pkey = EVP_PKCS82PKEY (p8))) {
+      if (!(pkey = EVP_PKCS82PKEY((PKCS8_PRIV_KEY_INFO *)p8))) {
         // PKCS8_PRIV_KEY_INFO_free(p8);
         return (NULL);
       }
