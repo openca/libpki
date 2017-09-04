@@ -1211,8 +1211,10 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
 	if [[ "$iphone_build" = "no" ]] ; then
-	    AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
-		AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+		if [[ "x$DIST_NAME" = "xdarwin" ]] ; then
+	    		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
+				AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+		fi
 	fi
 
 	activate_ecdsa=
