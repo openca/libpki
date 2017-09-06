@@ -237,7 +237,7 @@ PKI_CONFIG * PKI_CONFIG_OID_load(const char *oidFile ) {
 
 /*! \brief Searches for a specific OID inside a PKI_CONFIG object */
 
-PKI_OID * PKI_CONFIG_OID_search(PKI_CONFIG *doc, const char *searchName ) {
+PKI_OID * PKI_CONFIG_OID_search(const PKI_CONFIG *doc, const char *searchName ) {
 
 	PKI_OID *oid = NULL;
 	PKI_CONFIG_ELEMENT *curr = NULL;
@@ -274,7 +274,7 @@ PKI_OID * PKI_CONFIG_OID_search(PKI_CONFIG *doc, const char *searchName ) {
 
 			name = xmlGetProp( curr, (xmlChar *) "name" );
 			descr = xmlGetProp( curr, (xmlChar *) "description" );
-			val = xmlNodeListGetString(doc, 
+			val = xmlNodeListGetString((PKI_CONFIG *)doc, 
 						curr->xmlChildrenNode, 1);
 
 			oid = PKI_OID_new ( (char *) val, (char *) name, 
@@ -486,7 +486,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
 
 /*! \brief Returns the stack of elements identified by the search path */
 
-PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(PKI_CONFIG * doc, 
+PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(const PKI_CONFIG * doc, 
 							const char * search ) {
 
 	xmlXPathContext *xpathCtx = NULL; 
@@ -502,7 +502,7 @@ PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(PKI_CONFIG * doc,
 
 	if( !doc || !search ) return (NULL);
 
-	xpathCtx = xmlXPathNewContext(doc);
+	xpathCtx = xmlXPathNewContext((PKI_CONFIG *)doc);
 	if(xpathCtx == NULL) {
         	PKI_log_debug("ERROR, unable to create new XPath context!\n");
 		return(NULL);

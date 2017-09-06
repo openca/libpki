@@ -192,7 +192,7 @@ PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions(const PKI_X509_PROFILE *doc)
 
 	PKI_CONFIG_ELEMENT *curr = NULL;
 
-	if((curr = PKI_CONFIG_get_element(doc, 
+	if((curr = PKI_CONFIG_get_element((PKI_X509_PROFILE *)doc, 
 					"/profile/extensions", -1)) == NULL ) {
 		PKI_log_err ("Failed to get /profile/extensions from profile!");
 		return NULL;
