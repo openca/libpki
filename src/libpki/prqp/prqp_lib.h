@@ -21,14 +21,23 @@ void PKI_X509_PRQP_RESP_free ( PKI_X509_PRQP_RESP *x );
 int PRQP_init_all_services ( void );
 
 /* Certificate Identifier */
-CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert ( PKI_X509_CERT *caCert, 
-		PKI_X509_CERT *issuerCert, PKI_X509_CERT *issuedCert,
-		char *subject_s, char *serial_s, PKI_DIGEST_ALG * dgst );
+CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(
+		const PKI_X509_CERT  * caCert, 
+		const PKI_X509_CERT  * issuerCert,
+		const PKI_X509_CERT  * issuedCert,
+		const char           * subject_s,
+		const char           * serial_s,
+		const PKI_DIGEST_ALG * dgst );
 
 CERT_IDENTIFIER *PKI_PRQP_CERTID_new(
-                PKI_X509_NAME *caName, PKI_X509_NAME *caIssuerName,
-                PKI_INTEGER *serial, PKI_STRING *caCertHash, PKI_STRING *caKeyHash,
-                PKI_STRING *caKeyId, PKI_STRING *issKeyId, PKI_DIGEST_ALG *dgst );
+                const PKI_X509_NAME  * caName,
+		const PKI_X509_NAME  * caIssuerName,
+                const PKI_INTEGER    * serial,
+		const PKI_STRING     * caCertHash,
+		const PKI_STRING     * caKeyHash,
+                const PKI_STRING     * caKeyId,
+		const PKI_STRING     * issKeyId,
+		const PKI_DIGEST_ALG *dgst);
 
 /* General Signature Function for req or resp */
 int PKI_X509_PRQP_sign( PKI_X509 *obj, PKI_X509_KEYPAIR *k,

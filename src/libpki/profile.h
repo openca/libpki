@@ -46,8 +46,7 @@ PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num (
 				int num, 
 				PKI_TOKEN *tk);
 
-const PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions(
-		const PKI_X509_PROFILE *doc );
+PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions(const PKI_X509_PROFILE *doc);
 
 PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_add_extension (PKI_X509_PROFILE *doc, 
 						    const char *name, 

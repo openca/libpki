@@ -91,7 +91,7 @@ static char * _xml_search_namespace_add ( char *search ) {
 
 /*! \brief Loads a PKI_CONFIG object (XML config file) */
 
-PKI_CONFIG * PKI_CONFIG_load(char *urlPath)
+PKI_CONFIG * PKI_CONFIG_load(const char *urlPath)
 {
 	FILE *file = NULL;
 	PKI_CONFIG *doc = NULL;
@@ -179,7 +179,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_root ( PKI_CONFIG *doc ) {
 
 /*! \brief Loads an OID file and creates internal OIDs */
 
-PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
+PKI_CONFIG * PKI_CONFIG_OID_load(const char *oidFile ) {
 
 	PKI_OID *oid = NULL;
 	PKI_CONFIG *doc = NULL;
@@ -237,7 +237,7 @@ PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
 
 /*! \brief Searches for a specific OID inside a PKI_CONFIG object */
 
-PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
+PKI_OID * PKI_CONFIG_OID_search(PKI_CONFIG *doc, const char *searchName ) {
 
 	PKI_OID *oid = NULL;
 	PKI_CONFIG_ELEMENT *curr = NULL;
@@ -297,7 +297,7 @@ PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
 
 /*! \brief Returns a stack of values for the selected search path */
 
-PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
+PKI_STACK * PKI_CONFIG_get_stack_value(const PKI_CONFIG *doc, const char *search ) {
 
 	PKI_CONFIG_ELEMENT_STACK *sk = NULL;
 	PKI_STACK *ret = NULL;
@@ -306,7 +306,7 @@ PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
 	int size = -1;
 	char *val = NULL;
 
-	if (( sk = PKI_CONFIG_get_element_stack ( doc, search)) == NULL ) {
+	if ((sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search)) == NULL ) {
 		return NULL;
 	}
 
@@ -345,8 +345,9 @@ char * PKI_CONFIG_get_value(const PKI_CONFIG *doc, const char *search ) {
  
 /*! \brief Returns the value of the named attribute in the searched item */
 
-char * PKI_CONFIG_get_attribute_value ( PKI_CONFIG *doc, 
-					char *search, char *attr_name ) {
+char * PKI_CONFIG_get_attribute_value(const PKI_CONFIG *doc, 
+				      const char *search,
+				      const char *attr_name ) {
 
 	PKI_CONFIG_ELEMENT *el = NULL;
 	char * ret = NULL;
@@ -366,13 +367,13 @@ char * PKI_CONFIG_get_attribute_value ( PKI_CONFIG *doc,
 
 /*! \brief Returns the number of items identified by the search path */
 
-int PKI_CONFIG_get_elements_num ( PKI_CONFIG *doc, char *search ) {
+int PKI_CONFIG_get_elements_num(const PKI_CONFIG *doc, const char *search ) {
 
 	PKI_STACK *sk = NULL;
 	int ret = -1;
 	PKI_CONFIG_ELEMENT *pnt = NULL;
 
-	if((sk = PKI_CONFIG_get_element_stack ( doc, search )) == NULL ) {
+	if((sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search )) == NULL ) {
 		return -1;
 	}
 
@@ -389,8 +390,9 @@ int PKI_CONFIG_get_elements_num ( PKI_CONFIG *doc, char *search ) {
 
 /*! \brief Returns the n-th PKI_CONFIG_ELEMENT identified by the search path */
 
-PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element ( PKI_CONFIG *doc, 
-						char *search, int num ) {
+PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc, 
+					    const char       * search,
+					    int                num ) {
 
 	PKI_CONFIG_ELEMENT_STACK *sk = NULL;
 	PKI_CONFIG_ELEMENT *ret = NULL;
@@ -399,7 +401,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element ( PKI_CONFIG *doc,
 
 	// PKI_log_debug ("PKI_CONFIG_get_element()::Start");
 
-	if(( sk = PKI_CONFIG_get_element_stack ( doc, search )) == NULL ) {
+	if(( sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search )) == NULL ) {
 		// PKI_log_debug ("PKI_CONFIG_get_element()::No Stack Returned");
 		return NULL;
 	}
@@ -484,8 +486,8 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element ( PKI_CONFIG *doc,
 
 /*! \brief Returns the stack of elements identified by the search path */
 
-PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack ( PKI_CONFIG *doc, 
-							char *search ) {
+PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(PKI_CONFIG * doc, 
+							const char * search ) {
 
 	xmlXPathContext *xpathCtx = NULL; 
 	xmlXPathObject *xpathObj = NULL;
@@ -509,7 +511,7 @@ PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack ( PKI_CONFIG *doc,
 	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
 					(xmlChar *) PKI_NAMESPACE_HREF);
 
-	my_search = _xml_search_namespace_add ( search );
+	my_search = _xml_search_namespace_add((char *)search);
 
 	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
 	if( xpathObj == NULL ) {
@@ -688,7 +690,7 @@ PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_children(PKI_CONFIG_ELEMENT *e
           contains the configuration named 'name'.
  */
 
-char * PKI_CONFIG_find ( char *dir, char *name )
+char * PKI_CONFIG_find(const char *dir, const char *name )
 {
 	struct dirent *dd = NULL;
 	DIR *dirp = NULL;
@@ -802,8 +804,10 @@ char * PKI_CONFIG_find ( char *dir, char *name )
           contains the configuration named 'name'.
  */
 
-char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
-{
+char * PKI_CONFIG_find_all(const char *dir, 
+			   const char *name,
+			   const char *subdir) {
+
 	PKI_STACK *dir_list = NULL;
 	char * dir_name = NULL;
 	char * ret = NULL;
@@ -855,7 +859,8 @@ char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
  *        directory.
  */
 
-PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
+PKI_CONFIG_STACK * PKI_CONFIG_load_dir(const char *dir,
+				       PKI_CONFIG_STACK *sk ) {
 
         struct dirent *dd = NULL;
 	DIR *dirp = NULL;
@@ -950,7 +955,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
  *        directory plush the default search paths
  */
 
-PKI_CONFIG_STACK *PKI_CONFIG_load_all ( char * dir ) {
+PKI_CONFIG_STACK *PKI_CONFIG_load_all(const char * dir ) {
 
 	PKI_STACK *dir_list = NULL;
 	PKI_CONFIG_STACK *sk = NULL;
@@ -971,7 +976,7 @@ PKI_CONFIG_STACK *PKI_CONFIG_load_all ( char * dir ) {
 /*! \brief Returns a PKI_STACK of directories (useful to search in default
            dirs for config files */
 
-PKI_STACK *PKI_CONFIG_get_search_paths ( char *dir ) {
+PKI_STACK *PKI_CONFIG_get_search_paths(const char *dir ) {
 
 	char *homedir = NULL;
 	char buff[BUFF_MAX_SIZE];
@@ -1016,7 +1021,8 @@ PKI_STACK *PKI_CONFIG_get_search_paths ( char *dir ) {
 
 /*! \brief Create a new Node for a PKI_X509_PROFILE */
 
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new ( char *name, char *value ) {
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new(const char *name, 
+					   const char *value ) {
 
 	PKI_CONFIG_ELEMENT *ret = NULL;
 	// xmlNsPtr ns = NULL;
@@ -1038,8 +1044,10 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new ( char *name, char *value ) {
 }
 
 /*! \brief Adds an attribute to an existing profile element */
-int PKI_CONFIG_ELEMENT_add_attribute ( PKI_CONFIG *doc,
-		PKI_CONFIG_ELEMENT *node, char *name, char *value ) {
+int PKI_CONFIG_ELEMENT_add_attribute(PKI_CONFIG         * doc,
+				     PKI_CONFIG_ELEMENT * node,
+				     const char         * name,
+				     const char         * value ) {
 
 	if( (node == NULL) || ( name == NULL )) {
 		return ( PKI_ERR );
@@ -1072,8 +1080,10 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_add_node ( PKI_CONFIG *doc,
 
 /*! \brief Add a child element to an existing node */
 
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child ( PKI_CONFIG *doc, 
-			PKI_CONFIG_ELEMENT *node, char *name, char *value ) {
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child(PKI_CONFIG         * doc, 
+						 PKI_CONFIG_ELEMENT * node,
+						 const char         * name,
+						 const char         * value) {
 
 	PKI_CONFIG_ELEMENT *ret = NULL;
 

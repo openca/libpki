@@ -4,11 +4,13 @@
 
 static xmlNsPtr _get_pki_ns ( PKI_CONFIG_ELEMENT *node );
 
-char * PKI_X509_PROFILE_get_value (PKI_X509_PROFILE *doc, char *path ) {
-	return PKI_CONFIG_get_value ( (PKI_CONFIG *) doc, path );
+char * PKI_X509_PROFILE_get_value(const PKI_X509_PROFILE * doc, 
+                                  const char             * path) {
+
+	return PKI_CONFIG_get_value((PKI_CONFIG *) doc, path);
 }
 
-char *PKI_X509_PROFILE_get_name ( PKI_X509_PROFILE *doc ) {
+char *PKI_X509_PROFILE_get_name(const PKI_X509_PROFILE *doc) {
 
 	// snprintf(search, (size_t) BUFF_MAX_SIZE, "/profile/name", 
 	// 		PKI_NAMESPACE_PREFIX, PKI_NAMESPACE_PREFIX );
@@ -16,7 +18,7 @@ char *PKI_X509_PROFILE_get_name ( PKI_X509_PROFILE *doc ) {
 	return PKI_X509_PROFILE_get_value( doc, "/profile/name" );
 }
 
-PKI_X509_PROFILE * PKI_X509_PROFILE_load(char *urlPath) {
+PKI_X509_PROFILE * PKI_X509_PROFILE_load(const char *urlPath) {
 
     PKI_X509_PROFILE *doc = NULL;
     // xmlNode *root_element = NULL;
@@ -84,7 +86,7 @@ static xmlNsPtr _get_pki_ns ( PKI_CONFIG_ELEMENT *node ) {
 
 /*! \brief Create a new PKI_X509_PROFILE */
 
-PKI_X509_PROFILE *PKI_X509_PROFILE_new ( char *name ) {
+PKI_X509_PROFILE *PKI_X509_PROFILE_new(const char *name) {
 
 	PKI_X509_PROFILE *doc = NULL;
 	xmlNodePtr root_node = NULL;
@@ -113,7 +115,8 @@ PKI_X509_PROFILE *PKI_X509_PROFILE_new ( char *name ) {
 }
 
 
-int PKI_X509_PROFILE_put_file ( PKI_X509_PROFILE *doc, char *url ) {
+int PKI_X509_PROFILE_put_file(PKI_X509_PROFILE *doc, const char *url ) {
+
 	xmlSaveFormatFileEnc( url, doc, "UTF-8", 1 );
 	return PKI_OK;
 }
@@ -125,7 +128,7 @@ PKI_X509_PROFILE *PKI_X509_PROFILE_update ( PKI_X509_PROFILE *doc ) {
 }
 */
 
-int PKI_X509_PROFILE_get_exts_num ( PKI_X509_PROFILE *doc ) {
+int PKI_X509_PROFILE_get_exts_num(const PKI_X509_PROFILE *doc) {
 
 	const PKI_CONFIG_ELEMENT *curr = NULL;
 	const PKI_CONFIG_ELEMENT *exts = NULL;
@@ -149,9 +152,10 @@ int PKI_X509_PROFILE_get_exts_num ( PKI_X509_PROFILE *doc ) {
 	return size;
 }
 
-PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num(PKI_X509_PROFILE * doc,
-													int                num,
-													PKI_TOKEN        * tk ){
+PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num(
+		const PKI_X509_PROFILE * doc,
+		int                      num,
+		PKI_TOKEN              * tk ){
 
 	const PKI_CONFIG_ELEMENT *curr = NULL;
 	const PKI_CONFIG_ELEMENT *exts = NULL;
@@ -184,11 +188,11 @@ PKI_X509_EXTENSION *PKI_X509_PROFILE_get_ext_by_num(PKI_X509_PROFILE * doc,
 	return PKI_X509_EXTENSION_value_new_profile(doc, NULL, curr, tk);
 }
 
-PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions ( PKI_X509_PROFILE *doc ) {
+PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions(const PKI_X509_PROFILE *doc) {
 
 	PKI_CONFIG_ELEMENT *curr = NULL;
 
-	if((curr = PKI_CONFIG_get_element ( doc, 
+	if((curr = PKI_CONFIG_get_element(doc, 
 					"/profile/extensions", -1)) == NULL ) {
 		PKI_log_err ("Failed to get /profile/extensions from profile!");
 		return NULL;
@@ -220,8 +224,12 @@ PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_get_extensions ( PKI_X509_PROFILE *doc ) {
 	return curr;
 };
 
-PKI_CONFIG_ELEMENT * PKI_X509_PROFILE_add_extension ( PKI_X509_PROFILE *doc, 
-			char *name, char *value, char *type, int crit ) {
+PKI_CONFIG_ELEMENT * PKI_X509_PROFILE_add_extension(
+			PKI_X509_PROFILE *doc, 
+			const char *name,
+			const char *value,
+			const char *type,
+			int crit ) {
 
 	PKI_CONFIG_ELEMENT * exts = NULL;
 	PKI_CONFIG_ELEMENT * child = NULL;

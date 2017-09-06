@@ -379,6 +379,10 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
 		case PKI_X509_DATA_SIGNATURE_ALG2:
 			break;
 /*
+		// This shall be replaced with a dedicated
+		// function because this violates the memory
+		// contract (const for the returned item)
+		// PKI_X509_get_der_tbs();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if((mem = PKI_MEM_new_null()) == NULL ) 
 				break;

@@ -220,12 +220,12 @@ int PRQP_init_all_services ( void ) {
 
 /*! \brief Generates a new CERT_IDENTIFIER to be used in a PRQP request */
 
-CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert, 
-					   PKI_X509_CERT  * issuerCert,
-					   PKI_X509_CERT  * issuedCert,
-					   char           * subject_s,
-					   char           * serial_s,
-					   PKI_DIGEST_ALG * dgst) {
+CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(const PKI_X509_CERT  * caCert, 
+					   const PKI_X509_CERT  * issuerCert,
+					   const PKI_X509_CERT  * issuedCert,
+					   const char           * subject_s,
+					   const char           * serial_s,
+					   const PKI_DIGEST_ALG * dgst) {
 
 	const PKI_X509_NAME *s_name = NULL;
 	PKI_X509_NAME *i_name = NULL;
@@ -445,10 +445,14 @@ CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert,
 
 
 CERT_IDENTIFIER *PKI_PRQP_CERTID_new( 
-		PKI_X509_NAME *caName, PKI_X509_NAME *caIssuerName,
-		PKI_INTEGER *serial, PKI_STRING *caCertHash, PKI_STRING *caKeyHash,
-		PKI_STRING *caKeyId, PKI_STRING *issKeyId, PKI_DIGEST_ALG *dgst )
-{
+		const PKI_X509_NAME  * caName,
+		const PKI_X509_NAME  * caIssuerName,
+		const PKI_INTEGER    * serial,
+		const PKI_STRING     * caCertHash,
+		const PKI_STRING     * caKeyHash,
+		const PKI_STRING     * caKeyId,
+		const PKI_STRING     * issKeyId,
+		const PKI_DIGEST_ALG * dgst) {
 	int nid;
 	PKI_ALGOR *alg;
 	CERT_IDENTIFIER *ca_id = NULL;
@@ -2025,6 +2029,11 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 			// Nothing to do here
 			break;
 
+/*
+		// This shall be replaced with a dedicated
+		// function because this violates the memory
+		// contract (const for the returned item)
+		// PKI_X509_get_der_tbs();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if ((mem = PKI_MEM_new_null()) == NULL)
 			{
@@ -2035,6 +2044,7 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 				&(mem->data), &PRQP_TBS_REQ_DATA_it );
 			ret = mem;
 			break;
+*/
 
 		case PKI_X509_DATA_PRQP_CAID:
 			if (r->requestData && r->requestData->serviceToken)
@@ -2247,6 +2257,11 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 			// Nothing to do here
 			break;
 
+/*
+		// This shall be replaced with a dedicated
+		// function because this violates the memory
+		// contract (const for the returned item)
+		// PKI_X509_get_der_tbs();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if ((mem = PKI_MEM_new_null()) == NULL)
 			{
@@ -2257,6 +2272,7 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 				&(mem->data), &PRQP_TBS_RESP_DATA_it );
 			ret = mem;
 			break;
+*/
 
 		case PKI_X509_DATA_PRQP_SERVICES:
 			if( r->respData && r->respData->responseToken )
