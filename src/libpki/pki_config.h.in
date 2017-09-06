@@ -44,7 +44,7 @@ char * PKI_CONFIG_get_value(const PKI_CONFIG *doc,
 PKI_STACK * PKI_CONFIG_get_stack_value(const PKI_CONFIG *doc,
 				       const char *search );
 
-PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(PKI_CONFIG *doc, 
+PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(const PKI_CONFIG *doc, 
 							const char *search );
 
 char * PKI_CONFIG_get_element_name (PKI_CONFIG_ELEMENT *e);
@@ -59,7 +59,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_root ( PKI_CONFIG *doc );
 int PKI_CONFIG_get_elements_num ( const PKI_CONFIG *doc, 
 			          const char *search );
 
-PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(PKI_CONFIG *doc,
+PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG *doc,
 					    const char *search, 
 					    int num);
 
