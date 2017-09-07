@@ -257,8 +257,8 @@ PKI_OID * PKI_CONFIG_OID_search(const PKI_CONFIG *doc, const char *searchName ) 
 	snprintf( (char *) oidSearchBuff, BUFF_MAX_SIZE,
 		"/objectIdentifiers/oid[@name=\"%s\"]", searchName );
 
-	if (( sk = PKI_CONFIG_get_element_stack ( doc, 
-					(char *)oidSearchBuff )) == NULL ) {
+	if ((sk = PKI_CONFIG_get_element_stack(doc, 
+					       (const char *)oidSearchBuff )) == NULL ) {
 		return NULL;
 	}
 
