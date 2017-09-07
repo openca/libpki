@@ -261,19 +261,27 @@ AM_CONDITIONAL(LIBPKI_ENABLE_IPHONE, test x$enable_iphone = xyes)
 if [[ "x$myarch" = "xsolaris" ]] ; then
 	DIST_VERSION=`uname -r`
 else
-	if [[ -f "/etc/issue" ]] ; then
-	   DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/issue | head -n 1`
+	if [[ -f "/etc/system-release" ]] ; then
+	   DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/system-release | head -n 1`
 	else
-	   DIST_VERSION=`echo ${build_os} | $EGREP -o [[0-9.]]+`
+		if [[ -f "/etc/issue" ]] ; then
+	   		DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/issue | head -n 1`
+		else
+	   		DIST_VERSION=`echo ${build_os} | $EGREP -o [[0-9.]]+`
+		fi
 	fi
 fi
 
 AC_SUBST(DIST_VERSION)
 
-if [[ -f "/etc/issue" ]] ; then
-   DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
+if [[ -f "/etc/system-release" ]] ; then
+   DIST_NAME=`head -n 1 /etc/system-release | cut -f 1,1 -d ' '`
 else
-   DIST_NAME=`echo ${build_os} | $EGREP -o [[A-Za-z]]+`
+	if [[ -f "/etc/issue" ]] ; then
+   		DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
+	else
+   		DIST_NAME=`echo ${build_os} | $EGREP -o [[A-Za-z]]+`
+	fi
 fi
 
 AC_SUBST(DIST_NAME)
