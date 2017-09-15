@@ -213,8 +213,11 @@ case "${build_os}" in
 		shlext=so
 		;;
  *aix*)
-    myarch=aix
+		myarch=aix
 		shlext=so
+		;;
+ *cygwin*)	myarch=cygwin
+	 	shlext=dll
 		;;
  *) AC_MSG_ERROR([Operating system ${build_os} not supported]) ;;
 esac
