@@ -3,6 +3,10 @@
 
 int gen_RSA_PKey( void );
 
+/* Function Prototypes */
+int test_gen_PKeys(int scheme);
+int gen_X509_Req(int scheme, int bits, char *file );
+
 /* File_names */
 char *sc_list[] = {
 	"rsa",
