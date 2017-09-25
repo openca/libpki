@@ -192,7 +192,7 @@ char * HSM_OPENSSL_get_errdesc ( unsigned long err, char *str, size_t size )
 
 const HSM * HSM_OPENSSL_get_default( void )
 {
-	return ( (const HSM *) &openssl_hsm);
+	return ((const HSM *)&openssl_hsm);
 }
 
 HSM *HSM_OPENSSL_new ( PKI_CONFIG *conf )

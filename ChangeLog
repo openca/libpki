@@ -1,3 +1,7 @@
+* Sep 25 2017 Massimiliano Pala <madwolf@openca.org>
+- Fixed an error for default HSM callbacks for OpenSSL tokens that prevented signature generation
+- Fixed an error for OpenSSL's key generation (wrong return code)
+
 * Jun  5 2017 Massimiliano Pala <madwolf@openca.org>
 - Fixed backward compatibility with OpenSSL v1.0.x
 
