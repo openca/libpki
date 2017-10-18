@@ -14,12 +14,14 @@ typedef enum {
 	PKI_ERR_NOT_IMPLEMENTED,
 	PKI_ERR_MEMORY_ALLOC,
 	PKI_ERR_OBJECT_CREATE,
+	PKI_ERR_OBJECT_TYPE_UNKNOWN,
 	PKI_ERR_POINTER_NULL,
 	PKI_ERR_PARAM_NULL,
 	PKI_ERR_CALLBACK_NULL,
 	PKI_ERR_PARAM_TYPE,
 	PKI_ERR_PKI_FORMAT_UNKNOW,
 	PKI_ERR_DATA_FORMAT_UNKNOWN,
+	PKI_ERR_DATA_ASN1_ENCODING,
 	// PKI MEM Errors
 	PKI_ERR_MEM_,
 	// PKI DIGEST Errors
@@ -116,8 +118,10 @@ typedef enum {
 	// Enrollment Protocol Related
 	PKI_ERR_ENROLL_,
 	// Signatures Related Errors
-	PKI_ERR_SIGN_,
-	PKI_ERR_SIGN_VERIFY,
+	PKI_ERR_SIGNATURE_CREATE,
+	PKI_ERR_SIGNATURE_CREATE_CALLBACK,
+	PKI_ERR_SIGNATURE_VERIFY,
+	PKI_ERR_SIGNATURE_,
 	// Network Related Errors
 	PKI_ERR_NET_OPEN,
 	PKI_ERR_NET_,
@@ -155,12 +159,14 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_NOT_IMPLEMENTED, "Not Implemented" },
 	{ PKI_ERR_MEMORY_ALLOC, "Memory Allocation Error" },
 	{ PKI_ERR_OBJECT_CREATE, "Object Creation Error" },
+	{ PKI_ERR_OBJECT_TYPE_UNKNOWN, "OID Unknown" },
 	{ PKI_ERR_POINTER_NULL, "Null Memory Pointer" },
 	{ PKI_ERR_PARAM_NULL, "Null Parameter" },
 	{ PKI_ERR_CALLBACK_NULL, "Missing or Null Callback" },
 	{ PKI_ERR_PARAM_TYPE, "Wrong Paramenter Type" },
 	{ PKI_ERR_PKI_FORMAT_UNKNOW, "Unknow PKI Format" },
 	{ PKI_ERR_DATA_FORMAT_UNKNOWN, "Unknown Data Format" },
+	{ PKI_ERR_DATA_ASN1_ENCODING, "Error while encoding value in ASN1/DER" },
 	// PKI MEM Errors
 	{ PKI_ERR_MEM_, "" },
 	// PKI DIGEST Errors
@@ -257,12 +263,14 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	/* Enrollment Protocol Related */
 	{ PKI_ERR_ENROLL_, "" },
 	/* Signatures Related Errors */
-	{ PKI_ERR_SIGN_, "" },
-	{ PKI_ERR_SIGN_VERIFY, "" },
+	{ PKI_ERR_SIGNATURE_CREATE, "Can not create signature" },
+	{ PKI_ERR_SIGNATURE_CREATE_CALLBACK, "Error while creating signature in callback" },
+	{ PKI_ERR_SIGNATURE_VERIFY, "Error while verifying the signature" },
+	{ PKI_ERR_SIGNATURE_, "" },
 	/* Network Related Errors */
 	{ PKI_ERR_NET_OPEN, "Can not open socket connection" },
 	{ PKI_ERR_NET_, "" },
-    /* SSL/TLS Related Errors */
+	/* SSL/TLS Related Errors */
 	{ PKI_ERR_NET_SSL_NOT_SUPPORTED , "Not supported by SSL/TLS" },
 	{ PKI_ERR_NET_SSL_NO_CIPHER , "No valid cipher (algorithm)" },
 	{ PKI_ERR_NET_SSL_VERIFY , "TLS/SSL certificate verify error" },

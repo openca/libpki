@@ -91,18 +91,18 @@ PKI_MEM *PKI_X509_SCEP_MSG_get_sender_nonce(const PKI_X509_SCEP_MSG * const msg)
 
 /*! \brief Returns the recipientNonce attribute from a SCEP message */
 
-inline PKI_MEM *PKI_X509_SCEP_MSG_get_recipient_nonce(PKI_X509_SCEP_MSG * const msg);
+PKI_MEM *PKI_X509_SCEP_MSG_get_recipient_nonce(PKI_X509_SCEP_MSG * const msg);
 
 
 /*! \brief Sets the proxyAuthenticator attribute from a SCEP message */
 
-inline int PKI_X509_SCEP_MSG_set_proxy(PKI_X509_SCEP_MSG * msg,
+int PKI_X509_SCEP_MSG_set_proxy(PKI_X509_SCEP_MSG * msg,
 		                               int                 auth);
 
 
 /*! \brief Returns the proxyAuthenticator attribute from a SCEP message */
 
-inline int PKI_X509_SCEP_MSG_get_proxy(const PKI_X509_SCEP_MSG * const msg);
+int PKI_X509_SCEP_MSG_get_proxy(const PKI_X509_SCEP_MSG * const msg);
 
 
 #endif

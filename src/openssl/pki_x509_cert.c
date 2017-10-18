@@ -1509,66 +1509,13 @@ PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions(const PKI_X509_CERT *x) {
 int PKI_X509_CERT_check_pubkey(const PKI_X509_CERT *x, 
 			       const PKI_X509_KEYPAIR *k)
 {
-  int ret = 0;
-
-  // X509_PUBKEY *pub_key = NULL;
-  PKI_X509_KEYPAIR_VALUE *k_val = NULL;
-
-  // Const Pointer to the Certificate's Pubkey
-  const PKI_STRING *c_pubkey = NULL;
-
-  // Pointer to the encoded public key of KeyPair
-  PKI_STRING *k_pubkey = NULL;
-
-  // Temporary Buffer
-  ssize_t buf_size = 0;
-  unsigned char buf[2048];
-  unsigned char *pnt = buf;
-
   // Input checks
-  if (!x || !x->value || !k || !k->value) return -1;
+  if (!x || !x->value || !k || !k->value) return -2;
 
-  // Gets the certificate's public key bits
-  c_pubkey = PKI_X509_CERT_get_data(x, PKI_X509_DATA_PUBKEY_BITSTRING);
-  if (!c_pubkey) return -99;
+  // Checks that the private key corresponds to the public key in
+  // the certificate. The '1' value corresponds to success in the
+  // OpenSSL library. We return the '0' for success instead.
+  if (X509_check_private_key(x->value, k->value) != 1) return -1;
+  else return 0;
 
-  // Gets the Key Value from the KeyPair
-  if ((k_val = PKI_X509_get_value(k)) == NULL) {
-    // Let's return ok, because in HSMs we might not have
-    // access to the pubkey data
-    return 0;
-  }
-
-  // Let's Encode the KeyPair's Public Key Bits
-  if ((buf_size = i2d_PUBKEY(k_val, &pnt)) <= 0 ||
-      (k_pubkey = PKI_STRING_new(PKI_STRING_BIT, (char *)buf, buf_size))) {
-      // ERROR: We can not decode or allocate memory
-      return -98;
-  }
-
-/*
-  // Gets the KeyPair public key bits
-  if (!X509_PUBKEY_set(&pub_key, k_val)) return -99;
-
-  // Now let's point to tke KeyPair's public key
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-  k_pubkey = pub_key->public_key;
-#else
-  X509_PUBKEY_get();
-#endif
-*/
-
-  // Compares the two bit strings
-  ret = PKI_STRING_cmp(c_pubkey, k_pubkey);
-  
-  // Free Memory
-  if (k_pubkey) PKI_STRING_free(k_pubkey);
-
-/*
-  // Frees the memory
-  X509_PUBKEY_free(pub_key);
-*/
-
-  // Let's return the result of the operation
-  return ret;
 }
