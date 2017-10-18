@@ -1528,16 +1528,16 @@ err:
 
 void URL_free(URL *url) {
 
-	if( !url ) return;
+	if (!url ) return;
 
-	if( url->addr )  PKI_ZFree_str (url->addr);
-	if( url->usr )   PKI_ZFree_str (url->usr);
-	if( url->pwd )   PKI_ZFree_str (url->pwd);
-	if( url->path )  PKI_ZFree_str (url->path);
-	if( url->url_s ) PKI_ZFree_str (url->url_s);
-	if( url->attrs ) PKI_ZFree_str (url->attrs);
+	if (url->url_s) PKI_ZFree_str (url->url_s);
+	if (url->addr)  PKI_ZFree_str (url->addr);
+	if (url->usr)   PKI_ZFree_str (url->usr);
+	if (url->pwd)   PKI_ZFree_str (url->pwd);
+	if (url->attrs) PKI_ZFree_str (url->attrs);
+	if (url->path)  PKI_ZFree_str (url->path);
 
-	if( url ) PKI_ZFree (url, sizeof(URL));
+	if (url) PKI_ZFree (url, sizeof(URL));
 
 	return;
 }

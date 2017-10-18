@@ -1,7 +1,6 @@
 /* openssl/pki_x509_name.c */
 
 #include <libpki/pki.h>
-// #include <libpki/pki_digest.h>
 
 PKI_X509_NAME *PKI_X509_NAME_new_null ( void ) {
 
@@ -227,33 +226,35 @@ PKI_X509_NAME *PKI_X509_NAME_add ( PKI_X509_NAME *name, const char *entry ) {
 char *PKI_X509_NAME_get_parsed ( const PKI_X509_NAME *name ) {
 
 	char buf[BUFF_MAX_SIZE];
+		// Container for the string name
+
 	char *ret = NULL;
+		// Return value
+
 	size_t size = 0;
 
-	PKI_MEM *mem = NULL;
 
+	// Input check
 	if(!name) return (NULL);
 
+	// Let's zeroize the buffer
 	memset(buf, 0, sizeof( buf ));
+
+	// Load the oneline name from the X509_NAME
 	X509_NAME_oneline((PKI_X509_NAME *)name, buf, sizeof buf);
+
+	// Parse the retrieved string
 	size = strlen( buf );
 	if( size > 0 ) {
 		int i = 0;
 
+		PKI_MEM *mem = NULL;
+
 		if((mem = PKI_MEM_new_null()) == NULL ) {
-			return ( NULL );
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return NULL;
 		}
 
-		/*
-		if((ret = PKI_Malloc( strlen(buf)+1)) == NULL ) {
-			PKI_log_err("%s:%d::Memory Error", 
-							__FILE__, __LINE__ );
-			return ( NULL );
-		}
-		*/
-		
-		// strncpy(ret, buf, strlen(buf));
-		// pnt = ret;
 		for ( i = 1; i < size; i++ ) {
 			char c;
 
@@ -261,29 +262,25 @@ char *PKI_X509_NAME_get_parsed ( const PKI_X509_NAME *name ) {
 			switch ( c ) {
 				case '/':
 					PKI_MEM_add( mem, ", ", 2 );
-					// sprintf( pnt, ", ");
-					// pnt = pnt+2;
 					break;
+
 				case '\\':
-					// pnt++;
-					// break;
+					break;
+
 				default:
 					PKI_MEM_add( mem, &buf[i], 1 );
-					/*
-					*pnt = c;
-					pnt++;
-					*pnt = '\x0';
-					*/
 			}
 		}
 
-		ret = PKI_Malloc ( PKI_MEM_get_size( mem ) + 1 );
-		memcpy( ret, PKI_MEM_get_data(mem), PKI_MEM_get_size (mem));
-		ret[PKI_MEM_get_size (mem)] = '\x0';
+		ret = PKI_Malloc(PKI_MEM_get_size(mem) + 1);
+		memcpy(ret, PKI_MEM_get_data(mem), PKI_MEM_get_size (mem));
+		ret[PKI_MEM_get_size(mem)] = '\x0';
 
+		// Free the PKI_MEM structure
+		if (mem) PKI_MEM_free(mem);
 	}
 
-	return( ret );
+	return ret;
 }
 
 /*! \brief Returns the digest of a PKI_X509_NAME */
@@ -369,13 +366,10 @@ PKI_X509_NAME_RDN **PKI_X509_NAME_get_list(const PKI_X509_NAME *name,
 
 		PKI_OID *oid = NULL;
 
-		// PKI_log_debug("Analyzing String [%.30s ..]", pnt );
-
 		memset( type_s, 0L, sizeof(type_s));
 		memset( value_s, 0L, sizeof(value_s));
 
 		rv = sscanf( pnt, "%255[^=]=%1023[^,]", type_s, value_s );
-		// PKI_log_debug("[%d] %s=%s", cur, type_s, value_s);
 
 		if (rv != 2 ) {
 			PKI_log_debug("Parsing err ? (type_s, value_s)");
@@ -384,13 +378,11 @@ PKI_X509_NAME_RDN **PKI_X509_NAME_get_list(const PKI_X509_NAME *name,
 
 		oid = PKI_OID_get ( type_s );
 		if ( oid == NULL ) {
-			// PKI_log_debug("OID is null... ???" );
 			my_type = PKI_X509_NAME_TYPE_UNKNOWN;
 		} else {
 			my_type = PKI_OID_get_id( oid );
 		}
 
-		// PKI_log_debug("Checking Filter... ");
 		if ( filter != PKI_X509_NAME_TYPE_NONE ) {
 			if ( my_type != filter ) {
 				goto next_step;
@@ -400,15 +392,12 @@ PKI_X509_NAME_RDN **PKI_X509_NAME_get_list(const PKI_X509_NAME *name,
 		ret[cur] = (PKI_X509_NAME_RDN *)
 			PKI_Malloc ( sizeof( PKI_X509_NAME_RDN ));
 
-		// PKI_log_debug("Duplicating value_s (%s)... ", value_s);
-
 		ret[cur]->type  = (PKI_X509_NAME_TYPE) my_type;
 		ret[cur]->value = strdup( value_s );
 
 		cur++;
 
 next_step:
-		// PKI_log_debug("Moving forward... ");
 		if((pnt = strchr( pnt, ',')) == NULL ) break;
 
 		pnt++;

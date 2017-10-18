@@ -386,36 +386,41 @@ static void _pki_syslog_add( int level, const char *fmt, va_list ap ) {
 
 static void _pki_stdout_add( int level, const char *fmt, va_list ap ) {
 
-	PKI_TIME *now = NULL;
+	PKI_TIME *now = PKI_TIME_new(0);
+		// Current GMT Time
 
-	now = PKI_TIME_new(0);
+	char * now_s = PKI_TIME_get_parsed(now);
+		// Text Representation of the now time
 
 	/* Let's print the log entry */
-	fprintf ( stdout, "%s [%d] %s: ", 
-		PKI_TIME_get_parsed( (PKI_TIME *) now ), 
-					getpid(), _get_info_string( level ));
+	fprintf ( stdout, "%s [%d] %s: ", now_s, getpid(), _get_info_string(level));
 	vfprintf( stdout, fmt, ap );
 	fprintf ( stdout, "\n" );
-
+ 
+	// Free Memory
 	PKI_TIME_free( now );
+	PKI_Free(now_s);
 
 	return;
 }
 
 static void _pki_stderr_add( int level, const char *fmt, va_list ap ) {
 
-	PKI_TIME *now = NULL;
+	PKI_TIME *now = PKI_TIME_new(0);
+		// Current GMT Time
 
-	now = PKI_TIME_new(0);
+	char * now_s = PKI_TIME_get_parsed(now);
+		// Text Representation of the now time
 
 	/* Let's print the log entry */
-	fprintf ( stderr, "%s [%d] %s: ", 
-		PKI_TIME_get_parsed( (PKI_TIME *) now ), 
-					getpid(), _get_info_string( level ));
+	fprintf(stderr, "%s [%d] %s: ", 
+		now_s, getpid(), _get_info_string( level ));
 	vfprintf( stderr, fmt, ap );
 	fprintf ( stderr, "\n" );
 
-	PKI_TIME_free( now );
+	// Free Memory
+	PKI_TIME_free(now);
+	PKI_Free(now_s);
 
 	return;
 }
@@ -426,6 +431,10 @@ static void _pki_file_add( int level, const char *fmt, va_list ap ) {
 	FILE *file = NULL;
 
 	PKI_TIME *now = NULL;
+		// Current GMT Time
+
+	char * now_s = NULL;
+		// Text Representation of the now time
 
 	if( ! _log_st.resource ) return;
 
@@ -441,14 +450,19 @@ static void _pki_file_add( int level, const char *fmt, va_list ap ) {
 		return;
 	}
 
-	now = PKI_TIME_new(0);
+	// Gets the Current Time
+	if ((now = PKI_TIME_new(0)) == NULL) return;
+	now_s = PKI_TIME_get_parsed(now);
+
 	/* Let's print the log entry */
 	fprintf ( file, "%s [%d]: %s: ", 
-		PKI_TIME_get_parsed( (PKI_TIME *) now ), 
-					getpid(), _get_info_string( level ));
+		now_s, getpid(), _get_info_string( level ));
 	vfprintf( file, fmt, ap );
 	fprintf ( file, "\n");
-	PKI_TIME_free( now );
+
+	// Free Memory
+	PKI_TIME_free(now);
+	PKI_Free(now_s);
 
 	/* Now close the file stream */
 	fclose( file );

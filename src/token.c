@@ -179,18 +179,17 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 
 int PKI_TOKEN_check ( PKI_TOKEN *tk )
 {
-	int ret;
-
-	ret = PKI_TOKEN_STATUS_OK;
+	int check_val = 0;
+	int ret = PKI_TOKEN_STATUS_OK;
 
 	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
 	if (!tk->keypair)
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
 
-	if (PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair) != 0)
+	if ((check_val = PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair)) != 0)
 	{
-		PKI_log_err("Possible Key Mismatch (certificate / keypair)");
+		PKI_log_err("Possible PrivKey/Certificate Mismatch (%d)", check_val);
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
 	}
 
