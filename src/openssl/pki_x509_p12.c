@@ -196,12 +196,12 @@ static void * _get_bag_value(
         };
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 	p8 = PKCS12_SAFEBAG_get0_p8inf(bag);
+        if ((pkey = EVP_PKCS82PKEY(p8)) == NULL) return NULL;
 #else
         p8 = bag->value.keybag;
+        if ((pkey = EVP_PKCS82PKEY((PKCS8_PRIV_KEY_INFO *)p8)) == NULL) return (NULL);
 #endif
-        if (!(pkey = EVP_PKCS82PKEY (p8))) {
-          return (NULL);
-        }
+
         // print_attribs (out, p8->attributes, "Key Attributes");
         // PEM_write_bio_PrivateKey (out, pkey, enc, NULL, 0, NULL, pempass);
         // ret = EVP_PKEY_new();
@@ -220,10 +220,11 @@ static void * _get_bag_value(
       if (!(p8 = PKCS12_decrypt_skey(bag, pwd, (int) strlen(pwd)))) {
         return ( NULL );
       }
-      if (!(pkey = EVP_PKCS82PKEY (p8))) {
-        // PKCS8_PRIV_KEY_INFO_free(p8);
-        return (NULL);
-      }
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+      if ((pkey = EVP_PKCS82PKEY(p8)) == NULL) return (NULL);
+#else
+      if ((pkey = EVP_PKCS82PKEY((PKCS8_PRIV_KEY_INFO *)p8)) == NULL) return (NULL);
+#endif
       if (( k = PKI_X509_KEYPAIR_new_null()) == NULL ) {
         return NULL;
       }
