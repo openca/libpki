@@ -1253,7 +1253,7 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 			PKI_X509_ATTRIBUTE_FULL *a = NULL;
 #else
-			PKI_X509_ATTRIBUTE *a = NULL;
+			X509_ATTRIBUTE *a = NULL;
 #endif
 			int attr_num = 0;
 			char * tmp_str = NULL;
