@@ -16,7 +16,7 @@
 
 /* Functions */
 
-char * get_env_string(const const char *str) {
+char * get_env_string(const char *str) {
 
 	char * ret = NULL;
 	char * p1 = NULL;
@@ -73,7 +73,7 @@ char * get_env_string(const const char *str) {
 /*! \brief Set the ENV variable 'name' with the value 'value'
  */
 
-int PKI_set_env ( char *name, char *value ) {
+int PKI_set_env(const char *name, const char *value ) {
 
 	if( !name ) return ( PKI_ERR );
 

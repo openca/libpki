@@ -401,9 +401,10 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/compile \
 	$(top_srcdir)/src/libpki/config.h.in \
 	$(top_srcdir)/src/libpki/pki_config.h.in \
 	$(top_srcdir)/src/scripts/libpki-config.in AUTHORS COPYING \
-	ChangeLog INSTALL NEWS README build/compile build/config.guess \
-	build/config.sub build/depcomp build/install-sh \
-	build/ltmain.sh build/missing build/mkinstalldirs
+	ChangeLog INSTALL NEWS README TODO build/compile \
+	build/config.guess build/config.sub build/depcomp \
+	build/install-sh build/ltmain.sh build/missing \
+	build/mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -1585,7 +1586,7 @@ documentation:: pdfdocs
 
 distclean-local:
 	@echo "Cleaning local autoconf cache... " ; \
-	 rm -rf autom4te.cache/ contrib/libpki.spec .autotools/ .settings/ results
+	 rm -rf autom4te.cache/ contrib/libpki.spec .autotools .settings/ results
 
 snap:
 	@$(MAKE) -f Makefile dist VERSION=SNAP-$(TODAY)

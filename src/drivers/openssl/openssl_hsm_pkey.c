@@ -81,7 +81,7 @@ PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
 		return NULL;
 	}
 
-	if ((ossl_rc = RSA_generate_key_ex(rsa, bits, bne, NULL)) == 1 ) {
+	if ((ossl_rc = RSA_generate_key_ex(rsa, bits, bne, NULL)) != 1 ) {
 		/* Error */
 		BN_free(bne);
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);

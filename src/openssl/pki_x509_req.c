@@ -210,11 +210,10 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 				val->sig_alg, NULL, val->signature, k, digest);
 	*/
 
-	if (rv == PKI_ERR ) {
+	if (rv != PKI_OK ) {
 		/* Error Signing the request */
-		PKI_log_debug("REQ::ERROR signing the Request [%s]",
+		PKI_log_debug("REQ::ERROR %d signing the Request [%s]", rv,
 			ERR_error_string( ERR_get_error(), NULL ));
-		// ERR_print_errors_fp( stderr );
 		goto err;
 	}
 
@@ -222,8 +221,7 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 	return req;
 
 err:
-	if( req ) PKI_X509_REQ_free ( req );
-	// if( val ) X509_REQ_free ( val );
+	if (req) PKI_X509_REQ_free(req);
 
 	return (NULL);
 }
@@ -379,6 +377,10 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
 		case PKI_X509_DATA_SIGNATURE_ALG2:
 			break;
 /*
+		// This shall be replaced with a dedicated
+		// function because this violates the memory
+		// contract (const for the returned item)
+		// PKI_X509_get_der_tbs();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if((mem = PKI_MEM_new_null()) == NULL ) 
 				break;

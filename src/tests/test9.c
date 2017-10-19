@@ -22,6 +22,8 @@ int log_operations ( void ) {
 	PKI_log( PKI_LOG_INFO, 
 			"%s:%d:%d:: LOG_INFO\n", __FILE__, __LINE__ ,
 				PKI_LOG_INFO);
+
+	return 1;
 }
 
 int main (int argc, char *argv[] ) {

@@ -154,7 +154,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 		return NULL;
 	}
 
-	if((crit_s = xmlGetProp( extNode, BAD_CAST "critical" )) != NULL ) {
+	if((crit_s = xmlGetProp((PKI_CONFIG_ELEMENT *)extNode, BAD_CAST "critical" )) != NULL ) {
 		if( strncmp_nocase( (char *) crit_s, "n", 1 ) == 0) {
 			crit = 0;
 		} else {
@@ -162,7 +162,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 		}
 	}
 
-	if((name_s = xmlGetProp( extNode, BAD_CAST "name" )) == NULL ) {
+	if((name_s = xmlGetProp((PKI_CONFIG_ELEMENT *)extNode, BAD_CAST "name" )) == NULL ) {
 		PKI_log_debug("ERROR, no name property in node %s", 
 							extNode->name);
 		if( crit_s ) xmlFree ( crit_s );
@@ -171,7 +171,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 
 	if ((oid = PKI_OID_get((char *) name_s)) == NULL)
 	{
-		if ((oid = PKI_CONFIG_OID_search(oids, (char *)name_s)) == NULL)
+		if ((oid = PKI_CONFIG_OID_search((PKI_CONFIG *)oids, (char *)name_s)) == NULL)
 		{
 			PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL);
 			return NULL;
@@ -211,7 +211,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 
 			if( oid_s ) {
 				/* Let's be sure the OID is created */
-				if((oid = PKI_CONFIG_OID_search(oids, 
+				if((oid = PKI_CONFIG_OID_search((PKI_CONFIG *)oids, 
 						(char *) value_s)) == NULL ) {
 					PKI_log_debug ("WARNING, no oid "
 						"created for %s!", oid_s );

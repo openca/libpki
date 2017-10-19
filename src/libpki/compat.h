@@ -34,4 +34,11 @@ and ANSI C compilers can issue warnings about type mismatches. */
 	# define PARAMS(protos) ()
 #endif
 
+/* This is to enable support for -fsanitize=address extra checks */
+#if defined(__clang__) || defined (__GNUC__)
+# define ATTRIBUTE_NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#else
+# define ATTRIBUTE_NO_SANITIZE_ADDRESS
+#endif
+
 #endif // End of _LIBPKI_COMPAT_H

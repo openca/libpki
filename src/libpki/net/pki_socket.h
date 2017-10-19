@@ -74,7 +74,7 @@ int PKI_SOCKET_close(PKI_SOCKET *sock);
 int PKI_SOCKET_set_ssl(PKI_SOCKET * sock,
 		       PKI_SSL    * ssl );
 
-const PKI_SSL * PKI_SOCKET_get_ssl(const PKI_SOCKET *sock);
+PKI_SSL * PKI_SOCKET_get_ssl(const PKI_SOCKET *sock);
 
 int PKI_SOCKET_set_fd(PKI_SOCKET * sock,
 		      int          fd );

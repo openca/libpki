@@ -243,7 +243,7 @@ int PKI_SOCKET_set_fd(PKI_SOCKET *sock, int fd ) {
 
 /*! \brief Returns the PKI_SSL layer (if present) */
 
-const PKI_SSL * PKI_SOCKET_get_ssl (const PKI_SOCKET *sock ) {
+PKI_SSL * PKI_SOCKET_get_ssl (const PKI_SOCKET *sock ) {
 
 	if ( !sock ) return NULL;
 

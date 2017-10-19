@@ -179,18 +179,17 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 
 int PKI_TOKEN_check ( PKI_TOKEN *tk )
 {
-	int ret;
-
-	ret = PKI_TOKEN_STATUS_OK;
+	int check_val = 0;
+	int ret = PKI_TOKEN_STATUS_OK;
 
 	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
 	if (!tk->keypair)
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
 
-	if (PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair) != 0)
+	if ((check_val = PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair)) != 0)
 	{
-		PKI_log_err("Possible Key Mismatch (certificate / keypair)");
+		PKI_log_err("Possible PrivKey/Certificate Mismatch (%d)", check_val);
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
 	}
 
@@ -524,7 +523,7 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	int ret = PKI_ERR;
 
-	PKI_ALGOR * alg = NULL;
+	const PKI_ALGOR * alg = NULL;
 
 	/* Check input */
 	if(!tk || !tk_name)
@@ -1571,6 +1570,10 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 		return PKI_ERR;
 	}
 
+	/* TODO: Not sure what the use of this call is in this function, additional
+	         checks are required. For now, we remove it.
+	*/
+	/*
 	if ((alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM )) == NULL)
 	{
 		PKI_log_debug ("Can not get Cert Signature Algorithm!");
@@ -1580,6 +1583,7 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 		PKI_log_debug ("Setting algor to %s", PKI_ALGOR_get_parsed (alg));
 		PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
 	}
+	*/
 
 	return PKI_OK;
 }

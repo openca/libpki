@@ -82,7 +82,7 @@ typedef struct pki_x509_st {
 	const PKI_X509_CALLBACKS *cb;
 
 	/* Template Reference */
-	ASN1_ITEM * it;
+	const ASN1_ITEM * it;
 
 } PKI_X509;
 

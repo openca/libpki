@@ -213,8 +213,11 @@ case "${build_os}" in
 		shlext=so
 		;;
  *aix*)
-    myarch=aix
+		myarch=aix
 		shlext=so
+		;;
+ *cygwin*)	myarch=cygwin
+	 	shlext=dll
 		;;
  *) AC_MSG_ERROR([Operating system ${build_os} not supported]) ;;
 esac
@@ -261,19 +264,27 @@ AM_CONDITIONAL(LIBPKI_ENABLE_IPHONE, test x$enable_iphone = xyes)
 if [[ "x$myarch" = "xsolaris" ]] ; then
 	DIST_VERSION=`uname -r`
 else
-	if [[ -f "/etc/issue" ]] ; then
-	   DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/issue | head -n 1`
+	if [[ -f "/etc/system-release" ]] ; then
+	   DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/system-release | head -n 1`
 	else
-	   DIST_VERSION=`echo ${build_os} | $EGREP -o [[0-9.]]+`
+		if [[ -f "/etc/issue" ]] ; then
+	   		DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/issue | head -n 1`
+		else
+	   		DIST_VERSION=`echo ${build_os} | $EGREP -o [[0-9.]]+`
+		fi
 	fi
 fi
 
 AC_SUBST(DIST_VERSION)
 
-if [[ -f "/etc/issue" ]] ; then
-   DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
+if [[ -f "/etc/system-release" ]] ; then
+   DIST_NAME=`head -n 1 /etc/system-release | cut -f 1,1 -d ' '`
 else
-   DIST_NAME=`echo ${build_os} | $EGREP -o [[A-Za-z]]+`
+	if [[ -f "/etc/issue" ]] ; then
+   		DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
+	else
+   		DIST_NAME=`echo ${build_os} | $EGREP -o [[A-Za-z]]+`
+	fi
 fi
 
 AC_SUBST(DIST_NAME)
@@ -349,6 +360,8 @@ dnl check for stack protection of gcc
 if [[ "$CC" = "gcc" ]] ; then
 	AC_CHECK_C_OPTION(-fstack-check)
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
+	AC_CHECK_C_OPTION(-Werror)
+	AC_CHECK_C_OPTION(-Wfatal-errors)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
@@ -356,9 +369,7 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Wtype-limits)
 		AC_CHECK_C_OPTION(-Wuninitialized)
 		AC_CHECK_C_OPTION(-Wconversion)
-		AC_CHECK_C_OPTION(-Werror)
-		AC_CHECK_C_OPTION(-Wfatal-errors)
-		AC_CHECK_C_OPTION(-Wall)
+		AC_CHECK_C_OPTION(-fsanitize=address)
 	fi
 
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
@@ -1211,8 +1222,10 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
 	if [[ "$iphone_build" = "no" ]] ; then
-	    AC_SEARCH_LIBS(BIO_new, "-lcrypto", [ ] ,
-		AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+		if ! [[ "x$DIST_NAME" = "xdarwin" ]] ; then
+	    		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
+				AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+		fi
 	fi
 
 	activate_ecdsa=

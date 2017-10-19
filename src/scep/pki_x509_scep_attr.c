@@ -473,3 +473,92 @@ int PKI_X509_SCEP_MSG_set_recipient_nonce(PKI_X509_SCEP_MSG * msg,
 	return ret;
 }
 
+/*! \brief Sets the messageType attribute in a SCEP message */
+
+int PKI_X509_SCEP_MSG_set_type(PKI_X509_SCEP_MSG * msg,
+		                       SCEP_MESSAGE_TYPE   type) {
+
+	return PKI_X509_SCEP_MSG_set_attribute_int(msg,
+				                               SCEP_ATTRIBUTE_MESSAGE_TYPE,
+											   type);
+}
+
+/*! \brief Returns the messageType attribute from a SCEP message */
+
+SCEP_MESSAGE_TYPE PKI_X509_SCEP_MSG_get_type(const PKI_X509_SCEP_MSG * const msg) {
+
+	return PKI_X509_SCEP_MSG_get_attr_value_int(msg,
+			                                    SCEP_ATTRIBUTE_MESSAGE_TYPE);
+}
+
+/*! \brief Sets the pkiStatus attribute in a SCEP message */
+
+int PKI_X509_SCEP_MSG_set_status(PKI_X509_SCEP_MSG * msg,
+		                         SCEP_STATUS         status) {
+
+	return PKI_X509_SCEP_MSG_set_attribute_int(msg,
+				                               SCEP_ATTRIBUTE_PKI_STATUS,
+											   status );
+}
+
+
+/*! \brief Returns the pkiStatus attribute from a SCEP message */
+
+SCEP_STATUS PKI_X509_SCEP_MSG_get_status(const PKI_X509_SCEP_MSG * const msg) {
+
+	return (SCEP_STATUS) PKI_X509_SCEP_MSG_get_attr_value_int(msg,
+			                                                  SCEP_ATTRIBUTE_PKI_STATUS);
+}
+
+/*! \brief Sets the failInfo attribute in a SCEP message */
+
+int PKI_X509_SCEP_MSG_set_failinfo(PKI_X509_SCEP_MSG * msg,
+		                           int                 fail) {
+
+	return PKI_X509_SCEP_MSG_set_attribute_int(msg,
+				                               SCEP_ATTRIBUTE_FAIL_INFO,
+											   fail);
+}
+
+/*! \brief Returns the failInfo attribute from a SCEP message */
+
+SCEP_FAILURE PKI_X509_SCEP_MSG_get_failinfo(const PKI_X509_SCEP_MSG * const msg) {
+
+	return (SCEP_FAILURE) PKI_X509_SCEP_MSG_get_attr_value_int(msg,
+				                                               SCEP_ATTRIBUTE_FAIL_INFO);
+}
+
+
+/*! \brief Returns the senderNonce attribute from a SCEP message */
+
+PKI_MEM *PKI_X509_SCEP_MSG_get_sender_nonce(const PKI_X509_SCEP_MSG * const msg) {
+
+	return PKI_X509_SCEP_MSG_get_attr_value(msg,
+				                            SCEP_ATTRIBUTE_SENDER_NONCE);
+}
+
+/*! \brief Returns the recipientNonce attribute from a SCEP message */
+
+PKI_MEM *PKI_X509_SCEP_MSG_get_recipient_nonce(PKI_X509_SCEP_MSG * const msg) {
+
+	return PKI_X509_SCEP_MSG_get_attr_value ( msg,
+			SCEP_ATTRIBUTE_RECIPIENT_NONCE );
+}
+
+/*! \brief Sets the proxyAuthenticator attribute from a SCEP message */
+
+int PKI_X509_SCEP_MSG_set_proxy(PKI_X509_SCEP_MSG * msg,
+		                        int                 auth) {
+
+	return PKI_X509_SCEP_MSG_set_attribute_int(msg,
+			                                   SCEP_ATTRIBUTE_PROXY_AUTH,
+											   auth );
+}
+
+int PKI_X509_SCEP_MSG_get_proxy(const PKI_X509_SCEP_MSG * const msg) {
+
+	return PKI_X509_SCEP_MSG_get_attr_value_int(msg,
+			                                    SCEP_ATTRIBUTE_PROXY_AUTH );
+
+}
+

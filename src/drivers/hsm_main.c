@@ -469,6 +469,7 @@ int PKI_X509_sign(PKI_X509 *x,
 		if (!ameth || !OBJ_find_sigid_by_algs(&signid, EVP_MD_nid(digest), 
 									ameth->pkey_id)) {
 			// ASN1_R_DIGEST_AND_KEY_TYPE_NOT_SUPPORTED
+			PKI_ERROR(PKI_ERR_GENERAL, "Digest and Key Type not supported");
 			return PKI_ERR;
 		}
 	} else {
@@ -515,8 +516,7 @@ int PKI_X509_sign(PKI_X509 *x,
 
 			if(a->parameter) ASN1_TYPE_free(a->parameter);
 			if ((a->parameter=ASN1_TYPE_new()) == NULL) {
-				PKI_log_err ("Memory Error");
-				return PKI_ERR;
+				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 			};
 			a->parameter->type=V_ASN1_NULL;
 		}
@@ -524,14 +524,12 @@ int PKI_X509_sign(PKI_X509 *x,
 		a->algorithm = OBJ_nid2obj(p_type );
 
 		if (a->algorithm == NULL) {
-			PKI_log_err ("Unknown Object Type");
-			return PKI_ERR;
+			return PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Algorithm type is unknown");
 		};
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 		if (a->algorithm->length == 0) {
-			PKI_log_err ("Object Identifier not valid or unknown!");
-			return PKI_ERR;
+			return PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Algorithm type is unknown");
 		}
 #endif
 
@@ -603,15 +601,14 @@ int PKI_X509_sign(PKI_X509 *x,
 	{
 		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, NULL, NULL )) == NULL)
 		{
-			PKI_log_debug("Can not convert object to ASN1");
-			return PKI_ERR;
+			return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
 		}
 	}
 
 	if ((sig = PKI_sign(der, digest, key)) == NULL)
 	{
 		PKI_MEM_free ( der );
-		return PKI_ERR;
+		return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 	}
 
 	/* der work is finished, let's free the memory */
@@ -619,8 +616,7 @@ int PKI_X509_sign(PKI_X509 *x,
 
 	if ((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE))==NULL) {
 		PKI_MEM_free (sig);
-		PKI_log_debug("Can't get signature data");
-		return PKI_ERR;
+		return PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get signature data");
 	}
 
 	if ( signature->data ) PKI_Free ( signature->data );
@@ -665,6 +661,7 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
 
 	// If no HSM is provided, let's get the default one
 	if (key->hsm) hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());
+	else hsm = HSM_get_default();
 
 	// Requires the use of the HSM's sign callback
 	if (hsm && hsm->callbacks && hsm->callbacks->sign)
@@ -676,6 +673,8 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
 	}
 	else
 	{
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK,
+			  "No sign callback for key's HSM");
 		return NULL;
 	}
 
