@@ -166,6 +166,8 @@ int PKI_init_all( void ) {
 		PKI_X509_SCEP_init();
 		xmlInitParser();
 
+		SSL_library_init();
+
 		__init_add_libpki_oids ();
 	}
 

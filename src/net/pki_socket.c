@@ -158,8 +158,20 @@ int PKI_SOCKET_connect_ssl(PKI_SOCKET * sock,
 	}
 
 	if ( sock->ssl == NULL ) {
-		sock->ssl = PKI_SSL_new ( NULL );
+
+		// Allocates a new SSL object
+		if ((sock->ssl = PKI_SSL_new(NULL)) == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return PKI_ERR;
+		}
+
+		// Let's allow for generic connections
+		PKI_SSL_set_verify(sock->ssl, PKI_SSL_VERIFY_NONE);
+
 	}
+
+	// Sets the name for SNI extension
+	PKI_SSL_set_host_name(sock->ssl, url->addr);
 
 	if ( PKI_SSL_start_ssl ( sock->ssl, sock->fd ) == PKI_ERR )
 	{

@@ -74,7 +74,7 @@ void PKI_CRED_free( PKI_CRED *cred ) {
 	}
 
 	if( cred->ssl != NULL ) {
-		PKI_SSL_free ( (PKI_SSL *) cred->ssl );
+		PKI_SSL_free((PKI_SSL *)cred->ssl);
 	}
 
 	PKI_Free( cred );

@@ -301,6 +301,8 @@ int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert );
 int PKI_SSL_set_fd ( PKI_SSL *ssl, int fd );
 int PKI_SSL_get_fd ( PKI_SSL *ssl );
 
+int PKI_SSL_set_host_name ( PKI_SSL *ssl, const char * hostname );
+
 int PKI_SSL_set_verify ( PKI_SSL *ssl, PKI_SSL_VERIFY vflags );
 int PKI_SSL_check_verify ( PKI_SSL *ssl, PKI_SSL_VERIFY flag );
 

@@ -604,7 +604,7 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 			"GET %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
 			"User-Agent: LibPKI\r\n"
-	        "Connection: close\r\n"
+			"Connection: close\r\n"
 			"%s";
 
 	char *head_post = 
@@ -689,6 +689,7 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 
 	// PKI_MEM *r = PKI_MEM_new_data(len, tmp);
 	// URL_put_data("file://http_req.txt", r, NULL, NULL, 0, 0, NULL);
+	// PKI_MEM_free(r);
 
 	if ((rv = (int) PKI_SOCKET_write(sock, tmp, len)) < 0)
 	{
@@ -804,12 +805,11 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 		goto err;
 	}
 
-	/*
 	PKI_log_err("{DEBUG} method = %d, header->size = %d, body = %p, body_size = %d",
 			  http_rv->method, http_rv->head->size, http_rv->body, http_rv->body->size);
 
 	URL_put_data("file://http-resp-header.txt", http_rv->head, NULL, NULL, 0, 0, NULL);
-	*/
+	URL_put_data("file://http-resp-data.txt", http_rv->body, NULL, NULL, 0, 0, NULL);
 
 	// If a Pointer was provided, we want the data back
 	if (sk)

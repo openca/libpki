@@ -862,7 +862,7 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
 /* !\brief Returns the DER encoded toBeSigned part of the certificate
  * */
 
-PKI_MEM * PKI_X509_get_der_tbs(const PKI_X509_CERT *x ) {
+PKI_MEM * PKI_X509_CERT_get_der_tbs(const PKI_X509_CERT *x ) {
 
 	PKI_MEM * mem = NULL;
 	LIBPKI_X509_CERT * tmp_x = NULL;

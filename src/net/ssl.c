@@ -708,7 +708,6 @@ PKI_SSL * PKI_SSL_new (const PKI_SSL_ALGOR *algor) {
 	// Enables CRL, OCSP, and PRQP (no REQUIRE)
 	PKI_SSL_set_verify(ret, PKI_SSL_VERIFY_NORMAL);
 	PKI_SSL_set_cipher(ret, PKI_SSL_CIPHERS_TLS1_2);
-	// PKI_SSL_set_cipher(ret, "HIGH:MEDIUM:!NULL");
 	PKI_SSL_set_flags(ret, PKI_SSL_FLAGS_DEFAULT);
 
 	ret->verify_ok = PKI_OK;
@@ -827,6 +826,23 @@ int PKI_SSL_set_fd ( PKI_SSL *ssl, int fd ) {
 	}
 
 	return SSL_set_fd ( ssl->ssl, fd );
+}
+
+/*! \brief Sets the SNI extension for the hostname */
+
+int PKI_SSL_set_host_name ( PKI_SSL *ssl, const char * hostname ) {
+
+	if ( !ssl ) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, 0);
+	}
+
+	// Free the name if one is already set
+	if (ssl->servername) PKI_Free (ssl->servername);
+
+	// Sets the Servername to be used for SNI
+	ssl->servername = strdup(hostname);
+
+	return 1;
 }
 
 /*! \brief Returns the underlying socket descriptor */
@@ -1128,34 +1144,27 @@ int PKI_SSL_add_other ( PKI_SSL *ssl, PKI_X509_CERT *cert ) {
 
 int PKI_SSL_close ( PKI_SSL *ssl ) {
 	
-	// SSL_CTX *ssl_ctx = NULL;
-	// int ssl_socket = -1;
-
 	if ( !ssl || !ssl->ssl ) return ( PKI_ERR );
 
 	if ( ssl->connected ) {
-		SSL_free ( ssl->ssl );
+
+		// Close the SSL session
+		if (SSL_shutdown(ssl->ssl) == 0) {
+			SSL_shutdown(ssl->ssl);
+		}
+
+		ssl->connected = 0;
 	}
 
-	/*
-	if((ssl_socket = SSL_get_fd ( ssl->ssl )) > 0 ) {
-		close ( ssl_socket );
-	};
+	// Clear the SSL
+	SSL_clear(ssl->ssl);
 
-	if (( ssl_ctx = SSL_get_SSL_CTX(ssl->ssl)) == NULL ) {
-		SSL_CTX_free ( ssl_ctx );
-	}
-
+	// Free the SSL structure
 	SSL_free ( ssl->ssl );
-	*/
+	ssl->ssl = NULL; // Safety
 
-	// PKI_Free ( ssl->ssl );
-	ssl->ssl = NULL;
-
-	ssl->connected = 0;
-
+	// All Done
 	return PKI_OK;
-	
 }
 
 /*! \brief Frees memory associated with a PKI_SSL */
@@ -1164,11 +1173,15 @@ void PKI_SSL_free ( PKI_SSL *ssl ) {
 
 	PKI_X509_CERT * cert = NULL;
 
+	SSL_CTX *ssl_ctx = NULL;
+		// Pointer to the SSL context
+
 	if ( !ssl ) return;
 
 	if( ssl->ssl_ctx ) {
 		SSL_CTX_set_ex_data ( ssl->ssl_ctx, 0, NULL );
-		// X509_STORE_CTX_set_ex_data ( ssl->ssl_ctx, 0, NULL);
+		SSL_CTX_free(ssl->ssl_ctx);
+		ssl->ssl_ctx = NULL;
 	}
 
 	if( ssl->ssl ) {
@@ -1197,12 +1210,12 @@ void PKI_SSL_free ( PKI_SSL *ssl ) {
 		while((cert = PKI_STACK_X509_CERT_pop (ssl->peer_chain ))
 								!= NULL ) {
 			PKI_X509_CERT_free ( cert );
-		};
+		}
 		PKI_STACK_X509_CERT_free ( ssl->peer_chain );
 	}
 
 
-	// if ( ssl->ssl_ctx ) X509_STORE_CTX_free ( ssl->ssl_ctx );
+	if (ssl->cipher) PKI_Free(ssl->cipher);
 
 	PKI_Free ( ssl );
 

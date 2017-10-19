@@ -32,7 +32,7 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x, PKI_X509_DATA type);
 int PKI_X509_CERT_set_data(PKI_X509_CERT *x, int type, void *data);
 
 /* Special case for TBS encoded data */
-PKI_MEM * PKI_X509_get_der_tbs(const PKI_X509_CERT *x );
+PKI_MEM * PKI_X509_CERT_get_der_tbs(const PKI_X509_CERT *x );
 
 /* Print and Get Parsed Data */
 int PKI_X509_CERT_get_keysize (const PKI_X509_CERT *x );
