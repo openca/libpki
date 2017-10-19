@@ -596,7 +596,8 @@ int PKI_X509_sign(PKI_X509 *x,
 		__set_algorithm(alg2, OBJ_nid2obj(digest->pkey_type), paramtype);
 	*/
 
-	if ((der = PKI_X509_get_der_tbs(x)) == NULL) 
+	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) 
+	// if ((der = PKI_X509_get_der_tbs(x)) == NULL) 
 	// if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
 	{
 		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, NULL, NULL )) == NULL)
@@ -747,7 +748,8 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 		return PKI_ERR;
 	}
 
-	if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
+	if ((data = PKI_X509_get_tbs_asn1(x)) == NULL) {
+	// if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
 	// if ((data = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
 		PKI_log_err("Can not get To Be signed object!");
 		return PKI_ERR;
@@ -805,8 +807,9 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 int PKI_verify_signature(const PKI_MEM *data, 
 			 const PKI_MEM *sig,
 			 const PKI_ALGOR *alg,
-			const PKI_X509_KEYPAIR *key )
+			 const PKI_X509_KEYPAIR *key )
 {
+	int v_code = 0;
 	EVP_MD_CTX *ctx = NULL;
 	PKI_DIGEST_ALG *dgst = NULL;
 
@@ -831,18 +834,29 @@ int PKI_verify_signature(const PKI_MEM *data,
 
 	if((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0 ) {
 		PKI_log_debug( "PKI_verify_signature() verify init failed!");
+		PKI_log_debug("Crypto Layer Error: %s (%d)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
+			HSM_get_errno(NULL));
 		goto err;
 	}
 
-	if((EVP_VerifyUpdate(ctx,(unsigned char *)data->data,
+	if((v_code = EVP_VerifyUpdate(ctx,(unsigned char *)data->data,
 							data->size)) <= 0 ) {
-		PKI_log_debug( "PKI_verify_signature() verifyUpdate failed!");
+		PKI_log_debug( "PKI_verify_signature() verifyUpdate failed (%d)",
+				v_code);
+		PKI_log_debug("Crypto Layer Error: %s (%d)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
+			HSM_get_errno(NULL));
 		goto err;
 	}
 
-	if (EVP_VerifyFinal(ctx,(unsigned char *)sig->data,
-                        (unsigned int)sig->size, key->value ) <= 0 ) {
-		PKI_log_debug( "PKI_verify_signature() verifyFinal failed!");
+	if ((v_code = EVP_VerifyFinal(ctx,(unsigned char *)sig->data,
+                        (unsigned int)sig->size, key->value )) <= 0 ) {
+		PKI_log_debug( "PKI_verify_signature() verifyFinal failed (%d)",
+				v_code);
+		PKI_log_debug("Crypto Layer Error: %s (%d)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
+			HSM_get_errno(NULL));
 		goto err;
 	}
 

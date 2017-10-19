@@ -2033,7 +2033,7 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 		// This shall be replaced with a dedicated
 		// function because this violates the memory
 		// contract (const for the returned item)
-		// PKI_X509_get_der_tbs();
+		// PKI_X509_get_tbs_asn1();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if ((mem = PKI_MEM_new_null()) == NULL)
 			{
@@ -2261,7 +2261,7 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 		// This shall be replaced with a dedicated
 		// function because this violates the memory
 		// contract (const for the returned item)
-		// PKI_X509_get_der_tbs();
+		// PKI_X509_get_tbs_asn1();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if ((mem = PKI_MEM_new_null()) == NULL)
 			{

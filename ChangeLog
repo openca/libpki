@@ -2,6 +2,9 @@
 - Small memory leak fix for logging on stderr and stdout
 - Fixed small memory leak in PKI_X509_NAME_get_parsed()
 - Simplified PKI_X509_CERT_check_pubkey() internals
+- Fixed memory leak for HTTP messages retrieving
+- Fixed memory leak for SNI servername
+- Fixed setting SNI server name to operate with virtual servers
 
 * Sep 25 2017 Massimiliano Pala <madwolf@openca.org>
 - Fixed an error for default HSM callbacks for OpenSSL tokens that prevented signature generation

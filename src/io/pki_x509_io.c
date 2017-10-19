@@ -69,13 +69,26 @@ PKI_X509 *PKI_X509_get_url ( URL *url, PKI_DATATYPE type,
 
 	PKI_X509_STACK *sk = NULL;
 	PKI_X509 * ret = NULL;
+	PKI_X509 * x = NULL;
 
-	if( !url ) return (NULL);
-
-	if((sk = PKI_X509_STACK_get_url(url, type, cred, hsm)) == NULL) {
+	// Checks the pased argument
+	if (!url) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return (NULL);
 	}
 
+	// Gets the stack of PKI_X509 from the provided URL
+	if ((sk = PKI_X509_STACK_get_url(url, type, cred, hsm)) == NULL) {
+		return (NULL);
+	}
+ 
+	// Assign the first element to ret and discards the others
+	while ((x = PKI_STACK_X509_pop(sk)) != NULL) {
+		if (ret == NULL) ret = x;
+		else PKI_X509_free(x);
+	}
+
+	/*
 	if( PKI_STACK_X509_elements( sk ) >= 1 ) {
 		PKI_X509 *x = NULL;
 
@@ -84,10 +97,13 @@ PKI_X509 *PKI_X509_get_url ( URL *url, PKI_DATATYPE type,
 			PKI_X509_free ( x );
 		}
 	}
+	*/
 
-	if( sk ) PKI_STACK_X509_free ( sk );
+	// Free the stack data structure
+	if (sk) PKI_STACK_X509_free_all(sk);
 
-	return ( ret );
+	// Returns the first element from the stack
+	return ret;
 
 }
 
@@ -141,6 +157,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 	PKI_X509_STACK *tmp_x_sk = NULL;
 	PKI_MEM_STACK *mem_sk = NULL;
 	PKI_X509_CERT *x = NULL;
+	PKI_MEM * el = NULL;
 
 	PKI_SSL *ssl = NULL;
 
@@ -176,9 +193,9 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 			return ( NULL );
 		}
 		return ( HSM_X509_STACK_get_url ( type, url, cred, hsm ));
-	};
+	}
 
-	if ( cred ) {
+	if (cred) {
 		ssl = (PKI_SSL *) cred->ssl;
 		if ( !url->usr && cred->username ) {
 			url->usr = strdup ( cred->username );
@@ -189,65 +206,107 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		}
 	}
 
-	if((mem_sk = URL_get_data_url ( url, 60, 0, ssl )) == NULL ) {
+	if ((mem_sk = URL_get_data_url(url, 60, 0, ssl)) == NULL) {
 		return(NULL);
 	}
 
 	if((ret = PKI_STACK_X509_new()) == NULL ) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		PKI_STACK_MEM_free_all(mem_sk);
 		return(NULL);
 	}
+
 
 	count = 0;
 	for( i = 0; i < PKI_STACK_MEM_elements( mem_sk ); i++ ) {
 
 		PKI_MEM *n = NULL;
 
+		// Gets the i-th PKI_MEM from the stack of elements
 		if(( n = PKI_STACK_MEM_get_num( mem_sk, i )) == NULL ) {
 			break;
 		}
 
 		if ( type == PKI_DATATYPE_ANY ) {
+
+			// Tries any supported data types
 			for ( j = 0; j < x509_types_len; j++ ) {
 				PKI_DATATYPE curr_type;
 
 				curr_type = x509_types[j];
 
 				if((tmp_x_sk = PKI_X509_STACK_get_mem(n, curr_type, 
-											cred, hsm)) != NULL) {
+									cred, hsm)) != NULL) {
 					while ( (x = PKI_STACK_X509_pop( tmp_x_sk )) != NULL ) {
 						count++;
 						if ( url->object_num > 0) {
 							if( count == url->object_num)  {
 							    PKI_STACK_X509_push( ret, x );
+							} else {
+							    PKI_X509_free(x);
 							}
 						} else {
 							PKI_STACK_X509_push( ret, x );
 						}
 					}
-					PKI_STACK_X509_free ( tmp_x_sk );
+					PKI_STACK_X509_free_all ( tmp_x_sk );
 				}
 			}
+
 		} else {
+
+			// Use the passed 'type' to parse the data
 			if((tmp_x_sk = PKI_X509_STACK_get_mem(n, type, 
-											cred, hsm)) != NULL) {
+								cred, hsm)) != NULL) {
+
+				// Process (remove) next element from the inner stack
 				while ( (x = PKI_STACK_X509_pop( tmp_x_sk )) != NULL ) {
+
 					count++;
+
 					if ( url->object_num > 0) {
+						// We check if the object_number is the one
+						// we were seeking
 						if( count == url->object_num)  {
+
+						    // Push the value to the return stack
 						    PKI_STACK_X509_push( ret, x );
+
+						} else {
+
+						    // Free the memory for the value since
+						    // it is not the one we were looking for
+						    PKI_X509_free(x);
 						}
 					} else {
+
+						// If no specific object_number was set,
+						// let's push the value to the return stack
 						PKI_STACK_X509_push( ret, x );
 					}
 				}
-				PKI_STACK_X509_free ( tmp_x_sk );
+
+				// No more values to analyze, let's free all
+				// the remaining memory
+				PKI_STACK_X509_free_all ( tmp_x_sk );
 			}
 		}
 	}
 
-	if( mem_sk ) PKI_STACK_MEM_free_all ( mem_sk );
 
-	return ( ret );
+	// If we have a 'mem_sk' stack
+	if (mem_sk) {
+
+		// Free memory for all the PKI_MEM elements
+		while ((el = PKI_STACK_MEM_pop(mem_sk)) != NULL) {
+			PKI_MEM_free(el);
+		}
+		// Free the stack itself
+		PKI_STACK_MEM_free_all ( mem_sk );
+	}
+
+	// Return the objects' stack
+	return ret;
 }
 
 /* --------------------------- X509_CERT put (write) ----------------------- */

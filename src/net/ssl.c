@@ -12,7 +12,7 @@
 
 /* Static Function - used only internally */
 static int __ssl_find_trusted(X509_STORE_CTX      *ctx, 
-	                            PKI_X509_CERT_VALUE *x ) {
+	                      PKI_X509_CERT_VALUE *x ) {
 	int i = 0;
 	int idx = 0;
 	int trusted_certs_num = 0;
@@ -1216,6 +1216,8 @@ void PKI_SSL_free ( PKI_SSL *ssl ) {
 
 
 	if (ssl->cipher) PKI_Free(ssl->cipher);
+
+	if (ssl->servername) PKI_Free(ssl->servername);
 
 	PKI_Free ( ssl );
 

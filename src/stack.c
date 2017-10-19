@@ -142,6 +142,13 @@ int PKI_STACK_free_all (PKI_STACK * st)
 	// Let's start from the head
 	n = st->head;
 
+	// Checks we have the free function
+	// set. If not, report the possible
+	// memory loss
+	if (st->free == NULL) {
+		PKI_log_debug("Missing free function for the stack!");
+	}
+
 	// Cycle until we process all nodes
 	while (n != NULL)
 	{

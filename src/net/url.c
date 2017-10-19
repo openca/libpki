@@ -271,9 +271,9 @@ PKI_MEM_STACK *URL_get_data(const char *    url_s,
  */
 
 PKI_MEM_STACK *URL_get_data_url(const URL       * url,
-		                        int               timeout,
-				                ssize_t           size,
-								PKI_SSL   * ssl ) {
+		                int               timeout,
+				ssize_t           size,
+				PKI_SSL   * ssl ) {
 
 	PKI_MEM_STACK * ret = NULL;
 
@@ -285,13 +285,15 @@ PKI_MEM_STACK *URL_get_data_url(const URL       * url,
 		case URI_PROTO_FD:
 			ret = URL_get_data_fd( url, size );
 			break;
+
 		case URI_PROTO_FILE:
 			ret = URL_get_data_file( url, size );
 			break;
+
 		case URI_PROTO_HTTP:
 		case URI_PROTO_HTTPS:
-			PKI_HTTP_GET_data_url( url, timeout, (size_t) size,
-				&ret, ssl );
+			PKI_HTTP_GET_data_url(url, timeout, (size_t) size,
+				&ret, ssl);
 			break;
 #ifdef HAVE_LDAP
 		case URI_PROTO_LDAP:
@@ -316,6 +318,7 @@ PKI_MEM_STACK *URL_get_data_url(const URL       * url,
 		case URI_PROTO_PKCS11:
 			ret = URL_get_data_pkcs11_url( url, size );
 			break;
+
 		case URI_PROTO_ID:
 		case URI_PROTO_FTP:
 		default:
