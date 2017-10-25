@@ -1032,7 +1032,7 @@ openssl_include=
 openssl_setup=no
 openssl_engine=
 openssl_static_libs=
-openssl_min_ver=0.9.8
+openssl_min_ver=0x090909f
 openssl_pkg_min_ver=0.9.8
 
 dnl activate_ecdsa=
