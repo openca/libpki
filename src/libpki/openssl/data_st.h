@@ -560,7 +560,7 @@ typedef struct ocsp_request_st {
 
 // OCSP Responses
 
-struct ocsp_single_response_st {
+typedef struct ocsp_single_response_st {
     OSSL_OCSP_CERTID *certId;
     OCSP_CERTSTATUS *certStatus;
     ASN1_GENERALIZEDTIME *thisUpdate;

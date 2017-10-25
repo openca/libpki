@@ -11,6 +11,8 @@
 
 #include <libpki/pki.h>
 
+#include "../openssl/internal/x509_data_st.h"
+
 /* PKIX Defaults from http://www.imc.org/ietf-pkix/pkix-oid.asn
  *
  * 	id-pkix ::= { 1.3.6.1.5.5.7 }
@@ -235,8 +237,8 @@ CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert,
 	PKI_STRING *issKeyHash = NULL;
 	PKI_STRING *cHash = NULL;
 	/* OCTET STRINGS */
-	PKI_STRING *skid = NULL;
-	PKI_STRING *ikid = NULL;
+	const PKI_STRING *skid = NULL;
+	const PKI_STRING *ikid = NULL;
 
 	CERT_IDENTIFIER *ret = NULL;
 
@@ -245,12 +247,50 @@ CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert,
 	/* Now get the IssuerName and the Serial of the Certificate x */
 	if (caCert && caCert->value)
 	{
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+		LIBPKI_X509_CERT *xx = NULL;
+#else
 		PKI_X509_CERT_VALUE *xx = NULL;
+#endif
 		PKI_DIGEST *myDigest = NULL;
 
 		xx = (X509 *) caCert->value;
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+
+		// Gets the SKID
+		skid = X509_get0_subject_key_id(xx);
+
+		/*
+		int num = 0;
+		PKI_X509_EXTENSION_VALUE *ext_v = NULL;
+
+		// Gets the SKID
+		num = X509_get_ext_by_NID(xx, NID_subject_key_identifier,-1);
+		if (num < 0) {
+			// Can not get SKID
+			skid = NULL;
+		} else if ((ext_v = X509_get_ext(xx, num)) != NULL) {
+			skid = ext_v->value;
+		}
+		*/
+
+		// Gets the AKID
+		if (xx->akid) ikid = xx->akid->keyid;
+
+		/*
+		num = X509_get_ext_by_NID(xx, NID_authority_key_identifier,-1);
+		if (num < 0) {
+			// Can not get SKID
+			skid = NULL;
+		} else if ((ext_v = X509_get_ext(xx, num)) != NULL) {
+			skid = ext_v->value;
+		}
+		*/
+#else
 		if (xx->skid) skid = xx->skid;
 		if (xx->akid) ikid = xx->akid->keyid;
+#endif
 
 		s_name = (X509_NAME *) 
 			PKI_X509_CERT_get_data( caCert, PKI_X509_DATA_SUBJECT );

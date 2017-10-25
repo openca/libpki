@@ -2,6 +2,8 @@
 
 #include <libpki/pki.h>
 
+#include "openssl/internal/x509_data_st.h"
+
 typedef struct parsed_datatypes_st {
 	const char *descr;
 	int nid;
@@ -42,27 +44,47 @@ PKI_TBS_ASN1 * __datatype_get_asn1(PKI_DATATYPE   type,
 
 		case PKI_DATATYPE_X509_CERT : {
 			it = &X509_CINF_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((LIBPKI_X509_CERT *)v)->cert_info);
+#else
 			p = ((PKI_X509_CERT_VALUE *)v)->cert_info;
+#endif
 		} break;
 
 		case PKI_DATATYPE_X509_CRL : {
 			it = &X509_CRL_INFO_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((PKI_X509_CRL_VALUE *)v)->crl);
+#else
 			p = ((PKI_X509_CRL_VALUE *)v)->crl;
+#endif
 		} break;
 
 		case PKI_DATATYPE_X509_REQ : {
 			it = &X509_REQ_INFO_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((LIBPKI_X509_REQ *)v)->req_info);
+#else
 			p = ((PKI_X509_REQ_VALUE *)v)->req_info;
+#endif
 		} break;
 
 		case PKI_DATATYPE_X509_OCSP_REQ : {
 			it = &OCSP_REQINFO_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((PKI_X509_OCSP_REQ_VALUE *)v)->tbsRequest);
+#else
 			p = ((PKI_X509_OCSP_REQ_VALUE *)v)->tbsRequest;
+#endif
 		} break;
 
 		case PKI_DATATYPE_X509_OCSP_RESP : {
 			it = &OCSP_RESPDATA_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((PKI_OCSP_RESP *)v)->bs->tbsResponseData);
+#else
 			p = ((PKI_OCSP_RESP *)v)->bs->tbsResponseData;
+#endif
 		} break;
 
 		case PKI_DATATYPE_X509_PRQP_REQ : {
@@ -252,9 +274,9 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 				cVal = (PKI_X509_CERT_VALUE *) x->value;
 				// cVal->cert_info->enc.modified = 1;
 # if OPENSSL_VERSION_NUMBER > 0x1010000fL
-				if (cVal && cVal->cert_info) {
+				if (cVal) {
 					PKI_X509_CINF_FULL *cFull = NULL;
-					cFull = (PKI_X509_CINF_FULL *) cVal->cert_info;
+					cFull = (PKI_X509_CINF_FULL *) &(cVal->cert_info);
 					cFull->enc.modified = 1;
 				}
 # else
@@ -270,7 +292,7 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 		case PKI_DATATYPE_X509_CRL:
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cRLVal = (PKI_X509_CRL_VALUE *) x->value;
-				cRLVal->crl->enc.modified = 1;
+				cRLVal->crl.enc.modified = 1;
 #endif
 				break;
 	};
