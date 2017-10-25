@@ -16267,7 +16267,7 @@ $as_echo "OpenSSL Checking Path: ${library_includes} does not exists!" >&6; }
 $as_echo "Searching OpenSSL Version: $library_includes" >&6; };
 		ver=`grep "^ *# *define  *OPENSSL_VERSION_NUMBER" "$library_includes" | sed 's/.*0x/0x/g' | sed 's|\L||g'`;
 		detected_v=`echo $((ver))`
-		reqired_v=`echo $(($_version))`
+		required_v=`echo $(($_version))`
 
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Detected Version: $ver (required > $_version )" >&5
