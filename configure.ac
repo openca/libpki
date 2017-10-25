@@ -681,7 +681,12 @@ if [[ "x$iphone_build" = "xno" ]] ; then
  		$xml2_prefix/bin:/opt/csw/bin:$PATH:/bin:/usr/bin:/usr/local/bin )
 
 	if ! [[ "x$xml2_config" = "x" ]] ; then
-		xml2_prefix=`$xml2_config --prefix`
+		if [[ "$DIST_NAME" = "darwin" ]] ; then
+			xml2_prefix=/usr
+		else
+			xml2_prefix=`$xml2_config --prefix`
+		fi
+
 		xml2_config=$xml2_config
 	else
 		xml2_prefix=/usr
@@ -694,15 +699,34 @@ fi
 AC_SUBST(xml2_prefix)
 
 if ! [[ "x$xml2_config" = "x" ]] ; then
-	xml2_cflags=`$xml2_config --cflags`
- 	xml2_ldadd=`$xml2_config --libs`
-  xml2_ldflags=-L`$xml2_config --prefix`/lib$mybits_install 
-  XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
+	if [[ "$DIST_NAME" = "darwin" ]] ; then
+		if [[ -d "${xml2_prefix}/include/libxml2" ]] ; then
+			xml2_cflags=-I${xml2_prefix}/include/libxml2
+		else
+ 			xml2_cflags=`$xml2_config --cflags`
+		fi
+ 		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
+	else
+		xml2_cflags=`$xml2_config --cflags`
+ 		xml2_ldadd=`$xml2_config --libs`
+	fi
+
+	if [[ "$DIST_NAME" = "darwin" ]] ; then
+		xml2_ldflags=-L${xml2_prefix}/lib
+	else
+		xml2_ldflags=-L${$xml2_prefix}/lib$mybits_install 
+	fi
+
+	dnl if [[ "$DIST_NAME" = "darwin" ]] ; then
+	dnl 	XML2_LIBTOOL_LIBS=`$xml2_config --exec-prefix=/usr --libtool-libs`
+	dnl else
+	dnl 	XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
+	dnl fi
 else
-  xml2_cflags=-I${xml2_prefix}/include/libxml2
+	xml2_cflags=-I${xml2_prefix}/include/libxml2
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
-	XML2_LIBTOOL_LIBS=
+	dnl XML2_LIBTOOL_LIBS=
 fi
 
 xml2_config="$xml2_prefix/bin/xml2-config"
