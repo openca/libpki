@@ -10,6 +10,7 @@
 #define __PKI_PRQP_LIB_C__
 
 #include <libpki/pki.h>
+#include <libpki/prqp/prqp_asn1.h>
 
 #include "../openssl/internal/x509_data_st.h"
 
@@ -894,7 +895,7 @@ PKI_INTEGER *PKI_X509_PRQP_NONCE_new(int bits) {
         OPENSSL_free(nonce->data);
 
         nonce->length = len - i;
-        if (!(nonce->data = OPENSSL_malloc(nonce->length + 1)))
+        if (!(nonce->data = OPENSSL_malloc((size_t)(nonce->length + 1))))
 		return (NULL);
 
         memcpy(nonce->data, buf + i, (size_t) nonce->length);
@@ -1337,7 +1338,7 @@ PKI_X509_PRQP_RESP *PKI_X509_PRQP_RESP_new_req ( PKI_X509_PRQP_RESP **resp_pnt,
 PKI_STACK * PKI_X509_PRQP_RESP_url_sk ( PKI_X509_PRQP_RESP *r ) {
 
 	PKI_STACK *url_sk = NULL;
-	PKI_RESOURCE_RESPONSE_TOKEN_STACK *pki_sk=NULL;
+	STACK_OF(PKI_RESOURCE_RESPONSE_TOKEN_STACK) *pki_sk=NULL;
 
 	if( !r ) return (NULL);
 
@@ -1751,7 +1752,7 @@ int PKI_X509_PRQP_RESP_VALUE_print_bio (PKI_X509_PRQP_RESP_VALUE *resp, BIO *bio
 	PRQP_TBS_RESP_DATA *rd = NULL;
 	CERT_IDENTIFIER *ci = NULL;
 	BASIC_CERT_IDENTIFIER *bci = NULL;
-	PKI_RESOURCE_RESPONSE_TOKEN_STACK *pki_sk=NULL;
+	STACK_OF(RESOURCE_RESPONSE_TOKEN) *pki_sk=NULL;
 	PKI_STACK *referrals = NULL;
 
 	int i = 0;
@@ -2007,7 +2008,6 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 					PKI_X509_DATA type ) {
 
 	PKI_X509_CERT_VALUE *cert_val = NULL;
-	PKI_MEM *mem = NULL;
 	void * ret = NULL;
 
 	if (!r || !r->requestData ) return NULL;
@@ -2161,7 +2161,6 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 					PKI_X509_DATA type ) {
 
 	PKI_X509_CERT_VALUE *cert_val = NULL;
-	PKI_MEM *mem = NULL;
 	void *ret = NULL;
 
 	if ( !r || !r->respData ) return NULL;

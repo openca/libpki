@@ -1558,8 +1558,6 @@ int PKI_TOKEN_load_cacert(PKI_TOKEN *tk, char *url_string)
 
 int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 {
-	PKI_ALGOR *alg = NULL;
-
 	if (!tk || !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );

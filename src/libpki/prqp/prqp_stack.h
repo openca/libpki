@@ -13,14 +13,15 @@
 extern "C" {
 #endif
 
-#define PKI_X509_PRQP_REQ_STACK		PKI_STACK
-#define PKI_X509_PRQP_RESP_STACK	PKI_STACK
+#define PKI_X509_PRQP_REQ_STACK			PKI_STACK
+#define PKI_X509_PRQP_RESP_STACK		PKI_STACK
+#define PKI_RESOURCE_IDENTIFIER_STACK		PKI_STACK
+#define PKI_RESOURCE_RESPONSE_TOKEN_STACK	PKI_STACK
 
 /* Define Stacks for RESOURCE_IDENTIFIER, RESOURCE_RESPONSE_TOKEN and
    ASN1_IA5STRING */
 
 /* RESOURCE_IDENTIFIER stack definitions */
-/*
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 # define sk_RESOURCE_IDENTIFIER_new(st) SKM_sk_new(RESOURCE_IDENTIFIER, (st))
 # define sk_RESOURCE_IDENTIFIER_new_null() SKM_sk_new(RESOURCE_IDENTIFIER, NULL)
@@ -32,7 +33,6 @@ extern "C" {
 # define sk_RESOURCE_IDENTIFIER_pop_free(st, free_func) SKM_sk_pop_free(RESOURCE_IDENTIFIER, (st), (free_func))
 # define sk_RESOURCE_IDENTIFIER_pop(st) SKM_sk_pop(RESOURCE_IDENTIFIER, (st))
 #endif
-*/
 
 /* define for PRQP's RESOURCE_IDENTIFIER stacks - implement object type
  * casting */

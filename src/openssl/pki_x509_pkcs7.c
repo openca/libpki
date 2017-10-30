@@ -180,7 +180,6 @@ const PKI_X509_CERT * PKI_X509_PKCS7_get_recipient_cert(
 				int                    idx ) {
 
 	const PKCS7_RECIP_INFO *r_info = NULL;
-	PKI_X509_CERT *ret = NULL;
 
 	if ((r_info = PKI_X509_PKCS7_get_recipient_info ( p7, idx )) == NULL)
 		return NULL;

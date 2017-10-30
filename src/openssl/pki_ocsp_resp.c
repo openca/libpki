@@ -525,7 +525,6 @@ const void * PKI_X509_OCSP_RESP_get_data(PKI_X509_OCSP_RESP * r,
 	const void * ret = NULL;
 	PKI_OCSP_RESP *val = NULL;
 	OCSP_BASICRESP *tmp_x = NULL;
-	PKI_MEM *mem = NULL;
 	int idx = -1;
 
 	if( !r || !r->value ) return NULL;

@@ -126,7 +126,11 @@ void usage_curves (char *curr_name) {
 	}
 
 	/* Alloc the needed memory */
-	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * (int) num_curves);
+#if OPENSSL_VERSION_NUMBER >= 0x1010000f
+	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * num_curves);
+#else
+	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * (int)num_curves);
+#endif
 
 	if (curves == NULL) goto err;
 

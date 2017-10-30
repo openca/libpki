@@ -73,7 +73,7 @@ static int __create_object_with_id ( const char *oid, const char *sn,
 		return PKI_ERR;
 	};
 
-    if((buf=(unsigned char *)OPENSSL_malloc(i)) == NULL) {
+    if((buf=(unsigned char *)OPENSSL_malloc((size_t)i)) == NULL) {
         return PKI_ERR;
 	}
 

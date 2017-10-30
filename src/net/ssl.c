@@ -470,7 +470,7 @@ static int __pki_ssl_init_ssl  ( PKI_SSL *ssl ) {
 
 	ssl->connected = 0;
 
-	SSL_CTX_set_options( ssl->ssl_ctx, ssl->flags );
+	SSL_CTX_set_options(ssl->ssl_ctx,(long unsigned int)ssl->flags );
 
 	ssl_tk = ssl->tk;
 
@@ -1173,36 +1173,33 @@ void PKI_SSL_free ( PKI_SSL *ssl ) {
 
 	PKI_X509_CERT * cert = NULL;
 
-	SSL_CTX *ssl_ctx = NULL;
-		// Pointer to the SSL context
+	if (!ssl) return;
 
-	if ( !ssl ) return;
-
-	if( ssl->ssl_ctx ) {
+	if (ssl->ssl_ctx) {
 		SSL_CTX_set_ex_data ( ssl->ssl_ctx, 0, NULL );
 		SSL_CTX_free(ssl->ssl_ctx);
 		ssl->ssl_ctx = NULL;
 	}
 
-	if( ssl->ssl ) {
+	if (ssl->ssl) {
 		SSL_set_ex_data ( ssl->ssl, 0, NULL );
 		SSL_free ( ssl->ssl );
-	};
+	}
 
-	if( ssl->trusted_certs ) {
+	if (ssl->trusted_certs) {
 		while( (cert = PKI_STACK_X509_CERT_pop (ssl->trusted_certs))
 								!= NULL ) {
 			PKI_X509_CERT_free ( cert );
-		};
+		}
 
 		PKI_STACK_X509_CERT_free ( ssl->trusted_certs );
 	}
 
-	if( ssl->other_certs ) {
-		while( (cert = PKI_STACK_X509_CERT_pop (ssl->other_certs))
+	if (ssl->other_certs) {
+		while ((cert = PKI_STACK_X509_CERT_pop (ssl->other_certs))
 								!= NULL ) {
 			PKI_X509_CERT_free ( cert );
-		};
+		}
 		PKI_STACK_X509_CERT_free ( ssl->other_certs );
 	}
 

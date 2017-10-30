@@ -341,9 +341,8 @@ PKI_MEM *PKI_X509_SCEP_MSG_new_trans_id(const PKI_X509_KEYPAIR * key) {
 /*! \brief Sets the transactionId attribute in a SCEP message */
 
 int PKI_X509_SCEP_MSG_set_trans_id(PKI_X509_SCEP_MSG * msg,
-		                           const PKI_MEM     * const mem) {
+	                           const PKI_MEM     * const mem) {
 
-	PKCS7_SIGNER_INFO *si = NULL;
 	int ret = PKI_OK;
 
 	// Input Checks
@@ -354,9 +353,9 @@ int PKI_X509_SCEP_MSG_set_trans_id(PKI_X509_SCEP_MSG * msg,
 
 	// Sets the Attribute
 	ret = PKI_X509_SCEP_MSG_set_attribute(msg,
-			                              SCEP_ATTRIBUTE_TRANS_ID,
-			                              mem->data,
-										  mem->size );
+		                              SCEP_ATTRIBUTE_TRANS_ID,
+		                              mem->data,
+					      mem->size );
 
 	// Returns the return code from setting the attribute
 	return ret;

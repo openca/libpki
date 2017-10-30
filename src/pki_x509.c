@@ -292,7 +292,11 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 		case PKI_DATATYPE_X509_CRL:
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cRLVal = (PKI_X509_CRL_VALUE *) x->value;
+# if ( OPENSSL_VERSION_NUMBER >= 0x1010000f )
 				cRLVal->crl.enc.modified = 1;
+# else
+				cRLVal->crl->enc.modified = 1;
+# endif
 #endif
 				break;
 	};
@@ -496,10 +500,7 @@ PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v,
 		                      const PKI_DATATYPE   type) {
 
 	PKI_TBS_ASN1 * ta = NULL;
-	const ASN1_ITEM * it = NULL;
 	PKI_MEM         * mem = NULL;
-
-	void * p = NULL;
 
 	// Input Checks
 	if (v == NULL) {

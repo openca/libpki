@@ -348,8 +348,6 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
 	
 	void *ret = NULL;
 	LIBPKI_X509_REQ *tmp_x = NULL;
-	// PKI_X509_REQ_VALUE *tmp_x = NULL;
-	PKI_MEM *mem = NULL;
 
 	if( !req || !req->value ) return (NULL);
 

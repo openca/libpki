@@ -87,11 +87,8 @@ int     PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj );
 #define PKI_OID_STACK			PKI_STACK
 #define PKI_ID_INFO_STACK		PKI_STACK
 #define PKI_TOKEN_STACK			PKI_STACK
-#define PKI_RESOURCE_IDENTIFIER_STACK	PKI_STACK
 #define PKI_X509_OCSP_REQ_STACK		PKI_STACK
 #define PKI_X509_OCSP_RESP_STACK	PKI_STACK
-
-#define PKI_RESOURCE_RESPONSE_TOKEN_STACK	PKI_STACK
 
 #define PKI_X509_STACK			PKI_STACK
 
@@ -109,6 +106,7 @@ void PKI_OID_free_void ( void * );
 void PKI_ID_INFO_free_void ( void * );
 void PKI_TOKEN_free_void ( void * );
 
+void PKI_RESOURCE_IDENTIFIER_free_void( void * );
 void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 
 /* define for PKI_MEM stacks - implement object type casting */

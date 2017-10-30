@@ -302,7 +302,6 @@ int PKI_X509_OCSP_REQ_sign(PKI_X509_OCSP_REQ   * req,
 			   PKI_X509_CERT_STACK * otherCerts, 
 			   PKI_DIGEST_ALG      * digest) {
 
-	OCSP_SIGNATURE *psig = NULL;
 	PKI_X509_OCSP_REQ_VALUE *val = NULL;
 
 	if (!req || !req->value || !keypair ) return PKI_ERR;
@@ -347,6 +346,7 @@ int PKI_X509_OCSP_REQ_sign(PKI_X509_OCSP_REQ   * req,
 	}
 #else
 
+	OCSP_SIGNATURE *psig = NULL;
 	psig = val->optionalSignature;
 
 	if (psig)
@@ -420,8 +420,6 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 #else
 	PKI_X509_OCSP_REQ_VALUE *tmp_x = NULL;
 #endif
-
-	PKI_MEM *mem = NULL;
 
 	if( !req ) return NULL;
 
