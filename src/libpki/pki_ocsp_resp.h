@@ -26,8 +26,9 @@ int PKI_X509_OCSP_RESP_set_status ( PKI_X509_OCSP_RESP *x,
 					PKI_X509_OCSP_RESP_STATUS status );
 int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *r, 
 			OCSP_CERTID *cid, PKI_OCSP_CERTSTATUS status,
-			PKI_TIME *revokeTime, PKI_TIME *thisUpdate,
-			PKI_TIME *nextUpdate, 
+			const PKI_TIME *revokeTime, 
+			const PKI_TIME *thisUpdate,
+			const PKI_TIME *nextUpdate, 
 			PKI_X509_CRL_REASON reason,
 			PKI_X509_EXTENSION *invalidityDate );
 int PKI_X509_OCSP_RESP_copy_nonce (PKI_X509_OCSP_RESP *r, 

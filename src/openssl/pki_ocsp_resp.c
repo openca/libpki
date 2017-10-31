@@ -157,8 +157,9 @@ int PKI_X509_OCSP_RESP_set_status ( PKI_X509_OCSP_RESP *x,
 
 int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp, 
 			OCSP_CERTID *cid, PKI_OCSP_CERTSTATUS status,
-			PKI_TIME *revokeTime, PKI_TIME *thisUpdate,
-			PKI_TIME *nextUpdate, 
+			const PKI_TIME *revokeTime, 
+			const PKI_TIME *thisUpdate,
+			const PKI_TIME *nextUpdate, 
 			PKI_X509_CRL_REASON reason,
 			PKI_X509_EXTENSION *invalidityDate ) {
 
@@ -191,7 +192,10 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 	}
 
 	if((single = OCSP_basic_add1_status(r->bs, cid,
-			status, reason, revokeTime, myThisUpdate, nextUpdate))== NULL)
+			status, reason, 
+			(ASN1_TIME *)revokeTime, 
+			(ASN1_TIME*)myThisUpdate,
+			(ASN1_TIME*)nextUpdate))== NULL)
 	{
 		PKI_log_err ("Can not create basic entry!");
 		return ( PKI_ERR );
