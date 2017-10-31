@@ -714,7 +714,7 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		xml2_ldflags=-L${xml2_prefix}/lib
 	else
-		xml2_ldflags=-L${$xml2_prefix}/lib$mybits_install 
+		xml2_ldflags=-L${xml2_prefix}/lib${mybits_install} 
 	fi
 
 	dnl if [[ "$DIST_NAME" = "darwin" ]] ; then
