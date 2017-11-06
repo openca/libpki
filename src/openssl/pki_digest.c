@@ -26,9 +26,14 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 			   size_t          size ) {
 
 	EVP_MD_CTX * md_ctx = NULL;
-	char buf[EVP_MAX_MD_SIZE];
+	char * buf = NULL;
 	size_t digest_size = 0;
 
+	// Thread Safety
+	PKI_RWLOCK lock;
+
+
+	// Return Object
 	PKI_DIGEST *ret = NULL;
 
 	// Input Checks
@@ -39,44 +44,48 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 
 	/* Let's initialize the MD context */
 	EVP_MD_CTX_init(md_ctx);
-
-	/* Initialize the Digest by using the Alogrithm identifier */
-	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 0 ) goto err;
-
-	/* Update the digest - calculate over the data */
-	EVP_DigestUpdate(md_ctx, data, size);
-
-	// Finalize the digest
-	if ((EVP_DigestFinal_ex(md_ctx, (unsigned char *) buf, NULL)) == 0) goto err;
-
-	/* Set the size of the md */
-	digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
-
-	/* Allocate the return structure and the internal digest */
-	if (((ret = PKI_Malloc(sizeof(PKI_DIGEST))) == NULL) ||
-	    ((ret->digest = PKI_Malloc(size)) == NULL)) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		goto err;
-	}
 	
-	/* Set the size of the Digest */
-	ret->size = digest_size;
+	// Initializes the Digest
+	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
 
-	/* Copy the Digest Data */
-	memcpy(ret->digest, buf, ret->size);
+		// Updates the digest value
+		EVP_DigestUpdate(md_ctx, data, size);
 
-	/* Sets the algorithm used */
-	ret->algor = alg;
+		// Allocates the output memory
+		if ((buf = PKI_Malloc (EVP_MAX_MD_SIZE)) != NULL) {
 
-	/* Let's clean everything up */
-	EVP_MD_CTX_reset(md_ctx);
-	EVP_MD_CTX_free(md_ctx);
+			// Finalize the digest
+			if ((EVP_DigestFinal_ex(md_ctx, (unsigned char *) buf, NULL)) == 1) {
 
-	/* Return the Digest Data structure */
-	return ret;
+				/* Set the size of the md */
+				digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
 
-err:
+				/* Allocate the return structure and the internal digest */
+				if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
+	
+					// Sets the real size of the digest
+					ret->size = digest_size;
 
+					// Transfers the ownership to the return data structure
+					ret->digest = buf;
+					buf = NULL; // Safety
+
+					/* Sets the algorithm used */
+					ret->algor = alg;
+
+					/* Let's clean everything up */
+					EVP_MD_CTX_reset(md_ctx);
+					EVP_MD_CTX_free(md_ctx);
+
+					/* Return the Digest Data structure */
+					return ret;
+				}
+			}
+		}
+	}
+
+	// If we get here, an error occurred and we just free
+	// the half-used resources and return NULL
 	if (md_ctx) {
 		// Cleanup the CTX
 		EVP_MD_CTX_reset(md_ctx);
@@ -84,6 +93,9 @@ err:
 		// Free Memory
 		EVP_MD_CTX_free(md_ctx);
 	}
+
+	// Free the buffer
+	if (buf) PKI_Free(buf);
 
 	// Free Memory
 	if (ret) PKI_Free(ret);
