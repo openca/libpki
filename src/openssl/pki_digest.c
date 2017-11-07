@@ -18,12 +18,91 @@ void PKI_DIGEST_free ( PKI_DIGEST *data )
 	return;
 }
 
+int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
+		         const PKI_DIGEST_ALG * alg,
+		         const unsigned char  * data,
+		         size_t                 size) {
+
+	EVP_MD_CTX * md_ctx = NULL;
+		// Crypto Context for Digest Calculation
+
+	int mem_alloc = 0;
+		// Tracks where the mem alloc happened
+
+	int digest_size = 0;
+		// Return Value
+
+	// Input Checks
+	if (!data || !alg || !dst_buf) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return 0;
+	}
+
+	// Allocate a new CTX
+	if ((md_ctx = EVP_MD_CTX_new()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return 0;
+	}
+
+	// Let's initialize the MD context
+	EVP_MD_CTX_init(md_ctx);
+	
+	// Allocates the buffer if not provided
+	if (*dst_buf == NULL) {
+		*dst_buf = PKI_Malloc(EVP_MAX_MD_SIZE); 
+		mem_alloc = 1;
+	}
+
+	// Initializes the Digest
+	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
+
+		// Updates the digest value
+		EVP_DigestUpdate(md_ctx, data, size);
+
+		// Finalize the digest
+		if ((EVP_DigestFinal_ex(md_ctx, *dst_buf, NULL)) == 1) {
+
+			// All Ok
+			digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
+		}
+
+		// Let's clean everything up
+		EVP_MD_CTX_reset(md_ctx);
+		md_ctx = NULL; // Safety
+	}
+
+	// If we have an error, let's return '0'
+	if (digest_size <= 0) goto err;
+
+end:
+	// Return the calculated value
+	return digest_size;
+
+err:
+	// Let's clean everything up
+	if (md_ctx) {
+		EVP_MD_CTX_reset(md_ctx);
+		EVP_MD_CTX_free(md_ctx);
+	}
+
+	// Free the allocated memory only if we are not re-using
+	// the provided output buffer (dst_buf)
+	if (mem_alloc) {
+		PKI_Free(*dst_buf);
+		*dst_buf = NULL; // Safety
+	}
+
+	// Nothing to return
+	return 0;
+
+}
+				     
 /*! \brief Calculate digest over data provided in a buffer
  */
 
 PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg, 
 		  	   const unsigned char  *data,
-			   size_t          size ) {
+			   size_t                size ) {
 
 	EVP_MD_CTX * md_ctx = NULL;
 	char * buf = NULL;
@@ -32,17 +111,38 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 	// Thread Safety
 	PKI_RWLOCK lock;
 
-
 	// Return Object
 	PKI_DIGEST *ret = NULL;
 
 	// Input Checks
 	if (!data || !alg) return NULL;
 
+	// Allocates the memory for the return PKI_DIGEST
+	if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
+
+		// Fills in the data and the size of the digest
+		if ((ret->size = PKI_DIGEST_new_value(&ret->digest, 
+						alg, data, size)) <= 0) {
+			goto err;
+		}
+	}
+
+	// All done
+	return ret;
+
+err:
+	// Let's free any allocated memory
+	if (ret) PKI_DIGEST_free(ret);
+
+	// No digest was calculated, return the error
+	return NULL;
+
+	/*
+
 	// Allocate a new CTX
 	if ((md_ctx = EVP_MD_CTX_new()) == NULL) return NULL;
 
-	/* Let's initialize the MD context */
+	// Let's initialize the MD context
 	EVP_MD_CTX_init(md_ctx);
 	
 	// Initializes the Digest
@@ -57,10 +157,10 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 			// Finalize the digest
 			if ((EVP_DigestFinal_ex(md_ctx, (unsigned char *) buf, NULL)) == 1) {
 
-				/* Set the size of the md */
+				// Set the size of the md
 				digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
 
-				/* Allocate the return structure and the internal digest */
+				// Allocate the return structure and the internal digest
 				if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
 	
 					// Sets the real size of the digest
@@ -70,14 +170,14 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 					ret->digest = buf;
 					buf = NULL; // Safety
 
-					/* Sets the algorithm used */
+					// Sets the algorithm used
 					ret->algor = alg;
 
-					/* Let's clean everything up */
+					// Let's clean everything up
 					EVP_MD_CTX_reset(md_ctx);
 					EVP_MD_CTX_free(md_ctx);
 
-					/* Return the Digest Data structure */
+					// Return the Digest Data structure
 					return ret;
 				}
 			}
@@ -102,6 +202,7 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 
 	// Nothing to return
 	return NULL;
+	*/
 }
 
 /*! \brief Calculates a digest over data buffer

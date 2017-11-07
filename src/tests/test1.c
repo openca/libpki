@@ -89,24 +89,31 @@ int gen_X509_Req(int scheme, int bits, char *file ) {
 
 	PKI_X509_KEYPAIR_put( p, PKI_DATA_FORMAT_PEM, buf,  NULL, NULL );
 
-
 	list_size = PKI_ALGOR_list_size ( algs );
+
 	for( i=0; i < list_size ; i++ ) {
+
 		PKI_DIGEST_ALG *dgst = NULL;
+		PKI_ALGOR * algor = NULL;
 
 		printf("    - Generating REQ (%s) ... " ,
 					PKI_ALGOR_ID_txt (algs[i]));
 
-		if((dgst = PKI_ALGOR_get_digest( PKI_ALGOR_get( algs[i] )))
-						== NULL ) {
-			printf("ERROR, can not get dgst (%p)\n", dgst);
-			return(0);
-		};
+		if ((algor = PKI_ALGOR_get(algs[i])) == NULL) {
+			printf("ERROR, can not get the algorithm pointer!\n");
+			return 0;
+		}
+
+		if ((dgst = PKI_ALGOR_get_digest(algor)) == NULL) {
+			printf("ERROR, can not get the digest from the algorithm!\n");
+			return 0;
+		}
 
 		sprintf( buf, "results/t1_%s_req.pem", 
 					PKI_ALGOR_ID_txt ( algs[i]) );
 
-		PKI_log_debug ("New Req (Alg)");
+		PKI_log_debug ("New Req (Alg=%s)", PKI_DIGEST_ALG_get_parsed(dgst));
+
 		r = PKI_X509_REQ_new ( p, NULL, NULL, NULL, dgst, NULL );
 		
 		if( !r ) {

@@ -575,6 +575,10 @@ PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
 		return NULL;
 	}
 
+	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
+                                                   &(mem->data),
+                                                   ta->it);
+/*
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
                                                    &(mem->data),
@@ -584,6 +588,7 @@ PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
                                                    &(mem->data),
                                                    ta->it);
 #endif
+*/
 
 	// Free the memory
 	PKI_Free(ta);

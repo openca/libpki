@@ -312,9 +312,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
           (unsigned long long) ( years * 3600 * 24 * 365 );
   };
 
-  if ( validity <= 0 ) {
-    validity = 30 * 3600 * 24;
-  };
+  if (validity <= 0) validity = 30 * 3600 * 24;
 
 #if ( LIBPKI_OS_BITS == LIBPKI_OS32 )
   long notBeforeVal32 = (long) notBeforeVal;
@@ -532,19 +530,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
     return( NULL );
   }
 
-
-  /*
-  if(PKI_sign ( PKI_DATATYPE_X509_CERT,
-      (void *) val->cert_info, &X509_CINF_it,
-      val->cert_info->signature, val->sig_alg,
-          val->signature, k, digest )==PKI_ERR) {
-    PKI_log_err("PKI_X509_CERT_new()::Can not sign certificate!");
-    goto err;
-  }
-  */
-
-  // X509_sign ( val, k->value, digest );
-
+  // Sign the data
   if (PKI_X509_sign(ret, digest, kPair) == PKI_ERR)
   {
     PKI_log_err ("Can not sign certificate [%s]",
@@ -570,32 +556,15 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
   //  cFull->enc.modified = 1;
 #endif
 
-  /*
-  if(PKI_sign ( PKI_DATATYPE_X509_CERT,
-      (void *) val->cert_info, &X509_CINF_it,
-      val->cert_info->signature, val->sig_alg,
-      val->signature, 
-      k, digest ) == PKI_ERR ) {
-    PKI_log_err("PKI_X509_CERT_new()::Can not sign certificate!");
-    goto err;
-  }
-  */
-
-  /*
-  if(!X509_sign( ret->value, k->value, digest)) {
-    PKI_log_err("PKI_X509_CERT_new()::Can not sign certificate!");
-    goto err;
-  }
-  */
-
-  return(ret);
+  return ret;
 
 err:
-  if( ret ) PKI_X509_CERT_free ( ret );
-  if( subj ) PKI_X509_NAME_free (subj);
-  if( issuer ) PKI_X509_NAME_free (issuer);
 
-  return (NULL);
+  if (ret) PKI_X509_CERT_free(ret);
+  if (subj) PKI_X509_NAME_free(subj);
+  if (issuer) PKI_X509_NAME_free(issuer);
+
+  return NULL;
 }
 
 /*!
@@ -780,7 +749,7 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
       ret = tmp_x->cert_info->validity->notBefore;
 #else
-      ret = X509_get0_notBefore((X509 *)x->value);
+      ret = X509_get0_notBefore((X509 *)tmp_x);
 #endif
       break;
 
@@ -788,17 +757,17 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
       ret = tmp_x->cert_info->validity->notAfter;
 #else
-      ret = X509_get0_notAfter((X509 *)x->value);
+      ret = X509_get0_notAfter((X509 *)tmp_x);
 #endif
       break;
 
     case PKI_X509_DATA_KEYPAIR_VALUE:
     case PKI_X509_DATA_PUBKEY:
-      ret = X509_get_pubkey( (X509 *) x->value);
+      ret = X509_get_pubkey((X509 *)tmp_x);
       break;
 
     case PKI_X509_DATA_PUBKEY_BITSTRING:
-      ret = X509_get0_pubkey_bitstr((X509 *)x->value);
+      ret = X509_get0_pubkey_bitstr((X509 *)tmp_x);
       break;
 
     case PKI_X509_DATA_SIGNATURE:

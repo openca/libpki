@@ -406,9 +406,9 @@ typedef struct my_meth_st {
 } LIBPKI_METH;
 #endif
 
-int PKI_X509_sign(PKI_X509 *x, 
-		  const PKI_DIGEST_ALG *digest,
-		  const PKI_X509_KEYPAIR *key) {
+int PKI_X509_sign(PKI_X509               * x, 
+		  const PKI_DIGEST_ALG   * digest,
+		  const PKI_X509_KEYPAIR * key) {
 
 	PKI_MEM *der = NULL;
 	PKI_MEM *sig = NULL;

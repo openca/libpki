@@ -24,7 +24,6 @@ PKI_ALGOR_ID PKI_ALGOR_LIST_DSA[] = {
 	PKI_ALGOR_UNKNOWN
 };
 
-
 #ifdef ENABLE_ECDSA
 PKI_ALGOR_ID PKI_ALGOR_LIST_ECDSA[] = {
 	PKI_ALGOR_ECDSA_SHA1,
@@ -47,13 +46,13 @@ PKI_ALGOR_ID PKI_DIGEST_ALG_LIST[] = {
 	PKI_ALGOR_MD4,
 #endif
 	PKI_ALGOR_MD5,
+	PKI_ALGOR_DSS1,
 	PKI_ALGOR_SHA1,
 	PKI_ALGOR_SHA224,
 	PKI_ALGOR_SHA256,
 	PKI_ALGOR_SHA384,
 	PKI_ALGOR_SHA512,
 	PKI_ALGOR_RIPEMD160,
-	PKI_ALGOR_DSS1,
 	PKI_ALGOR_UNKNOWN
 };
 
@@ -306,27 +305,30 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 	PKI_DIGEST_ALG *ret = PKI_DIGEST_ALG_UNKNOWN;
 
 	if ( !algor ) {
-		PKI_log_debug("PKI_ALGOR_get_digest()::No algor provided");
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "No algorithm provided");
 		return ( PKI_DIGEST_ALG_UNKNOWN );
 	}
 
 	if((id = PKI_ALGOR_get_id ( algor )) == PKI_ALGOR_UNKNOWN ) {
-		PKI_log_debug("PKI_ALGOR_get_digest():: PKI_ALGOR_get_id() failed!");
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Can not get algorithm by id");
 		return ( PKI_DIGEST_ALG_UNKNOWN );
 	}
 
 	switch ( id ) {
 		case PKI_ALGOR_DSA_SHA1:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_DSS1 );
+			// ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_DSS1 );
+			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
 			break;
-#ifdef ENABLE_DSA_SHA_2
+
+# ifdef ENABLE_DSA_SHA_2
 		case PKI_ALGOR_DSA_SHA224:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
 			break;
+
 		case PKI_ALGOR_DSA_SHA256:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
 			break;
-#endif
+# endif
 		case PKI_ALGOR_RSA_SHA1:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
 			break;
@@ -336,10 +338,11 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_MD4 );
 			break;
 #endif
-
+#ifdef ENABLE_MD5
 		case PKI_ALGOR_RSA_MD5:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_MD5 );
 			break;
+#endif
 #ifdef ENABLE_SHA224
 		case PKI_ALGOR_RSA_SHA224:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
@@ -361,7 +364,7 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 #endif
 #ifdef ENABLE_ECDSA
 		case PKI_ALGOR_ECDSA_SHA1:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_ECDSA_DSS1 );
+			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
 			break;
 #endif
 #ifdef ENABLE_ECDSA_SHA_2
@@ -382,8 +385,6 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 			break;
 #endif
 		default:
-			PKI_log_debug( "PKI_ALGOR_get_digest() -> hit UNKNOWN!");
-
 			ret = PKI_DIGEST_ALG_UNKNOWN;
 	}
 
@@ -576,28 +577,7 @@ PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 
 	PKI_DIGEST_ALG * ret = NULL;
 
-	/*
-	if( id == 0 ) {
-		my_id = PKI_DIGEST_ALG_ID_DEFAULT;
-	} else if ( id == PKI_ALGOR_DSS1 ) {
-		return ( PKI_DIGEST_ALG_DSS1 );
-	} else if ( id == PKI_ALGOR_ECDSA_DSS1 ) {
-		return ( PKI_DIGEST_ALG_ECDSA_DSS1 );
-	} else if( ( my_id = PKI_ID_get( id )) == PKI_ALGOR_UNKNOWN ) {
-		return( PKI_DIGEST_ALG_UNKNOWN );
-	}
-	*/
-
-	// PKI_log_debug("%s:%d::PKI_DIGEST_ALG_get():: Started for ID = %d (%s)",
-	// 		__FILE__, __LINE__, id, 
-	// 	PKI_ID_get_txt( id ) != NULL ? PKI_ID_get_txt( id ) : "n/a" );
-
 	switch ( id ) {
-/*
-		case PKI_ALGOR_MD2:
-			ret = PKI_DIGEST_ALG_MD2;
-			break;
-*/
 #ifdef ENABLE_MD4
 		case PKI_ALGOR_MD4:
 			ret = PKI_DIGEST_ALG_MD4;
@@ -690,8 +670,8 @@ PKI_ALGOR_ID *PKI_ALGOR_list ( PKI_SCHEME_ID scheme ) {
 
 PKI_ALGOR_ID *PKI_DIGEST_ALG_list( void ) {
 
-	return ( PKI_DIGEST_ALG_LIST );
-};
+	return PKI_DIGEST_ALG_LIST;
+}
 
 size_t PKI_ALGOR_list_size( PKI_ALGOR_ID * list ) {
 
