@@ -357,6 +357,7 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 
 	OCSP_RESPID *rid = NULL;
 	PKI_OCSP_RESP *r = NULL;
+	ASN1_GENERALIZEDTIME * time = NULL;
 
 	if (!resp || !resp->value || !keypair || !keypair->value)
 	{
@@ -465,8 +466,11 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 	}
 #endif
 
-	if (X509_gmtime_adj(r->bs->tbsResponseData.producedAt, 0) == 0)
+	if ((time = X509_gmtime_adj(r->bs->tbsResponseData.producedAt, 0)) == 0)
 		PKI_log_err("Error adding signed time to response");
+
+	if (!r->bs->tbsResponseData.producedAt)
+		r->bs->tbsResponseData.producedAt = time;
 
 	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new()))
 	{
