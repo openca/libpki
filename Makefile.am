@@ -286,3 +286,13 @@ rpm:
 ##                END RELEASE STUFF                   ##
 ########################################################
 
+########################################################
+##                MINTENANCE TOOLS                    ##
+########################################################
+
+osslcompat:
+	@for i in `find . -name '*.c'` ; do \
+	   grep 'OPENSSL_VERSION_NUMBER' $$i >/dev/null && \
+		echo "$i" >> oss_version_files.txt ; \
+	 done
+
