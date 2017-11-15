@@ -1684,6 +1684,17 @@ rpm:
 ########################################################
 ########################################################
 
+########################################################
+########################################################
+
+osslcompat:
+	@for i in `find src/ -name '*.c'` ; do \
+		$(GREP) "OPENSSL_VERSION_NUMBER" "$$i" >/dev/null ; \
+		if [ $$? -eq 0 ] ; then \
+			$(ECHO) "$$i" >> oss_version_files.txt ; \
+		fi ; \
+	 done
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

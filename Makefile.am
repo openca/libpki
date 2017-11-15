@@ -291,8 +291,10 @@ rpm:
 ########################################################
 
 osslcompat:
-	@for i in `find . -name '*.c'` ; do \
-	   grep 'OPENSSL_VERSION_NUMBER' $$i >/dev/null && \
-		echo "$i" >> oss_version_files.txt ; \
+	@for i in `find src/ -name '*.c'` ; do \
+		$(GREP) "OPENSSL_VERSION_NUMBER" "$$i" >/dev/null ; \
+		if [ $$? -eq 0 ] ; then \
+			$(ECHO) "$$i" >> oss_version_files.txt ; \
+		fi ; \
 	 done
 

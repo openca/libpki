@@ -394,12 +394,30 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 			"issuer's certificate!");
 	}
 
-	// Let's get the responderId
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	// Let's get the responderId
 	rid = &(r->bs->tbsResponseData.responderId);
+
+	// Set the appropriate by name or by key
+	if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME) {
+		if (!cert) {
+			return PKI_ERROR(PKI_ERR, 
+			"PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
+		}
+		if (1 != OCSP_RESPID_set_by_name(rid, cert->value)) {
+			return PKI_ERROR(PKI_ERR, "Can not set RESPID by name");
+		}
+	}
+	else
+	{
+		if (1 != OCSP_RESPID_set_by_key(rid, cert->value)) {
+			return PKI_ERROR(PKI_ERR, "Can not set RESPID by key");
+		}
+	}
 #else
+
+	// Gets the responderId
 	rid = r->bs->tbsResponseData->responderId;
-#endif
 
 	// Sets the responderId
 	if (cert && respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME)
@@ -445,14 +463,10 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 		// All done here.
 		PKI_DIGEST_free(dgst);
 	}
+#endif
 
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
 	if (X509_gmtime_adj(r->bs->tbsResponseData.producedAt, 0) == 0)
 		PKI_log_err("Error adding signed time to response");
-#else
-	if (X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0) == 0)
-		PKI_log_err("Error adding signed time to response");
-#endif
 
 	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new()))
 	{
