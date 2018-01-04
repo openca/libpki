@@ -209,8 +209,8 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		} else {
 			fprintf(stderr, "ERROR, out format %s not supported!\n\n", outform);
 			exit(1);
-		};
-	};
+		}
+	}
 
 	// Output can not write to stdin, so, if that was specified, 
 	// let's re-route to stdout instead
@@ -275,18 +275,18 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 						} else {
 							PKI_OID_free ( oid );
 							usage_curves( curveName );
-						};
+						}
 					} else {
 						usage_curves( curveName );
-					};
-				};
+					}
+				}
 				break;
 #endif
 			case PKI_SCHEME_DH:
 			case PKI_SCHEME_UNKNOWN:
 				fprintf(stderr, "ERROR: Scheme not supported!\n\n");
 				return PKI_ERR;
-		};
+		}
 
 	}
 
