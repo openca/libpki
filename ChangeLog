@@ -3,6 +3,7 @@
 - Updated the list of supported algorithms
 - Inital fix for key generation process for PKCS#11 devices
 - Fixed signature algorithm checks and setup for PKCS#11 devices
+- Added support for multiple RSA Key Gen (X9_31 default)
 
 * Oct 18 2017 Massimiliano Pala <madwolf@openca.org>
 - Small memory leak fix for logging on stderr and stdout

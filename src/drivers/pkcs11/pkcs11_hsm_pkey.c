@@ -38,6 +38,26 @@ int _pki_pkcs11_rand_init( void );
 /* End of _LIBPKI_INTERNAL_PKEY_H */
 #endif
 
+
+// Definition for the RSA Key Generation Mechs
+#define RSA_MECH_LIST_SIZE 2
+static CK_MECHANISM RSA_MECH_LIST[RSA_MECH_LIST_SIZE] = {
+	{CKM_RSA_X9_31_KEY_PAIR_GEN, NULL_PTR, 0 },
+	{CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0 }
+};
+
+// Definitions for the ECDSA Key Generation Mechs
+#define EC_MECH_LIST_SIZE 1
+static CK_MECHANISM EC_MECH_LIST[EC_MECH_LIST_SIZE] = {
+	{CKM_EC_KEY_PAIR_GEN, NULL_PTR, 0}
+};
+
+// Definitions for the DSA Key Generation Mechs
+#define DSA_MECH_LIST_SIZE 1
+static CK_MECHANISM DSA_MECH_LIST[DSA_MECH_LIST_SIZE] = {
+	{CKM_DSA_KEY_PAIR_GEN, NULL_PTR, 0}
+};
+
 /* ---------------------------- Functions -------------------------------- */
 
 int _pki_pkcs11_rand_seed( void ) {
@@ -93,8 +113,7 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 
 	CK_RV rv;
 
-	CK_MECHANISM RSA_MECH = {
-		CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0 };
+	CK_MECHANISM * RSA_MECH_PTR = NULL;
 
 	CK_ULONG i = 0;
 	CK_ULONG n = 0;
@@ -131,9 +150,40 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 		bits = PKI_RSA_KEY_DEFAULT_SIZE;
 	}
 
+	// Look for a supported key generation mechanism
+	for (int idx = 0; idx < RSA_MECH_LIST_SIZE; idx++) {
+
+		// Checks if the mechanism is supported
+		if (HSM_PKCS11_check_mechanism(lib, 
+				RSA_MECH_LIST[idx].mechanism) == PKI_OK) {
+
+			// Set the pointer to the supported mechanism
+			RSA_MECH_PTR = &RSA_MECH_LIST[idx];
+
+			// Debugging Information
+			PKI_DEBUG("Found RSA KEY GEN MECHANISM 0x%8.8X",
+				RSA_MECH_LIST[idx].mechanism);
+
+			// Breaks out of the loop
+			break;
+
+		} else {
+
+			// Let's provide debug information for not-supported mechs
+			PKI_DEBUG("RSA KEY GEN MECHANISM 0x%8.8X not supported",
+				RSA_MECH_LIST[idx].mechanism);
+		}
+	}
+
+	// If no key gen algors are supported, abort
+	if (RSA_MECH_PTR == NULL) {
+		PKI_ERROR(PKI_ERR_HSM_KEYPAIR_GENERATE, "No KeyGen Mechanisms supported!");
+		return NULL;
+	}
+
 PKI_DEBUG("BITS FOR KEY GENERATION %lu (def: %lu)", bits, PKI_RSA_KEY_DEFAULT_SIZE);
 
-	if ( kp && kp->rsa.exponent > 3) {
+	if (kp && kp->rsa.exponent > 3) {
 		// TO be Implemented
 	} else {
 		if( BN_hex2bn(&bn, "10001") == 0 ) {
@@ -220,7 +270,7 @@ PKI_DEBUG("BITS FOR KEY GENERATION %lu (def: %lu)", bits, PKI_RSA_KEY_DEFAULT_SI
 
 	PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Generating a new Key ... ");
 	rv = lib->callbacks->C_GenerateKeyPair (
-			lib->session, &RSA_MECH, 
+			lib->session, RSA_MECH_PTR, 
 			pubTemp, n,
 			privTemp, i,
 			handler_pubkey, 
