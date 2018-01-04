@@ -915,7 +915,10 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	if(algId <= 0) algId = PKI_ALGOR_DEFAULT;
 
 	// Now let's get the algor
-	if ((al = PKI_ALGOR_get(algId)) == NULL) return PKI_ERR;
+	if ((al = PKI_ALGOR_get(algId)) == NULL) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+		return PKI_ERR;
+	}
 
 	// If already set, let's free the memory first
 	if (tk->algor) PKI_ALGOR_free(tk->algor);
@@ -924,7 +927,7 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	tk->algor = al;
 	
 	/* Check that the HSM capabilities */
-	if (tk->hsm) return HSM_set_algor(tk->algor, tk->hsm);
+	if (tk->hsm) return HSM_set_sign_algor(tk->algor, tk->hsm);
 
 	return PKI_OK;
 };
@@ -965,7 +968,7 @@ int PKI_TOKEN_set_algor_by_name( PKI_TOKEN *tk, const char *alg_name)
 	tk->algor = al;
 
 	/* Check that the HSM capabilities */
-	if (tk->hsm) return HSM_set_algor(tk->algor, tk->hsm);
+	if (tk->hsm) return HSM_set_sign_algor(tk->algor, tk->hsm);
 
 	return( PKI_OK );
 }

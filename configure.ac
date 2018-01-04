@@ -682,7 +682,9 @@ if [[ "x$iphone_build" = "xno" ]] ; then
 
 	if ! [[ "x$xml2_config" = "x" ]] ; then
 		if [[ "$DIST_NAME" = "darwin" ]] ; then
-			xml2_prefix=/usr
+			if [[ "$xml2_prefix" = "x" ]] ; then
+				xml2_prefix=/usr
+			fi
 		else
 			xml2_prefix=`$xml2_config --prefix`
 		fi

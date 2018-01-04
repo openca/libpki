@@ -815,7 +815,7 @@ char * PKI_CONFIG_find_all(const char *dir,
 	int i = 0;
 
 	// Checks the input
-	if (!dir || !name )
+	if (!name )
 	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;

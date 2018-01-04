@@ -215,7 +215,7 @@ typedef struct callbacks_st {
   int (*logout)(struct hsm_st *driver);
 
   /* HSM set algor function */
-  int (*select_algor) (struct hsm_st *driver, PKI_ALGOR *algor);
+  int (*sign_algor) (struct hsm_st *driver, PKI_ALGOR *algor);
 
   /* HSM set fips mode */
   int (*set_fips_mode) (const struct hsm_st *driver, int k);

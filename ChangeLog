@@ -1,3 +1,9 @@
+* Jan  3 2018 Massimiliano Pala <madwolf@openca.org>
+- Initial update to PKCS#11 v2.40 to support new algorithms
+- Updated the list of supported algorithms
+- Inital fix for key generation process for PKCS#11 devices
+- Fixed signature algorithm checks and setup for PKCS#11 devices
+
 * Oct 18 2017 Massimiliano Pala <madwolf@openca.org>
 - Small memory leak fix for logging on stderr and stdout
 - Fixed small memory leak in PKI_X509_NAME_get_parsed()

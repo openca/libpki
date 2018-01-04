@@ -66,7 +66,7 @@ extern const long LIBPKI_OS_DETAILS;
 BEGIN_C_DECLS
 
 #define PKI_NAMESPACE_PREFIX		"pki"
-#define PKI_NAMESPACE_HREF		"http://www.openca.org/openca/pki/1/0/0"
+#define PKI_NAMESPACE_HREF		    "http://www.openca.org/openca/pki/1/0/0"
 
 #define PKI_SUBSCRIBER_REQ_TYPE		"application/pki-subscriber-request"
 #define PKI_SUBSCRIBER_RESP_TYPE	"application/pki-subscriber-response"
@@ -74,7 +74,7 @@ BEGIN_C_DECLS
 #define PKI_MANAGEMENT_RESP_TYPE	"application/pki-management-response"
 
 #ifdef HAVE_ENGINE
-#define ENV_OPENCA_ENGINE		"engine"
+#define ENV_OPENCA_ENGINE		    "engine"
 #define ENV_OPENCA_ENGINE_ID		"engine_id"
 #define ENV_OPENCA_ENGINE_PRE		"engine_pre"
 #define ENV_OPENCA_ENGINE_POST		"engine_post"
@@ -96,12 +96,12 @@ typedef enum {
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 
-#define CRL_OK			1
-#define	CRL_NOT_YET_VALID	2
-#define	CRL_EXPIRED		3
+#define CRL_OK			        1
+#define	CRL_NOT_YET_VALID	    2
+#define	CRL_EXPIRED		        3
 #define	CRL_ERROR_NEXT_UPDATE	4
 #define	CRL_ERROR_LAST_UPDATE	5
-#define CRL_ERROR_UNKNOWN	10
+#define CRL_ERROR_UNKNOWN       10
 
 #define	PKI_VALIDITY_ONE_HOUR	3600
 #define PKI_VALIDITY_ONE_DAY	PKI_VALIDITY_ONE_HOUR*24
@@ -220,24 +220,24 @@ typedef enum {
 	size_t s_size;
   } PKI_PTHREAD_ATTR;
 
-#define PKI_THREAD_CREATE_JOINABLE 0
-#define PKI_THREAD_CREATE_DETACHED 0x04
+#define PKI_THREAD_CREATE_JOINABLE       0
+#define PKI_THREAD_CREATE_DETACHED       0x04
 
-#define PKI_THREAD_EXPLICT_SCHED 0
-#define PKI_THREAD_INHERIT_SCHED 0x08
+#define PKI_THREAD_EXPLICT_SCHED         0
+#define PKI_THREAD_INHERIT_SCHED         0x08
 
-#define PKI_THREAD_SCOPE_PROCESS 		0
-#define PKI_THREAD_SCOPE_SYSTEM 		0x10
+#define PKI_THREAD_SCOPE_PROCESS 		 0
+#define PKI_THREAD_SCOPE_SYSTEM 		 0x10
 
 #define PKI_THREAD_DESTRUCTOR_ITERATIONS 256
 
-#define PKI_THREAD_PRIO_NONE 			0
-#define PKI_THREAD_PRIO_INHERIT 		8
-#define PKI_THREAD_PRIO_PROTECT 		16
-#define PKI_THREAD_PRIO_MULT 			32
+#define PKI_THREAD_PRIO_NONE 			 0
+#define PKI_THREAD_PRIO_INHERIT 		 8
+#define PKI_THREAD_PRIO_PROTECT 		 16
+#define PKI_THREAD_PRIO_MULT 			 32
 
-#define PKI_THREAD_PROCESS_SHARED 		0
-#define PKI_THREAD_PROCESS_PRIVATE 		1
+#define PKI_THREAD_PROCESS_SHARED 		 0
+#define PKI_THREAD_PROCESS_PRIVATE 		 1
 
 #else
 /* Pthread lib include */
@@ -352,7 +352,7 @@ typedef enum {
 	PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL 			= 0,
 	PKI_X509_OCSP_RESP_STATUS_MALFORMEDREQUEST		= 1,
 	PKI_X509_OCSP_RESP_STATUS_INTERNALERROR 		= 2,
-	PKI_X509_OCSP_RESP_STATUS_TRYLATER 			= 3,
+	PKI_X509_OCSP_RESP_STATUS_TRYLATER 			    = 3,
 	PKI_X509_OCSP_RESP_STATUS_SIGREQUIRED 			= 5,
 	PKI_X509_OCSP_RESP_STATUS_UNAUTHORIZED 			= 6
 } PKI_X509_OCSP_RESP_STATUS;

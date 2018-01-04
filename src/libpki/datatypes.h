@@ -154,7 +154,7 @@ typedef enum {
 typedef enum {
 	PKI_RSA_KEY_MIN_SIZE		= 1024,
 	PKI_DSA_KEY_MIN_SIZE		= 2048,
-	PKI_EC_KEY_MIN_SIZE			= 256,
+	PKI_EC_KEY_MIN_SIZE		= 256,
 } PKI_KEY_MIN_SIZE;
 
 typedef enum {

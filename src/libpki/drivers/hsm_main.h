@@ -40,7 +40,7 @@ int HSM_is_fips_mode(const HSM *hsm);
 
 int HSM_login ( HSM *hsm, PKI_CRED *cred );
 int HSM_logout ( HSM *hsm );
-int HSM_set_algor ( PKI_ALGOR *alg, HSM *hsm );
+int HSM_set_sign_algor (PKI_ALGOR *alg, HSM *hsm );
 
 /* ------------------ Signing Functions Prototypes ------------------- */
 

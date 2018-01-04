@@ -13,6 +13,7 @@ PKI_ALGOR_ID PKI_ALGOR_get_id (const PKI_ALGOR * algor );
 PKI_DIGEST_ALG *PKI_ALGOR_get_digest (const PKI_ALGOR * algor );
 PKI_ALGOR_ID PKI_ALGOR_get_digest_id (const PKI_ALGOR *algor );
 PKI_SCHEME_ID PKI_ALGOR_get_scheme (const PKI_ALGOR * algor );
+PKI_SCHEME_ID PKI_ALGOR_get_scheme_by_txt(const char * data);
 const char * PKI_ALGOR_get_parsed (const PKI_ALGOR * algor );
 
 /* SCHEME ID */

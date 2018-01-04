@@ -368,19 +368,18 @@ int HSM_is_fips_mode(const HSM *hsm)
 
 /* -------------------------- General Crypto HSM ----------------------- */
 
-int HSM_set_algor ( PKI_ALGOR *alg, HSM *hsm ) {
+int HSM_set_sign_algor ( PKI_ALGOR *alg, HSM *hsm ) {
 
 	int ret = PKI_OK;
 
-	if( !alg ) {
-		PKI_log_debug( "HSM_set_algor()::Error, no algorithm passed!");
-		return ( PKI_ERR );
-	}
+	if( !alg )
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, "No algorithm passed!");
 
-	if( hsm && hsm->callbacks && hsm->callbacks->select_algor ) {
-		ret = hsm->callbacks->select_algor ( hsm, alg );
+	if( hsm && hsm->callbacks && hsm->callbacks->sign_algor ) {
+		PKI_log_debug("Using the HSM callback!");
+		ret = hsm->callbacks->sign_algor(hsm, alg);
 	} else {
-		PKI_log_debug ("No set algor from selected HSM");
+		PKI_log_debug("No set algor from selected HSM");
 		ret = PKI_OK;
 	}
 

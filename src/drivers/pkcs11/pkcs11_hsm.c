@@ -20,7 +20,7 @@ HSM_CALLBACKS pkcs11_hsm_callbacks = {
 		/* Logout */
 		HSM_PKCS11_logout,
 		/* Set Algorithm */
-		HSM_PKCS11_algor_set,
+		HSM_PKCS11_sign_algor_set,
 		/* Set fips mode */
 		HSM_PKCS11_set_fips_mode, 
 		/* Fips operation mode */
@@ -43,12 +43,12 @@ HSM_CALLBACKS pkcs11_hsm_callbacks = {
 		HSM_PKCS11_OBJSK_add_url,
 		/* Object stack Del (remove) Function */
 		HSM_PKCS11_OBJSK_del_url,
-        	/* Get the number of available Slots */
+        /* Get the number of available Slots */
 		HSM_PKCS11_SLOT_num,
 		/* Get Slot info */
-        	HSM_PKCS11_SLOT_INFO_get,
+        HSM_PKCS11_SLOT_INFO_get,
 		/* Free Slot info */
-        	HSM_PKCS11_SLOT_INFO_free,
+        HSM_PKCS11_SLOT_INFO_free,
 		/* Set the current slot */
 		HSM_PKCS11_SLOT_select,
 		/* Cleans up the current slot */
@@ -313,10 +313,8 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 
 	char *tmp = NULL;
 
-	if (hsm == NULL ) {
-		PKI_log_debug("%s()::Missing Driver argument",
-				__PRETTY_FUNCTION__);
-		return PKI_ERR;
+	if (hsm == NULL) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Driver argument");
 	}
 
 	// Gets the pkcs11 hander
@@ -324,46 +322,42 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 
 	// Initialize MUTEX for non-atomic operations
 	if (pthread_mutex_init( &handle->pkcs11_mutex, NULL ) != 0 ) {
-		PKI_log_debug("HSM_PKCS11_init()::Error in initializing "
-			"mutex (%s:%d)", __FILE__, __LINE__ );
-		return PKI_ERR;
+		return PKI_ERROR(PKI_ERR_HSM_INIT, "Error while initializing mutex (%s:%d)");
 	}
 
 	// Initialize COND variable for non-atomic operations
 	if (pthread_cond_init( &handle->pkcs11_cond, NULL ) != 0 ) {
-		PKI_log_debug("HSM_PKCS11_init()::Error in initializing "
-			"mutex (%s:%d)", __FILE__, __LINE__ );
-		return ( PKI_ERR );
+		return PKI_ERROR(PKI_ERR_HSM_INIT, "Error while initializing cond variable");
 	}
 
 	rv = (handle->callbacks->C_Initialize)(NULL_PTR);
-	if( (rv != CKR_OK) && ( rv != CKR_CRYPTOKI_ALREADY_INITIALIZED) ) {
-		PKI_log_debug("PKCS11::C_Initialize failed with 0x%8.8X",rv );
-		return ( PKI_ERR );
-	};
+	if ((rv != CKR_OK) && (rv != CKR_CRYPTOKI_ALREADY_INITIALIZED)) {
+		return PKI_ERROR(PKI_ERR_HSM_INIT, "C_Initialize failed with 0x%8.8X", rv);
+	}
 
 	/* Let's get Info for the Current Loaded Module */
 	if((rv = (handle->callbacks->C_GetInfo)(&info)) != CKR_OK ) {
-		PKI_log_debug("PKCS11::C_GetInfo failed with 0x%8.8X", rv );
-		return ( PKI_ERR );
-	};
+		return PKI_ERROR(PKI_ERR_HSM_INIT, "C_GetInfo failed with 0x%8.8X", rv);
+	}
 	
+	// Sets the Info for the version
 	handle->hsm_info.version_major = info.cryptokiVersion.major;
 	handle->hsm_info.version_minor = info.cryptokiVersion.minor;
 
+	// Gets the Manufacturer Info
 	strncpy(handle->hsm_info.manufacturerID, 
 			(const char *) info.manufacturerID, 
 				sizeof( handle->hsm_info.manufacturerID) );
 	handle->hsm_info.manufacturerID[sizeof(handle->hsm_info.manufacturerID)-1] = '\x0';
 
-
+	// Gets the HSM description
 	strncpy(handle->hsm_info.description, 
 			(const char *) info.libraryDescription, 
 				sizeof( handle->hsm_info.description) );
 	handle->hsm_info.description[sizeof(handle->hsm_info.description)-1] =
 			'\x0';
 
-	/* Let's remove the ugly spaces at the end of the maufacturerID */
+	// Let's remove the ugly spaces at the end of the maufacturerID
 	tmp = handle->hsm_info.manufacturerID +
 			sizeof(handle->hsm_info.manufacturerID) - 2;
 
@@ -389,6 +383,7 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 		tmp--;
 	}
 
+	// Gets the Library Info
 	handle->hsm_info.lib_version_major = info.libraryVersion.major;
 	handle->hsm_info.lib_version_minor = info.libraryVersion.minor;
 
@@ -402,85 +397,101 @@ int HSM_PKCS11_init( HSM *hsm, PKI_CONFIG *conf ) {
 					handle->hsm_info.lib_version_major, 
 					handle->hsm_info.lib_version_minor );
 
-	return( PKI_OK);
+	return PKI_OK;
 }
 
-int HSM_PKCS11_algor_set (HSM *hsm, PKI_ALGOR *algor) {
+int HSM_PKCS11_sign_algor_set (HSM *hsm, PKI_ALGOR *algor) {
 
 	PKCS11_HANDLER *lib = NULL;
 
 	PKI_ALGOR_ID id;
+
 	int ret = PKI_OK;
 
-	if( !algor || !hsm ) {
-		PKI_log_debug("%s()::No algor or hsm!", __PRETTY_FUNCTION__);
-		return PKI_ERR;
+	if (!algor || !hsm) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-        if((id = PKI_ALGOR_get_id ( algor )) == PKI_ALGOR_UNKNOWN ) {
-                PKI_log_debug("%s():: Algorithm unknown!", __PRETTY_FUNCTION__);
-                return ( PKI_ERR );
-        }
+    if ((id = PKI_ALGOR_get_id(algor)) == PKI_ALGOR_UNKNOWN ) {
+    	return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+    }
 
 	/* Get a VALID PKCS11_HANDLER pointer */
-        if((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
-                PKI_log_debug("%s():: Can't get handler!", __PRETTY_FUNCTION__);
-                return ( PKI_ERR );
-        }
+    if((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
+    	return PKI_ERROR(PKI_ERR_HSM_INIT, "Can't get PKCS#11 handler!");
+    }
 
 	switch ( id ) {
+
+#ifdef ENABLE_DSA_SHA1
 		case PKI_ALGOR_DSA_SHA1:
 			if((ret = HSM_PKCS11_check_mechanism ( lib,
 					CKM_DSA_SHA1 )) == PKI_OK ) {
 				lib->mech_curr = CKM_DSA_SHA1;
 			}
 			break;
-#ifdef ENABLE_DSA_SHA_2
+#endif
+
+#ifdef ENABLE_DSA_SHA224
 		case PKI_ALGOR_DSA_SHA224:
-		case PKI_ALGOR_DSA_SHA256:
-			ret = PKI_ERR;
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+					CKM_DSA_SHA224 )) == PKI_OK ) {
+				lib->mech_curr = CKM_DSA_SHA224;
+			}
 			break;
 #endif
-		case PKI_ALGOR_RSA_SHA1:
-			if((ret = HSM_PKCS11_check_mechanism( lib,
-					CKM_SHA1_RSA_PKCS)) == PKI_OK ) {
-				lib->mech_curr = CKM_SHA1_RSA_PKCS;
+
+#ifdef ENABLE_DSA_SHA256
+		case PKI_ALGOR_DSA_SHA256:
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+					CKM_DSA_SHA256 )) == PKI_OK ) {
+				lib->mech_curr = CKM_DSA_SHA256;
 			}
 			break;
-/*
-		case PKI_ALGOR_RSA_MD2:
-			if((ret = HSM_PKCS11_check_mechanism( lib,
-					CKM_MD2_RSA_PKCS)) == PKI_OK ) {
-				lib->mech_curr = CKM_MD2_RSA_PKCS;
+#endif
+
+#ifdef ENABLE_DSA_SHA384
+		case PKI_ALGOR_DSA_SHA384:
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+					CKM_DSA_SHA384 )) == PKI_OK ) {
+				lib->mech_curr = CKM_DSA_SHA384;
 			}
 			break;
-*/
-		case PKI_ALGOR_RSA_MD4:
-			ret = PKI_ERR;
+#endif
+
+#ifdef ENABLE_DSA_SHA512
+		case PKI_ALGOR_DSA_SHA512:
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+					CKM_DSA_SHA512 )) == PKI_OK ) {
+				lib->mech_curr = CKM_DSA_SHA512;
+			}
 			break;
+#endif
+
+#ifdef ENABLE_MD5
 		case PKI_ALGOR_RSA_MD5:
 			if((ret = HSM_PKCS11_check_mechanism( lib,
 					CKM_MD5_RSA_PKCS)) == PKI_OK ) {
 				lib->mech_curr = CKM_MD5_RSA_PKCS;
 			}
 			break;
-#ifdef ENABLE_SHA224
+#endif
+
+#ifdef ENABLE_SHA2
 		case PKI_ALGOR_RSA_SHA224:
 			if((ret = HSM_PKCS11_check_mechanism( lib,
 					CKM_SHA224_RSA_PKCS)) == PKI_OK ) {
 				lib->mech_curr = CKM_SHA224_RSA_PKCS;
 			}
 			break;
-#endif
-#ifdef ENABLE_SHA256
+
 		case PKI_ALGOR_RSA_SHA256:
 			if((ret = HSM_PKCS11_check_mechanism( lib,
 					CKM_SHA256_RSA_PKCS)) == PKI_OK ) {
 				lib->mech_curr = CKM_SHA256_RSA_PKCS;
 			}
 			break;
-#endif
-#ifdef ENABLE_RSA_SHA_2
+
 		case PKI_ALGOR_RSA_SHA384:
 			if((ret = HSM_PKCS11_check_mechanism( lib,
 					CKM_SHA384_RSA_PKCS)) == PKI_OK ) {
@@ -494,22 +505,64 @@ int HSM_PKCS11_algor_set (HSM *hsm, PKI_ALGOR *algor) {
 			}
 			break;
 #endif
-#ifdef ENABLE_ECDSA
+
+#ifdef ENABLE_RSA_RIPEMD128
+		case PKI_ALGOR_RSA_RIPEMD128:
+			if((ret = HSM_PKCS11_check_mechanism( lib,
+					CKM_RIPEMD128_RSA_PKCS)) == PKI_OK ) {
+				lib->mech_curr = CKM_RIPEMD128_RSA_PKCS;
+			}
+			break;
+#endif
+
+#ifdef ENABLE_RSA_RIPEMD160
+		case PKI_ALGOR_RSA_RIPEMD160:
+			if((ret = HSM_PKCS11_check_mechanism( lib,
+					CKM_RIPEMD160_RSA_PKCS)) == PKI_OK ) {
+				lib->mech_curr = CKM_RIPEMD160_RSA_PKCS;
+			}
+			break;
+#endif
+
+#ifdef ENABLE_ECDSA_SHA1
 		case PKI_ALGOR_ECDSA_SHA1:
 			if((ret = HSM_PKCS11_check_mechanism ( lib,
 						CKM_ECDSA_SHA1)) == PKI_OK ) {
 				lib->mech_curr = CKM_ECDSA_SHA1;
 			}
 			break;
-#endif
-#ifdef ENABLE_ECDSA_SHA_2
+#endif // ENABLE_ECDSA_SHA1
+
+#ifdef ENABLE_SHA_2
 		case PKI_ALGOR_ECDSA_SHA224:
-		case PKI_ALGOR_ECDSA_SHA256:
-		case PKI_ALGOR_ECDSA_SHA384:
-		case PKI_ALGOR_ECDSA_SHA512:
-			ret = PKI_ERR;
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+						CKM_ECDSA_SHA224)) == PKI_OK ) {
+				lib->mech_curr = CKM_ECDSA_SHA224;
+			}
 			break;
-#endif
+
+		case PKI_ALGOR_ECDSA_SHA256:
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+						CKM_ECDSA_SHA256)) == PKI_OK ) {
+				lib->mech_curr = CKM_ECDSA_SHA256;
+			}
+			break;
+
+		case PKI_ALGOR_ECDSA_SHA384:
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+						CKM_ECDSA_SHA384)) == PKI_OK ) {
+				lib->mech_curr = CKM_ECDSA_SHA384;
+			}
+			break;
+
+		case PKI_ALGOR_ECDSA_SHA512:
+			if((ret = HSM_PKCS11_check_mechanism ( lib,
+						CKM_ECDSA_SHA512)) == PKI_OK ) {
+				lib->mech_curr = CKM_ECDSA_SHA512;
+			}
+			break;
+#endif // ENABLE_SHA_2
+
 		default:
 			ret = PKI_ERR;
 			break;

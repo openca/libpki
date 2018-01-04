@@ -228,41 +228,18 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	// Let's get the algor options from the ENV if not set
 	if( !algor_opt ) algor_opt = PKI_get_env ( "PKI_TOKEN_ALGORITHM" );
 
-	if( algor_opt != NULL )
-	{
-		PKI_ALGOR *algor = NULL;
-
-		/* Get the Algor Id from the cmd line option */
-		algor = PKI_ALGOR_get_by_name ( algor_opt );
-		if (!algor)
-		{
-			fprintf(stderr, "\nERROR: Algorithm %s is not recognized!\n\n", algor_opt);
-			exit(1);
-		}
-
-		algor_id = PKI_ALGOR_get_id ( algor );
-		scheme   = PKI_ALGOR_get_scheme ( algor );
-
-		if (verbose && !batch) 
-		{
-			fprintf(stderr, "\nSetting Token Algorithm to %s ... ", 
-					PKI_ALGOR_ID_txt ( algor_id ) );
-		}
-
-		if ((PKI_TOKEN_set_algor ( tk, algor_id )) == PKI_ERR)
-		{
-			fprintf(stderr, "ERROR, can not set the crypto scheme!\n\n");
-			exit(1);
-		}
-
-		if( verbose && !batch ) fprintf(stderr, "Ok.\n");
+	// Checks for the supported schemes
+	if ((scheme = PKI_ALGOR_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
+		fprintf(stderr, "\nERROR: Scheme not supported for key generation (%s)\n\n",
+			algor_opt);
+		exit(1);
 	}
 
 	// If specified, search the profile among the ones already loaded
 	if (profile_s) prof = PKI_TOKEN_search_profile( tk, profile_s );
 
 	// Let's now generate the new key parameters
-	if ((kp = PKI_KEYPARAMS_new ( scheme, prof )) == NULL )
+	if ((kp = PKI_KEYPARAMS_new(scheme, prof)) == NULL)
 	{
 		fprintf(stderr, "ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme);
 		exit(1);
@@ -826,7 +803,21 @@ int main (int argc, char *argv[] ) {
 		if( sk ) PKI_STACK_TOKEN_free ( sk );
 
 	} else if ( strncmp_nocase(cmd, "genkey", 6) == 0 ) {
+
 		PKI_TOKEN_login( tk );
+
+		if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
+			algor_opt = "RSA";
+		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
+			algor_opt = "EC";
+		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
+			algor_opt = "DSA";
+		} else {
+			printf("\nERROR, algorithm (%s) not supported (use RSA, ECDSA, or DSA)!\n\n",
+				algor_opt);
+			exit(1);
+		}
+
 		if((gen_keypair ( tk, bits, param_s, outfile, algor_opt, 
 				profile, outform, batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");

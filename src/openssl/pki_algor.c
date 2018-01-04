@@ -14,23 +14,51 @@ PKI_ALGOR_ID PKI_ALGOR_LIST_RSA[] = {
 	PKI_ALGOR_RSA_SHA256,
 	PKI_ALGOR_RSA_SHA384,
 	PKI_ALGOR_RSA_SHA512,
+#ifdef ENABLE_RSA_RIPEMD128
+	PKI_ALGOR_RSA_RIPEMD128,
+#endif
+#ifdef ENABLE_RSA_RIPEMD160
+	PKI_ALGOR_RSA_RIPEMD160,
+#endif
 	PKI_ALGOR_UNKNOWN
 };
 
 PKI_ALGOR_ID PKI_ALGOR_LIST_DSA[] = {
+#ifdef PKI_ALGOR_DSA_SHA1
 	PKI_ALGOR_DSA_SHA1,
+#endif
+#ifdef PKI_ALGOR_DSA_SHA224
 	PKI_ALGOR_DSA_SHA224,
+#endif
+#ifdef PKI_ALGOR_DSA_SHA256
 	PKI_ALGOR_DSA_SHA256,
+#endif
+#ifdef PKI_ALGOR_DSA_SHA384
+	PKI_ALGOR_DSA_SHA384,
+#endif
+#ifdef PKI_ALGOR_DSA_SHA512
+	PKI_ALGOR_DSA_SHA512,
+#endif
 	PKI_ALGOR_UNKNOWN
 };
 
 #ifdef ENABLE_ECDSA
 PKI_ALGOR_ID PKI_ALGOR_LIST_ECDSA[] = {
+# ifdef PKI_ALGOR_ECDSA_SHA1
 	PKI_ALGOR_ECDSA_SHA1,
+# endif
+# ifdef PKI_ALGOR_ECDSA_SHA224
 	PKI_ALGOR_ECDSA_SHA224,
+# endif
+# ifdef PKI_ALGOR_ECDSA_SHA256
 	PKI_ALGOR_ECDSA_SHA256,
+# endif
+# ifdef PKI_ALGOR_ECDSA_SHA384
 	PKI_ALGOR_ECDSA_SHA384,
+# endif
+# ifdef PKI_ALGOR_ECDSA_SHA512
 	PKI_ALGOR_ECDSA_SHA512,
+# endif
 	PKI_ALGOR_UNKNOWN
 };
 #else
@@ -44,14 +72,15 @@ PKI_ALGOR_ID PKI_DIGEST_ALG_LIST[] = {
 //	PKI_ALGOR_MD2,
 #ifndef OPENSSL_FIPS
 	PKI_ALGOR_MD4,
-#endif
 	PKI_ALGOR_MD5,
 	PKI_ALGOR_DSS1,
+#endif
 	PKI_ALGOR_SHA1,
 	PKI_ALGOR_SHA224,
 	PKI_ALGOR_SHA256,
 	PKI_ALGOR_SHA384,
 	PKI_ALGOR_SHA512,
+	PKI_ALGOR_RIPEMD128,
 	PKI_ALGOR_RIPEMD160,
 	PKI_ALGOR_UNKNOWN
 };
@@ -103,8 +132,6 @@ PKI_ALGOR *PKI_ALGOR_get_by_name ( const char *alg_s ) {
 		snprintf(buf+strlen(buf), sizeof(buf) - strlen(buf) - strlen(tk),
 			"-%s", tk );
 	}
-
-	PKI_log_debug("GETTING ALGORITHM: %s", buf );
 
 	/* Check if the object is a valid OID */
 	if((alg_nid = OBJ_sn2nid( buf )) == PKI_ALGOR_UNKNOWN ) {;
@@ -172,6 +199,27 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 	};
 
 	return ret;
+}
+
+/*!
+ * \brief Returns the PKI_SCHEME_ID from the passed string
+ */
+
+PKI_SCHEME_ID PKI_ALGOR_get_scheme_by_txt(const char * data) {
+
+	if (data) {
+
+		if (strncmp_nocase("RSA", data, 3) == 0) {
+			return PKI_SCHEME_RSA;
+		} else if (strncmp_nocase("DSA", data, 3) == 0) {
+			return PKI_SCHEME_DSA;
+		} else if (strncmp_nocase("EC", data, 2) == 0) {
+			return PKI_SCHEME_ECDSA;
+		}
+	}
+
+	// No supported scheme found
+	return PKI_SCHEME_UNKNOWN;
 }
 
 /*!
