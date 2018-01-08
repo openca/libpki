@@ -132,6 +132,8 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	char *id     = NULL;
 	int   id_len = 8; 
 
+	int idx = 0;
+
 	if ( !url || !url->addr ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return ( NULL );
@@ -151,7 +153,7 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	}
 
 	// Look for a supported key generation mechanism
-	for (int idx = 0; idx < RSA_MECH_LIST_SIZE; idx++) {
+	for (idx = 0; idx < RSA_MECH_LIST_SIZE; idx++) {
 
 		// Checks if the mechanism is supported
 		if (HSM_PKCS11_check_mechanism(lib, 
