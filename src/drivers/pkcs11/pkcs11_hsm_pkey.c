@@ -920,8 +920,8 @@ const EC_KEY_METHOD * HSM_PKCS11_get_ecdsa_method ( void ) {
 
 		ECDSA_METHOD_set_name(r_pnt, "LibPKI PKCS#11 ECDSA");
 		ECDSA_METHOD_set_sign(r_pnt, HSM_PKCS11_ecdsa_sign);
-		// ECDSA_METHOD_set_sign_setup(r_pnt, HSM_PKCS11_ecdsa_sign_setup);
 
+		// ECDSA_METHOD_set_sign_setup(r_pnt, HSM_PKCS11_ecdsa_sign_setup);
 		// ECDSA_METHOD_set_verify(&ret, NULL);
 
 #else
@@ -1163,7 +1163,7 @@ err:
 	return 0;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x101000fL
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 
 ECDSA_SIG *HSM_PKCS11_ecdsa_sign(const unsigned char *dgst, int dgst_len,
                                  const BIGNUM *inv, const BIGNUM *rp, EC_KEY *eckey) {
