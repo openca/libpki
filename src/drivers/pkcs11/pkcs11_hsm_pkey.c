@@ -893,40 +893,38 @@ const RSA_METHOD * HSM_PKCS11_get_rsa_method ( void ) {
 
 const EC_KEY_METHOD * HSM_PKCS11_get_ecdsa_method ( void ) {
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-
-	static EC_KEY_METHOD ret;
-
-	/*
-	// ECDSA METHOD - it is required since OpenSSL is
-	// actually missing the duplication of the METHOD
-	static ECDSA_METHOD ret = {
-	    "PKCS#11 ECDSA method",      // const char *name;
-	    HSM_PKCS11_ecdsa_sign,       // ECDSA_SIG *(*ecdsa_do_sign)(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
-	                                 //             const BIGNUM *rp, EC_KEY *eckey);
-	    HSM_PKCS11_ecdsa_sign_setup, // int (*ecdsa_sign_setup)(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **r);
-	    NULL,                        // int (*ecdsa_do_verify)(const unsigned char *dgst, int dgst_len, const ECDSA_SIG *sig,
-	                                 //      EC_KEY *eckey);
-	    0,                           // int flags;
-	    NULL                         // char *app_data;
-	};
-	*/
-
-	ret = * ECDSA_get_default_method();
-
-	ECDSA_METHOD_set_name(&ret, "LibPKI PKCS#11 ECDSA");
-
-	ECDSA_METHOD_set_sign(&ret, HSM_PKCS11_ecdsa_sign);
-	ECDSA_METHOD_set_sign_setup(&ret, HSM_PKCS11_ecdsa_sign_setup);
-
-	// ECDSA_METHOD_set_verify(&ret, NULL);
-
-#else
-
 	static EC_KEY_METHOD * r_pnt = NULL;
 
 	if (!r_pnt) {
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+		// ECDSA METHOD - it is required since OpenSSL is
+		// actually missing the duplication of the METHOD
+		/*
+		static ECDSA_METHOD ret = {
+		    "PKCS#11 ECDSA method",      // const char *name;
+		    HSM_PKCS11_ecdsa_sign,       // ECDSA_SIG *(*ecdsa_do_sign)(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
+		                                 //             const BIGNUM *rp, EC_KEY *eckey);
+		    HSM_PKCS11_ecdsa_sign_setup, // int (*ecdsa_sign_setup)(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **r);
+		    NULL,                        // int (*ecdsa_do_verify)(const unsigned char *dgst, int dgst_len, const ECDSA_SIG *sig,
+		                                 //      EC_KEY *eckey);
+		    0,                           // int flags;
+		    NULL                         // char *app_data;
+		};
+		*/
+
+	
+		if ((r_pnt = ECDSA_METHOD_new(ECDSA_get_default_method())) == NULL)
+			return NULL;
+
+		ECDSA_METHOD_set_name(r_pnt, "LibPKI PKCS#11 ECDSA");
+		ECDSA_METHOD_set_sign(r_pnt, HSM_PKCS11_ecdsa_sign);
+		// ECDSA_METHOD_set_sign_setup(r_pnt, HSM_PKCS11_ecdsa_sign_setup);
+
+		// ECDSA_METHOD_set_verify(&ret, NULL);
+
+#else
 		if ((r_pnt = EC_KEY_METHOD_new(EC_KEY_get_default_method())) == NULL)
 			return NULL;
 
@@ -945,11 +943,10 @@ const EC_KEY_METHOD * HSM_PKCS11_get_ecdsa_method ( void ) {
                                                       //                       const BIGNUM *in_r,
                                                       //                       EC_KEY *eckey)
 			                   );
+#endif
 	}
 
 	return r_pnt;
-
-#endif
 
 }
 
@@ -1166,10 +1163,16 @@ err:
 	return 0;
 }
 
-int HSM_PKCS11_ecdsa_sign_setup(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **r) {
+#if OPENSSL_VERSION_NUMBER < 0x101000fL
 
-	return PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+ECDSA_SIG *HSM_PKCS11_ecdsa_sign(const unsigned char *dgst, int dgst_len,
+                                 const BIGNUM *inv, const BIGNUM *rp, EC_KEY *eckey) {
+
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+	return 0;
 }
+
+#else
 
 int HSM_PKCS11_ecdsa_sign ( int type, const unsigned char *dgst, int dlen,
 	unsigned char *sig, unsigned int *siglen, const BIGNUM *kinv, const BIGNUM *r,
