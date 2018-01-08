@@ -853,7 +853,7 @@ const RSA_METHOD * HSM_PKCS11_get_rsa_method ( void ) {
 	ret.name = "LibPKI PKCS#11 RSA";
 
 	// Implemented Methods
-	ret.res_sign = HSM_PKCS11_rsa_sign;
+	ret.rsa_sign = HSM_PKCS11_rsa_sign;
 
 	// Not Implemented Methods
 	ret.rsa_priv_enc = NULL;
