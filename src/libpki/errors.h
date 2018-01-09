@@ -86,6 +86,7 @@ typedef enum {
 	PKI_ERR_X509_CERT_CREATE_NOTAFTER,
 	PKI_ERR_X509_CERT_CREATE_ISSUER,
 	PKI_ERR_X509_CERT_CREATE_SERIAL,
+	PKI_ERR_X509_CERT_CREATE_EXT,
 	PKI_ERR_X509_CERT_,
 	PKI_ERR_X509_CERT_VERIFY_,
 	// Request Operations
@@ -232,6 +233,7 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_CERT_CREATE_NOTAFTER, "Can not set certificate notAfter field" },
 	{ PKI_ERR_X509_CERT_CREATE_ISSUER, "Can not set certificate Issuer field" },
 	{ PKI_ERR_X509_CERT_CREATE_SERIAL, "Can not set certificate Serial field" },
+	{ PKI_ERR_X509_CERT_CREATE_EXT, "Can not create certificate extension" },
 	{ PKI_ERR_X509_CERT_, "" },
 	{ PKI_ERR_X509_CERT_VERIFY_, "" },
 	/* Request Operations */

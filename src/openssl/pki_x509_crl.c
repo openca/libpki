@@ -415,10 +415,8 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new(const PKI_X509_CERT *cert,
  * is used to add extensions to the entry (when needed)
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
-          const char *serial, 
-          PKI_X509_CRL_REASON reason,
-          const PKI_TIME *revDate,
+PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial, 
+          PKI_X509_CRL_REASON reason, const PKI_TIME *revDate,
           const PKI_X509_PROFILE *profile ) {
 
   PKI_X509_CRL_ENTRY *entry = NULL;
@@ -433,13 +431,13 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
   // Input check
   if (!serial) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing serial number");
-    return (NULL);
+    return NULL;
   }
 
   // Allocates the Memory for the entry
   if((entry = (PKI_X509_CRL_ENTRY *) X509_REVOKED_new()) == NULL ) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-    return (NULL);
+    return NULL;
   }
 
   // If no revocation date is provided, let's use "now"
@@ -450,6 +448,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
     return NULL;
 
   } else {
+
     // Gets the Pointer from the caller
     a_date = (PKI_TIME *)revDate;
   }
@@ -460,10 +459,10 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
     // Sets the serial number in the X509_REVOKED structure
     if (X509_REVOKED_set_serialNumber(entry, s_int) == 1) {
 
-            // Sets the revocation date
-      if (!X509_REVOKED_set_revocationDate((X509_REVOKED *) entry, a_date)) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not assign revocation date");
-    goto err;
+      // Sets the revocation date
+      if (a_date && !X509_REVOKED_set_revocationDate((X509_REVOKED *) entry, a_date)) {
+        PKI_ERROR(PKI_ERR_GENERAL, "Can not assign revocation date");
+        goto err;
       }
 
       // All Ok here
@@ -473,7 +472,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
       // Error While assigning the serial
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not assign the serial (%s)", serial);
       goto err;
-          }
+    }
 
   } else {
 
@@ -482,8 +481,8 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
     goto err;
   }
 
-  if (reason != PKI_CRL_REASON_UNSPECIFIED)
-  {
+  if (reason != PKI_CRL_REASON_UNSPECIFIED) {
+
     int supported_reason = -1;
     ASN1_ENUMERATED *rtmp = ASN1_ENUMERATED_new();
 
@@ -491,18 +490,16 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
     {
       case PKI_CRL_REASON_CERTIFICATE_HOLD:
       case PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT:
-        if (!X509_REVOKED_add1_ext_i2d(
-          entry,
-          NID_hold_instruction_code,
-          PKI_OID_get("holdInstructionReject"), 
-                  0, 0)) {
+        if (!X509_REVOKED_add1_ext_i2d(entry,
+                                       NID_hold_instruction_code,
+                                       PKI_OID_get("holdInstructionReject"), 0, 0)) {
+	  PKI_ERROR(PKI_ERR_X509_CRL, "Can not add holdInstructionReject");
           goto err;
         }
 
-        if (revDate && !X509_REVOKED_add1_ext_i2d(
-            entry,
-            NID_invalidity_date,
-            (PKI_TIME *)revDate, 0, 0)) {
+        if (revDate && !X509_REVOKED_add1_ext_i2d(entry,
+            NID_invalidity_date, (PKI_TIME *)revDate, 0, 0)) {
+	    PKI_ERROR(PKI_ERR_X509_CRL, "Can not add invalidity date");
           goto err;
         }
 
@@ -551,12 +548,14 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
       case PKI_CRL_REASON_REMOVE_FROM_CRL:
       case PKI_CRL_REASON_PRIVILEGE_WITHDRAWN:
       case PKI_CRL_REASON_AA_COMPROMISE:
+        PKI_ERROR(PKI_ERR_GENERAL, "CRL Reason Not Implemented Yet %d", reason);
+	break;
 
       default:
         PKI_ERROR(PKI_ERR_GENERAL, "CRL Reason Unknown %d", reason);
         supported_reason = -1;
         break;
-    };
+    }
 
     if (supported_reason >= 0)
     {

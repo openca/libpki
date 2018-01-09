@@ -85,30 +85,40 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
   {
     subj = PKI_X509_NAME_new ( subj_s );
   }
-  else if ( conf )
+  else if (conf || req)
   {
     char *tmp_s = NULL;
 
-    if(( tmp_s = PKI_CONFIG_get_value( conf, 
-          "/profile/subject/dn")) != NULL )
-    {
-      subj = PKI_X509_NAME_new ( tmp_s );
-      PKI_Free ( tmp_s );
-    }
-    else
-    {
-      subj = PKI_X509_NAME_new( "" );
-    }
-  }
-  else if ( req )
-  {
     const PKI_X509_NAME * req_subj = NULL;
 
-    /* Copy the name from the request */
-    if ((req_subj = PKI_X509_REQ_get_data(req, 
-				    PKI_X509_DATA_SUBJECT)) != NULL) {
-	    subj = PKI_X509_NAME_dup(req_subj);
+    // Let's use the configuration option first
+    if (conf) {
+
+      // Get the value of the DN, if present
+      if ((tmp_s = PKI_CONFIG_get_value( conf, 
+                                 "/profile/subject/dn")) != NULL ) {
+        // Builds from the DN in the config  
+        subj = PKI_X509_NAME_new(tmp_s);
+        PKI_Free ( tmp_s );
+      }
     }
+
+    // If we still do not have a name, let's check
+    // the request for one
+    if (req && !subj) {
+
+      const PKI_X509_NAME * req_subj = NULL;
+
+      // Copy the name from the request
+      if ((req_subj = PKI_X509_REQ_get_data(req, 
+				    PKI_X509_DATA_SUBJECT)) != NULL) {
+        subj = PKI_X509_NAME_dup(req_subj);
+      }
+    }
+
+    // If no name is provided, let's use an empty one
+    // TODO: Shall we remove this and fail instead ?
+    if (!subj) subj = PKI_X509_NAME_new( "" );
   }
   else
   {
@@ -123,7 +133,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
     }
   }
 
-  if( !subj ) {
+  if (!subj) {
     PKI_ERROR(PKI_ERR_X509_CERT_CREATE_SUBJECT, subj_s );
     goto err;
   }
@@ -329,7 +339,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
   /* Set the end date in a year */
   if (X509_gmtime_adj(X509_get_notAfter(val),(long int) validity) == NULL)
   {
-    PKI_log_debug("ERROR, can not set notAfter field!");
+    PKI_DEBUG("ERROR: can not set notAfter field!");
     goto err;
   }
 
@@ -337,12 +347,11 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
      public part of the PKI_X509_CERT */
   if (req)
   {
-    certPubKeyVal = (PKI_X509_KEYPAIR_VALUE *) PKI_X509_REQ_get_data ( req, 
-          PKI_X509_DATA_KEYPAIR_VALUE );
+    certPubKeyVal = (PKI_X509_KEYPAIR_VALUE *) 
+       PKI_X509_REQ_get_data(req, PKI_X509_DATA_KEYPAIR_VALUE);
 
-    if( !certPubKeyVal )
-    {
-      PKI_log_debug("ERROR, can not get pubkey from req!");
+    if( !certPubKeyVal ) {
+      PKI_DEBUG("ERROR, can not get pubkey from req!");
       goto err;
     }
   }
@@ -368,18 +377,18 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
 
         if((dgst = PKI_ALGOR_get_digest( myAlg )) != NULL )
         {
-          PKI_log_debug("Got Signing Algorithm: %s, %s",
+          PKI_DEBUG("Got Signing Algorithm: %s, %s",
             PKI_DIGEST_ALG_get_parsed(dgst), PKI_ALGOR_get_parsed(myAlg));
           digest = dgst;
         }
         else
         {
-          PKI_log_debug("Can not parse digest algorithm from %s", tmp_s);
+          PKI_DEBUG("Can not parse digest algorithm from %s", tmp_s);
         }
       }
       else
       {
-        PKI_log_debug("Can not parse key algorithm from %s", tmp_s);
+        PKI_DEBUG("Can not parse key algorithm from %s", tmp_s);
       }
       PKI_Free ( tmp_s );
     }
@@ -436,7 +445,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
 
   if (!X509_set_pubkey(val, certPubKeyVal))
   {
-    PKI_log_debug("ERROR, can not set pubkey in cert!");
+    PKI_DEBUG("ERROR, can not set pubkey in cert!");
     goto err;
   }
 
@@ -448,24 +457,21 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
       goto err;
     }
 
-    PKI_TOKEN_set_cert ( tk, ret );
+    PKI_TOKEN_set_cert(tk, ret);
 
-    if (ca_cert)
-    {
+    if (ca_cert) {
       PKI_TOKEN_set_cacert(tk, (PKI_X509_CERT *)ca_cert);
-    }
-    else
-    {
-      PKI_TOKEN_set_cacert ( tk, (PKI_X509_CERT *)ret );
+    } else {
+      PKI_TOKEN_set_cacert(tk, (PKI_X509_CERT *)ret);
     }
 
-    if (req) PKI_TOKEN_set_req ( tk, (PKI_X509_REQ *)req );
+    if (req) PKI_TOKEN_set_req(tk, (PKI_X509_REQ *)req );
     if (kPair) PKI_TOKEN_set_keypair ( tk, (PKI_X509_KEYPAIR *)kPair );
 
     rv = PKI_X509_EXTENSIONS_cert_add_profile(conf, oids, ret, tk);
     if (rv != PKI_OK)
     {
-      PKI_log_debug( "ERROR, can not set extensions!");
+      PKI_DEBUG( "ERROR, can not set extensions!");
 
       tk->cert = NULL;
       tk->cacert = NULL;
@@ -771,7 +777,11 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
       break;
 
     case PKI_X509_DATA_SIGNATURE:
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+      ret = (tmp_x)->signature;
+#else
       ret = &(tmp_x)->signature;
+#endif
       break;
 
     // Signature Algorithm within the certInfo structure

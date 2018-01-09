@@ -102,13 +102,14 @@ PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject,
 			char *profile_s, PKI_TOKEN *px_tk );
 
 /* TOKEN profile ops */
-int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr );
+int PKI_TOKEN_load_profiles(PKI_TOKEN *tk, char *urlStr);
+int PKI_TOKEN_clear_profiles(PKI_TOKEN * tk);
 int PKI_TOKEN_add_profile( PKI_TOKEN *tk, PKI_X509_PROFILE *profile );
 PKI_X509_PROFILE *PKI_TOKEN_search_profile( PKI_TOKEN *tk, char *profile_s );
 
 /* TOKEN Slot */
-int PKI_TOKEN_use_slot ( PKI_TOKEN *tk, long num );
-int PKI_TOKEN_print_info ( PKI_TOKEN *tk );
+int PKI_TOKEN_use_slot(PKI_TOKEN *tk, long num);
+int PKI_TOKEN_print_info(PKI_TOKEN *tk);
 
 #endif
 

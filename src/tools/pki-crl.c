@@ -63,12 +63,13 @@ void usage ( void ) {
 }
 
 PKI_X509_CRL_REASON get_rev_instruction( char *st ) {
+
 	PKI_X509_CRL_REASON ret = PKI_CRL_REASON_UNSPECIFIED;
 
-	if (!st) return ret;
+	if (!st || strlen(st) == 0) return ret;
 
 	if( strcmp_nocase( st, "keyCompromise") == 0 ) {
-		ret = PKI_CRL_REASON_KEY_COMPROMISE;
+	ret = PKI_CRL_REASON_KEY_COMPROMISE;
 	} else if( strcmp_nocase( st, "caCompromise") == 0 ) {
     	ret = PKI_CRL_REASON_CA_COMPROMISE;
 	} else if( strcmp_nocase( st, "affiliationChanged") == 0 ) {
@@ -190,20 +191,23 @@ int main (int argc, char *argv[] ) {
 			}
 			entry_s=strdup(argv[++i]);
 
-			if((idx = strchr( entry_s, ':' )) != NULL ) {
+			if ((idx = strchr( entry_s, ':')) != NULL) {
 				char *reason_s = NULL;
 				*idx = '\x0';
 				idx++;
 				reason_s = idx;
 				instruction = get_rev_instruction ( reason_s );
-			};
+			} else {
+				instruction = PKI_CRL_REASON_UNSPECIFIED;
+			}
 
-			if((crlEntry = PKI_X509_CRL_ENTRY_new_serial ( entry_s,
-            			instruction, NULL, NULL )) == NULL ) {
-        		fprintf(stderr, "ERROR, can not generate CRL entry from -entry %s!\n\n",
+			if ((crlEntry = PKI_X509_CRL_ENTRY_new_serial(entry_s,
+            						instruction, NULL, NULL )) == NULL ) {
+        			fprintf(stderr, "ERROR, can not generate CRL entry from -entry %s!\n\n",
 					entry_s);
-        		exit(1);
-    		}
+        			exit(1);
+    			}
+
 			if( PKI_STACK_X509_CRL_ENTRY_push( entryStack, crlEntry ) == PKI_ERR ) {
 				fprintf(stderr, "ERROR, can not add entry %s to CRL "
 					"entries' stack!\n\n", entry_s);

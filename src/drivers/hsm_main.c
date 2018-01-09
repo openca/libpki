@@ -619,7 +619,7 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get signature data");
 	}
 
-	if ( signature->data ) PKI_Free ( signature->data );
+	// if (signature->data) PKI_Free(signature->data);
 
 	signature->data   = sig->data;
 	signature->length = (int) sig->size;

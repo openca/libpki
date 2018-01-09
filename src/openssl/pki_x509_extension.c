@@ -121,8 +121,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	   The corresponding XML should be:
 
 		<pki:extension name=".." critical=".." >
-		   <pki:value name="" type=".." tag=".."> .. </pki:value>
-		   <pki:value name="" type=".." tag=".."> .. </pki:value>
+		   <pki:value type=".." tag=".." oid=".."> .. </pki:value>
+		   <pki:value type=".." tag=".." oid=".."> .. </pki:value>
 		</pki:extension>
 
 	  */
@@ -154,19 +154,19 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 		return NULL;
 	}
 
-	if((crit_s = xmlGetProp((PKI_CONFIG_ELEMENT *)extNode, BAD_CAST "critical" )) != NULL ) {
-		if( strncmp_nocase( (char *) crit_s, "n", 1 ) == 0) {
-			crit = 0;
-		} else {
+	if ((crit_s = xmlGetProp((PKI_CONFIG_ELEMENT *)extNode, BAD_CAST "critical" )) != NULL ) {
+
+		if( strncmp_nocase((char *) crit_s, "y", 1 ) == 0) {
 			crit = 1;
+		} else {
+			crit = 0;
 		}
 	}
 
 	if((name_s = xmlGetProp((PKI_CONFIG_ELEMENT *)extNode, BAD_CAST "name" )) == NULL ) {
-		PKI_log_debug("ERROR, no name property in node %s", 
-							extNode->name);
-		if( crit_s ) xmlFree ( crit_s );
-		return (NULL);
+		PKI_DEBUG("ERROR: no name property in node %s", extNode->name);
+		if (crit_s) xmlFree(crit_s);
+		return NULL;
 	}
 
 	if ((oid = PKI_OID_get((char *) name_s)) == NULL)
@@ -191,12 +191,14 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 		return( NULL );
 	}
 
-	memset( valString, 0, BUFF_MAX_SIZE );
+	memset(valString, 0, BUFF_MAX_SIZE);
 
-	if( crit == 1 ) snprintf( valString, BUFF_MAX_SIZE -1, "%s", "critical" );
+	if (crit == 1) snprintf(valString, BUFF_MAX_SIZE-1, "%s", "critical");
 
 	for (valNode = extNode->children; valNode; valNode = valNode->next)
 	{
+		PKI_DEBUG("Building %s Extension", name_s);
+
 		if ((valNode->type == XML_ELEMENT_NODE) &&
 				((strncmp_nocase((char *)(valNode->name),"value",5)) == 0))
 		{
@@ -213,10 +215,9 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 				/* Let's be sure the OID is created */
 				if((oid = PKI_CONFIG_OID_search((PKI_CONFIG *)oids, 
 						(char *) value_s)) == NULL ) {
-					PKI_log_debug ("WARNING, no oid "
-						"created for %s!", oid_s );
+					PKI_DEBUG("No oid created for %s!", oid_s );
 				} else {
-					PKI_OID_free ( oid );
+					PKI_OID_free(oid);
 				}
 			}
 
@@ -297,20 +298,21 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	conf = NCONF_new( NULL );
 	X509V3_set_nconf(&v3_ctx, conf);
 
-	if((envValString = get_env_string( valString )) != NULL ) {
-		PKI_log_debug("EXT STRING => %s=%s", name_s, envValString);
-		ext = X509V3_EXT_conf(NULL, &v3_ctx, (char *) name_s, 
-						(char *) envValString);
-		PKI_Free ( envValString );
-	} else {
+	if (valString) {
 		ext = X509V3_EXT_conf(NULL, &v3_ctx, (char *) name_s, 
 						(char *) valString);
+	} else if ((envValString = get_env_string(valString)) != NULL) {
+		ext = X509V3_EXT_conf(NULL, &v3_ctx, (char *) name_s, 
+						(char *) envValString);
+		PKI_Free(envValString);
 	}
 
-	if( !ext ) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 
-			ERR_error_string(ERR_get_error(), NULL ));
-		return NULL;
+	if (!ext) {
+		PKI_DEBUG("Can not generate the extension value from (%s)", 
+			valString);
+		PKI_ERROR(PKI_ERR_X509_CERT_CREATE_EXT, 
+                           ERR_error_string(ERR_get_error(), NULL));
+		goto err;
 	}
 
         if(( ret = PKI_X509_EXTENSION_new()) == NULL ) {
@@ -322,6 +324,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	ret->value = ext;
 	ret->oid = X509_EXTENSION_get_object(ext);
 
+err:
 	if( name_s ) xmlFree ( name_s );
 	if( crit_s ) xmlFree (crit_s );
 

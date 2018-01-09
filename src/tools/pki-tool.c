@@ -544,7 +544,7 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	if( !infile ) infile = "stdin";
+	if (!infile) infile = "stdin";
 
 	if((tk = PKI_TOKEN_new_null()) == NULL ) {
 		printf("ERROR, can not allocate token!\n\n");
@@ -555,7 +555,7 @@ int main (int argc, char *argv[] ) {
 		printf("Loading Token .. ");
 		fflush( stdout );
 	}
-	if(( PKI_TOKEN_init( tk, config, token_name )) == PKI_ERR) {
+	if(( PKI_TOKEN_init(tk, config, token_name)) == PKI_ERR) {
 		printf("ERROR, can not load token (enable debug for "
 							"details)!\n\n");
 		exit(1);
@@ -564,7 +564,7 @@ int main (int argc, char *argv[] ) {
 
 	if( batch ) {
 		PKI_TOKEN_cred_set_cb ( tk, NULL, NULL );
-	};
+	}
 
 	if( token_name == NULL ) {
 		if( hsm_name ) {
@@ -975,13 +975,13 @@ int main (int argc, char *argv[] ) {
 
 		if (verbose) printf("* Generating a new Certificate:\n");
 
-		if ( !infile ) 
+		if (!infile) 
 		{
 			printf("\nERROR, '-in <req>' is required!\n\n");
 			exit(1);
 		}
 
-		if( PKI_TOKEN_load_req ( tk, infile ) == PKI_ERR )
+		if (PKI_TOKEN_load_req ( tk, infile ) == PKI_ERR)
 		{
 			printf("\nERROR, can not load request %s!\n\n", infile);
 			return ( 1 );
@@ -1005,36 +1005,39 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if ( selfsign == 1 ) {
-			if ( verbose ) printf ("  - Self Signing "
+			if (verbose) printf("  - Self Signing "
 							"certificate .... ");
-			if((PKI_TOKEN_self_sign( tk, subject, serial, 
-					validity, profile )) == PKI_ERR ) {
+			if ((PKI_TOKEN_self_sign(tk, subject, serial, 
+						validity, profile )) == PKI_ERR ) {
 				printf("ERROR, can not self sign certificate!\n");
 				return(1);
 			}
-			if ( verbose ) printf("Ok.\n");
+
+			if (verbose) printf("Ok.\n");
 
 			if(verbose) {
 				printf("  - Writing Certificate to (%s)... ",
 								outfile );
 				fflush(stdout);
-			};
+			}
 
-			if ( outfile == NULL ) {
-				if((outfile = tk->cert_id) == NULL ) {
-					if(tk->config) {
-						if((outfile = PKI_CONFIG_get_value(tk->config, 
-						"/tokenConfig/cert")) == NULL) {
+			if (outfile == NULL) {
+				if ((outfile = tk->cert_id) == NULL ) {
+					if (tk->config) {
+						if ((outfile = PKI_CONFIG_get_value(tk->config, 
+								"/tokenConfig/cert")) == NULL) {
 							outfile = "stdout";
-						};
-					};
-				};
-			};
+						}
+					} else {
+						outfile = "stdout";
+					}
+				}
+			}
 
 			if((PKI_TOKEN_export_cert( tk, outfile,
 					PKI_DATA_FORMAT_PEM )) == PKI_ERR ) {
 				printf("ERROR,can not save cert in "
-							"certificate.pem!\n");
+							"'%s'\n", outfile);
 				return(1);
 			}
 			if ( verbose ) printf("Ok.\n");

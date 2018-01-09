@@ -785,10 +785,9 @@ int PKI_TOKEN_init(PKI_TOKEN *tk, char *conf_dir, char *tk_name)
 	PKI_CONFIG *oids = NULL;
 	char * homedir = NULL;
 
-	if( !tk ) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
 
-	if( tk->config_dir )
-	{
+	if( tk->config_dir ) {
 		PKI_Free ( tk->config_dir );
 		tk->config_dir = NULL;
 	}
@@ -2319,16 +2318,14 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 
 	PKI_X509_PROFILE *cert_profile = NULL;
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
-	}
+	if (!tk || !tk->keypair) return (PKI_ERR);
 
-	if( !tk || !tk->keypair ) return (PKI_ERR);
+	if (PKI_TOKEN_login(tk) != PKI_OK) return PKI_ERR;
 
-	if( tk->cert ) {
+	if (tk->cert) {
 		/* ERROR, a Token Certificate already exists! */
 		PKI_log(PKI_LOG_WARNING, "WARNING: A cert already exists in token when "
-					"calling PKI_TOKEN_self_sign()!");
+					 "calling PKI_TOKEN_self_sign()!");
 		PKI_X509_CERT_free ( tk->cert );
 	}
 
@@ -2347,7 +2344,7 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 	}
 
-	if(!serial) serial = "0";
+	if (!serial) serial = "0";
 
 	tk->cert = PKI_X509_CERT_new ( NULL, tk->keypair, tk->req, subject,
 		serial, validity, cert_profile, tk->algor, tk->oids, tk->hsm );
@@ -2362,26 +2359,28 @@ PKI_X509_CERT * PKI_TOKEN_issue_cert(PKI_TOKEN *tk, char *subject, char *serial,
 
 	PKI_X509_PROFILE *cert_profile = NULL;
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
+	if (!tk || !tk->keypair) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
 	}
 
-	if( !tk || !tk->keypair ) return (PKI_ERR);
+	if (PKI_TOKEN_login(tk) != PKI_OK) {
+		PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
+		return NULL;
+	}
 
 	if( !tk->cert ) {
 		/* ERROR, a Token Certificate already exists! */
-		PKI_log_debug("%s:%d::ERROR, no token cert loaded", 
-							__FILE__, __LINE__ );
-		return (PKI_ERR);
+		PKI_ERROR(PKI_ERR_X509_CERT_CREATE,
+			"No certificate available in signing token!");
+		return NULL;
 	}
 
 	if( profile_s ) {
 		if((cert_profile = PKI_TOKEN_search_profile (tk, profile_s ))
-							== NULL) {;
-
-			/* Error, the requested profile does not
-			   exists! */
-			return (PKI_ERR);
+							== NULL) {
+			PKI_DEBUG("Can not find requested profile (%s)", profile_s);
+			return NULL;
 		}
 	}
 
@@ -2532,6 +2531,18 @@ PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject,
 	return ( px_tk );
 }
 
+int PKI_TOKEN_clear_profiles(PKI_TOKEN * tk) {
+
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	if (tk->profiles) {
+		PKI_STACK_X509_PROFILE_free_all(tk->profiles);
+		tk->profiles = NULL;
+	}
+
+	return PKI_OK;
+}
+
 int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr )
 {
 	struct dirent *dd = NULL;
@@ -2600,7 +2611,7 @@ int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr )
 
 				snprintf(fullpath, fullsize, "%s/%s", url->addr, filename );
 
-				PKI_STACK_X509_PROFILE_push( tk->profiles, PKI_X509_PROFILE_load ( fullpath ));
+				PKI_TOKEN_add_profile(tk, PKI_X509_PROFILE_load ( fullpath ));
 
 				PKI_Free ( fullpath );
 				fullpath = NULL;
@@ -2627,7 +2638,8 @@ int PKI_TOKEN_add_profile( PKI_TOKEN *tk, PKI_X509_PROFILE *profile )
 			}
 	}
 
-	PKI_STACK_X509_PROFILE_push( tk->profiles, profile );
+	PKI_STACK_X509_PROFILE_ins_num(tk->profiles, 0, profile);
+	// PKI_STACK_X509_PROFILE_push( tk->profiles, profile );
 
 	return ( PKI_OK );
 }

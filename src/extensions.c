@@ -29,8 +29,8 @@ int PKI_X509_EXTENSIONS_cert_add_profile(const PKI_X509_PROFILE *conf,
 		}
 		else
 		{
-			PKI_log_err("%s()::Can not create EXTENSION number %d",
-				    __PRETTY_FUNCTION__, i);
+			return PKI_ERROR(PKI_ERR_X509_CERT_CREATE_EXT, 
+				"Can not create EXTENSION Num. %d", i);
 		}
 	}
 
@@ -60,7 +60,10 @@ int PKI_X509_EXTENSIONS_req_add_profile(const PKI_X509_PROFILE *conf,
 			ret = PKI_X509_REQ_add_extension(req, ext);
 			PKI_log_debug("Extension %d added, result is %d", i, ret );
 		}
-		else PKI_log_debug ("Can not create EXTENSION number %d", i);
+		else 
+		{
+			PKI_DEBUG("Can not create EXTENSION number %d", i);
+		}
 	}
 
 	return PKI_OK;

@@ -375,9 +375,12 @@ int PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj )
 	}
 
 	new_n->next = n;
-	new_n->prev = n->prev;
 
-	n->prev = new_n;
+	if (n) {
+		new_n->prev = n->prev;
+		n->prev = new_n;
+	} 
+
 
 	if (num == 0)
 	{
