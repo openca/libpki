@@ -89,8 +89,6 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
   {
     char *tmp_s = NULL;
 
-    const PKI_X509_NAME * req_subj = NULL;
-
     // Let's use the configuration option first
     if (conf) {
 

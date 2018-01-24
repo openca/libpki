@@ -233,20 +233,21 @@ int HSM_OPENSSL_init( HSM *driver, PKI_CONFIG *conf ) {
 	}
 
 	/* No need for initialization of the software driver */
-	return (PKI_OK);
+	return PKI_OK;
 }
 
 /*!
  * \brief Sets the fips operation mode when the parameter is != 0,
  * otherwise it sets the HSM in non-fips mode
  */
-int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k)
-{
+int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k) {
+
 #ifdef OPENSSL_FIPS
-	return FIPS_mode_set(k);
+    return (FIPS_mode_set(k) == 1 ? PKI_OK : PKI_ERR);
 #else
-	return PKI_ERR;
+    return PKI_ERR;
 #endif
+
 }
 
 /*!
@@ -256,9 +257,9 @@ int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k)
 int HSM_OPENSSL_is_fips_mode(const HSM *driver)
 {
 #ifdef OPENSSL_FIPS
-	return FIPS_mode();
+    return (FIPS_mode() == 0 ? PKI_ERR : PKI_OK);
 #else
-	return PKI_ERR;
+    return PKI_ERR;
 #endif
 
 }

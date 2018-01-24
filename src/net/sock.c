@@ -113,8 +113,11 @@ int _Listen (const char *hostname, int port, PKI_NET_SOCK_TYPE type) {
 	return ( fd );
 
 }
-#ifdef HAVE_GCC_PRAGMA_POP
-# pragma GCC diagnostic pop
+
+#ifndef LIBPKI_TARGET_OSX
+# ifdef HAVE_GCC_PRAGMA_POP
+#  pragma GCC diagnostic pop
+# endif
 #endif
 
 ssize_t _Read (int          fd,
@@ -274,9 +277,13 @@ int inet_connect (const URL *url) {
 
 	return ( sockfd );
 }
-#ifdef HAVE_GCC_PRAGMA_POP
-# pragma GCC diagnostic pop
+
+#ifndef LIBPKI_TARGET_OSX
+# ifdef HAVE_GCC_PRAGMA_POP
+#  pragma GCC diagnostic pop
+# endif
 #endif
+
 
 
 #pragma GCC diagnostic error "-Wconversion" 
@@ -284,8 +291,11 @@ int inet_close ( int fd )
 {
 	return _Close( fd );
 }
-#ifdef HAVE_GCC_PRAGMA_POP
-# pragma GCC diagnostic pop
+
+#ifndef LIBPKI_TARGET_OSX
+# ifdef HAVE_GCC_PRAGMA_POP
+#  pragma GCC diagnostic pop
+# endif
 #endif
 
 /* ----------------------------- Public Functions ----------------------- */
@@ -391,8 +401,11 @@ int PKI_NET_accept(int sock, int timeout ) {
   	}
 	return(n);
 }
-#ifdef HAVE_GCC_PRAGMA_POP
-# pragma GCC diagnostic pop
+
+#ifndef LIBPKI_TARGET_OSX
+# ifdef HAVE_GCC_PRAGMA_POP
+#  pragma GCC diagnostic pop
+# endif
 #endif
 
 /*! \brief Connects to an host and returns the connected socket */
@@ -482,9 +495,12 @@ ssize_t PKI_NET_read (int fd, const void *bufptr, size_t nbytes, int timeout ) {
 	return n;
 }
 
-#ifdef HAVE_GCC_PRAGMA_POP
-# pragma GCC diagnostic pop
+#ifndef LIBPKI_TARGET_OSX
+# ifdef HAVE_GCC_PRAGMA_POP
+#  pragma GCC diagnostic pop
+# endif
 #endif
+
 
 /*! \brief Returns data read from a socket */
 PKI_MEM *PKI_NET_get_data ( int fd, int timeout, size_t max_size ) {

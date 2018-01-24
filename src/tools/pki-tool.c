@@ -174,7 +174,7 @@ void version ( void ) {
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		char *url_s, char *algor_opt, char *profile_s, char *outform, int batch ) {
 
-	int algor_id = 0;
+	// int algor_id = 0;
 
 	char *prompt = NULL;
 	int outFormVal = PKI_DATA_FORMAT_PEM;

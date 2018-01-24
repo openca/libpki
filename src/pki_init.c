@@ -242,7 +242,7 @@ int PKI_set_fips_mode(int k)
 	// intended mode for correctly initializing new HSMs
 	if (HSM_set_fips_mode(NULL, k) == PKI_ERR)
 	{
-		PKI_log_err("Can not set the default HSM in FIPS mode!");
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not set the default (software) HSM in FIPS mode!");
 
 		_libpki_fips_mode = 0;
 		return PKI_ERR;

@@ -63,7 +63,7 @@ int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
 		if ((EVP_DigestFinal_ex(md_ctx, *dst_buf, NULL)) == 1) {
 
 			// All Ok
-			digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
+			digest_size = EVP_MD_CTX_size(md_ctx);
 		}
 
 		// Let's clean everything up
@@ -74,7 +74,6 @@ int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
 	// If we have an error, let's return '0'
 	if (digest_size <= 0) goto err;
 
-end:
 	// Return the calculated value
 	return digest_size;
 
@@ -104,13 +103,6 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 		  	   const unsigned char  *data,
 			   size_t                size ) {
 
-	EVP_MD_CTX * md_ctx = NULL;
-	char * buf = NULL;
-	size_t digest_size = 0;
-
-	// Thread Safety
-	PKI_RWLOCK lock;
-
 	// Return Object
 	PKI_DIGEST *ret = NULL;
 
@@ -120,11 +112,15 @@ PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg,
 	// Allocates the memory for the return PKI_DIGEST
 	if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
 
+		int dgst_size = 0;
+
 		// Fills in the data and the size of the digest
-		if ((ret->size = PKI_DIGEST_new_value(&ret->digest, 
+		if ((dgst_size = PKI_DIGEST_new_value(&ret->digest, 
 						alg, data, size)) <= 0) {
 			goto err;
 		}
+
+		ret->size = (size_t) dgst_size;
 	}
 
 	// All done

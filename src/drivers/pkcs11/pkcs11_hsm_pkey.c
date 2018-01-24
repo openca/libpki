@@ -52,11 +52,14 @@ static CK_MECHANISM EC_MECH_LIST[EC_MECH_LIST_SIZE] = {
 	{CKM_EC_KEY_PAIR_GEN, NULL_PTR, 0}
 };
 
+#ifdef __DISABLED__
+// Currently Disabled
 // Definitions for the DSA Key Generation Mechs
 #define DSA_MECH_LIST_SIZE 1
 static CK_MECHANISM DSA_MECH_LIST[DSA_MECH_LIST_SIZE] = {
 	{CKM_DSA_KEY_PAIR_GEN, NULL_PTR, 0}
-};
+}
+#endif
 
 /* ---------------------------- Functions -------------------------------- */
 
@@ -405,9 +408,6 @@ PKI_EC_KEY * _pki_pkcs11_ecdsakey_new(PKI_KEYPARAMS  * kp,
 
 	CK_RV rv;
 
-	CK_MECHANISM EC_MECH = {
-		CKM_EC_KEY_PAIR_GEN, NULL_PTR, 0 };
-
 	CK_ULONG i = 0;
 	CK_ULONG n = 0;
 
@@ -421,6 +421,9 @@ PKI_EC_KEY * _pki_pkcs11_ecdsakey_new(PKI_KEYPARAMS  * kp,
 
 	BIGNUM *bn = NULL;
 	BIGNUM *id_num = NULL;
+
+	CK_MECHANISM * EC_MECH_PTR = NULL;
+	int   idx    = 0;
 
 	char *id     = NULL;
 	int   id_len = 8; 
@@ -439,6 +442,37 @@ PKI_EC_KEY * _pki_pkcs11_ecdsakey_new(PKI_KEYPARAMS  * kp,
 		};
 	} else {
 		bits = PKI_EC_KEY_DEFAULT_SIZE;
+	}
+
+	// Look for a supported key generation mechanism
+	for (idx = 0; idx < EC_MECH_LIST_SIZE; idx++) {
+
+		// Checks if the mechanism is supported
+		if (HSM_PKCS11_check_mechanism(lib, 
+				EC_MECH_LIST[idx].mechanism) == PKI_OK) {
+
+			// Set the pointer to the supported mechanism
+			EC_MECH_PTR = &EC_MECH_LIST[idx];
+
+			// Debugging Information
+			PKI_DEBUG("Found EC KEY GEN MECHANISM 0x%8.8X",
+				EC_MECH_LIST[idx].mechanism);
+
+			// Breaks out of the loop
+			break;
+
+		} else {
+
+			// Let's provide debug information for not-supported mechs
+			PKI_DEBUG("EC KEY GEN MECHANISM 0x%8.8X not supported",
+				RSA_MECH_LIST[idx].mechanism);
+		}
+	}
+
+	// If no key gen algors are supported, abort
+	if (EC_MECH_PTR == NULL) {
+		PKI_ERROR(PKI_ERR_HSM_KEYPAIR_GENERATE, "No KeyGen Mechanisms supported!");
+		return NULL;
 	}
 
 PKI_DEBUG("BITS FOR KEY GENERATION %lu (def: %lu)", bits, PKI_EC_KEY_DEFAULT_SIZE);
@@ -530,7 +564,7 @@ PKI_DEBUG("BITS FOR KEY GENERATION %lu (def: %lu)", bits, PKI_EC_KEY_DEFAULT_SIZ
 
 	PKI_log_debug("Generating a new Key ... ");
 	rv = lib->callbacks->C_GenerateKeyPair (
-			lib->session, &EC_MECH, 
+			lib->session, EC_MECH_PTR, 
 			pubTemp, n,
 			privTemp, i,
 			handler_pubkey, 
@@ -1189,7 +1223,7 @@ int HSM_PKCS11_ecdsa_sign ( int type, const unsigned char *m, unsigned int m_len
 	CK_OBJECT_HANDLE *pHandle = NULL;
 	HSM *driver = NULL;
 
-	CK_MECHANISM RSA_MECH = { CKM_RSA_PKCS, NULL_PTR, 0 };
+	CK_MECHANISM EC_MECH = { CKM_RSA_PKCS, NULL_PTR, 0 };
 
 	unsigned char *p = NULL;
 	unsigned char *s = NULL;
