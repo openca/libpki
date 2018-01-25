@@ -62,16 +62,16 @@ static PKI_LOG _log_st = {
 	NULL,
 
 	/* Init Callback Pointer */
-	_pki_syslog_init,
+	NULL,
 
 	/* Add Callback Pointer */
-	_pki_syslog_add,
+	NULL,
 
 	/* Finalize Callback Pointer */
-	_pki_syslog_finalize,
+	NULL,
 
 	/* Sign Callback Pointer */
-	_pki_syslog_entry_sign,
+	NULL,
 };
 
 /*!
@@ -131,30 +131,40 @@ int PKI_log_init ( PKI_LOG_TYPE type, PKI_LOG_LEVEL level, char *resource,
 
 	/* Let's use different functions for different log types */
 	switch ( type ) {
-		case PKI_LOG_TYPE_SYSLOG:
+
+		case PKI_LOG_TYPE_SYSLOG: {
 			_log_st.init = _pki_syslog_init;
 			_log_st.add = _pki_syslog_add;
 			_log_st.finalize = _pki_syslog_finalize;
-			break;
-		case PKI_LOG_TYPE_STDOUT:
+			_log_st.entry_sign = _pki_syslog_entry_sign;
+		} break;
+
+		case PKI_LOG_TYPE_STDOUT: {
 			_log_st.init = _pki_stdout_init;
 			_log_st.add = _pki_stdout_add;
 			_log_st.finalize = _pki_stdout_finalize;
-			break;
-		case PKI_LOG_TYPE_STDERR:
+			_log_st.entry_sign = NULL;
+		} break;
+
+		case PKI_LOG_TYPE_STDERR: {
 			_log_st.init = _pki_stderr_init;
 			_log_st.add = _pki_stderr_add;
 			_log_st.finalize = _pki_stderr_finalize;
-			break;
-		case PKI_LOG_TYPE_FILE:
+			_log_st.entry_sign = NULL;
+		} break;
+
+		case PKI_LOG_TYPE_FILE: {
 			_log_st.init = _pki_file_init;
 			_log_st.add = _pki_file_add;
 			_log_st.finalize = _pki_file_finalize;
-			break;
+			_log_st.entry_sign = NULL;
+		} break;
+
 		case PKI_LOG_TYPE_FILE_XML:
-		default:
+		default: {
 			ret = PKI_ERR;
 			goto err;
+		}
 	}
 
 	if ( _log_st.init ) {
@@ -189,6 +199,13 @@ int PKI_log_end( void )
 		ret = _log_st.finalize ( & _log_st );
 	else
 		ret = PKI_OK;
+
+    _log_st.level = PKI_LOG_NONE;
+    _log_st.flags = PKI_LOG_FLAGS_NONE;
+    _log_st.init = NULL;
+	_log_st.add = NULL;
+	_log_st.finalize = NULL;
+	_log_st.entry_sign = NULL;
 
 	pthread_cond_signal ( &log_cond );
 	pthread_mutex_unlock( &log_mutex );
