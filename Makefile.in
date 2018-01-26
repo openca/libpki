@@ -499,6 +499,7 @@ LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 MAINT = @MAINT@
 
 ########################## BINARY DISTRO STUFF ###########################
@@ -695,8 +696,8 @@ AUX_DIST = \
  	$(ac_aux_dir)/config.sub \
  	$(ac_aux_dir)/install-sh \
 	$(ac_aux_dir)/ltmain.sh \
-	$(ac_aux_dir)/missing \
 	$(ac_aux_dir)/mkinstalldirs \
+	$(ac_aux_dir)/missing \
 	$(ac_aux_dir)/depcomp
 
 M4_EXTRA = \

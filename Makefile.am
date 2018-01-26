@@ -53,8 +53,8 @@ AUX_DIST = \
  	$(ac_aux_dir)/config.sub \
  	$(ac_aux_dir)/install-sh \
 	$(ac_aux_dir)/ltmain.sh \
-	$(ac_aux_dir)/missing \
 	$(ac_aux_dir)/mkinstalldirs \
+	$(ac_aux_dir)/missing \
 	$(ac_aux_dir)/depcomp
 
 M4_EXTRA = \
