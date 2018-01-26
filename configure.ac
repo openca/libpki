@@ -461,8 +461,13 @@ AC_ARG_WITH( package-prefix,
 
 if ! [[ "x$package_prefix_cnf" = "x" ]] ; then
 	package_prefix=$package_prefix_cnf
-else if [[ "x$prefix" = "xNONE" ]] ; then
-		prefix=/usr
+else 
+	if [[ "x$prefix" = "xNONE" ]] ; then
+		if [[ "$DIST_NAME" = "darwin" ]] ; then
+			prefix=/usr/local
+		else
+			prefix=/usr
+		fi
 		package_prefix=${prefix}
 	else
 		package_prefix=${prefix}
@@ -681,9 +686,11 @@ if [[ "x$iphone_build" = "xno" ]] ; then
  		$xml2_prefix/bin:/opt/csw/bin:$PATH:/bin:/usr/bin:/usr/local/bin )
 
 	if ! [[ "x$xml2_config" = "x" ]] ; then
-		if [[ "$DIST_NAME" = "darwin" ]] ; then
+		if [[ "x$DIST_NAME" = "xdarwin" ]] ; then
 			if [[ "$xml2_prefix" = "x" ]] ; then
 				xml2_prefix=/usr
+			else
+				xml2_prefix=`$xml2_config --prefix`
 			fi
 		else
 			xml2_prefix=`$xml2_config --prefix`
