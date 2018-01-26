@@ -1325,7 +1325,7 @@ int PKI_X509_CERT_is_selfsigned(const PKI_X509_CERT *x ) {
 
   ret = PKI_X509_verify ( x, kp );
   PKI_X509_KEYPAIR_free ( kp );
-  
+
   return ret;
 }
 
@@ -1333,8 +1333,7 @@ int PKI_X509_CERT_is_selfsigned(const PKI_X509_CERT *x ) {
 /*! \brief Returns PKI_OK if a certificate is allowed to sign certs */
 
 int PKI_X509_CERT_is_ca(const PKI_X509_CERT *x) {
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
-	return PKI_ERR;
+  return X509_check_ca(x->value);
 }
 
 /*! \brief Returns PKI_OK if a certificate is a Proxy Certificate */

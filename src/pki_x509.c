@@ -245,8 +245,12 @@ PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type,
 		return NULL;
 	}
 
-	ret->value = ret->cb->dup((void *)value );
-
+	if ((ret->value = ret->cb->dup((void *)value)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not duplicate internal value");
+		PKI_X509_free(ret);
+		return NULL;
+	};
+	
 	return ret;
 }
 

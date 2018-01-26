@@ -167,6 +167,7 @@ int main(int argc, char *argv[])
 		printf("ERROR!\n");
 	};
 
+	printf("Self Signed: %d\n", PKI_X509_CERT_is_selfsigned(sigObj));
 	printf("\n");
 
 	return 0;

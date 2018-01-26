@@ -473,56 +473,57 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 
 	if(!kVal) return NULL;
 
-	if((tmp_key = PKI_X509_new_value(PKI_DATATYPE_X509_KEYPAIR,
-			(void *) kVal, NULL)) == NULL) {
-		return NULL;
-	};
+    if ((ret = EVP_PKEY_new()) == NULL) return NULL;
 
-	if((mem = PKI_X509_KEYPAIR_put_mem(tmp_key, PKI_DATA_FORMAT_PEM,
-				NULL, NULL, NULL )) == NULL) {
-		goto err;
-	};
+    if (!EVP_PKEY_copy_parameters(ret, kVal)) return NULL;
 
-	// Let's free the value of the key
-	tmp_key->value = NULL;
-	PKI_X509_KEYPAIR_free ( tmp_key );
-	tmp_key = NULL; // Security
+    switch (EVP_PKEY_type(EVP_PKEY_id(kVal)))
+	{
 
-	// FILE * file = fopen("key.pem", "w+");
-	// fwrite(mem->data, mem->size, 1, file);
-	// fclose(file);
+	    case EVP_PKEY_RSA: {
+	        RSA *rsa = NULL;
+	        if (((rsa = EVP_PKEY_get0_RSA(kVal)) == NULL) ||
+	        	                   (!EVP_PKEY_set1_RSA(ret, rsa))) {
+	        	return NULL;
+	        }
+	    } break;
 
-	// Now generate a new key based on the encoded value
-	if((tmp_key = PKI_X509_KEYPAIR_get_mem(mem, NULL)) == NULL) {
-		if((ret = d2i_PUBKEY(NULL, (const unsigned char **) &(mem->data), 
-				(long) mem->size)) == NULL) {
-			// fprintf(stderr, "[%s:%d] DEBUG\n", __FILE__, __LINE__ );
-			goto err;
-		};
-	};
+	    case EVP_PKEY_DH: {
+			DH *dh = NULL;
+	        if ( ((dh = EVP_PKEY_get0_DH(kVal)) == NULL) ||
+	        	                   (!EVP_PKEY_set1_DH(ret, dh))) {
+	        	return NULL;
+	        }
+	    } break;
 
-	if ( tmp_key ) {
-		ret = tmp_key->value;
-		tmp_key->value = NULL;
-		PKI_X509_KEYPAIR_free ( tmp_key );
-	};
+#ifdef ENABLE_ECDSA
+		case EVP_PKEY_EC: {
+			EC_KEY * ec = NULL;
+			if (((ec = EVP_PKEY_get0_EC_KEY(kVal)) == NULL) ||
+			                     (!EVP_PKEY_set1_EC_KEY(ret, ec))) {
+				return NULL;
+		    }
+		} break;
+#endif
 
-	// Let's free the value of the PKI_MEM
-	if(mem) PKI_MEM_free (mem);
-	mem = NULL;
+#ifdef ENABLE_DSA
+	    case EVP_PKEY_DSA: {
+            DSA *dsa = NULL;
+	        if ( ((dsa = EVP_PKEY_get0_DSA(kVal)) == NULL) ||
+	                             (!EVP_PKEY_set1_DSA(ret, dsa))) {
+	        	return NULL;
+	        }
+	    } break;
+#endif
+
+		default: {
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+			return NULL;
+		} break;
+	}
 
 	return ret;
 
-err:
-
-	if(tmp_key) {
-		tmp_key->value = NULL;
-		PKI_X509_KEYPAIR_free(tmp_key);
-	};
-
-	if( mem ) PKI_MEM_free ( mem );
-
-	return NULL;
 
 };
 
