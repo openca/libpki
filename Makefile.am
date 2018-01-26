@@ -77,8 +77,8 @@ EXTRA_DIST = $(EXTRA_SCRIPTS) $(AUX_DIST) $(INCLUDE_DIST) \
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 acinclude.m4 configure \
 	$(AUX_DIST)
 
-pkgconfig_DATA  = contrib/libpki.pc
-pkgconfigdir    = @libdir@/pkgconfig
+# pkgconfig_DATA  = contrib/libpki.pc contrib/openldap.pc
+# pkgconfigdir    = @libdir@/pkgconfig
 
 # TESTS_ENVIRONMENT = \
 # 	LD_LIBRARY_PATH="@openssl_prefix@/lib:$$LD_LIBRARY_PATH"

@@ -67,7 +67,7 @@
 %define rel     	%{?CUSTOM_RELEASE}%{!?CUSTOM_RELEASE:%RELEASE}
 %define prefix   	/usr
 %define mand		/usr/share/man
-%define openssl_req 	0.9.8
+%define openssl_req 	1.0.1
 %define openldap_req 	2.2
 
 %define working_release %rel.%{disttag}%{distver}
@@ -90,7 +90,10 @@ BuildRoot: @BUILDROOT@
 URL: http://www.openca.org/projects/libpki
 #Docdir: %{prefix}/share
 Prefix: %{prefix}
-Requires: openssl >= %openssl_req libxml2
+BuildRequires: openssl-devel
+BuildRequires: libxml2-devel
+BuildRequires: openldap-devel
+# Requires: openssl libxml2
 
 %description
 OpenCA Labs' Easy to use PKI library.
@@ -144,7 +147,7 @@ make DESTDIR="$RPM_BUILD_ROOT" prefix="%{prefix}" mandir="$RPM_BUILD_ROOT%{mand}
 %{prefix}/bin/pki-*
 %{prefix}/bin/url-*
 %{prefix}/lib64/libpki*
-%{prefix}/lib64/pkgconfig/libpki*
+# %{prefix}/lib64/pkgconfig/libpki*
 %{prefix}/etc/libpki/*
 %{prefix}/etc/pki.conf
 

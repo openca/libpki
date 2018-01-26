@@ -15187,13 +15187,13 @@ fi
 
 
 	if ! [ "x$xml2_config" = "x" ] ; then
-		# if [ "$DIST_NAME" = "darwin" ] ; then
-		# 	if [ "$xml2_prefix" = "x" ] ; then
-		# 		xml2_prefix=/usr
-		# 	fi
-		# else
+		if [ "$DIST_NAME" = "darwin" ] ; then
+			if [ "$xml2_prefix" = "x" ] ; then
+				xml2_prefix=/usr
+			fi
+		else
 			xml2_prefix=`$xml2_config --prefix`
-		# fi
+		fi
 
 		xml2_config=$xml2_config
 	else
@@ -15252,7 +15252,6 @@ fi
 
 
 if ! [ -d "$xml2_prefix/include/libxml2/libxml" ] ; then
-	echo "$xml2_prefix/include/libxml2/libxml"
 	as_fn_error $? "*** ERROR: Missing include files for libxml2! ***" "$LINENO" 5
 fi
 
