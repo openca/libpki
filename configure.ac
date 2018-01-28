@@ -83,7 +83,7 @@ iface_current=$iface_version
 iface_revision=$iface_current
 
 # Oldest Interface Supported
-iface_oldest=80
+iface_oldest=90
 
 # Range of supported interfaces (current - oldest)
 let "iface_age=$iface_current - $iface_oldest"
