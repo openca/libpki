@@ -68,7 +68,7 @@ my_v=$PACKAGE_VERSION
 dnl my_v=`cat IFACE_VERSION`
 
 revision=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]]\.[[0-9]]\.||'`
-$my_v=`echo ${v%.${revision}}`
+$my_v=`echo ${my_v%.${revision}}`
 
 minor=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]].||'`
 tmp=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]]*||'`

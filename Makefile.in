@@ -1588,7 +1588,7 @@ rc3rpm: rc3
 
 pkgbuild:
 	@rm -rf /tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION)
-	@DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION) ./configure --prefix=/usr
+	@DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION) ./configure
 	@$(MAKE) -f Makefile
 	@$(MAKE) -f Makefile man
 	@$(MAKE) DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION) install
