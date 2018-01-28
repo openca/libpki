@@ -64,15 +64,15 @@ fi
 
 AC_SUBST(mybits)
 
-v=$PACKAGE_VERSION
-dnl v=`cat IFACE_VERSION`
+my_v=$PACKAGE_VERSION
+dnl my_v=`cat IFACE_VERSION`
 
-revision=`echo $v | sed -e 's|[[0-9]]\.[[0-9]]\.[[0-9]]\.||'`
-v=`echo ${v%.${revision}}`
+revision=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]]\.[[0-9]]\.||'`
+$my_v=`echo ${v%.${revision}}`
 
-minor=`echo $v | sed -e 's|[[0-9]]\.[[0-9]].||'`
-tmp=`echo $v | sed -e 's|[[0-9]]\.[[0-9]]*||'`
-major=`echo ${v%.$minor} | sed -e 's|^0*||' | sed -e 's|\.||g'`
+minor=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]].||'`
+tmp=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]]*||'`
+major=`echo ${my_v%.$minor} | sed -e 's|^0*||' | sed -e 's|\.||g'`
 
 let "iface_version=$major * 10 + $minor"
 

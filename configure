@@ -2569,14 +2569,14 @@ fi
 
 
 
-v=$PACKAGE_VERSION
+my_v=$PACKAGE_VERSION
 
-revision=`echo $v | sed -e 's|[0-9]\.[0-9]\.[0-9]\.||'`
-v=`echo ${v%.${revision}}`
+revision=`echo $my_v | sed -e 's|[0-9]\.[0-9]\.[0-9]\.||'`
+$my_v=`echo ${v%.${revision}}`
 
-minor=`echo $v | sed -e 's|[0-9]\.[0-9].||'`
-tmp=`echo $v | sed -e 's|[0-9]\.[0-9]*||'`
-major=`echo ${v%.$minor} | sed -e 's|^0*||' | sed -e 's|\.||g'`
+minor=`echo $my_v | sed -e 's|[0-9]\.[0-9].||'`
+tmp=`echo $my_v | sed -e 's|[0-9]\.[0-9]*||'`
+major=`echo ${my_v%.$minor} | sed -e 's|^0*||' | sed -e 's|\.||g'`
 
 let "iface_version=$major * 10 + $minor"
 
@@ -2587,7 +2587,7 @@ iface_current=$iface_version
 iface_revision=$iface_current
 
 # Oldest Interface Supported
-iface_oldest=80
+iface_oldest=90
 
 # Range of supported interfaces (current - oldest)
 let "iface_age=$iface_current - $iface_oldest"
