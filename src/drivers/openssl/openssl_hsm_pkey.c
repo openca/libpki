@@ -467,8 +467,6 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
 
 EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 {
-    PKI_MEM *mem = NULL;
-    PKI_X509_KEYPAIR *tmp_key = NULL;
     EVP_PKEY *ret = NULL;
 
     if(!kVal) return NULL;
