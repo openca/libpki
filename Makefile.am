@@ -192,7 +192,7 @@ snap:
 	@$(MAKE) -f Makefile dist VERSION=SNAP-$(TODAY)
 
 snaprpm: snap
-	@$(MAKE) -f Makefile rpm VERSION="SNAP" RC="$(TODAY)"
+	@$(MAKE) -f Makefile rpm VERSION="$(TODAY)" RC="snap"
 
 rc1:
 	$(MAKE) -f Makefile dist VERSION=$(VERSION)-rc1

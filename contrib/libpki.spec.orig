@@ -51,7 +51,7 @@
 %if %is_ubuntu
 %define dist ubuntu
 %define disttag ub
-%define distver %(cat /etc/issue | grep -o -e '[0-9.]*' | sed -e 's/\\.//' )
+%define pkg_distver %(cat /etc/issue | grep -o -e '[0-9.]*' | sed -e 's/\\.//' )
 %else
 %if %is_centos
 %define dist centos
@@ -59,27 +59,27 @@
 %endif
 %endif
 
-%define distver %(release="`rpm -q --queryformat='%{VERSION}' %{dist}-release 2> /dev/null | tr . : | sed s/://g`" ; if test $? != 0 ; then release="" ; fi ; echo "$release")
+%define pkg_distver %(release="`rpm -q --queryformat='%{VERSION}' %{dist}-release 2> /dev/null | tr . : | sed s/://g`" ; if test $? != 0 ; then release="" ; fi ; echo "$release")
 %define packer %(finger -lp `echo "$USER"` | head -n 1 | cut -d ' ' -f 2)
 
 %define ver      	@RPM_VERSION@
 %define RELEASE 	@RC@
-%define rel     	%{?CUSTOM_RELEASE}%{!?CUSTOM_RELEASE:%RELEASE}
+%define pkg_rel     	%{?CUSTOM_RELEASE}%{!?CUSTOM_RELEASE:%RELEASE}
 %define prefix   	/usr
 %define mand		/usr/share/man
 %define openssl_req 	1.0.1
 %define openldap_req 	2.2
 
-%define working_release %rel.%{disttag}%{distver}
+%define working_release %pkg_rel.%{disttag}%{pkg_distver}
 
 %if %is_ubuntu
-%define working_release %rel.ubu
+%define working_release %pkg_rel.ubu
 %endif
 
 Summary: OpenCA PKI development library
 Name: libpki
 Version: %ver
-# Release: %rel.%{disttag}%{distver}
+# Release: %rel.%{disttag}%{pkg_distver}
 Release: %{working_release}
 License: OpenCA License (BSD Style)
 Group: Security/PKI

@@ -480,7 +480,11 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 
         case EVP_PKEY_RSA: {
             RSA *rsa = NULL;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if (((rsa = EVP_PKEY_get0_RSA(kVal)) == NULL) ||
+#else
+            if (((rsa = (RSA *)EVP_PKEY_get0(kVal)) == NULL) ||
+#endif
                                    (!EVP_PKEY_set1_RSA(ret, rsa))) {
                 return NULL;
             }
@@ -488,7 +492,11 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 
         case EVP_PKEY_DH: {
             DH *dh = NULL;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if ( ((dh = EVP_PKEY_get0_DH(kVal)) == NULL) ||
+#else
+            if ( ((dh = (DH *)EVP_PKEY_get0(kVal)) == NULL) ||
+#endif
                                    (!EVP_PKEY_set1_DH(ret, dh))) {
                 return NULL;
             }
@@ -497,7 +505,11 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 #ifdef ENABLE_ECDSA
         case EVP_PKEY_EC: {
             EC_KEY * ec = NULL;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if (((ec = EVP_PKEY_get0_EC_KEY(kVal)) == NULL) ||
+#else
+            if (((ec = (EC_KEY *)EVP_PKEY_get0(kVal)) == NULL) ||
+#endif
                                  (!EVP_PKEY_set1_EC_KEY(ret, ec))) {
                 return NULL;
             }
@@ -507,7 +519,11 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 #ifdef ENABLE_DSA
         case EVP_PKEY_DSA: {
             DSA *dsa = NULL;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if ( ((dsa = EVP_PKEY_get0_DSA(kVal)) == NULL) ||
+#else
+            if ( ((dsa = (DSA *)EVP_PKEY_get0(kVal)) == NULL) ||
+#endif
                                  (!EVP_PKEY_set1_DSA(ret, dsa))) {
                 return NULL;
             }

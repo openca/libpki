@@ -83,7 +83,7 @@ iface_current=$iface_version
 iface_revision=$iface_current
 
 # Oldest Interface Supported
-iface_oldest=80
+iface_oldest=90
 
 # Range of supported interfaces (current - oldest)
 let "iface_age=$iface_current - $iface_oldest"
@@ -362,6 +362,7 @@ if [[ "$CC" = "gcc" ]] ; then
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
+        AC_CHECK_C_OPTION(-Wunused-variable)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
