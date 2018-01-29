@@ -292,12 +292,48 @@ ssize_t PKI_DIGEST_get_size(const PKI_DIGEST_ALG *alg)
 
 	if (!alg) return ret;
 
-	digest_size = EVP_MD_size ( alg );
+	digest_size = EVP_MD_size(alg);
 
 	ret = (ssize_t) digest_size;
 
 	return ret;
 
+}
+
+/*! \brief Returns the size of the output of the provided algorithm */
+
+int PKI_DIGEST_get_size_by_name(const char *alg_name) {
+
+	const PKI_DIGEST_ALG *alg = NULL;
+
+	if ((alg = PKI_DIGEST_ALG_get_by_name(alg_name)) == NULL) {
+		/* Algorithm Error */
+		return -1;
+	}
+
+	return EVP_MD_size(alg);
+};
+
+/*! \brief Returns the pointer to the calculated digest */
+const unsigned char * PKI_DIGEST_get_value(const PKI_DIGEST *digest) {
+
+	// Input Checks	
+	if (!digest || !digest->digest || digest->size == 0)
+		return NULL;
+
+	// Returns the pointer
+	return digest->digest;
+
+}
+
+
+/*! \brief Returns the size of a calculated digest */
+
+int PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst)
+{
+	if (!dgst || !dgst->digest || !dgst->size) return -1;
+
+	return dgst->size;
 }
 
 /*! \brief Returns the parsed (string) version of the digest content */

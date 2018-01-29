@@ -33,6 +33,12 @@ PKI_DIGEST *PKI_DIGEST_URL_new_by_name(const char * alg_name,
 
 ssize_t PKI_DIGEST_get_size(const PKI_DIGEST_ALG *alg);
 
+int PKI_DIGEST_get_size_by_name(const char *alg_name);
+
+const unsigned char * PKI_DIGEST_get_value(const PKI_DIGEST *digest);
+
+int PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst);
+
 char * PKI_DIGEST_get_parsed(const PKI_DIGEST *digest);
 
 /* Default Algorithm */
