@@ -178,7 +178,7 @@ PKI_SCHEME_ID PKI_KEYPARAMS_get_type(const PKI_KEYPARAMS *kp) {
 int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId) {
 
 	// Input Checks
-	if (!kp || schemeId < 0) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	if (!kp) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Sets the Scheme
 	kp->scheme = schemeId;
@@ -188,7 +188,10 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId) {
 };
 
 /* !\brief Sets the curve for key generation (and resets the scheme to EC) */
-int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS * kp, const char * curveName) {
+int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp, 
+                            const char      * curveName, 
+                            PKI_EC_KEY_FORM   curveForm,
+                            PKI_EC_KEY_ASN1   asn1flags) {
 
 	int curveId = 0;
 
@@ -196,12 +199,18 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS * kp, const char * curveName) {
 	if (!kp || !curveName) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Let's get the curve Identifier
-	if ((curveId = PKI_OID_get_id(PKI_OID_get(curveName)) == PKI_OID_UNKNOWN)
+	if ((curveId = PKI_OID_get_id(PKI_OID_get(curveName))) == PKI_ID_UNKNOWN)
 		return PKI_ERR;
 
 	// Let's now set the curve name and the scheme (to be sure)
 	kp->scheme = PKI_SCHEME_ECDSA;
-	kp->curve  = curveId;
+	kp->ec.curve  = curveId;
+
+	// Sets the Form for the curve (if specified)
+	if (curveForm > 0) kp->ec.form = curveForm;
+
+	// Sets the flags
+	if (asn1flags > -1) kp->ec.asn1flags = asn1flags;
 
 	// All Done
 	return PKI_OK;
@@ -211,7 +220,8 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS * kp, const char * curveName) {
 int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 	// Input Checks
-	if (!kp || bits <= 0) return PKI_ERROR(PKI_ERR_PARAM_NULL);
+	if (!kp || bits <= 0) return
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Sets the bits
 	kp->bits = bits;
