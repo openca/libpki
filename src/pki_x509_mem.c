@@ -305,19 +305,21 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 	switch (format)
 	{
 		case PKI_DATA_FORMAT_PEM:
-			if (cb->to_pem_ex)
+			if (cb->to_pem_ex) {
 				rv = cb->to_pem_ex(membio, x, (void *) enc, NULL, 0, NULL, pwd );
-			else if (cb->to_pem)
+			} else if (cb->to_pem) {
 				rv = cb->to_pem ( membio, x );
+			}
 			break;
 
 		case PKI_DATA_FORMAT_URL:
 		case PKI_DATA_FORMAT_ASN1:
-			if (cb->to_der)
+			if (cb->to_der) {
 				rv = cb->to_der ( membio, x );
-			else
+			} else {
 				PKI_log_debug ( "NO ASN1 (type %d) callback ? %p",
 					type, cb->to_der );
+			}
 			break;
 
 		case PKI_DATA_FORMAT_TXT:
