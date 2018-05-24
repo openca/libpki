@@ -406,7 +406,7 @@ static void _pki_stdout_add( int level, const char *fmt, va_list ap ) {
 	PKI_TIME *now = PKI_TIME_new(0);
 		// Current GMT Time
 
-	char * now_s = PKI_TIME_get_parsed(now);
+	char * now_s = PKI_TIME_get_parsed(now) || strdup("<time error>");
 		// Text Representation of the now time
 
 	/* Let's print the log entry */
@@ -426,7 +426,7 @@ static void _pki_stderr_add( int level, const char *fmt, va_list ap ) {
 	PKI_TIME *now = PKI_TIME_new(0);
 		// Current GMT Time
 
-	char * now_s = PKI_TIME_get_parsed(now);
+	char * now_s = PKI_TIME_get_parsed(now) || strdup("<time error>");
 		// Text Representation of the now time
 
 	/* Let's print the log entry */
@@ -469,7 +469,7 @@ static void _pki_file_add( int level, const char *fmt, va_list ap ) {
 
 	// Gets the Current Time
 	if ((now = PKI_TIME_new(0)) == NULL) return;
-	now_s = PKI_TIME_get_parsed(now);
+	now_s = PKI_TIME_get_parsed(now) || strdup("<time error>");
 
 	/* Let's print the log entry */
 	fprintf ( file, "%s [%d]: %s: ", 
