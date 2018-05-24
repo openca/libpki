@@ -137,37 +137,24 @@ int PKI_STACK_free_all (PKI_STACK * st)
 	PKI_STACK_NODE *nn = NULL;
 
 	// Input check
-	if (!st) return PKI_ERR;
+	if (!st) return PKI_ERROR(PKI_ERR_NULL_PARAM, NULL);
 
 	// Let's start from the head
 	n = st->head;
 
-	// Checks we have the free function
-	// set. If not, report the possible
-	// memory loss
+	// Provides some debugging (helps with memory leaking)
 	if (st->free == NULL) {
-		PKI_log_debug("Missing free function for the stack!");
+		// Provides some debugging (helps with memory leaking)
+		PKI_ERROR(PKI_ERR_PARAM_NULL,
+			"Can not free the stack because of missing memory-deallocation Function "
+			"from Stack Initialization");
+
+		// Returns the error
+		return PKI_ERR;
 	}
 
-	// Cycle until we process all nodes
-	while (n != NULL)
-	{
-		// Let's free the current node's data
-		if (n->data && st->free)
-		{
-			(st->free) (n->data);
-			n->data = NULL; // Safety
-		}
-
-		// Let's get the pointer to the next node
-		nn = n->next;
-
-		// Now we free the current node's structure
-		PKI_Free( n );
-
-		// Move to the next node
-		n = nn;
-	}
+	// Removes and frees all the nodes in the stack
+	while (PKI_STACK_pop_free(st) == PKI_OK);
 
 	// Let's free the PKI_STACK data structure's memory
 	PKI_Free(st);
@@ -236,18 +223,26 @@ int PKI_STACK_pop_free ( PKI_STACK *st )
 {
 	void * data = NULL;
 
-	// Gets the data
-	data = PKI_STACK_pop(st);
+	// Input check
+	if (!st || !st->free) {
+		// Provides some debugging (helps with memory leaking)
+		return PKI_ERROR(PKI_STACK_ERR,
+			"Can not free the Popped Item because of missing memory-deallocation Function "
+			"from Stack Initialization");
+	}
 
-	// If we retrieved the data, let's free
-	// its content
+	// Gets the data or return 'PKI_ERR' to indicate there
+	// are no more elements in the stack to pop
+	if ((data = PKI_STACK_pop(st)) == NULL) return PKI_ERR;
+
+	// If we retrieved the data, let's free its content
 	if (data != NULL && st->free != NULL)
 	{
 		// Use the function pointer to free the memory
 		(st->free)(data);
 	}
 
-	return PKI_STACK_OK;
+	return PKI_OK;
 }
 
 
@@ -445,6 +440,7 @@ void * PKI_STACK_del_num ( PKI_STACK *st, int num ) {
 	}
 
 	obj = n->data;
+	n->data = NULL;
 
 	_PKI_STACK_NODE_free( n );
 	st->elements--;
