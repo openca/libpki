@@ -55,7 +55,7 @@ void * PKI_X509_get_mem_value ( PKI_MEM *mem, PKI_DATATYPE type,
 static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 				PKI_DATA_FORMAT format, PKI_CRED *cred ) {
 
-	PKI_IO *io = NULL;
+	PKI_IO *ro = NULL;
 
 	void *ret = NULL;
 	char *pwd = NULL;
@@ -82,7 +82,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		case PKI_DATA_FORMAT_PEM :
 			if( cb->read_pem ) {
 				// Read PEM formatted data
-				ret = cb->read_pem (io, NULL, NULL, pwd );
+				ret = cb->read_pem(ro, NULL, NULL, pwd );
 			} else {
 				// No support for data decoding
 				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
@@ -92,7 +92,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		case PKI_DATA_FORMAT_ASN1 :
 			if( cb->read_der ) {
 				// Read DER formatted data
-				ret = cb->read_der (io, NULL );
+				ret = cb->read_der(ro, NULL );
 			} else {
 				// No support for data decoding
 				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
@@ -102,7 +102,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		case PKI_DATA_FORMAT_TXT :
 			if ( cb->read_txt ) {
 				// Reat TXT formatted data
-				ret = cb->read_txt (io, NULL );
+				ret = cb->read_txt(ro, NULL );
 			} else {
 				// No support for data decoding
 				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
@@ -113,10 +113,13 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 			if (cb->read_b64)
 			{
 				// Read B64 formatted data
-				ret = cb->read_b64(io, NULL);
+				ret = cb->read_b64(ro, NULL);
 			}
 			else if (cb->read_der)
 			{
+				PKI_MEM * dup_mem = NULL;
+					// Temporary Duplicate Memory
+
 				// We need to duplicate the buffer as PKI_MEM_decode()
 				// alter the contents of the buffer
 				if( (dup_mem = PKI_MEM_dup(mem) ) == NULL)
@@ -134,6 +137,9 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 				{
 					// Can not B64 decode
 					PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+					// Free Memory
+					PKI_MEM_free(dup_mem);
+					// All Done
 					break;
 				}
 
@@ -145,8 +151,13 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 				if( (ro = BIO_new_mem_buf(dup_mem->data, (int)dup_mem->size)) == NULL)
 				{
 					PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+					// Free Memory
+					PKI_MEM_free(dup_mem);
 					break;
 				}
+
+				// Free Memory
+				PKI_MEM_free(dup_mem);
 
 				// And use the DER reader to retrieve the
 				// requested object
@@ -161,7 +172,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		case PKI_DATA_FORMAT_XML :
 			if ( cb->read_xml ) {
 				// Read XML formatted data
-				ret = cb->read_xml ( ro, NULL );
+				ret = cb->read_xml(ro, NULL );
 			} else {
 				// No support for data decoding
 				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
@@ -180,9 +191,6 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 
 	// Free the Read-Only I/O
 	if (ro) BIO_free_all(ro);
-
-	// Let's free the duplicated PKI_MEM structure
-	if (dup_mem) PKI_MEM_free(dup_mem);
 
 	// All Done
 	return ret;

@@ -110,7 +110,7 @@ void PKI_RESOURCE_IDENTIFIER_free_void( void * );
 void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 
 /* define for PKI_MEM stacks - implement object type casting */
-#define PKI_STACK_MEM_new() (PKI_MEM_STACK *) PKI_STACK_new(PKI_MEM_free_void)
+#define PKI_STACK_MEM_new() (PKI_MEM_STACK *) PKI_STACK_new((void (*)(void *))PKI_MEM_free)
 #define PKI_STACK_MEM_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_MEM_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_MEM_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -121,7 +121,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_MEM_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509 stacks - implement object type casting */
-#define PKI_STACK_X509_new() (PKI_X509_STACK *) PKI_STACK_new(PKI_X509_free_void)
+#define PKI_STACK_X509_new() (PKI_X509_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_free)
 #define PKI_STACK_X509_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -135,7 +135,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509_CERT (certs) stacks - implement object type casting */
-#define PKI_STACK_X509_CERT_new() (PKI_X509_CERT_STACK *) PKI_STACK_new(PKI_X509_CERT_free_void)
+#define PKI_STACK_X509_CERT_new() (PKI_X509_CERT_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_CERT_free)
 #define PKI_STACK_X509_CERT_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CERT_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CERT_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -146,7 +146,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_CERT_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509_REQ (requests) stacks - implement object type casting */
-#define PKI_STACK_X509_REQ_new() (PKI_STACK *) PKI_STACK_new(PKI_X509_REQ_free_void)
+#define PKI_STACK_X509_REQ_new() (PKI_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_REQ_free)
 #define PKI_STACK_X509_REQ_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_REQ_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_REQ_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -157,7 +157,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_REQ_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509_PROFILE stacks - implement object type casting */
-#define PKI_STACK_X509_PROFILE_new() (PKI_X509_PROFILE_STACK *) PKI_STACK_new(PKI_X509_PROFILE_free_void)
+#define PKI_STACK_X509_PROFILE_new() (PKI_X509_PROFILE_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_PROFILE_free_void)
 #define PKI_STACK_X509_PROFILE_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_PROFILE_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_PROFILE_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -168,7 +168,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_PROFILE_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509_EXTENSION stacks - implement object type casting */
-#define PKI_STACK_X509_EXTENSION_new() (PKI_X509_EXTENSION_STACK *) PKI_STACK_new(PKI_X509_EXTENSION_free_void)
+#define PKI_STACK_X509_EXTENSION_new() (PKI_X509_EXTENSION_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_EXTENSION_free)
 #define PKI_STACK_X509_EXTENSION_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_EXTENSION_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_EXTENSION_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -179,7 +179,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_EXTENSION_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_STACK_X509_CRL_ENTRY stacks - implement object type casting */
-#define PKI_STACK_X509_CRL_ENTRY_new() (PKI_X509_CRL_ENTRY_STACK *) PKI_STACK_new(PKI_X509_CRL_ENTRY_free_void)
+#define PKI_STACK_X509_CRL_ENTRY_new() (PKI_X509_CRL_ENTRY_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_CRL_ENTRY_free)
 #define PKI_STACK_X509_CRL_ENTRY_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CRL_ENTRY_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CRL_ENTRY_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -190,7 +190,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_CRL_ENTRY_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_X509_CRL stacks - implement object type casting */
-#define PKI_STACK_X509_CRL_new(a) (PKI_X509_CRL_STACK *) PKI_STACK_new(PKI_X509_CRL_free_void)
+#define PKI_STACK_X509_CRL_new(a) (PKI_X509_CRL_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_CRL_free)
 #define PKI_STACK_X509_CRL_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CRL_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CRL_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -201,7 +201,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_CRL_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for CONFIG (configs) stacks - implement object type casting */
-#define PKI_STACK_CONFIG_new() (PKI_CONFIG_STACK *) PKI_STACK_new(PKI_CONFIG_free_void)
+#define PKI_STACK_CONFIG_new() (PKI_CONFIG_STACK *) PKI_STACK_new((void (*)(void *))PKI_CONFIG_free)
 #define PKI_STACK_CONFIG_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_CONFIG_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_CONFIG_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -212,9 +212,9 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_CONFIG_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for CONFIG_ELEMENT stacks - implement object type casting */
-#define PKI_STACK_CONFIG_ELEMENT_new() (PKI_CONFIG_ELEMENT_STACK *) PKI_STACK_new(NULL)
+#define PKI_STACK_CONFIG_ELEMENT_new() (PKI_CONFIG_ELEMENT_STACK *) PKI_STACK_new((void (*)(void *))xmlFreeNode)
 #define PKI_STACK_CONFIG_ELEMENT_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
-// #define PKI_STACK_CONFIG_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
+#define PKI_STACK_CONFIG_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_CONFIG_ELEMENT_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
 #define PKI_STACK_CONFIG_ELEMENT_pop(p) (PKI_CONFIG_ELEMENT *) PKI_STACK_pop( (PKI_STACK *) p )
 #define PKI_STACK_CONFIG_ELEMENT_get_num(p,n) (PKI_CONFIG_ELEMENT *) PKI_STACK_get_num( (PKI_STACK *)p, n)
@@ -223,8 +223,8 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_CONFIG_ELEMENT_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_OID stacks - implement object type casting */
-#define PKI_STACK_OID_new_null() (PKI_OID_STACK *) PKI_STACK_new( NULL )
-#define PKI_STACK_OID_new() (PKI_OID_STACK *) PKI_STACK_new(PKI_OID_free_void)
+// #define PKI_STACK_OID_new_null() (PKI_OID_STACK *) PKI_STACK_new((void (*)(void *)PKI_OID_free)
+#define PKI_STACK_OID_new() (PKI_OID_STACK *) PKI_STACK_new((void (*)(void *))PKI_OID_free)
 #define PKI_STACK_OID_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_OID_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_OID_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -235,8 +235,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_OID_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_ID_INFO stacks - implement object type casting */
-#define PKI_STACK_INFO_ID_new_null() (PKI_ID_INFO_STACK *) PKI_STACK_new( NULL )
-#define PKI_STACK_INFO_ID_new() (PKI_ID_INFO_STACK *) PKI_STACK_new(PKI_STACK_INFO_ID_free_void)
+#define PKI_STACK_INFO_ID_new() (PKI_ID_INFO_STACK *) PKI_STACK_new((void (*)(void *))PKI_STACK_INFO_ID_free)
 #define PKI_STACK_INFO_ID_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_INFO_ID_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_INFO_ID_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -247,8 +246,8 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_INFO_ID_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_TOKEN stacks - implement object type casting */
-#define PKI_STACK_TOKEN_new_null() (PKI_TOKEN_STACK *) PKI_STACK_new( NULL )
-#define PKI_STACK_TOKEN_new() (PKI_TOKEN_STACK *) PKI_STACK_new(PKI_TOKEN_free_void)
+// #define PKI_STACK_TOKEN_new_null() (PKI_TOKEN_STACK *) PKI_STACK_new((void (*)(void *)PKI_TOKE_free)
+#define PKI_STACK_TOKEN_new() (PKI_TOKEN_STACK *) PKI_STACK_new((void (*)(void *))PKI_TOKEN_free)
 #define PKI_STACK_TOKEN_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_TOKEN_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_TOKEN_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -259,8 +258,8 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_TOKEN_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_X509_KEYPAIR stacks - implement object type casting */
-#define PKI_STACK_X509_KEYPAIR_new_null() (PKI_X509_KEYPAIR_STACK *) PKI_STACK_new( PKI_X509_KEYPAIR_free_void )
-#define PKI_STACK_X509_KEYPAIR_new() (PKI_X509_KEYPAIR_STACK *) PKI_STACK_new(PKI_X509_KEYPAIR_free_void)
+// #define PKI_STACK_X509_KEYPAIR_new_null() (PKI_X509_KEYPAIR_STACK *) PKI_STACK_new( PKI_X509_KEYPAIR_free_void )
+#define PKI_STACK_X509_KEYPAIR_new() (PKI_X509_KEYPAIR_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_KEYPAIR_free)
 #define PKI_STACK_X509_KEYPAIR_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_KEYPAIR_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_KEYPAIR_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -271,7 +270,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_KEYPAIR_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509_XPAIR (crossCertPair) stacks - object type casting */
-#define PKI_STACK_X509_XPAIR_new() (PKI_X509_XPAIR_STACK *) PKI_STACK_new(PKI_X509_XPAIR_free_void)
+#define PKI_STACK_X509_XPAIR_new() (PKI_X509_XPAIR_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_XPAIR_free)
 #define PKI_STACK_X509_XPAIR_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_XPAIR_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_XPAIR_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -282,7 +281,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_XPAIR_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for OCSP_REQ (ocsp requests) stacks - object type casting */
-#define PKI_STACK_OCSP_REQ_new() (PKI_X509_OCSP_REQ_STACK *) PKI_STACK_new(PKI_X509_OCSP_REQ_free_void)
+#define PKI_STACK_OCSP_REQ_new() (PKI_X509_OCSP_REQ_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_OCSP_REQ_free)
 #define PKI_STACK_OCSP_REQ_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_OCSP_REQ_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_OCSP_REQ_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -293,7 +292,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_OCSP_REQ_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for OCSP_RESP (ocsp responses) stacks - object type casting */
-#define PKI_STACK_OCSP_RESP_new() (PKI_X509_OCSP_RESP_STACK *) PKI_STACK_new(PKI_X509_OCSP_RESP_free_void)
+#define PKI_STACK_OCSP_RESP_new() (PKI_X509_OCSP_RESP_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_OCSP_RESP_free)
 #define PKI_STACK_OCSP_RESP_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_OCSP_RESP_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_OCSP_RESP_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)

@@ -430,7 +430,7 @@ PKI_TOKEN_STACK *PKI_get_all_tokens ( char *dir ) {
 		return ( NULL );
 	}
 
-	if((list = PKI_STACK_TOKEN_new_null()) == NULL ) {
+	if ((list = PKI_STACK_TOKEN_new()) == NULL) {
 		return ( NULL );
 	}
 
@@ -469,7 +469,7 @@ PKI_TOKEN_STACK *PKI_get_all_tokens_dir ( char *dir, PKI_TOKEN_STACK *list ) {
 	}
 
 	if( !list ) {
-		if((ret = PKI_STACK_TOKEN_new_null()) == NULL ) {
+		if((ret = PKI_STACK_TOKEN_new()) == NULL ) {
 			if( url ) URL_free (url );
 			return( NULL );
 		}

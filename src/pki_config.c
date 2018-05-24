@@ -395,9 +395,17 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
 					    int                num ) {
 
 	PKI_CONFIG_ELEMENT_STACK *sk = NULL;
-	PKI_CONFIG_ELEMENT *ret = NULL;
+		// Stack of Elements from the Search
 
-	if ( !doc || !search ) return NULL;
+	PKI_CONFIG_ELEMENT *ret = NULL;
+		// Return Value
+
+	PKI_CONFIG_ELEMENT *tmp_el = NULL;
+		// Temporary reference used to free
+		// the nodes from the returned stack
+
+	// Some input checks
+	if (!doc || !search) return NULL;
 
 	// Checks if the search returns any element(s)
 	if(( sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search )) == NULL ) {
@@ -416,7 +424,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
 	}
 
 	// Free all remaining parts of the stack
-	while (tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) {
+	while ((tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) != NULL) {
 		// Nothing to do - the elements are xmlNode and
 		// the memory would be freed with xmlFreeNode function,
 		// however, it is our understanding that the passed
@@ -427,7 +435,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
 	}
 
 	// Free all the remaining memory
-	PKI_STACK_CONFIG_ELEMENT_free ( sk );
+	PKI_STACK_CONFIG_ELEMENT_free(sk);
 
 	// All Done.
 	return ret;
@@ -833,7 +841,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir(const char *dir,
 	}
 
 	if((dirp = opendir( url->addr )) == NULL ) {
-		PKI_log_error("Can not open dir %s!\n", url->addr );
+		PKI_log_err("Can not open dir %s!\n", url->addr );
 		return (NULL);
 	} else {
 

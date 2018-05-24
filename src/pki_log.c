@@ -406,11 +406,15 @@ static void _pki_stdout_add( int level, const char *fmt, va_list ap ) {
 	PKI_TIME *now = PKI_TIME_new(0);
 		// Current GMT Time
 
-	char * now_s = PKI_TIME_get_parsed(now) || strdup("<time error>");
+	char * now_s = PKI_TIME_get_parsed(now);
 		// Text Representation of the now time
 
+	// Let's make sure we have some text to write
+	if (now_s == NULL) now_s = strdup("<time error>");
+
 	/* Let's print the log entry */
-	fprintf ( stdout, "%s [%d] %s: ", now_s, getpid(), _get_info_string(level));
+	fprintf ( stdout, "%s [%d] %s: ",
+		now_s, getpid(), _get_info_string(level));
 	vfprintf( stdout, fmt, ap );
 	fprintf ( stdout, "\n" );
  
@@ -426,12 +430,15 @@ static void _pki_stderr_add( int level, const char *fmt, va_list ap ) {
 	PKI_TIME *now = PKI_TIME_new(0);
 		// Current GMT Time
 
-	char * now_s = PKI_TIME_get_parsed(now) || strdup("<time error>");
+	char * now_s = PKI_TIME_get_parsed(now);
 		// Text Representation of the now time
+
+	// Let's make sure we have some text to write
+	if (now_s == NULL) now_s = strdup("<time error>");
 
 	/* Let's print the log entry */
 	fprintf(stderr, "%s [%d] %s: ", 
-		now_s, getpid(), _get_info_string( level ));
+		now_s, getpid(), _get_info_string(level));
 	vfprintf( stderr, fmt, ap );
 	fprintf ( stderr, "\n" );
 
@@ -469,7 +476,9 @@ static void _pki_file_add( int level, const char *fmt, va_list ap ) {
 
 	// Gets the Current Time
 	if ((now = PKI_TIME_new(0)) == NULL) return;
-	now_s = PKI_TIME_get_parsed(now) || strdup("<time error>");
+	if ((now_s = PKI_TIME_get_parsed(now)) == NULL) {
+		now_s = strdup("<time error>");
+	}
 
 	/* Let's print the log entry */
 	fprintf ( file, "%s [%d]: %s: ", 
