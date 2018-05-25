@@ -458,6 +458,9 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
+	// DEBUGGING for Signatures
+	if (algs[0]) PKI_DEBUG("ALG0 => %s", PKI_ALGOR_get_parsed(algs[0]));
+	if (algs[1]) PKI_DEBUG("ALG1 => %s", PKI_ALGOR_get_parsed(algs[1]));
 
 #ifdef ENABLE_AMETH
 	pkey = key->value;
