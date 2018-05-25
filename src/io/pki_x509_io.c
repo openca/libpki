@@ -69,7 +69,6 @@ PKI_X509 *PKI_X509_get_url ( URL *url, PKI_DATATYPE type,
 
 	PKI_X509_STACK *sk = NULL;
 	PKI_X509 * ret = NULL;
-	PKI_X509 * x = NULL;
 
 	// Checks the pased argument
 	if (!url) {
@@ -246,7 +245,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		PKI_MEM *mem_data = NULL;
 
 		// Gets the i-th PKI_MEM from the stack of elements
-		if ((n = PKI_STACK_MEM_get_num( mem_sk, i)) == NULL) {
+		if ((mem_data = PKI_STACK_MEM_get_num( mem_sk, i)) == NULL) {
 
 			// Reports the Error
 			PKI_ERROR(PKI_ERR_POINTER_NULL, 
@@ -396,7 +395,7 @@ int PKI_X509_put ( PKI_X509 *x, PKI_DATA_FORMAT format, char *url_string,
 	if (sk) {
 
 		// We just need to pop the cert - not free the mem!
-		while ((x = PKI_STACK_X509_pop(sk)) != NULL);
+		while ((x = PKI_STACK_X509_pop(sk)) != NULL) { /* Nop */ };
 
 		// Let's free the list itself
         PKI_STACK_X509_free( sk );
@@ -429,7 +428,7 @@ int PKI_X509_put_url ( PKI_X509 *x, PKI_DATA_FORMAT format, URL *url,
 
 	if( sk ) {
 		// We just need to pop the cert - not free the mem
-		while ((x = PKI_STACK_X509_pop( sk )) != NULL);
+		while ((x = PKI_STACK_X509_pop( sk )) != NULL)  { /* Nop */ };
 
 		// Let's free the list itself
         PKI_STACK_X509_free( sk );

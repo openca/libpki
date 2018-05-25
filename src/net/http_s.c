@@ -405,7 +405,7 @@ PKI_HTTP *PKI_HTTP_get_message (const PKI_SOCKET * sock,
     		  {
     			  content_length = atoll(cnt_len_s);
     			  PKI_Free(cnt_len_s);
-    			  PKI_log_debug ( "HTTP Content-Length: %d bytes", content_length);
+    			  // PKI_log_debug ( "HTTP Content-Length: %d bytes", content_length);
     		  }
     	  }
       } // End of if (!eoh) ...
@@ -480,7 +480,7 @@ PKI_HTTP *PKI_HTTP_get_message (const PKI_SOCKET * sock,
   // an error and we return the malformed request message
   if (!eoh)
   {
-	  PKI_log_err ( "Read data (so far): %d bytes - Last read: %d bytes", idx, read);
+	  // PKI_log_err ( "Read data (so far): %d bytes - Last read: %d bytes", idx, read);
 	  PKI_ERROR(PKI_ERR_URI_READ, NULL);
 	  goto err;
   }
@@ -735,7 +735,7 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 			goto err;
 		}
 
-		PKI_log_debug("HTTP Redirection Location ==> %s", http_rv->location );
+    PKI_log_debug("HTTP Redirection Detected [URL: %s]", http_rv->location );
 
 		if (strstr(http_rv->location, "://") != NULL)
 		{
@@ -802,7 +802,7 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 	}
 	else if (http_rv->code != 200)
 	{
-		PKI_log_debug( "HTTP Return code not manageable (%d)", http_rv->code );
+		PKI_log_debug( "Unknown HTTP Return code [Code: %d]", http_rv->code );
 		goto err;
 	}
 
@@ -814,21 +814,24 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 	*/
 
 	// If a Pointer was provided, we want the data back
-	if (sk)
-	{
+	if (sk) {
+
 		// Checks if the caller provided an already allocated data
 		// structure. If not, we allocate it.
 		if (*sk) PKI_STACK_MEM_free_all(*sk);
 
-		if ((*sk = PKI_STACK_MEM_new()) == NULL)
-		{
+    // Allocates a new structure
+		if ((*sk = PKI_STACK_MEM_new()) == NULL) {
+
+      // If a memory error occurs report it and exit
 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
+      // Nothing more to do
 			goto err;
 		}
 
 		// Add the returned value to the stack
-		if (PKI_STACK_MEM_push(*sk, http_rv->body) != PKI_OK)
-		{
+		if (PKI_STACK_MEM_push(*sk, http_rv->body) != PKI_OK) {
 			PKI_log_err("Can not push the HTTP result body in the result stack");
 			goto err;
 		}
