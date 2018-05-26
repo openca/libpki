@@ -192,7 +192,7 @@ char * HSM_OPENSSL_get_errdesc ( unsigned long err, char *str, size_t size )
 
 const HSM * HSM_OPENSSL_get_default( void )
 {
-	return ( (const HSM *) &openssl_hsm);
+	return ((const HSM *)&openssl_hsm);
 }
 
 HSM *HSM_OPENSSL_new ( PKI_CONFIG *conf )
@@ -233,20 +233,21 @@ int HSM_OPENSSL_init( HSM *driver, PKI_CONFIG *conf ) {
 	}
 
 	/* No need for initialization of the software driver */
-	return (PKI_OK);
+	return PKI_OK;
 }
 
 /*!
  * \brief Sets the fips operation mode when the parameter is != 0,
  * otherwise it sets the HSM in non-fips mode
  */
-int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k)
-{
+int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k) {
+
 #ifdef OPENSSL_FIPS
-	return FIPS_mode_set(k);
+    return (FIPS_mode_set(k) == 1 ? PKI_OK : PKI_ERR);
 #else
-	return PKI_ERR;
+    return PKI_ERR;
 #endif
+
 }
 
 /*!
@@ -256,9 +257,9 @@ int HSM_OPENSSL_set_fips_mode(const HSM *driver, int k)
 int HSM_OPENSSL_is_fips_mode(const HSM *driver)
 {
 #ifdef OPENSSL_FIPS
-	return FIPS_mode();
+    return (FIPS_mode() == 0 ? PKI_ERR : PKI_OK);
 #else
-	return PKI_ERR;
+    return PKI_ERR;
 #endif
 
 }
@@ -268,7 +269,7 @@ int HSM_OPENSSL_is_fips_mode(const HSM *driver)
 PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key)
 {
 
-	EVP_MD_CTX ctx;
+	EVP_MD_CTX *ctx = NULL;
 	size_t out_size = 0;
 	size_t ossl_ret = 0;
 
@@ -278,7 +279,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	if ( !der || !der->data || !key || !key->value )
 	{
 		PKI_ERROR( PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ERR;
+		return NULL;
 	}
 
 	// Private Key
@@ -289,21 +290,24 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 	// Initialize the return structure
 	out_mem = PKI_MEM_new ((size_t)out_size);
+	ctx = EVP_MD_CTX_new();
 
-	if ( !der || !out_mem )
-	{
+	if ( !out_mem || !ctx) {
+		if (ctx) EVP_MD_CTX_free(ctx);
+		if (out_mem) PKI_MEM_free(out_mem);
 		PKI_ERROR( PKI_ERR_MEMORY_ALLOC, NULL);
-		return PKI_ERR;
+		return NULL;
 	}
 
-	EVP_MD_CTX_init ( &ctx );
-	EVP_SignInit_ex( &ctx, digest, NULL );
-	EVP_SignUpdate ( &ctx, der->data, der->size );
+	EVP_MD_CTX_init( ctx );
+	EVP_SignInit_ex( ctx, digest, NULL );
+	EVP_SignUpdate ( ctx, der->data, der->size );
 
 	// Finalize the signature
-	if (!EVP_SignFinal(&ctx, out_mem->data, (unsigned int *) &ossl_ret, pkey))
+	if (!EVP_SignFinal(ctx, out_mem->data, (unsigned int *) &ossl_ret, pkey))
 	{
-		PKI_log_err("ERROR while finalizing signature (%s)", HSM_OPENSSL_get_errdesc(HSM_OPENSSL_get_errno(), NULL, 0));
+		PKI_log_err("ERROR while finalizing signature (%s)", 
+			HSM_OPENSSL_get_errdesc(HSM_OPENSSL_get_errno(), NULL, 0));
 
 		PKI_MEM_free(out_mem);
 		out_mem = NULL;
@@ -311,7 +315,12 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	else out_mem->size = (size_t) ossl_ret;
 
 	// Cleanup the context
-	EVP_MD_CTX_cleanup(&ctx);
+#if OPENSSL_VERSION_NUMBER <= 0x1010000f
+	EVP_MD_CTX_cleanup(ctx);
+#else
+	EVP_MD_CTX_reset(ctx);
+#endif
+	EVP_MD_CTX_free(ctx);
 
 	return out_mem;
 }

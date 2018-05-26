@@ -30,33 +30,54 @@ int _engine_pki_rand_init( void );
 int _engine_pki_rand_seed( void ) {
 	unsigned char seed[20];
 
-	if (!RAND_pseudo_bytes(seed, 20)) {
-		return 0;
-	}
+	if (!RAND_bytes(seed, 20)) return 0;
 	RAND_seed(seed, sizeof seed);
 
 	return(1);
 }
 
 PKI_RSA_KEY * _engine_pki_rsakey_new( PKI_KEYPARAMS *kp, ENGINE *e ) {
-	BIGNUM *bn = NULL;
-	unsigned long esp = 0x10001;
+
+	BIGNUM *bne = NULL;
 	PKI_RSA_KEY *rsa = NULL;
+	int ossl_rc = 0;
 
 	int bits = PKI_RSA_KEY_DEFAULT_SIZE;
+
+	unsigned long exp = RSA_F4;
+		// Default exponent (65537)
 
 	if ( kp && kp->bits > 0 ) bits = kp->bits;
 
 	if ( bits < PKI_RSA_KEY_MIN_SIZE ) {
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE_SHORT, NULL);
 		return NULL;
-	};
+	}
 
-	if( (rsa = RSA_generate_key(bits, esp, NULL, NULL)) == NULL ) {
-		/* Error */
-		BN_free( bn );
+	if ((bne = BN_new()) != NULL) {
+		if (1 != BN_set_word(bne, exp)) {
+			PKI_ERROR(PKI_ERR_GENERAL, NULL);
+			return NULL;
+		}
+	} else {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
+		
+	if ((rsa = RSA_new()) == NULL) {
+		BN_free(bne);
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	if ((ossl_rc = RSA_generate_key_ex(rsa, bits, bne, NULL)) == 1 ) {
+		/* Error */
+		BN_free(bne);
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
+		return NULL;
+	}
+
+	BN_free(bne);
 
 	/* Let's return the RSA_KEY infrastructure */
 	return (rsa);
@@ -75,15 +96,19 @@ PKI_DSA_KEY * _engine_pki_dsakey_new( PKI_KEYPARAMS *kp, ENGINE *e ) {
 		return NULL;
 	};
 
-	if (!RAND_pseudo_bytes(seed, 20)) {
+	if (!RAND_bytes(seed, 20)) {
 		/* Not enought rand ? */
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Too low Entropy");
 		return NULL;
 	}
 
-	// if(!DSA_generate_parameters_ex( k, bits,
-	if((k = DSA_generate_parameters( bits,
-				seed, 20, NULL, NULL, NULL, NULL)) == NULL ) {
+	if ((k = DSA_new()) == NULL) {
+		// Memory Allocation Error
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Too low Entropy");
+		return NULL;
+	}
+
+	if (1 != DSA_generate_parameters_ex(k, bits, seed, 20, NULL, NULL, NULL)) {
 		if( k ) DSA_free( k );
 		PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not generated DSA params");
 		return NULL;
@@ -132,7 +157,7 @@ PKI_X509_KEYPAIR *HSM_ENGINE_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 	int type = PKI_SCHEME_DEFAULT;
 
-	if ( kp && kp->scheme > -1 ) type = kp->scheme;
+	if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
 	if((val = EVP_PKEY_new()) == NULL ) {
 		PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair value");

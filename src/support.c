@@ -16,7 +16,7 @@
 
 /* Functions */
 
-char * get_env_string ( const char *str ) {
+char * get_env_string(const char *str) {
 
 	char * ret = NULL;
 	char * p1 = NULL;
@@ -51,7 +51,6 @@ char * get_env_string ( const char *str ) {
 
 		/* Grabs and attaches the new (ENV) value */
 		if(( var_value = PKI_get_env(var_name)) != NULL ) {
-		// if(( var_value = getenv(var_name)) != NULL ) {
 			PKI_MEM_add( mem, var_value, strlen(var_value));
 		}
 
@@ -74,7 +73,7 @@ char * get_env_string ( const char *str ) {
 /*! \brief Set the ENV variable 'name' with the value 'value'
  */
 
-int PKI_set_env ( char *name, char *value ) {
+int PKI_set_env(const char *name, const char *value ) {
 
 	if( !name ) return ( PKI_ERR );
 
@@ -97,22 +96,26 @@ int PKI_set_env ( char *name, char *value ) {
 /*! \brief Returns the value of the ENV variable 'name'
 */
 
-char * PKI_get_env ( char * name ) {
-	if ( !name ) return ( NULL );
+char * PKI_get_env(const char * name) {
 
-	return getenv ( name );
+	if (!name) return NULL;
+
+	return getenv(name);
 }
 
-int strcmp_nocase( char *st1, char *st2) {
+int strcmp_nocase(const char * st1,
+		          const char * st2) {
 
 	if(!st1 | !st2 ) return (1);
 
 	if( strlen(st1) != strlen(st2)) return (1);
 
-	return strncmp_nocase ( st1, st2, 0 );
+	return strncmp_nocase(st1, st2, 0);
 }
 
-int strncmp_nocase( char *st1, char *st2, int n) {
+int strncmp_nocase(const char * st1,
+		           const char * st2,
+				   int          n) {
 	int i;
 
 	if(!st1) return(-1);
@@ -169,7 +172,7 @@ int strncmp_nocase( char *st1, char *st2, int n) {
 
 }
 
-char * strstr_nocase ( char *buf, char *string ) {
+const char * strstr_nocase(const char *buf, const char *string) {
 
 	size_t buf_len, string_len;
 	int j,k;
@@ -184,15 +187,14 @@ char * strstr_nocase ( char *buf, char *string ) {
 	
 	j = 0; match = 0;
 	while( j < buf_len ) {
-		unsigned char a, b;
-		// unsigned char *pnt_a; // *pnt_b;
 
-		// pnt_a = (unsigned char *) (buf+j);
-		// pnt_b = (unsigned char *) (string);
+		unsigned char a, b;
 
 		for( k = 0; k < string_len; k++ ) {
+
 			a = (unsigned char) tolower(*(buf+j+k));
 			b = (unsigned char) tolower(*(string+k));
+
 			if( b != a ) {
 				match=0;
 				break;
@@ -200,9 +202,9 @@ char * strstr_nocase ( char *buf, char *string ) {
 				match=1;
 			}
 		}
-		if( match == 1 ) {
-			return( buf+j );
-		}
+
+		if( match == 1 ) return (buf+j);
+
 		j++;
 	}
 

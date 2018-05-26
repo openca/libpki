@@ -115,12 +115,16 @@ if [[ "$library_setup" = "no" ]] ; then
 
 
 		AC_MSG_RESULT([Searching OpenSSL Version: $library_includes]);
-		ver=`grep "#define SHLIB_VERSION_NUMBER" $library_includes | sed 's/[#_a-zA-Z" ]//g' | sed 's|\.|0|g'`;
-		my_ver=`echo $_version | sed "s|\.|0|g"`;
+		ver=`grep "^ *# *define  *OPENSSL_VERSION_NUMBER" "$library_includes" | sed 's/.*0x/0x/g' | sed 's|\L||g'`;
+		detected_v=`echo $((ver))`
+		required_v=`echo $(($_version))`
 
-		AC_MSG_RESULT([Detected Version: $ver (required > $my_ver )]);
+		dnl ver=`grep "^ *# *define  *SHLIB_VERSION_NUMBER" $library_includes | sed 's/[#_a-zA-Z" ]//g' | sed 's|\.|0|g'`;
+		dnl my_ver=`echo $_version | sed "s|\.|0|g"`;
 
-		if [[ $ver -ge $my_ver ]] ; then
+		AC_MSG_RESULT([Detected Version: $ver (required > $_version )]);
+
+		if [[ $detected_v -ge $required_v ]] ; then
 			AC_MSG_RESULT([OpenSSL Version $ver: Ok.]);
 			library_cflags="-I${library_prefix}/include"
 

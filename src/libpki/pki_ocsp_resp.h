@@ -26,12 +26,14 @@ int PKI_X509_OCSP_RESP_set_status ( PKI_X509_OCSP_RESP *x,
 					PKI_X509_OCSP_RESP_STATUS status );
 int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *r, 
 			OCSP_CERTID *cid, PKI_OCSP_CERTSTATUS status,
-			PKI_TIME *revokeTime, PKI_TIME *thisUpdate,
-			PKI_TIME *nextUpdate, 
+			const PKI_TIME *revokeTime, 
+			const PKI_TIME *thisUpdate,
+			const PKI_TIME *nextUpdate, 
 			PKI_X509_CRL_REASON reason,
 			PKI_X509_EXTENSION *invalidityDate );
 int PKI_X509_OCSP_RESP_copy_nonce (PKI_X509_OCSP_RESP *r, 
 						PKI_X509_OCSP_REQ *req);
+int PKI_X509_OCSP_RESP_set_extendedRevoke(PKI_X509_OCSP_RESP * resp);
 
 /* ------------------------------ Signature ----------------------------- */
 
@@ -47,7 +49,7 @@ int PKI_X509_OCSP_RESP_sign_tk ( PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk,
 
 /* ------------------------------ Data Parsing --------------------------- */
 
-void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type );
+const void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type );
 char * PKI_X509_OCSP_RESP_get_parsed ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type );
 
 int PKI_X509_OCSP_RESP_print_parsed ( PKI_X509_OCSP_RESP *r, 

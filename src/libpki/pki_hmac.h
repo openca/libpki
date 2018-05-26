@@ -32,7 +32,7 @@ typedef struct pki_hmac_st {
 	PKI_MEM *key;
 
 	// Internal Use
-	HMAC_CTX ctx;
+	HMAC_CTX *ctx;
 
 } PKI_HMAC;
 

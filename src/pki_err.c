@@ -62,6 +62,8 @@ int __pki_error ( const char *file, int line, int err, const char *info, ... ) {
 	return ( PKI_ERR );
 }
 
-#ifdef HAVE_GCC_PRAGMA_POP
-# pragma GCC diagnostic pop
+#ifndef LIBPKI_TARGET_OSX
+# ifdef HAVE_GCC_PRAGMA_POP
+#  pragma GCC diagnostic pop
+# endif
 #endif

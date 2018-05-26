@@ -2,10 +2,10 @@
 
 #include <libpki/pki.h>
 
-PKI_CONFIG * PKI_OID_load ( char *uri ) {
-	PKI_CONFIG *oidConf = NULL;
+const PKI_CONFIG * PKI_OID_load (const char *uri ) {
+	const PKI_CONFIG *oidConf = NULL;
 
-	if(( oidConf = PKI_CONFIG_load ( uri )) == NULL ) {
+	if(( oidConf = PKI_CONFIG_load(uri)) == NULL ) {
 		return NULL;
 	}
 
@@ -20,7 +20,7 @@ PKI_CONFIG * PKI_OID_load ( char *uri ) {
  * pointer if successful, otherwise it returns NULL
  */
 
-PKI_OID *PKI_OID_new( char *oid, char *name, char *descr ) {
+PKI_OID *PKI_OID_new(const char *oid, const char *name, const char *descr ) {
 	PKI_OID *ret = NULL;
 	int nid = NID_undef;
 
@@ -78,7 +78,7 @@ void PKI_OID_free_void ( void *buf ) {
 
 /*! \brief See PKI_OID_new_text. */
 
-PKI_OID *PKI_OID_get( char *name ) {
+PKI_OID *PKI_OID_get( const char *name ) {
 	return PKI_OID_new_text ( name );
 }
 
@@ -89,7 +89,7 @@ PKI_OID *PKI_OID_get( char *name ) {
  * Check also the configuration options.
  */
 
-PKI_OID *PKI_OID_new_text ( char *name ) {
+PKI_OID *PKI_OID_new_text ( const char *name ) {
 
 	PKI_OID *ret = NULL;
 
@@ -111,7 +111,7 @@ PKI_OID *PKI_OID_new_text ( char *name ) {
  * \brief Returns a duplicate of the passed PKI_OID structure
  */
 
-PKI_OID *PKI_OID_dup( PKI_OID *a ) {
+PKI_OID *PKI_OID_dup( const PKI_OID *a ) {
 	PKI_OID *ret = NULL;
 
 	if( !a ) return ( NULL );
@@ -124,7 +124,7 @@ PKI_OID *PKI_OID_dup( PKI_OID *a ) {
  * \brief Compares two PKI_OID and returns 0 if they match
  */
 
-int PKI_OID_cmp( PKI_OID *a, PKI_OID *b ) {
+int PKI_OID_cmp( const PKI_OID *a, const PKI_OID *b ) {
 
 	if ( !a || !b ) {
 		return(-1);
@@ -135,7 +135,7 @@ int PKI_OID_cmp( PKI_OID *a, PKI_OID *b ) {
 
 /*! \brief Returns the PKI_ID of the object if recognized */
 
-PKI_ID PKI_OID_get_id ( PKI_OID *a ) {
+PKI_ID PKI_OID_get_id ( const PKI_OID *a ) {
 
 	PKI_ID ret = PKI_ID_UNKNOWN;
 
@@ -152,7 +152,7 @@ PKI_ID PKI_OID_get_id ( PKI_OID *a ) {
 
 /*! \brief Return the description associated with a PKI_OID object */
 
-const char * PKI_OID_get_descr ( PKI_OID *a ) {
+const char * PKI_OID_get_descr ( const PKI_OID *a ) {
 
 	int nid;
 
@@ -169,7 +169,7 @@ const char * PKI_OID_get_descr ( PKI_OID *a ) {
 
 /*! \brief Returns a new allocated string representation of an OID */
 
-char * PKI_OID_get_str ( PKI_OID *a ) {
+char * PKI_OID_get_str ( const PKI_OID *a ) {
 
 	char *ret = NULL;
 	BUF_MEM *buf_mem = NULL;
@@ -182,7 +182,7 @@ char * PKI_OID_get_str ( PKI_OID *a ) {
 		return ( NULL );
 	}
 
-	i2a_ASN1_OBJECT( mem, a );
+	i2a_ASN1_OBJECT(mem, (ASN1_OBJECT *)a);
 
 	/* Copy the data from the BIO to the PKI_MEM structure */
 	BIO_get_mem_ptr(mem, &buf_mem);

@@ -17,7 +17,7 @@
   <!-- Where the Password should be read from -->
   <pki:passin>stdin</pki:passin>
   <!-- ... or simply specify the password here -->
-  <!-- <pki:passwd></pki:passwd> -->
+  <!-- <pki:password></pki:password> -->
   <!-- Certificates -->
   <pki:otherCerts>file:://$HOME/.libpki/certs.pem</pki:otherCerts>
   <pki:trustedCerts>file:://$HOME/.libpki/certs.pem</pki:trustedCerts>

@@ -21,8 +21,8 @@ void PKI_X509_KEYPAIR_free_void ( void *key ) {
  *         PKCS#11 HSMs ) as target
  */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits,
-							char *label, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( PKI_SCHEME_ID type, int bits,
+					char *label, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_KEYPARAMS kp;
 
@@ -37,7 +37,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits,
 
 	// EC
 #ifdef ENABLE_ECDSA
-	kp.ec.form = -1;
+	kp.ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 	kp.ec.curve = -1;
 #endif
 
@@ -48,7 +48,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( int type, int bits,
  *         PKCS#11 HSMs ) as target
  */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits, 
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( PKI_SCHEME_ID type, int bits, 
 			URL *url, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_KEYPARAMS kp;
@@ -64,7 +64,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits,
 
 	// EC
 #ifdef ENABLE_ECDSA
-	kp.ec.form = -1;
+	kp.ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 	kp.ec.curve = -1;
 	kp.ec.asn1flags = -1;
 #endif
@@ -77,7 +77,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( int type, int bits,
  */
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_kp( PKI_KEYPARAMS *kp,
-							char *label, PKI_CRED *cred, HSM *hsm ) {
+					   char *label, PKI_CRED *cred, HSM *hsm ) {
 
 	return HSM_X509_KEYPAIR_new ( kp, label, cred, hsm );
 }
@@ -95,7 +95,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url_kp( PKI_KEYPARAMS *kp,
 /*! \brief Returns a char * with a string representation of the Keypair
  */
 
-char * PKI_X509_KEYPAIR_get_parsed ( PKI_X509_KEYPAIR *pkey ) {
+char * PKI_X509_KEYPAIR_get_parsed (const PKI_X509_KEYPAIR *pkey ) {
 
 	if( !pkey || !pkey->value ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -111,7 +111,7 @@ char * PKI_X509_KEYPAIR_get_parsed ( PKI_X509_KEYPAIR *pkey ) {
  * \brief Returns the signing scheme from a keypair
  */
 
-PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme ( PKI_X509_KEYPAIR *k ) {
+PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme (const PKI_X509_KEYPAIR *k ) {
 
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
 
@@ -129,16 +129,23 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme ( PKI_X509_KEYPAIR *k ) {
  * \brief Returns the signing scheme from a keypair value
  */
 
-PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme ( PKI_X509_KEYPAIR_VALUE *pVal ) {
+PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *pVal ) {
 
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
+	int p_type = 0;
 
 	if ( !pVal ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return ret;
 	};
 
-	switch(EVP_PKEY_type(pVal->type)) {
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	p_type = EVP_PKEY_type(pVal->type);
+#else
+	p_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
+#endif
+
+	switch(p_type) {
 		case EVP_PKEY_DSA:
 			ret = PKI_SCHEME_DSA;
 			break;
@@ -164,7 +171,7 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme ( PKI_X509_KEYPAIR_VALUE *pVal )
  * \brief Returns the default signing algorithm from a keypair
  */
 
-PKI_ALGOR * PKI_X509_KEYPAIR_get_algor ( PKI_X509_KEYPAIR *k ) {
+PKI_ALGOR * PKI_X509_KEYPAIR_get_algor (const PKI_X509_KEYPAIR *k ) {
 
 	PKI_ALGOR *ret = NULL;
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
@@ -184,9 +191,10 @@ PKI_ALGOR * PKI_X509_KEYPAIR_get_algor ( PKI_X509_KEYPAIR *k ) {
  * \brief Returns the default signing algorithm from a keypair value
  */
 
-PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor ( PKI_X509_KEYPAIR_VALUE *pVal )
+PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE *pVal )
 {
 	PKI_ALGOR *ret = NULL;
+	int p_type = 0;
 
 	int size = -1;
 	int algId = -1;
@@ -194,7 +202,13 @@ PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor ( PKI_X509_KEYPAIR_VALUE *pVal )
 	size = PKI_X509_KEYPAIR_VALUE_get_size(pVal);
 	if (size <= 0) PKI_ERROR(PKI_ERR_GENERAL, "Key size is 0!");
 
-	switch (EVP_PKEY_type(pVal->type))
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	p_type = EVP_PKEY_type(pVal->type);
+#else
+	p_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
+#endif
+
+	switch (p_type)
 	{
 		case EVP_PKEY_DSA:
 			algId = PKI_ALGOR_DSA_SHA1;
@@ -231,7 +245,7 @@ PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor ( PKI_X509_KEYPAIR_VALUE *pVal )
  * \brief Returns the size (in bits) of a pubkey
  */
 
-int PKI_X509_KEYPAIR_get_size ( PKI_X509_KEYPAIR *k ) {
+int PKI_X509_KEYPAIR_get_size (const PKI_X509_KEYPAIR *k ) {
 
 	PKI_X509_KEYPAIR_VALUE *pKey = NULL;
 
@@ -249,7 +263,7 @@ int PKI_X509_KEYPAIR_get_size ( PKI_X509_KEYPAIR *k ) {
  * \brief Returns the size (in bits) of a pubkey value
  */
 
-int PKI_X509_KEYPAIR_VALUE_get_size ( PKI_X509_KEYPAIR_VALUE *pKey ) {
+int PKI_X509_KEYPAIR_VALUE_get_size (const PKI_X509_KEYPAIR_VALUE *pKey ) {
 
 	int ret = -1;
 
@@ -258,7 +272,7 @@ int PKI_X509_KEYPAIR_VALUE_get_size ( PKI_X509_KEYPAIR_VALUE *pKey ) {
 		return ret;
 	};
 
-	return EVP_PKEY_bits( pKey );
+	return EVP_PKEY_bits((PKI_X509_KEYPAIR_VALUE *)pKey);
 
 /*
 	switch ( PKI_X509_KEYPAIR_VALUE_get_scheme( pKey ) ) {
@@ -290,22 +304,49 @@ int PKI_X509_KEYPAIR_VALUE_get_size ( PKI_X509_KEYPAIR_VALUE *pKey ) {
 
 /*! \brief Returns the (unsigned char *) digest of a pubkey value */
 
-PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest ( PKI_X509_KEYPAIR_VALUE *pkey,
-							PKI_DIGEST_ALG *md ) {
+PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE *pkey,
+						const	PKI_DIGEST_ALG *md ) {
 
 	X509_PUBKEY *xpk = NULL;
-	ASN1_BIT_STRING *key = NULL;
 	PKI_DIGEST * ret = NULL;
+	 
+	unsigned char * buf = NULL;
+	int buf_size = 0;
 
+	// Input Check
 	if (!pkey) return NULL;
 
-	if( !md ) md = PKI_DIGEST_ALG_DEFAULT;
+	// Check for MD (if not, let's use the default)
+	if(!md) md = PKI_DIGEST_ALG_DEFAULT;
 
-	if(!X509_PUBKEY_set(&xpk, pkey )) {
+	// Sets the Public Key
+	if(!X509_PUBKEY_set(&xpk, (EVP_PKEY *)pkey)) {
 		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::Error building X509 "
 			"PUBKEY data");
 		return NULL;
 	}
+
+	// Let's allocate enough space for the DER representation
+	// of the key
+	buf_size = i2d_X509_PUBKEY(xpk, &buf);
+
+	// Calculates the digest over the DER representation of the pubkey
+	if (buf != NULL && buf_size > 0) {
+
+		// Gets the Digest Value
+		if ((ret = PKI_DIGEST_new(md, buf, (size_t) buf_size)) == NULL) {
+			PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::%s",
+				ERR_error_string( ERR_get_error(), NULL ));
+			return NULL;
+		}
+
+		// Free the Buffer Memory
+		PKI_Free(buf);
+	}
+
+	/*
+	ASN1_BIT_STRING *key = NULL;
+
 	if((key = xpk->public_key ) == NULL ) {
 		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::No pubkey found!");
 		return ( NULL );
@@ -322,14 +363,15 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest ( PKI_X509_KEYPAIR_VALUE *pkey,
 			ERR_error_string( ERR_get_error(), NULL ));
 		return ( NULL );
 	}
+	*/
 
-	return ( ret );
+	return ret;
 }
 
 /*! \brief Returns the (unsigned char *) digest of the pubkey */
 
-PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest ( PKI_X509_KEYPAIR *k, 
-							PKI_DIGEST_ALG *md) {
+PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest (const PKI_X509_KEYPAIR *k, 
+						const PKI_DIGEST_ALG *md) {
 
 	if( !k || !k->value ) return ( NULL );
 
@@ -339,7 +381,7 @@ PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest ( PKI_X509_KEYPAIR *k,
 
 /*! \brief Returns the passed PKI_X509_KEYPAIR in PKCS#8 format */
 
-PKI_MEM *PKI_X509_KEYPAIR_get_p8 ( PKI_X509_KEYPAIR *k ) {
+PKI_MEM *PKI_X509_KEYPAIR_get_p8 (const PKI_X509_KEYPAIR *k ) {
 
 	BIO *mem = NULL;
 	PKI_MEM *ret = NULL;
@@ -367,7 +409,7 @@ PKI_MEM *PKI_X509_KEYPAIR_get_p8 ( PKI_X509_KEYPAIR *k ) {
 
 /*! \brief Reads a PKI_X509_KEYPAIR from a PKCS#8 format */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 ( PKI_MEM *buf ) {
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 (const PKI_MEM *buf ) {
 
 	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL );
 
@@ -378,7 +420,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 ( PKI_MEM *buf ) {
  * \brief Returns a DER encoded Public Key
  */
 
-PKI_MEM * PKI_X509_KEYPAIR_get_pubkey(PKI_X509_KEYPAIR *kp)
+PKI_MEM * PKI_X509_KEYPAIR_get_pubkey(const PKI_X509_KEYPAIR *kp)
 {
 	PKI_X509_KEYPAIR_VALUE *kVal = NULL;
 	PKI_MEM *ret = NULL;
@@ -406,7 +448,7 @@ PKI_MEM * PKI_X509_KEYPAIR_get_pubkey(PKI_X509_KEYPAIR *kp)
  * \brief Returns a Private Key in PKCS#8 format
  */
 
-PKI_MEM *PKI_X509_KEYPAIR_get_privkey(PKI_X509_KEYPAIR *kp)
+PKI_MEM *PKI_X509_KEYPAIR_get_privkey(const PKI_X509_KEYPAIR *kp)
 {
 	return PKI_X509_KEYPAIR_get_p8(kp);
 
@@ -435,7 +477,7 @@ PKI_MEM *PKI_X509_KEYPAIR_get_privkey(PKI_X509_KEYPAIR *kp)
  * \brief Returns the PKI_ID of the EC curve of the Key (EC keys only)
  */
 
-int PKI_X509_KEYPAIR_get_curve ( PKI_X509_KEYPAIR *kp )
+int PKI_X509_KEYPAIR_get_curve (const PKI_X509_KEYPAIR *kp )
 {
 #ifdef ENABLE_ECDSA
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
@@ -450,7 +492,7 @@ int PKI_X509_KEYPAIR_get_curve ( PKI_X509_KEYPAIR *kp )
 	size_t num_curves = 0;
 	int i;
 
-	BIGNUM *order;
+	BIGNUM *order = NULL;
 
 	unsigned long long keyBits = 0;
 	unsigned long long curveBits = 0;
@@ -460,24 +502,19 @@ int PKI_X509_KEYPAIR_get_curve ( PKI_X509_KEYPAIR *kp )
 
 	ctx = BN_CTX_new();
 
-	switch (EVP_PKEY_type(pVal->type))
+	switch (EVP_PKEY_type(EVP_PKEY_id(pVal)))
 	{
-		case EVP_PKEY_EC:
-			ec = pVal->pkey.ec;
-			break;
+		case EVP_PKEY_EC: {
+			// ec = pVal->pkey.ec;
+			if ((ec = EVP_PKEY_get1_EC_KEY(pVal)) == NULL) goto err;
+		} break;
 
-		default:
-			return PKI_ID_UNKNOWN;
-			break;
-	};
+		default: {
+			goto err;
+		} break;
+	}
 
-	if (!ec) {
-		return PKI_ID_UNKNOWN;
-	};
-
-	if((gr = EC_KEY_get0_group(ec)) == NULL) {
-		return PKI_ID_UNKNOWN;
-	};
+	if ((gr = EC_KEY_get0_group(ec)) == NULL) return PKI_ID_UNKNOWN;
 
 	order = BN_new();
 	if (EC_GROUP_get_order(gr, order, NULL)) {
@@ -488,28 +525,27 @@ int PKI_X509_KEYPAIR_get_curve ( PKI_X509_KEYPAIR *kp )
 
 	if((point = EC_POINT_new( gr )) == NULL ) {
 		PKI_log_err("Can not generate a new point in Key's Group");
-		return PKI_ID_UNKNOWN;
+		goto err;
 	};
 
 	/* Get the number of availabe ECDSA curves in OpenSSL */
 	if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
 		/* No curves available! */
-		return PKI_ID_UNKNOWN;
+		goto err;
 	}
 
 	/* Alloc the needed memory */
-	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * (int) num_curves);
-
-	if (curves == NULL) {
-		return PKI_ID_UNKNOWN;
-	};
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	curves = OPENSSL_malloc((int)(sizeof(EC_builtin_curve) * num_curves));
+#else
+	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * num_curves);
+#endif
+	if (curves == NULL) goto err;
 
 	/* Get the builtin curves */
-	if (!EC_get_builtin_curves(curves, num_curves)) {
-		if( curves ) free (curves);
-		return PKI_ID_UNKNOWN;
-	}
+	if (!EC_get_builtin_curves(curves, num_curves)) goto err;
 
+	// Allocates the BN
 	order = BN_new();
 
 	/* Cycle through the curves and display the names */
@@ -537,13 +573,26 @@ int PKI_X509_KEYPAIR_get_curve ( PKI_X509_KEYPAIR *kp )
 		if( gr2 ) EC_GROUP_free ( gr2 );
 	};
 
-	if ( order ) BN_free ( order );
+	// Free Memory
+	if (order) BN_free(order);
+	if (curves) free(curves);
+	if (ctx) BN_CTX_free(ctx);
+	if (ec) EC_KEY_free(ec);
 
-	if( curves ) free ( curves );
-
-	BN_CTX_free ( ctx );
-
+	// Return Result
 	return ret;
+
+err:
+
+	// Free Memory
+	if (order) BN_free (order);
+	if (curves) free(curves);
+	if (ctx) BN_CTX_free(ctx);
+	if (ec) EC_KEY_free(ec);
+
+	// Return Error
+	return PKI_ID_UNKNOWN;
+
 #else
 	return PKI_ID_UNKNOWN;
 #endif

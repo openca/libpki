@@ -138,9 +138,13 @@ CERT_REQ_MSG *CERT_REQ_MSG_get_mem( PKI_MEM *mem ) {
 
 	size_t curr = 0;
 
-	bp = BIO_new_mem_buf( mem->data, (int) mem->size );
+	if ((bp = BIO_new_mem_buf( mem->data, (int) mem->size )) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
 
-	p = (BUF_MEM *) bp->ptr;
+	// p = (BUF_MEM *) bp->ptr;
+	BIO_get_mem_ptr(bp, &p);
 	curr = (size_t) p->length;
 
 	if((ret = PEM_read_bio_CERT_REQ_MSG(bp)) == NULL){

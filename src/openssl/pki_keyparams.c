@@ -6,7 +6,8 @@
  * \brief Allocates memory for a new PKI_KEYPARAMS (for key of type 'scheme')
  */
 
-PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
+PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, 
+				  const PKI_X509_PROFILE *prof ) {
 
 	PKI_KEYPARAMS *kp = NULL;
 
@@ -22,7 +23,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 		char *tmp_s = NULL;
 
 		// Get the Profile value of Bits
-		if(( tmp_s = PKI_CONFIG_get_value ( prof, 
+		if ((tmp_s = PKI_CONFIG_get_value(prof, 
 					"/profile/keyParams/bits" )) != NULL ) {
 			kp->bits = atoi(tmp_s);
 			PKI_Free ( tmp_s );
@@ -41,13 +42,13 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 				PKI_log_debug("PKI_KEYPARAMS_new(): ALGOR is %s\n", tmp_s );
 				PKI_Free ( tmp_s );
 			} else {
-				kp->scheme = -1;
+				kp->scheme = PKI_SCHEME_UNKNOWN;
 			};
 		} else {
 			kp->scheme = scheme;
 		};
 		
-		if( kp->scheme == -1 ) kp->scheme = PKI_SCHEME_DEFAULT;
+		if( kp->scheme == PKI_SCHEME_UNKNOWN ) kp->scheme = PKI_SCHEME_DEFAULT;
 
 		// Get the Profile Params
 		switch (kp->scheme) {
@@ -79,11 +80,11 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 					} else if ( strncmp_nocase( tmp_s, "hybrid", 6) == 0 ) {
 						kp->ec.form = PKI_EC_KEY_FORM_HYBRID;
 					} else {
-						kp->ec.form = -1;
+						kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 					};
 					PKI_Free ( tmp_s );
 				} else {
-						kp->ec.form = -1;
+						kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 				};
 
 				if(( tmp_s = PKI_CONFIG_get_value(prof, 
@@ -127,7 +128,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( int scheme, PKI_X509_PROFILE *prof ) {
 			case PKI_SCHEME_ECDSA:
 				kp->bits 		= -1;
 				kp->ec.curve 	= -1;
-				kp->ec.form 	= -1;
+				kp->ec.form 	= PKI_EC_KEY_FORM_UNKNOWN;
 				kp->ec.asn1flags = -1;
 #endif
 				break;
@@ -162,13 +163,70 @@ void PKI_KEYPARAMS_free ( PKI_KEYPARAMS *kp ) {
  * \brief Returns the type (PKI_SCHEME_ID) of the PKI_KEYPARAMS
  */
 
-PKI_SCHEME_ID PKI_KEYPARAMS_get_type ( PKI_KEYPARAMS *kp ) {
+PKI_SCHEME_ID PKI_KEYPARAMS_get_type(const PKI_KEYPARAMS *kp) {
 
 	if (!kp) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_SCHEME_UNKNOWN;
 	}
 
-	return kp->scheme;
+	return (PKI_SCHEME_ID)kp->scheme;
+};
+
+/* !\brief Sets the scheme for the key generation. Returns PKI_OK or PKI_ERR. */
+
+int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId) {
+
+	// Input Checks
+	if (!kp) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Sets the Scheme
+	kp->scheme = schemeId;
+
+	// Done
+	return PKI_OK;
+};
+
+/* !\brief Sets the curve for key generation (and resets the scheme to EC) */
+int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp, 
+                            const char      * curveName, 
+                            PKI_EC_KEY_FORM   curveForm,
+                            PKI_EC_KEY_ASN1   asn1flags) {
+
+	int curveId = 0;
+
+	// Input Checks
+	if (!kp || !curveName) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Let's get the curve Identifier
+	if ((curveId = PKI_OID_get_id(PKI_OID_get(curveName))) == PKI_ID_UNKNOWN)
+		return PKI_ERR;
+
+	// Let's now set the curve name and the scheme (to be sure)
+	kp->scheme = PKI_SCHEME_ECDSA;
+	kp->ec.curve  = curveId;
+
+	// Sets the Form for the curve (if specified)
+	if (curveForm > 0) kp->ec.form = curveForm;
+
+	// Sets the flags
+	if (asn1flags > -1) kp->ec.asn1flags = asn1flags;
+
+	// All Done
+	return PKI_OK;
+};
+
+/*! \brief Sets the bits size for key generation */
+int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
+
+	// Input Checks
+	if (!kp || bits <= 0) return
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Sets the bits
+	kp->bits = bits;
+
+	// All Done
+	return PKI_OK;
 };
 

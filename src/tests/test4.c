@@ -57,7 +57,7 @@ int main (int argc, char *argv[] ) {
 		return (0);
 	}
 
-	if((PKI_TOKEN_new_keypair ( tk, 1024, NULL )) == PKI_ERR) {
+	if((PKI_TOKEN_new_keypair ( tk, 2048, NULL )) == PKI_ERR) {
 		printf("ERROR, can not generate new keypair!\n");
 		return (0);
 	}

@@ -1,10 +1,10 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2015 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2017 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.8.8, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.8.9, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -64,15 +64,15 @@ fi
 
 AC_SUBST(mybits)
 
-v=$PACKAGE_VERSION
-dnl v=`cat IFACE_VERSION`
+my_v=$PACKAGE_VERSION
+dnl my_v=`cat IFACE_VERSION`
 
-revision=`echo $v | sed -e 's|[[0-9]]\.[[0-9]]\.[[0-9]]\.||'`
-v=`echo ${v%.${revision}}`
+revision=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]]\.[[0-9]]\.||'`
+my_v=`echo ${my_v%.${revision}}`
 
-minor=`echo $v | sed -e 's|[[0-9]]\.[[0-9]].||'`
-tmp=`echo $v | sed -e 's|[[0-9]]\.[[0-9]]*||'`
-major=`echo ${v%.$minor} | sed -e 's|^0*||' | sed -e 's|\.||g'`
+minor=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]].||'`
+tmp=`echo $my_v | sed -e 's|[[0-9]]\.[[0-9]]*||'`
+major=`echo ${my_v%.$minor} | sed -e 's|^0*||' | sed -e 's|\.||g'`
 
 let "iface_version=$major * 10 + $minor"
 
@@ -83,7 +83,7 @@ iface_current=$iface_version
 iface_revision=$iface_current
 
 # Oldest Interface Supported
-iface_oldest=80
+iface_oldest=89
 
 # Range of supported interfaces (current - oldest)
 let "iface_age=$iface_current - $iface_oldest"
@@ -174,7 +174,7 @@ AC_PROG_EGREP
 CPU=`uname -p`
 AC_SUBST(CPU)
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 myarch=
 
@@ -213,8 +213,11 @@ case "${build_os}" in
 		shlext=so
 		;;
  *aix*)
-    myarch=aix
+		myarch=aix
 		shlext=so
+		;;
+ *cygwin*)	myarch=cygwin
+	 	shlext=dll
 		;;
  *) AC_MSG_ERROR([Operating system ${build_os} not supported]) ;;
 esac
@@ -261,19 +264,27 @@ AM_CONDITIONAL(LIBPKI_ENABLE_IPHONE, test x$enable_iphone = xyes)
 if [[ "x$myarch" = "xsolaris" ]] ; then
 	DIST_VERSION=`uname -r`
 else
-	if [[ -f "/etc/issue" ]] ; then
-	   DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/issue | head -n 1`
+	if [[ -f "/etc/system-release" ]] ; then
+	   DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/system-release | head -n 1`
 	else
-	   DIST_VERSION=`echo ${build_os} | $EGREP -o [[0-9.]]+`
+		if [[ -f "/etc/issue" ]] ; then
+	   		DIST_VERSION=`$EGREP -o [[0-9.]]+ /etc/issue | head -n 1`
+		else
+	   		DIST_VERSION=`echo ${build_os} | $EGREP -o [[0-9.]]+`
+		fi
 	fi
 fi
 
 AC_SUBST(DIST_VERSION)
 
-if [[ -f "/etc/issue" ]] ; then
-   DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
+if [[ -f "/etc/system-release" ]] ; then
+   DIST_NAME=`head -n 1 /etc/system-release | cut -f 1,1 -d ' '`
 else
-   DIST_NAME=`echo ${build_os} | $EGREP -o [[A-Za-z]]+`
+	if [[ -f "/etc/issue" ]] ; then
+   		DIST_NAME=`head -n 1 /etc/issue | cut -f 1,1 -d ' '`
+	else
+   		DIST_NAME=`echo ${build_os} | $EGREP -o [[A-Za-z]]+`
+	fi
 fi
 
 AC_SUBST(DIST_NAME)
@@ -349,6 +360,9 @@ dnl check for stack protection of gcc
 if [[ "$CC" = "gcc" ]] ; then
 	AC_CHECK_C_OPTION(-fstack-check)
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
+	AC_CHECK_C_OPTION(-Werror)
+	AC_CHECK_C_OPTION(-Wfatal-errors)
+        AC_CHECK_C_OPTION(-Wunused-variable)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
@@ -356,9 +370,7 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Wtype-limits)
 		AC_CHECK_C_OPTION(-Wuninitialized)
 		AC_CHECK_C_OPTION(-Wconversion)
-		AC_CHECK_C_OPTION(-Werror)
-		AC_CHECK_C_OPTION(-Wfatal-errors)
-		AC_CHECK_C_OPTION(-Wall)
+		AC_CHECK_C_OPTION(-fsanitize=address)
 	fi
 
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
@@ -450,8 +462,13 @@ AC_ARG_WITH( package-prefix,
 
 if ! [[ "x$package_prefix_cnf" = "x" ]] ; then
 	package_prefix=$package_prefix_cnf
-else if [[ "x$prefix" = "xNONE" ]] ; then
-		prefix=/usr
+else 
+	if [[ "x$prefix" = "xNONE" ]] ; then
+		if [[ "$DIST_NAME" = "darwin" ]] ; then
+			prefix=/usr/local
+		else
+			prefix=/usr
+		fi
 		package_prefix=${prefix}
 	else
 		package_prefix=${prefix}
@@ -670,7 +687,16 @@ if [[ "x$iphone_build" = "xno" ]] ; then
  		$xml2_prefix/bin:/opt/csw/bin:$PATH:/bin:/usr/bin:/usr/local/bin )
 
 	if ! [[ "x$xml2_config" = "x" ]] ; then
-		xml2_prefix=`$xml2_config --prefix`
+		if [[ "x$DIST_NAME" = "xdarwin" ]] ; then
+			if [[ "$xml2_prefix" = "x" ]] ; then
+				xml2_prefix=/usr
+			else
+				xml2_prefix=`$xml2_config --prefix`
+			fi
+		else
+			xml2_prefix=`$xml2_config --prefix`
+		fi
+
 		xml2_config=$xml2_config
 	else
 		xml2_prefix=/usr
@@ -683,15 +709,34 @@ fi
 AC_SUBST(xml2_prefix)
 
 if ! [[ "x$xml2_config" = "x" ]] ; then
-	xml2_cflags=`$xml2_config --cflags`
- 	xml2_ldadd=`$xml2_config --libs`
-  xml2_ldflags=-L`$xml2_config --prefix`/lib$mybits_install 
-  XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
+	if [[ "$DIST_NAME" = "darwin" ]] ; then
+		if [[ -d "${xml2_prefix}/include/libxml2" ]] ; then
+			xml2_cflags=-I${xml2_prefix}/include/libxml2
+		else
+ 			xml2_cflags=`$xml2_config --cflags`
+		fi
+ 		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
+	else
+		xml2_cflags=`$xml2_config --cflags`
+ 		xml2_ldadd=`$xml2_config --libs`
+	fi
+
+	if [[ "$DIST_NAME" = "darwin" ]] ; then
+		xml2_ldflags=-L${xml2_prefix}/lib
+	else
+		xml2_ldflags=-L${xml2_prefix}/lib${mybits_install} 
+	fi
+
+	dnl if [[ "$DIST_NAME" = "darwin" ]] ; then
+	dnl 	XML2_LIBTOOL_LIBS=`$xml2_config --exec-prefix=/usr --libtool-libs`
+	dnl else
+	dnl 	XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
+	dnl fi
 else
-  xml2_cflags=-I${xml2_prefix}/include/libxml2
+	xml2_cflags=-I${xml2_prefix}/include/libxml2
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
-	XML2_LIBTOOL_LIBS=
+	dnl XML2_LIBTOOL_LIBS=
 fi
 
 xml2_config="$xml2_prefix/bin/xml2-config"
@@ -1021,7 +1066,7 @@ openssl_include=
 openssl_setup=no
 openssl_engine=
 openssl_static_libs=
-openssl_min_ver=0.9.8
+openssl_min_ver=0x090909f
 openssl_pkg_min_ver=0.9.8
 
 dnl activate_ecdsa=
@@ -1211,8 +1256,10 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
 	if [[ "$iphone_build" = "no" ]] ; then
-	    AC_SEARCH_LIBS(BIO_new, "crypto", [ ] ,
-		AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+		if ! [[ "x$DIST_NAME" = "xdarwin" ]] ; then
+	    		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
+				AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+		fi
 	fi
 
 	activate_ecdsa=
@@ -1484,7 +1531,7 @@ AC_CONFIG_FILES(
 	src/tools/Makefile
 	src/scripts/libpki-config
 	src/tests/Makefile
-	src/libpki/pki_conf.h
+	src/libpki/pki_config.h
 	contrib/libpki.pc
 	contrib/libpki-inst.xml
 	examples/prqp/Makefile

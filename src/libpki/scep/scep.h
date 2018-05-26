@@ -54,6 +54,7 @@ typedef struct scep_oid_st {
 
 /* These should be in the same order than the SCEP_ATTRIBUTE_list in scep_attrs.c */
 typedef enum {
+	SCEP_ATTRIBUTE_TYPE_UNKNOWN		= -1,
 	SCEP_ATTRIBUTE_MESSAGE_TYPE 		= 0,
 	SCEP_ATTRIBUTE_PKI_STATUS,
 	SCEP_ATTRIBUTE_FAIL_INFO,

@@ -179,18 +179,17 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 
 int PKI_TOKEN_check ( PKI_TOKEN *tk )
 {
-	int ret;
-
-	ret = PKI_TOKEN_STATUS_OK;
+	int check_val = 0;
+	int ret = PKI_TOKEN_STATUS_OK;
 
 	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
 	if (!tk->keypair)
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
 
-	if (PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair) != 0)
+	if ((check_val = PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair)) != 0)
 	{
-		PKI_log_err("Possible Key Mismatch (certificate / keypair)");
+		PKI_log_err("Possible PrivKey/Certificate Mismatch (%d)", check_val);
 		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
 	}
 
@@ -524,7 +523,7 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	int ret = PKI_ERR;
 
-	PKI_ALGOR * alg = NULL;
+	const PKI_ALGOR * alg = NULL;
 
 	/* Check input */
 	if(!tk || !tk_name)
@@ -562,21 +561,14 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 		} else {
 			tk->type = HSM_TYPE_OTHER;
 		}
-	} else {
+	}
+	else
+	{
 		tk->type = HSM_TYPE_SOFTWARE;
 	}
 
-/*
-	hsm_name = PKI_CONFIG_get_value(tk->config, "/tokenConfig/hsm");
-
-PKI_log_debug("[2] hsm_name = %s", hsm_name ? hsm_name : "n/a");
-PKI_log_debug("[2] type set to (%d)", tk->type);
-PKI_log_debug("[2] is hardware token ? %s", (((tk->type != HSM_TYPE_SOFTWARE) && (hsm_name != NULL)) ? "true" : "false"));
-*/
-
 	if ((tk->type != HSM_TYPE_SOFTWARE) && ((hsm_name = 
-			PKI_CONFIG_get_value( tk->config, "/tokenConfig/hsm"))
-								!= NULL))
+			PKI_CONFIG_get_value( tk->config, "/tokenConfig/hsm")) != NULL))
 	{
 		PKI_log_debug("TK: Hardware Token: Name is %s", hsm_name );
 
@@ -709,8 +701,6 @@ PKI_log_debug("[2] is hardware token ? %s", (((tk->type != HSM_TYPE_SOFTWARE) &&
 		alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
 		if (alg) PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
 
-		// tk->algor = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
-	
 		// Assign the name
 		tk->cert_id = strdup( tmp_s );
 		PKI_Free ( tmp_s );
@@ -795,10 +785,9 @@ int PKI_TOKEN_init(PKI_TOKEN *tk, char *conf_dir, char *tk_name)
 	PKI_CONFIG *oids = NULL;
 	char * homedir = NULL;
 
-	if( !tk ) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
 
-	if( tk->config_dir )
-	{
+	if( tk->config_dir ) {
 		PKI_Free ( tk->config_dir );
 		tk->config_dir = NULL;
 	}
@@ -925,7 +914,10 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	if(algId <= 0) algId = PKI_ALGOR_DEFAULT;
 
 	// Now let's get the algor
-	if ((al = PKI_ALGOR_get(algId)) == NULL) return PKI_ERR;
+	if ((al = PKI_ALGOR_get(algId)) == NULL) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+		return PKI_ERR;
+	}
 
 	// If already set, let's free the memory first
 	if (tk->algor) PKI_ALGOR_free(tk->algor);
@@ -934,7 +926,7 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	tk->algor = al;
 	
 	/* Check that the HSM capabilities */
-	if (tk->hsm) return HSM_set_algor(tk->algor, tk->hsm);
+	if (tk->hsm) return HSM_set_sign_algor(tk->algor, tk->hsm);
 
 	return PKI_OK;
 };
@@ -975,7 +967,7 @@ int PKI_TOKEN_set_algor_by_name( PKI_TOKEN *tk, const char *alg_name)
 	tk->algor = al;
 
 	/* Check that the HSM capabilities */
-	if (tk->hsm) return HSM_set_algor(tk->algor, tk->hsm);
+	if (tk->hsm) return HSM_set_sign_algor(tk->algor, tk->hsm);
 
 	return( PKI_OK );
 }
@@ -1079,7 +1071,7 @@ int PKI_TOKEN_new_keypair_ex ( PKI_TOKEN *tk, PKI_KEYPARAMS *kp,
 int PKI_TOKEN_new_keypair ( PKI_TOKEN *tk, int bits, char *label )
 {
 	PKI_KEYPARAMS *kp = NULL;
-	PKI_ALGOR_ID alg = PKI_ALGOR_ID_UNKNOWN;
+	PKI_SCHEME_ID alg = PKI_SCHEME_UNKNOWN;
 	int ret = PKI_OK;
 
 	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -1176,19 +1168,19 @@ int PKI_TOKEN_new_keypair_url_ex ( PKI_TOKEN *tk, PKI_KEYPARAMS *kp,
 int PKI_TOKEN_new_keypair_url(PKI_TOKEN *tk, int bits, URL *label)
 {
 	PKI_KEYPARAMS *kp = NULL;
-	PKI_ALGOR_ID alg = PKI_ALGOR_ID_UNKNOWN;
+	PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
 	int ret = PKI_OK;
 
 	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	if (tk->algor)
 	{
-		if ((alg = PKI_ALGOR_get_id(tk->algor)) == PKI_ALGOR_ID_UNKNOWN)
+		if ((scheme = PKI_ALGOR_get_scheme(tk->algor)) == PKI_SCHEME_UNKNOWN)
 			return PKI_ERR;
 	}
-	else alg = PKI_SCHEME_DEFAULT;
+	else scheme = PKI_SCHEME_DEFAULT;
 
-	if ((kp = PKI_KEYPARAMS_new(alg, NULL)) == NULL)
+	if ((kp = PKI_KEYPARAMS_new(scheme, NULL)) == NULL)
 		return PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL);
 
 	if( bits > 0 ) kp->bits = bits;
@@ -1469,7 +1461,7 @@ int PKI_TOKEN_set_cred ( PKI_TOKEN *tk, PKI_CRED *cred )
 	if (!tk || !cred) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	if( tk->cred ) PKI_CRED_free (tk->cred);
-	tk->cred = cred;
+	tk->cred = PKI_CRED_dup(cred);
 
 	return PKI_OK;
 }
@@ -1568,8 +1560,6 @@ int PKI_TOKEN_load_cacert(PKI_TOKEN *tk, char *url_string)
 
 int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 {
-	PKI_ALGOR *alg = NULL;
-
 	if (!tk || !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
@@ -1580,6 +1570,10 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 		return PKI_ERR;
 	}
 
+	/* TODO: Not sure what the use of this call is in this function, additional
+	         checks are required. For now, we remove it.
+	*/
+	/*
 	if ((alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM )) == NULL)
 	{
 		PKI_log_debug ("Can not get Cert Signature Algorithm!");
@@ -1589,6 +1583,7 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 		PKI_log_debug ("Setting algor to %s", PKI_ALGOR_get_parsed (alg));
 		PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
 	}
+	*/
 
 	return PKI_OK;
 }
@@ -1782,7 +1777,7 @@ int PKI_TOKEN_load_req ( PKI_TOKEN *tk, char *url_string ) {
 
 /*! \brief Exports a PKI_TOKEN to a URL as PKCS#12 format */
 
-int PKI_TOKEN_export_p12 ( PKI_TOKEN *tk, int format, char *url_s,
+int PKI_TOKEN_export_p12 ( PKI_TOKEN *tk, PKI_DATA_FORMAT format, char *url_s,
 					PKI_CRED *cred ) {
 
 	URL *url = NULL;
@@ -1862,7 +1857,7 @@ PKI_X509_PKCS12 *PKI_TOKEN_get_p12 ( PKI_TOKEN *tk, PKI_CRED *cred ) {
  * \brief Exports the Token's certificate to a url passed as a string
  */
 
-int PKI_TOKEN_export_cert ( PKI_TOKEN *tk, char *url_string, int format ) {
+int PKI_TOKEN_export_cert ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format ) {
 
 	if( !tk || !tk->cert || !url_string ) return ( PKI_ERR );
 
@@ -1876,7 +1871,7 @@ int PKI_TOKEN_export_cert ( PKI_TOKEN *tk, char *url_string, int format ) {
  * \brief Exports the Token's KeyPair to the passed external URI (string)
  */
 
-int PKI_TOKEN_export_keypair ( PKI_TOKEN *tk, char *url_string, int format ) {
+int PKI_TOKEN_export_keypair ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format ) {
 
 	int ret = PKI_OK;
 	URL *url = NULL;
@@ -1909,7 +1904,7 @@ int PKI_TOKEN_export_keypair ( PKI_TOKEN *tk, char *url_string, int format ) {
  * \brief Exports the Token's keypair to the passed external URI
  */
 
-int PKI_TOKEN_export_keypair_url( PKI_TOKEN *tk, URL *url, int format ) {
+int PKI_TOKEN_export_keypair_url( PKI_TOKEN *tk, URL *url, PKI_DATA_FORMAT format ) {
 
 	PKI_MEM *mem = NULL;
 
@@ -1946,7 +1941,7 @@ int PKI_TOKEN_export_keypair_url( PKI_TOKEN *tk, URL *url, int format ) {
 /*! \brief Export the TOKEN trustedCerts to an external URI
  */
 
-int PKI_TOKEN_export_trustedCerts(PKI_TOKEN *tk, char *url_string, int format) {
+int PKI_TOKEN_export_trustedCerts(PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format) {
 
 	if( !tk || !tk->cert || !url_string ) return ( PKI_ERR );
 
@@ -1962,7 +1957,7 @@ int PKI_TOKEN_export_trustedCerts(PKI_TOKEN *tk, char *url_string, int format) {
 /*! \brief Export the TOKEN otherCerts to an external URI
  */
 
-int PKI_TOKEN_export_otherCerts ( PKI_TOKEN *tk, char *url_string, int format) {
+int PKI_TOKEN_export_otherCerts ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format) {
 
 	URL *url = NULL;
 	int ret = PKI_OK;
@@ -1984,7 +1979,7 @@ int PKI_TOKEN_export_otherCerts ( PKI_TOKEN *tk, char *url_string, int format) {
 /*! \brief Export the TOKEN request from the Token to an external URI
  */
 
-int PKI_TOKEN_export_req ( PKI_TOKEN *tk, char *url_string, int format ) {
+int PKI_TOKEN_export_req ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format ) {
 
 	if( !tk || !url_string ) {
 		PKI_log_debug("ERROR, wrong parameters!\n");
@@ -2016,25 +2011,25 @@ int PKI_TOKEN_import_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *key,
 	// char *myLabel[2048];
 	int ret = PKI_OK;
 
-	if ( !tk || !key || !url_s ) {
-		PKI_log_debug("ERROR::tk || key || url_s missing!");
-		return PKI_ERR;
-	}
+	// Input Checks
+	if (!tk || !key || !url_s)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if((url = URL_new( url_s )) == NULL ) {
-		PKI_log_debug("ERROR::can not convert URL (%s)!", url_s);
-		return ( PKI_ERR );
-	}
+	// Parses the URL
+	if ((url = URL_new( url_s )) == NULL)
+		return PKI_ERROR(PKI_ERR_URI_PARSE, "Can not parse URI [%s]", url_s);
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
-	}
+	// Checks for the Token Login
+	if( PKI_TOKEN_login( tk ) != PKI_OK ) return PKI_ERR;
 
-	ret = PKI_X509_KEYPAIR_put_url ( key, PKI_DATA_FORMAT_ASN1, url,
+	// Puts (Imports) the Keypair into the URL location
+	ret = PKI_X509_KEYPAIR_put_url(key, PKI_DATA_FORMAT_ASN1, url,
 			NULL, tk->hsm );
 
+	// Free the memory
 	if ( url ) URL_free ( url );
 
+	// All Done
 	return ret;
 }
 
@@ -2043,25 +2038,23 @@ int PKI_TOKEN_import_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *key,
  */
 
 int PKI_TOKEN_import_cert ( PKI_TOKEN *tk, PKI_X509_CERT *cert, 
-						int type, char *url_s ) {
+			 	PKI_DATATYPE type, char *url_s ) {
 
 	int ret = PKI_OK;
 	URL *url = NULL;
 	char myLabel[2048];
 
-	if( !tk || !cert || !url_s ) {
-		PKI_log_debug("ERROR::tk || cert || url_s missing!");
-		return ( PKI_ERR );
-	}
+	if (!tk || !cert || !url_s)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if((url = URL_new( url_s )) == NULL ) {
-		PKI_log_debug("ERROR::can not convert URL (%s)!", url_s);
-		return ( PKI_ERR );
-	}
+	if ((url = URL_new( url_s )) == NULL)
+		return PKI_ERROR(PKI_ERR_URI_PARSE, "Can not parse URI [%s]", url_s);
 
 	if( url->proto == URI_PROTO_ID ) {
+
 		memset(myLabel, 0x0, sizeof(myLabel));
         	strncpy(myLabel, url->addr, sizeof(myLabel) - 1);
+
 		switch( type ) {
 			case PKI_DATATYPE_X509_CERT:
 				strncat( myLabel, "'s ID", sizeof(myLabel) - 1);
@@ -2100,25 +2093,23 @@ int PKI_TOKEN_import_cert ( PKI_TOKEN *tk, PKI_X509_CERT *cert,
  */
 
 int PKI_TOKEN_import_cert_stack ( PKI_TOKEN *tk, PKI_X509_CERT_STACK *sk, 
-						int type, char *url_s ) {
+				  PKI_DATATYPE type, char *url_s ) {
 
 	int ret = PKI_OK;
 	URL *url = NULL;
 	char myLabel[2048];
 
-	if( !tk || !sk || !url_s ) {
-		PKI_log_debug("ERROR::tk || cert || url_s missing!");
-		return ( PKI_ERR );
-	}
+	if (!tk || !sk || !url_s)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if((url = URL_new( url_s )) == NULL ) {
-		PKI_log_debug("ERROR::can not convert URL (%s)!", url_s);
-		return ( PKI_ERR );
-	}
+	if ((url = URL_new( url_s )) == NULL)
+		return PKI_ERROR(PKI_ERR_URI_PARSE, "Can not parse URI [%s]", url_s);
 
 	if( url->proto == URI_PROTO_ID ) {
+
 		memset(myLabel, 0x0, sizeof(myLabel));
         	strncpy(myLabel, url->addr, sizeof(myLabel) - 1);
+
 		switch( type ) {
 			case PKI_DATATYPE_X509_CERT:
 				strncat( myLabel, "'s ID", sizeof(myLabel) - 1);
@@ -2144,7 +2135,8 @@ int PKI_TOKEN_import_cert_stack ( PKI_TOKEN *tk, PKI_X509_CERT_STACK *sk,
 		url->addr = strdup ( myLabel );
 	}
 
-	ret = PKI_X509_STACK_put_url ( sk, type, url, NULL, tk->cred, tk->hsm );
+	ret = PKI_X509_STACK_put_url(sk, PKI_DATA_FORMAT_ASN1,
+		url, NULL, tk->cred, tk->hsm );
 
 	if ( url ) URL_free ( url );
 
@@ -2276,7 +2268,7 @@ int PKI_TOKEN_set_req( PKI_TOKEN *tk, PKI_X509_REQ *req ) {
 	return (PKI_OK);
 }
 
-int PKI_TOKEN_del_url ( PKI_TOKEN *tk, URL *url, int datatype ) {
+int PKI_TOKEN_del_url ( PKI_TOKEN *tk, URL *url, PKI_DATATYPE datatype ) {
 
 	if( !tk || !url ) return ( PKI_ERR );
 
@@ -2323,16 +2315,16 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 
 	PKI_X509_PROFILE *cert_profile = NULL;
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
-	}
+	if (!tk || !tk->keypair)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if( !tk || !tk->keypair ) return (PKI_ERR);
+	if (PKI_OK != PKI_TOKEN_login(tk))
+		return PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
 
-	if( tk->cert ) {
+	if (tk->cert) {
 		/* ERROR, a Token Certificate already exists! */
-		PKI_log(PKI_LOG_WARNING, "WARNING: A cert already exists in token when "
-					"calling PKI_TOKEN_self_sign()!");
+		PKI_log(PKI_LOG_WARNING, "A cert already exists in token when "
+					 "calling PKI_TOKEN_self_sign()!");
 		PKI_X509_CERT_free ( tk->cert );
 	}
 
@@ -2342,21 +2334,19 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 
 			/* Error, the requested profile does not
 			   exists! */
-			PKI_log_debug("ERROR, Requested profile (%s) not found when self-signing cert!\n", profile_s);
+			PKI_log_err("Requested profile (%s) not found when self-signing cert!\n", profile_s);
 			return (PKI_ERR);
 		}
 	}
 
-	if( !tk->cred ) {
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	}
+	if (!tk->cred ) tk->cred = PKI_TOKEN_cred_get(tk, NULL );
 
-	if(!serial) serial = "0";
+	if (!serial) serial = "0";
 
 	tk->cert = PKI_X509_CERT_new ( NULL, tk->keypair, tk->req, subject,
 		serial, validity, cert_profile, tk->algor, tk->oids, tk->hsm );
 
-	if( !tk->cert ) return (PKI_ERR);
+	if (!tk->cert) return PKI_ERROR(PKI_ERR_X509_CERT_CREATE, NULL);
 
 	return (PKI_OK);
 }
@@ -2366,26 +2356,28 @@ PKI_X509_CERT * PKI_TOKEN_issue_cert(PKI_TOKEN *tk, char *subject, char *serial,
 
 	PKI_X509_PROFILE *cert_profile = NULL;
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
+	if (!tk || !tk->keypair) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
 	}
 
-	if( !tk || !tk->keypair ) return (PKI_ERR);
+	if (PKI_TOKEN_login(tk) != PKI_OK) {
+		PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
+		return NULL;
+	}
 
 	if( !tk->cert ) {
 		/* ERROR, a Token Certificate already exists! */
-		PKI_log_debug("%s:%d::ERROR, no token cert loaded", 
-							__FILE__, __LINE__ );
-		return (PKI_ERR);
+		PKI_ERROR(PKI_ERR_X509_CERT_CREATE,
+			"No certificate available in signing token!");
+		return NULL;
 	}
 
 	if( profile_s ) {
 		if((cert_profile = PKI_TOKEN_search_profile (tk, profile_s ))
-							== NULL) {;
-
-			/* Error, the requested profile does not
-			   exists! */
-			return (PKI_ERR);
+							== NULL) {
+			PKI_DEBUG("Can not find requested profile (%s)", profile_s);
+			return NULL;
 		}
 	}
 
@@ -2536,6 +2528,18 @@ PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject,
 	return ( px_tk );
 }
 
+int PKI_TOKEN_clear_profiles(PKI_TOKEN * tk) {
+
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	if (tk->profiles) {
+		PKI_STACK_X509_PROFILE_free_all(tk->profiles);
+		tk->profiles = NULL;
+	}
+
+	return PKI_OK;
+}
+
 int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr )
 {
 	struct dirent *dd = NULL;
@@ -2604,7 +2608,7 @@ int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr )
 
 				snprintf(fullpath, fullsize, "%s/%s", url->addr, filename );
 
-				PKI_STACK_X509_PROFILE_push( tk->profiles, PKI_X509_PROFILE_load ( fullpath ));
+				PKI_TOKEN_add_profile(tk, PKI_X509_PROFILE_load ( fullpath ));
 
 				PKI_Free ( fullpath );
 				fullpath = NULL;
@@ -2631,7 +2635,8 @@ int PKI_TOKEN_add_profile( PKI_TOKEN *tk, PKI_X509_PROFILE *profile )
 			}
 	}
 
-	PKI_STACK_X509_PROFILE_push( tk->profiles, profile );
+	PKI_STACK_X509_PROFILE_ins_num(tk->profiles, 0, profile);
+	// PKI_STACK_X509_PROFILE_push( tk->profiles, profile );
 
 	return ( PKI_OK );
 }

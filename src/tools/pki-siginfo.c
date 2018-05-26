@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
 		case PKI_DATATYPE_X509_KEYPAIR:
 			kp = obj;
 			break;
+
 		case PKI_DATATYPE_X509_CERT:
 			pVal = PKI_X509_get_data ( obj, PKI_X509_DATA_PUBKEY );
 			if ( !pVal ) {
@@ -108,6 +109,7 @@ int main(int argc, char *argv[])
 			};
 			kp = PKI_X509_new_value ( PKI_DATATYPE_X509_KEYPAIR, pVal, NULL );
 			break;
+
 		default:
 			fprintf(stderr, "ERROR, (%s) not a cert or a key (%d)!\n\n", 
 				kName,  PKI_X509_get_type( obj ) );
@@ -165,6 +167,7 @@ int main(int argc, char *argv[])
 		printf("ERROR!\n");
 	};
 
+	printf("Self Signed: %d\n", PKI_X509_CERT_is_selfsigned(sigObj));
 	printf("\n");
 
 	return 0;

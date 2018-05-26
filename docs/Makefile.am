@@ -46,3 +46,5 @@ install-data-am: install-man
 clean:
 	@rm -rf man/man$(MANLEV)/* html xml latex
 
+distclean-local:
+	@rm -rf html xml latex

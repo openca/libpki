@@ -3,6 +3,10 @@
 
 int gen_RSA_PKey( void );
 
+/* Function Prototypes */
+int test_gen_PKeys(int scheme);
+int gen_X509_Req(int scheme, int bits, char *file );
+
 /* File_names */
 char *sc_list[] = {
 	"rsa",
@@ -29,9 +33,9 @@ int main (int argc, char *argv[] ) {
 
 	PKI_log_end();
 
-	gen_X509_Req(PKI_SCHEME_RSA, 1024, "req_rsa.pem");
-	gen_X509_Req(PKI_SCHEME_DSA, 1024, "req_dsa.pem");
-	gen_X509_Req(PKI_SCHEME_ECDSA, 384, "req_ecdsa.pem");
+	gen_X509_Req(PKI_SCHEME_RSA, 2048, "req_rsa.pem");
+	gen_X509_Req(PKI_SCHEME_DSA, 2048, "req_dsa.pem");
+	gen_X509_Req(PKI_SCHEME_ECDSA, 256, "req_ecdsa.pem");
 
 	printf("Done.\n\n");
 
@@ -85,24 +89,31 @@ int gen_X509_Req(int scheme, int bits, char *file ) {
 
 	PKI_X509_KEYPAIR_put( p, PKI_DATA_FORMAT_PEM, buf,  NULL, NULL );
 
-
 	list_size = PKI_ALGOR_list_size ( algs );
+
 	for( i=0; i < list_size ; i++ ) {
+
 		PKI_DIGEST_ALG *dgst = NULL;
+		PKI_ALGOR * algor = NULL;
 
 		printf("    - Generating REQ (%s) ... " ,
 					PKI_ALGOR_ID_txt (algs[i]));
 
-		if((dgst = PKI_ALGOR_get_digest( PKI_ALGOR_get( algs[i] )))
-						== NULL ) {
-			printf("ERROR, can not get dgst (%p)\n", dgst);
-			return(0);
-		};
+		if ((algor = PKI_ALGOR_get(algs[i])) == NULL) {
+			printf("ERROR, can not get the algorithm pointer!\n");
+			return 0;
+		}
+
+		if ((dgst = PKI_ALGOR_get_digest(algor)) == NULL) {
+			printf("ERROR, can not get the digest from the algorithm!\n");
+			return 0;
+		}
 
 		sprintf( buf, "results/t1_%s_req.pem", 
 					PKI_ALGOR_ID_txt ( algs[i]) );
 
-		PKI_log_debug ("New Req (Alg)");
+		PKI_log_debug ("New Req (Alg=%s)", PKI_DIGEST_ALG_get_parsed(dgst));
+
 		r = PKI_X509_REQ_new ( p, NULL, NULL, NULL, dgst, NULL );
 		
 		if( !r ) {
@@ -137,9 +148,9 @@ int test_gen_PKeys(int scheme) {
 
 	PKI_X509_KEYPAIR *p = NULL;
 	int i = 0;
-	int sizes[3][5]  = { {512, 768, 1024, 2048,    0},
-			     {512, 1024,   0,    0,    0},
-			     {160, 224,  256,  384,    0}  };
+	int sizes[3][5]  = { {1024, 2048, 3072, 4096,  0},
+			     {2048,    0,    0,    0,  0},
+			     { 256,  384,  512,    0,  0}  };
 	char buf[256];
 	int row = 0;
 	char *sc_name = NULL;

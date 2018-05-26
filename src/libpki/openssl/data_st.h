@@ -27,28 +27,40 @@
 #include <openssl/ec.h>
 #endif
 
-// typedef EVP_PKEY 	PKI_KEYPAIR;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+# define DECLARE_STACK_OF DEFINE_STACK_OF
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+// EVP_MD_CTX Interface
+# define EVP_MD_CTX_new EVP_MD_CTX_create
+# define EVP_MD_CTX_free EVP_MD_CTX_destroy
+# define EVP_MD_CTX_reset EVP_MD_CTX_cleanup
+
+// HMAC Interface
+# define HMAC_CTX_reset HMAC_CTX_cleanup
+#endif
 
 typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Some useful Key definitions */
-#define PKI_RSA_KEY	RSA
-#define PKI_DSA_KEY	DSA
+#define PKI_RSA_KEY		RSA
+#define PKI_DSA_KEY		DSA
 
 #ifdef ENABLE_ECDSA
-#define PKI_EC_KEY				EC_KEY
+#define PKI_EC_KEY		EC_KEY
 #endif
 
-#define  PKI_ID					int
-#define  PKI_ID_UNKNOWN			NID_undef
+#define  PKI_ID			int
+#define  PKI_ID_UNKNOWN		NID_undef
 
-#define  PKI_DIGEST_ALG			EVP_MD
-#define	 PKI_ALGOR 				X509_ALGOR
-#define	 PKI_ALGORITHM			X509_ALGOR
-#define  PKI_CIPHER				EVP_CIPHER
+#define  PKI_DIGEST_ALG		EVP_MD
+#define	 PKI_ALGOR 		    X509_ALGOR
+#define	 PKI_ALGORITHM		X509_ALGOR
+#define  PKI_CIPHER		    EVP_CIPHER
 
-// typedef struct X509_NAME 	PKI_X509_NAME;
-#define PKI_X509_NAME			X509_NAME
+#define PKI_X509_NAME		X509_NAME
 
 #define PKI_DIGEST_ALG_NULL  	(PKI_DIGEST_ALG *) NULL
 #define PKI_DIGEST_ALG_UNKNOWN 	(PKI_DIGEST_ALG *) NULL
@@ -90,6 +102,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA-224
 #ifdef NID_sha224
+#define ENABLE_SHA_2
 #define ENABLE_SHA224
 #define PKI_ALGOR_SHA224	NID_sha224
 #define PKI_DIGEST_ALG_SHA224	(PKI_DIGEST_ALG *) EVP_sha224()
@@ -132,10 +145,20 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 #define PKI_ALGOR_SHA512_SIZE	64
 
+#ifdef NID_ripemd128
+#define ENABLE_RIPEMD128
+#define PKI_ALGOR_RIPEMD128 NID_ripemd128
+#define PKI_DIGEST_ALG_RIPEMD128    (PKI_DIGEST_ALG *) EVP_ripemd128()
+#else
+#define PKI_ALGOR_RIPEMD128 NID_undef
+#define PKI_DIGEST_ALG_RIPEMD128    (PKI_DIGEST_ALG *) NULL
+#endif
+#define PKI_ALGOR_RIPEMD128_SIZE   16
+
 #ifdef NID_ripemd160
-#define PKI_DIGEST_ALG_RIPEMD160	(PKI_DIGEST_ALG *) EVP_ripemd160()
 #define ENABLE_RIPEMD160
 #define PKI_ALGOR_RIPEMD160	NID_ripemd160
+#define PKI_DIGEST_ALG_RIPEMD160	(PKI_DIGEST_ALG *) EVP_ripemd160()
 #else
 #define PKI_ALGOR_RIPEMD160	NID_undef
 #define PKI_DIGEST_ALG_RIPEMD160	(PKI_DIGEST_ALG *) NULL
@@ -188,20 +211,43 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_RSA_SHA512	NID_undef
 #endif
 
+#ifdef ENABLE_RIPEMD128
+#define PKI_ALGOR_RSA_RIPEMD128 NID_ripemd128WithRSA
+#else
+#define PKI_ALGOR_RSA_RIPEMD128 NID_undef
+#endif
+
 #ifdef ENABLE_RIPEMD160
 #define PKI_ALGOR_RSA_RIPEMD160	NID_ripemd160WithRSA
 #else
 #define PKI_ALGOR_RSA_RIPEMD160	NID_undef
 #endif
 
-#define PKI_ALGOR_DSA_SHA1	NID_dsaWithSHA1
+/* Old DSS1 Algorithm - not needed in OpenSSL v1.0.0+ */
+#if OPENSSL_VERSION_NUMBER < 0x1000000fL
 #define PKI_ALGOR_DSS1		60000
 #define PKI_ALGOR_ECDSA_DSS1	60001
 #define PKI_DIGEST_ALG_DSS1	(PKI_DIGEST_ALG *) EVP_dss1()
+#else
+#define PKI_ALGOR_DSS1		NID_undef
+#define PKI_ALGOR_ECDSA_DSS1	NID_undef
+#define PKI_DIGEST_ALG_DSS1	NULL
+#endif
+
+/* Begin - NID_dsaWithSHA1 */
+#ifdef NID_dsaWithSHA1
+#define ENABLE_DSA
+#define ENABLE_DSA_SHA_1
+#define PKI_ALGOR_DSA_SHA1	NID_dsaWithSHA1
+#else
+#define PKI_ALGOR_DSA_SHA1	NID_undef
+#endif
+/* End - NID_dsaWithSHA1 */
 
 /* Begin - NID_dsa_with_SHA224 */
 #ifdef NID_dsa_with_SHA224 
-#define ENABLE_DSA_SHA_2
+#define ENABLE_DSA
+#define ENABLE_DSA_SHA224
 #define PKI_ALGOR_DSA_SHA224	NID_dsa_with_SHA224
 #else
 #define PKI_ALGOR_DSA_SHA224	NID_undef
@@ -210,7 +256,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - NID_dsa_with_SHA256 */
 #ifdef NID_dsa_with_SHA256 
-#define ENABLE_DSA_SHA_2
+#define ENABLE_DSA_SHA256
 #define PKI_DIGEST_ALG_DSA_DEFAULT		PKI_DIGEST_ALG_SHA256
 #define PKI_ALGOR_DSA_SHA256	NID_dsa_with_SHA256
 #else
@@ -219,8 +265,27 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif 
 /* End - NID_dsa_with_SHA256 */
 
+/* Begin - NID_dsa_with_SHA384 */
+#ifdef NID_dsa_with_SHA384
+#define ENABLE_DSA_SHA384
+#define PKI_ALGOR_DSA_SHA384    NID_dsa_with_SHA384
+#else
+#define PKI_ALGOR_DSA_SHA384    NID_undef
+#endif 
+/* End - NID_dsa_with_SHA384 */
+
+/* Begin - NID_dsa_with_SHA512 */
+#ifdef NID_dsa_with_SHA512 
+#define ENABLE_DSA_SHA512
+#define PKI_ALGOR_DSA_SHA512    NID_dsa_with_SHA512
+#else
+#define PKI_ALGOR_DSA_SHA512    NID_undef
+#endif 
+/* End - NID_dsa_with_SHA256 */
+
 /* Begin - NID_ecdsa_with_SHA1 */
-#ifdef NID_ecdsa_with_SHA1 
+#ifdef NID_ecdsa_with_SHA1
+#define ENABLE_ECDSA_SHA1
 #define PKI_ALGOR_ECDSA_SHA1	NID_ecdsa_with_SHA1
 #else
 #define PKI_ALGOR_ECDSA_SHA1	NID_undef
@@ -238,8 +303,8 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - NID_ecdsa_with_SHA256 */
 #ifdef NID_ecdsa_with_SHA256 
-#define PKI_DIGEST_ALG_ECDSA_DEFAULT		PKI_DIGEST_ALG_SHA256
-#define PKI_ALGOR_ECDSA_SHA256	NID_ecdsa_with_SHA256
+#define PKI_DIGEST_ALG_ECDSA_DEFAULT  PKI_DIGEST_ALG_SHA256
+#define PKI_ALGOR_ECDSA_SHA256        NID_ecdsa_with_SHA256
 #else
 #define PKI_DIGEST_ALG_ECDSA_DEFAULT		PKI_DIGEST_ALG_DSS1
 #define PKI_ALGOR_ECDSA_SHA256	NID_undef
@@ -267,19 +332,19 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #ifdef ENABLE_SHA256
 #define PKI_DIGEST_ALG_DEFAULT		PKI_DIGEST_ALG_SHA256
 #define PKI_DIGEST_ALG_ID_DEFAULT	PKI_ALGOR_SHA256
-#define PKI_ALGOR_DEFAULT		PKI_ALGOR_RSA_SHA256
+#define PKI_ALGOR_DEFAULT		    PKI_ALGOR_RSA_SHA256
 #else
 #define PKI_DIGEST_ALG_DEFAULT		PKI_DIGEST_ALG_SHA1
 #define PKI_DIGEST_ALG_ID_DEFAULT	PKI_ALGOR_SHA1
-#define PKI_ALGOR_DEFAULT		PKI_ALGOR_RSA_SHA1
+#define PKI_ALGOR_DEFAULT           PKI_ALGOR_RSA_SHA1
 #endif
 
-#define PKI_ALGOR_ID			int
-#define PKI_ALGOR_ID_UNKNOWN	-1
+#define PKI_ALGOR_ID			    int
+#define PKI_ALGOR_ID_UNKNOWN		-1
 
-#define PKI_OID				ASN1_OBJECT
-#define PKI_TIME			ASN1_GENERALIZEDTIME
-#define PKI_INTEGER			ASN1_INTEGER
+#define PKI_OID				        ASN1_OBJECT
+#define PKI_TIME			        ASN1_GENERALIZEDTIME
+#define PKI_INTEGER			        ASN1_INTEGER
 
 
 /* This should capture all the EVP_CIPHERS available, for example
@@ -361,7 +426,6 @@ typedef enum {
 	PKI_X509_NAME_TYPE_L	=	NID_localityName ,
 	PKI_X509_NAME_TYPE_CN	=	NID_commonName,
 	PKI_X509_NAME_TYPE_EMAIL=	NID_pkcs9_emailAddress ,
-//	PKI_X509_NAME_TYPE_UID	=	NID_uniqueIdentifier ,
 #ifdef NID_uniqueIdentifier
 	PKI_X509_NAME_TYPE_UID	=	NID_uniqueIdentifier ,
 #else
@@ -388,21 +452,20 @@ typedef struct pki_x509_name_rdn {
 
 /* PKI_X509_EXTENSION */
 
-#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
-
 typedef struct pki_x509_extension_st {
 	PKI_OID *oid;
 	int critical;
 	void *value;
 } PKI_X509_EXTENSION;
 
+#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
 
 #ifdef ENABLE_ECDSA
 typedef enum {
-	PKI_EC_KEY_FORM_UNKNOWN			=	0,
-	PKI_EC_KEY_FORM_COMPRESSED		=	POINT_CONVERSION_COMPRESSED,
+	PKI_EC_KEY_FORM_UNKNOWN		=	0,
+	PKI_EC_KEY_FORM_COMPRESSED	=	POINT_CONVERSION_COMPRESSED,
 	PKI_EC_KEY_FORM_UNCOMPRESSED	=	POINT_CONVERSION_UNCOMPRESSED,
-	PKI_EC_KEY_FORM_HYBRID			=	POINT_CONVERSION_HYBRID,
+	PKI_EC_KEY_FORM_HYBRID		=	POINT_CONVERSION_HYBRID,
 } PKI_EC_KEY_FORM;
 
 #define PKI_EC_KEY_FORM_DEFAULT			PKI_EC_KEY_FORM_COMPRESSED
@@ -418,8 +481,8 @@ typedef enum {
 #endif // ENABLE_ECDSA
 
 typedef struct pki_keyparams_st {
-	int scheme;
 	int bits;
+	PKI_SCHEME_ID scheme;
 	// RSA scheme parameters
 	struct {
 		int exponent;
@@ -431,12 +494,14 @@ typedef struct pki_keyparams_st {
 	// EC scheme parameters
 	struct {
 		int curve;
-		int form;
+		PKI_EC_KEY_FORM form;
 		int asn1flags;
 	} ec;
 #endif // ENABLE_ECDSA
 
 } PKI_KEYPARAMS;
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
 
 typedef struct pki_x509_cinf_full {
         ASN1_INTEGER *version;          /* [ 0 ] default of v1 */
@@ -452,22 +517,137 @@ typedef struct pki_x509_cinf_full {
 	ASN1_ENCODING enc;
 } PKI_X509_CINF_FULL;
 
-/*
-typedef struct pki_x509_crl_template_st {
-	char *serial;
-	unsigned long days;
-	unsigned long hours;
+#endif
 
-	PKI_X509_CRL_ENTRY_STACK *entries;
-	PKI_X509_PROFILE *profile;
-} PKI_X509_CRL_TEMPLATE;
-*/
 
-#define PKI_X509_CRL_ENTRY	X509_REVOKED
-/* typedef struct X509_REVOKED 	PKI_CRL_ENTRY; */
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
+typedef struct X509_crl_info_full {
+    ASN1_INTEGER *version;      /* version: defaults to v1(0) so may be NULL */
+    X509_ALGOR sig_alg;         /* signature algorithm */
+    X509_NAME *issuer;          /* CRL issuer name */
+    ASN1_TIME *lastUpdate;      /* lastUpdate field */
+    ASN1_TIME *nextUpdate;      /* nextUpdate field: optional */
+    STACK_OF(X509_REVOKED) *revoked;        /* revoked entries: optional */
+    STACK_OF(X509_EXTENSION) *extensions;   /* extensions: optional */
+    ASN1_ENCODING enc;                      /* encoding of signed portion of CRL */
+} PKI_X509_CRL_INFO;
+
+#endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
+/* a sequence of these are used */
+typedef struct x509_attributes_st {
+    ASN1_OBJECT *object;
+    int single;                 /* 0 for a set, 1 for a single item (which is
+                                 * wrong) */
+    union {
+        char *ptr;
+        /*
+         * 0
+         */ STACK_OF(ASN1_TYPE) *set;
+        /*
+         * 1
+         */ ASN1_TYPE *single;
+    } value;
+} PKI_X509_ATTRIBUTE_FULL;
+
+#endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
+typedef struct X509_crl_st {
+    PKI_X509_CRL_INFO crl;          /* signed CRL data */
+    X509_ALGOR sig_alg;         /* CRL signature algorithm */
+    ASN1_BIT_STRING signature;  /* CRL signature */
+    // The rest of the structure is still blinded
+} PKI_X509_CRL_FULL;
+
+#endif
+
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+
+// OCSP Generic
+
+typedef struct ocsp_cert_id_st {
+    X509_ALGOR hashAlgorithm;
+    ASN1_OCTET_STRING issuerNameHash;
+    ASN1_OCTET_STRING issuerKeyHash;
+    ASN1_INTEGER serialNumber;
+} OSSL_OCSP_CERTID;
+
+// OCSP Request
+typedef struct ocsp_req_info_st {
+    ASN1_INTEGER *version;
+    GENERAL_NAME *requestorName;
+    STACK_OF(OCSP_ONEREQ) *requestList;
+    STACK_OF(X509_EXTENSION) *requestExtensions;
+} OSSL_OCSP_REQ_INFO;
+
+typedef struct ocsp_signature_st {
+    X509_ALGOR signatureAlgorithm;
+    ASN1_BIT_STRING *signature;
+    STACK_OF(X509) *certs;
+} OSSL_OCSP_SIGNATURE;
+
+typedef struct ocsp_request_st {
+    OCSP_REQINFO tbsRequest;
+    OCSP_SIGNATURE *optionalSignature; /* OPTIONAL */
+} OSSL_OCSP_REQUEST;
+
+// OCSP Responses
+
+typedef struct ocsp_single_response_st {
+    OSSL_OCSP_CERTID *certId;
+    OCSP_CERTSTATUS *certStatus;
+    ASN1_GENERALIZEDTIME *thisUpdate;
+    ASN1_GENERALIZEDTIME *nextUpdate;
+    STACK_OF(X509_EXTENSION) *singleExtensions;
+} OSSL_OCSP_SINGLERESP;
+
+typedef struct ocsp_responder_id_st {
+    int type;
+    union {
+        X509_NAME *byName;
+        ASN1_OCTET_STRING *byKey;
+    } value;
+} OSSL_OCSP_RESPID;
+
+typedef struct ocsp_response_data_st {
+    ASN1_INTEGER *version;
+    OCSP_RESPID responderId;
+    ASN1_GENERALIZEDTIME *producedAt;
+    STACK_OF(OSSL_OCSP_SINGLERESP) *responses;
+    STACK_OF(X509_EXTENSION) *responseExtensions;
+} OSSL_OCSP_RESPDATA;
+
+typedef struct ocsp_basic_response_st {
+    OSSL_OCSP_RESPDATA tbsResponseData;
+    X509_ALGOR signatureAlgorithm;
+    ASN1_BIT_STRING *signature;
+    STACK_OF(X509) *certs;
+} OSSL_OCSP_BASICRESP;
+
+typedef struct ocsp_resp_bytes_st {
+    ASN1_OBJECT *responseType;
+    ASN1_OCTET_STRING *response;
+} OSS_OCSP_RESPBYTES;
+
+typedef struct ocsp_response_st {
+    ASN1_ENUMERATED *responseStatus;
+    OCSP_RESPBYTES *responseBytes;
+} OSSL_OCSP_RESPONSE;
+
+#else
+
+
+#endif
+
+typedef X509_REVOKED	PKI_X509_CRL_ENTRY;
 
 typedef struct pki_digest_data {
-	PKI_DIGEST_ALG *algor;
+	const PKI_DIGEST_ALG *algor;
 	unsigned char *digest;
 	size_t size;
 } PKI_DIGEST;
@@ -504,8 +684,13 @@ typedef struct pki_store_st {
 #define PKI_X509_OCSP_REQ		PKI_X509
 
 typedef struct pki_ocsp_resp_st {
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	OSSL_OCSP_RESPONSE * resp;
+	OSSL_OCSP_BASICRESP * bs;
+#else
 	OCSP_RESPONSE * resp;
 	OCSP_BASICRESP *bs;
+#endif
 } PKI_OCSP_RESP;
 
 typedef enum {
@@ -526,16 +711,10 @@ typedef enum {
 #define PKI_X509_PRQP_RESP		PKI_X509
 
 #define PKI_X509_LIRT_VALUE		PKI_LIRT
-#define PKI_X509_LIRT					PKI_X509
+#define PKI_X509_LIRT			PKI_X509
 
 #include <libpki/hsm_st.h>
 #include <libpki/token_st.h>
-
-/*
-#define B64_write_bio( type, bio, data ) \
-	PEM_ASN1_write_bio ( (int (*)()) i2d_##type, "", \
-		bio, (char *) data, NULL, NULL, 0, NULL, NULL )
-*/
 
 #define __B64_write_bio_internal(type,bio,data,p) ({ BIO *b64; int r;\
                 b64 = BIO_new(BIO_f_base64()) ; \

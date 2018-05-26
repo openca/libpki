@@ -40,5 +40,5 @@
        go -->
   <pki:passin>env:etoken</pki:passin>
   <!-- ... or simply specify the password here -->
-  <!-- <pki:passwd></pki:passwd> -->
+  <!-- <pki:password></pki:password> -->
 </pki:hsm>

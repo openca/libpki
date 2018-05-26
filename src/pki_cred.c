@@ -13,21 +13,17 @@
  * of success, otherwise it returns NULL.
  */
 
-PKI_CRED *PKI_CRED_new ( char *user, char *pwd ) {
+PKI_CRED *PKI_CRED_new ( const char * const user, const char * const pwd ) {
 
 	PKI_CRED * cred = NULL;
 
-	if ((cred = PKI_CRED_new_null()) == NULL ) {
+	if ((cred = PKI_CRED_new_null()) == NULL )
 		return ( NULL );
-	}
 
-	if ( user ) {
-		cred->username = strdup( user );
-	}
+	memset(cred, 0, sizeof(PKI_CRED));
 
-	if ( pwd ) {
-		cred->password = strdup( pwd );
-	}
+	if (user) cred->username = strdup( user );
+	if (pwd) cred->password = strdup( pwd );
 
 	return ( cred );
 }
@@ -78,7 +74,7 @@ void PKI_CRED_free( PKI_CRED *cred ) {
 	}
 
 	if( cred->ssl != NULL ) {
-		PKI_SSL_free ( (PKI_SSL *) cred->ssl );
+		PKI_SSL_free((PKI_SSL *)cred->ssl);
 	}
 
 	PKI_Free( cred );
@@ -88,7 +84,7 @@ void PKI_CRED_free( PKI_CRED *cred ) {
 
 /*! \brief Duplicates a PKI_CRED data structure */
 
-PKI_CRED *PKI_CRED_dup ( PKI_CRED *cred ) {
+PKI_CRED *PKI_CRED_dup ( const PKI_CRED * const cred ) {
 
 	PKI_CRED *ret = NULL;
 
@@ -117,11 +113,11 @@ PKI_CRED *PKI_CRED_dup ( PKI_CRED *cred ) {
 
 /*! \brief Sets the SSL configuration for Creds */
 
-int PKI_CRED_set_ssl ( PKI_CRED *cred, struct pki_ssl_t *ssl ) {
+int PKI_CRED_set_ssl(PKI_CRED *cred, struct pki_ssl_t * const ssl) {
 
-	if ( !cred || !ssl ) return PKI_ERR;
+	if (!cred || !ssl) return PKI_ERR;
 
-	if ( cred->ssl ) {
+	if (cred->ssl) {
 		PKI_log_debug( "Warning: overriding existing CRED SSL");
 	}
 
@@ -132,9 +128,9 @@ int PKI_CRED_set_ssl ( PKI_CRED *cred, struct pki_ssl_t *ssl ) {
 
 /*! \brief Gets the pointer to the PKI_SSL structure inside a CRED */
 
-struct pki_ssl_t * PKI_CRED_get_ssl ( PKI_CRED *cred ) {
+const struct pki_ssl_t * PKI_CRED_get_ssl(const PKI_CRED * const cred) {
 
-	if ( !cred || !cred->ssl ) return NULL;
+	if (!cred || !cred->ssl) return NULL;
 
 	return cred->ssl;
 }

@@ -17,20 +17,25 @@
  * Returns the pointer to the end of the header, if found. Starts searching
  * from the provided offset or from the beginning if offset is < 0
  */
-char * __find_end_of_header(PKI_MEM *m, int offset)
+char * __find_end_of_header(PKI_MEM *m, ssize_t offset)
 {
 	ssize_t idx = 0;
+	ssize_t size = 0;
 	char * ret = NULL;
 	static char bytes[4] = { '\r', '\n', '\r', '\n' };
 
 	// Input check
 	if (!m || offset >= m->size) return NULL;
 
+	if (m->size <= 4) return NULL;
+
+	size = (ssize_t)m->size;
+
 	// Fix the offset if it is < 0
 	if (offset < 0) offset = 0;
 
 	// Looks for the eoh
-	for (idx = m->size - 4; idx >= offset; idx--)
+	for (idx = size - 4; idx >= offset; idx--)
 	{
 		int i, found;
 
@@ -57,9 +62,6 @@ char * __find_end_of_header(PKI_MEM *m, int offset)
  */
 int __parse_http_header(PKI_HTTP *msg)
 {
-	// Return Object container
-	int rv = PKI_OK;
-
     // Let's parse the first line of the HTTP message
     char *eol = NULL;
     char *method = NULL;
@@ -227,8 +229,9 @@ PKI_HTTP * PKI_HTTP_new ( void )
 
 /*! \brief Returns a PKI_HTTP from the content of a char * */
 
-char * PKI_HTTP_get_header_txt ( char *orig_data, char *header)
-{
+char * PKI_HTTP_get_header_txt (const char * orig_data,
+		                        const char * header) {
+
 	char *tk = NULL, *pnt = NULL;
 	char *ret = NULL;
 
@@ -285,7 +288,8 @@ char * PKI_HTTP_get_header_txt ( char *orig_data, char *header)
 
 /*! \brief Returns a PKI_HTTP from the content of a PKI_MEM */
 
-char * PKI_HTTP_get_header ( PKI_HTTP *http, char * header ) {
+char * PKI_HTTP_get_header ( const PKI_HTTP * http,
+		                     const char     * header ) {
 
 	if( !http || !http->head || !header ) return NULL;
 
@@ -294,7 +298,9 @@ char * PKI_HTTP_get_header ( PKI_HTTP *http, char * header ) {
 
 /* Internal version, can handle both HTTP and HTTPS */
 
-PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) {
+PKI_HTTP *PKI_HTTP_get_message (const PKI_SOCKET * sock,
+		                        int                timeout,
+								size_t             max_size) {
 
   PKI_HTTP * ret = NULL;
 
@@ -324,26 +330,21 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
   {
 	  // Allocates a new MEM object
 	  m = PKI_MEM_new(max_size + 1);
-	  if (m == NULL)
-	  {
-		  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		  return NULL;
-	  }
-
-	  // Let's make sure there is a 0 at the end of the buffer
-	  m->data[max_size] = '\x0';
-
-	  // Sets the free space in the buffer
-	  free = (ssize_t) max_size;
   }
   else
   {
 	  // Allocates the default buffer for HTTP messages
-	  m = PKI_MEM_new(HTTP_BUF_SIZE);
-
-	  // Sets the free space in the buffer
-	  free = (ssize_t) m->size;
+	  m = PKI_MEM_new(HTTP_BUF_SIZE + 1);
   }
+
+	if (m == NULL)
+	{
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Sets the free space in the buffer
+	free = (ssize_t) m->size - 1;
 
   // Let's retrieve the data from the socket. Note that this for
   // always read at most 'free' bytes which carries the amount of
@@ -404,6 +405,7 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
     		  {
     			  content_length = atoll(cnt_len_s);
     			  PKI_Free(cnt_len_s);
+    			  // PKI_log_debug ( "HTTP Content-Length: %d bytes", content_length);
     		  }
     	  }
       } // End of if (!eoh) ...
@@ -417,16 +419,44 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
     	  // We expand the mem if the buffer has less than 2K free
     	  if (free < 2048)
     	  {
-    		  // Grow the memory for the HTTP message
-    		  if (PKI_MEM_grow(m, HTTP_BUF_SIZE) != PKI_OK)
+    			ssize_t ofs = 0;
+
+    		  if(body)
     		  {
-    			  PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-    			  break;
+    		    ofs = (ssize_t)(body - (char *)m->data);
+          
+    		    if(ofs < 0)
+    		    {
+    		      PKI_log_debug ( "Invalid offset for HTTP body: Start: %p - Body: %p", m->data, body);
+    		      PKI_ERROR(PKI_ERR_URI_READ, NULL);
+    		      goto err;
+    		    }
     		  }
 
-    		  // Let's update the free space by adding the newly
-    		  // allocated space
-    		  free += HTTP_BUF_SIZE;
+    		  // Grow the memory for the HTTP message
+    		  if(content_length > 0 && body && m->size < (size_t)(content_length + ofs))
+    		  {
+           size_t len = ((size_t)(content_length + ofs) - m->size);
+
+    		    if (PKI_MEM_grow(m, len + 1) == PKI_ERR)
+    		    {
+    		      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    		      goto err;
+    		    }
+    		    free += (ssize_t)len;
+    		  }
+    		  else
+    		  {
+    		    if (PKI_MEM_grow(m, HTTP_BUF_SIZE) == PKI_ERR)
+    		    {
+    		      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    		      goto err;
+    		    }
+    		    free += HTTP_BUF_SIZE;
+    		  }
+
+    		  // Let's update the pointer to the body
+    		  if(body) body = (char *)m->data + ofs;
     	  }
       }
 
@@ -450,6 +480,7 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
   // an error and we return the malformed request message
   if (!eoh)
   {
+	  // PKI_log_err ( "Read data (so far): %d bytes - Last read: %d bytes", idx, read);
 	  PKI_ERROR(PKI_ERR_URI_READ, NULL);
 	  goto err;
   }
@@ -460,17 +491,26 @@ PKI_HTTP *PKI_HTTP_get_message (PKI_SOCKET *sock, int timeout, size_t max_size) 
 
   if (ret->method != PKI_HTTP_METHOD_GET && content_length > 0 && body)
   {
-	  size_t body_start = body - (char *)m->data;
-	  size_t body_size = idx - body_start;
-	  
+	  ssize_t body_start = (ssize_t)(body - (char *)m->data);
+	  ssize_t body_size = idx - body_start;
+
+	  if (body_start < 0 || body_size < 0)
+	  {
+		  PKI_log_err ( "Invalid offset for HTTP body - body_start: %d bytes - body_size: %d bytes", body_start, body_size);
+		  PKI_ERROR(PKI_ERR_URI_READ, NULL);
+		  goto err;
+	  }
+ 
 	  //Check if Content-Length > 0 but body_size is 0
 	  if (body_size == 0) goto err; 
-	  // Let's allocate the body for the HTTP message (if any)
-	  ret->body = PKI_MEM_new_data(body_size, (unsigned char *)body);
 
-	  // Let's cheat and add a final NULL char (but not reflected in the size reported
-	  // by the object (i.e., it will not be copied using the normal dup functions)
-	  ret->body->data[body_size] = '\x0';
+	  // Let's allocate the body for the HTTP message (if any)
+	  ret->body = PKI_MEM_new_data((size_t)body_size+1, (unsigned char *)body);
+	  if(ret->body == NULL)
+	  {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
+	  }
 	  ret->body->size = (size_t) body_size;
   }
   else
@@ -502,9 +542,15 @@ err:
  * in case of error, otherwise PKI_OK is returned.
  */
 
-int PKI_HTTP_get_url (URL *url, char *data, size_t data_size,
-			char *content_type, int method, int timeout, 
-			size_t max_size, PKI_MEM_STACK **sk, PKI_SSL *ssl ) {
+int PKI_HTTP_get_url (const URL      * url,
+		      const char     * data,
+		      size_t           data_size,
+		      const char     * content_type,
+		      int              method,
+		      int              timeout,
+		      size_t           max_size,
+		      PKI_MEM_STACK ** sk,
+		      PKI_SSL        * ssl) {
 
 	PKI_SOCKET *sock = NULL;
 	int ret = 0;
@@ -512,7 +558,7 @@ int PKI_HTTP_get_url (URL *url, char *data, size_t data_size,
 	if (!url) return PKI_ERR;
 
 	sock = PKI_SOCKET_new();
-	if ( ssl ) PKI_SOCKET_set_ssl ( sock, ssl );
+	if (ssl) PKI_SOCKET_set_ssl(sock, ssl);
 
 	if (PKI_SOCKET_open_url(sock, url, timeout) == PKI_ERR)
 	{
@@ -531,15 +577,20 @@ int PKI_HTTP_get_url (URL *url, char *data, size_t data_size,
 
 /*! \brief Reads a data from an HTTP server */
 
-int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
-			char *content_type, int method, int timeout, 
-			size_t max_size, PKI_MEM_STACK **sk ) {
+int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
+	                 const char       * data,
+			 size_t             data_size,
+		         const char       * content_type,
+			 int                method,
+			 int                timeout,
+	                 size_t             max_size,
+			 PKI_MEM_STACK   ** sk ) {
 
 	size_t len = 0;
 
-	char *my_cont_type	= "application/unknown";
+	const char *my_cont_type = "application/unknown";
 
-	PKI_HTTP *http_rv	= NULL;
+	PKI_HTTP *http_rv	 = NULL;
 
 	int rv   = -1;
 	int ret  = PKI_OK;
@@ -554,21 +605,13 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 			"GET %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
 			"User-Agent: LibPKI\r\n"
-	        "Connection: close\r\n"
+			"Connection: close\r\n"
 			"%s";
 
 	char *head_post = 
 			"POST %s HTTP/1.1\r\n"
 			"Host: %s\r\n"
 			"User-Agent: LibPKI\r\n"
-			"Connection: close\r\n"
-			"Content-type: %s\r\n"
-			"Content-Length: %d\r\n"
-			"%s";
-
-	char *head_http =
-			"HTTP/%f %d\r\n"
-			"Host: %s\r\n"
 			"Connection: close\r\n"
 			"Content-type: %s\r\n"
 			"Content-Length: %d\r\n"
@@ -588,7 +631,7 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 
 		// Special case for when a usr/pwd was specified in the URL
 		auth_tmp = PKI_Malloc(len);
-		auth_len = snprintf(auth_tmp, len, "Authentication: user %s:%s\r\n\r\n", sock->url->usr, sock->url->pwd);
+		auth_len = (size_t)snprintf(auth_tmp, len, "Authentication: user %s:%s\r\n\r\n", sock->url->usr, sock->url->pwd);
 	}
 	else
 	{
@@ -647,6 +690,7 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 
 	// PKI_MEM *r = PKI_MEM_new_data(len, tmp);
 	// URL_put_data("file://http_req.txt", r, NULL, NULL, 0, 0, NULL);
+	// PKI_MEM_free(r);
 
 	if ((rv = (int) PKI_SOCKET_write(sock, tmp, len)) < 0)
 	{
@@ -691,7 +735,7 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 			goto err;
 		}
 
-		PKI_log_debug("HTTP Redirection Location ==> %s", http_rv->location );
+    PKI_log_debug("HTTP Redirection Detected [URL: %s]", http_rv->location );
 
 		if (strstr(http_rv->location, "://") != NULL)
 		{
@@ -758,34 +802,36 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 	}
 	else if (http_rv->code != 200)
 	{
-		PKI_log_debug( "HTTP Return code not manageable (%d)", http_rv->code );
+		PKI_log_debug( "Unknown HTTP Return code [Code: %d]", http_rv->code );
 		goto err;
 	}
 
 	/*
 	PKI_log_err("{DEBUG} method = %d, header->size = %d, body = %p, body_size = %d",
 			  http_rv->method, http_rv->head->size, http_rv->body, http_rv->body->size);
-
 	URL_put_data("file://http-resp-header.txt", http_rv->head, NULL, NULL, 0, 0, NULL);
+	URL_put_data("file://http-resp-data.txt", http_rv->body, NULL, NULL, 0, 0, NULL);
 	*/
 
 	// If a Pointer was provided, we want the data back
-	if (sk)
-	{
+	if (sk) {
+
 		// Checks if the caller provided an already allocated data
 		// structure. If not, we allocate it.
-		if (*sk == NULL)
-		{
-			if ((*sk = PKI_STACK_MEM_new()) == NULL)
-			{
-				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-				goto err;
-			}
+		if (*sk) PKI_STACK_MEM_free_all(*sk);
+
+    // Allocates a new structure
+		if ((*sk = PKI_STACK_MEM_new()) == NULL) {
+
+      // If a memory error occurs report it and exit
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
+      // Nothing more to do
+			goto err;
 		}
 
 		// Add the returned value to the stack
-		if (PKI_STACK_MEM_push(*sk, http_rv->body) != PKI_OK)
-		{
+		if (PKI_STACK_MEM_push(*sk, http_rv->body) != PKI_OK) {
 			PKI_log_err("Can not push the HTTP result body in the result stack");
 			goto err;
 		}
@@ -797,14 +843,19 @@ int PKI_HTTP_get_socket (PKI_SOCKET *sock, char *data, size_t data_size,
 
 end:
 	// Finally free the HTTP message memory
-	if ( http_rv ) PKI_HTTP_free ( http_rv );
+	if (http_rv) PKI_HTTP_free(http_rv);
 
 	// Returns the result
 	return ret;
 
 err:
 	// Error condition
-	if ( http_rv ) PKI_HTTP_free ( http_rv );
+	if (http_rv) PKI_HTTP_free ( http_rv );
+
+	// Free the locally allocated memory
+	if (*sk) PKI_STACK_MEM_free_all(*sk);
+	*sk = NULL;
+
 	return PKI_ERR;
 }
 
@@ -812,8 +863,11 @@ err:
 
 /*! \brief Returns the data from an HTTP source by using the GET command */
 
-int PKI_HTTP_GET_data ( char *url_s, int timeout, size_t max_size,
-					PKI_MEM_STACK **ret, PKI_SSL *ssl ) {
+int PKI_HTTP_GET_data (const char     * url_s,
+	               int              timeout,
+		       size_t           max_size,
+		       PKI_MEM_STACK ** ret,
+		       PKI_SSL  * ssl ) {
 
 	URL *url = NULL;
 	int rv = PKI_OK;
@@ -833,8 +887,11 @@ int PKI_HTTP_GET_data ( char *url_s, int timeout, size_t max_size,
 
 /*! \brief Returns the data from an HTTP URL by using the GET command */
 
-int PKI_HTTP_GET_data_url ( URL *url, int timeout, size_t max_size,
-					PKI_MEM_STACK **ret, PKI_SSL *ssl ) {
+int PKI_HTTP_GET_data_url (const URL      * url,
+	                   int              timeout,
+			   size_t           max_size,
+			   PKI_MEM_STACK ** ret,
+			   PKI_SSL        * ssl ) {
 
 	if ( !url ) return PKI_ERR;
 
@@ -844,8 +901,10 @@ int PKI_HTTP_GET_data_url ( URL *url, int timeout, size_t max_size,
 
 /*! \brief Returns HTTP data from a PKI_SOCKET by using the GET command */
 
-int PKI_HTTP_GET_data_socket ( PKI_SOCKET *sock, int timeout, size_t max_size,
-					PKI_MEM_STACK **ret ) {
+int PKI_HTTP_GET_data_socket (const PKI_SOCKET * sock,
+		              int                timeout,
+			      size_t             max_size,
+			      PKI_MEM_STACK   ** ret ) {
 
 	if ( !sock ) return PKI_ERR;
 
@@ -860,9 +919,14 @@ int PKI_HTTP_GET_data_socket ( PKI_SOCKET *sock, int timeout, size_t max_size,
  *         added to it
  */
 
-int PKI_HTTP_POST_data ( char *url_s, char *data, size_t size, 
-			char *content_type, int timeout, size_t max_size,
-				PKI_MEM_STACK **ret_sk, PKI_SSL *ssl ) {
+int PKI_HTTP_POST_data (const char     * url_s,
+		                const char     * data,
+						size_t           size,
+			            const char     * content_type,
+						int              timeout,
+						size_t           max_size,
+				        PKI_MEM_STACK ** ret_sk,
+						PKI_SSL  * ssl ) {
 
 	URL *url = NULL;
 	int ret = PKI_OK;
@@ -890,9 +954,14 @@ int PKI_HTTP_POST_data ( char *url_s, char *data, size_t size,
  *         added to it
  */
 
-int PKI_HTTP_POST_data_url ( URL *url, char *data, size_t size, 
-			char *content_type, int timeout, size_t max_size,
-				PKI_MEM_STACK **ret_sk, PKI_SSL *ssl ) {
+int PKI_HTTP_POST_data_url (const URL    * url,
+		                    const char   * data,
+							size_t         size,
+			                const char   * content_type,
+							int            timeout,
+							size_t         max_size,
+				            PKI_MEM_STACK **ret_sk,
+							PKI_SSL *ssl ) {
 
 
 	if ( !url ) return PKI_ERR;
@@ -906,9 +975,13 @@ int PKI_HTTP_POST_data_url ( URL *url, char *data, size_t size,
  *         added to it
  */
 
-int PKI_HTTP_POST_data_socket ( PKI_SOCKET *sock, char *data, size_t size, 
-			char *content_type, int timeout, size_t max_size,
-				PKI_MEM_STACK **ret_sk ) {
+int PKI_HTTP_POST_data_socket (const PKI_SOCKET * sock,
+		                       const char       * data,
+							   size_t             size,
+			                   const char       * content_type,
+							   int                timeout,
+							   size_t             max_size,
+				               PKI_MEM_STACK   ** ret_sk ) {
 
 
 	if ( !sock ) return PKI_ERR;

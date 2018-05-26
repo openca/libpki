@@ -18,82 +18,195 @@ void PKI_DIGEST_free ( PKI_DIGEST *data )
 	return;
 }
 
+int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
+		         const PKI_DIGEST_ALG * alg,
+		         const unsigned char  * data,
+		         size_t                 size) {
+
+	EVP_MD_CTX * md_ctx = NULL;
+		// Crypto Context for Digest Calculation
+
+	int mem_alloc = 0;
+		// Tracks where the mem alloc happened
+
+	int digest_size = 0;
+		// Return Value
+
+	// Input Checks
+	if (!data || !alg || !dst_buf) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return 0;
+	}
+
+	// Allocate a new CTX
+	if ((md_ctx = EVP_MD_CTX_new()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return 0;
+	}
+
+	// Let's initialize the MD context
+	EVP_MD_CTX_init(md_ctx);
+	
+	// Allocates the buffer if not provided
+	if (*dst_buf == NULL) {
+		*dst_buf = PKI_Malloc(EVP_MAX_MD_SIZE); 
+		mem_alloc = 1;
+	}
+
+	// Initializes the Digest
+	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
+
+		// Updates the digest value
+		EVP_DigestUpdate(md_ctx, data, size);
+
+		// Finalize the digest
+		if ((EVP_DigestFinal_ex(md_ctx, *dst_buf, NULL)) == 1) {
+
+			// All Ok
+			digest_size = EVP_MD_CTX_size(md_ctx);
+		}
+
+		// Let's clean everything up
+		EVP_MD_CTX_reset(md_ctx);
+		md_ctx = NULL; // Safety
+	}
+
+	// If we have an error, let's return '0'
+	if (digest_size <= 0) goto err;
+
+	// Return the calculated value
+	return digest_size;
+
+err:
+	// Let's clean everything up
+	if (md_ctx) {
+		EVP_MD_CTX_reset(md_ctx);
+		EVP_MD_CTX_free(md_ctx);
+	}
+
+	// Free the allocated memory only if we are not re-using
+	// the provided output buffer (dst_buf)
+	if (mem_alloc) {
+		PKI_Free(*dst_buf);
+		*dst_buf = NULL; // Safety
+	}
+
+	// Nothing to return
+	return 0;
+
+}
+				     
 /*! \brief Calculate digest over data provided in a buffer
  */
 
-PKI_DIGEST *PKI_DIGEST_new ( PKI_DIGEST_ALG *alg, 
-					unsigned char *data, size_t size ) {
+PKI_DIGEST *PKI_DIGEST_new(const PKI_DIGEST_ALG *alg, 
+		  	   const unsigned char  *data,
+			   size_t                size ) {
 
-	EVP_MD_CTX md;
-	char buf[EVP_MAX_MD_SIZE];
-	size_t digest_size = 0;
-
+	// Return Object
 	PKI_DIGEST *ret = NULL;
 
-	if( !data || !alg ) return ( NULL );
+	// Input Checks
+	if (!data || !alg) return NULL;
 
-	/* Let's initialize the MD context */
-	EVP_MD_CTX_init( &md );
+	// Allocates the memory for the return PKI_DIGEST
+	if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
 
-	/* Initialize the Digest by using the Alogrithm identifier */
-	if ((EVP_DigestInit_ex( &md, alg, NULL )) == 0 ) 
-	{
-		EVP_MD_CTX_cleanup( &md );
-		return( NULL );
+		int dgst_size = 0;
+
+		// Fills in the data and the size of the digest
+		if ((dgst_size = PKI_DIGEST_new_value(&ret->digest, 
+						alg, data, size)) <= 0) {
+			goto err;
+		}
+
+		ret->size = (size_t) dgst_size;
 	}
 
-	/* Update the digest - calculate over the data */
-	EVP_DigestUpdate(&md, data, size);
+	// All done
+	return ret;
 
-	if ((EVP_DigestFinal_ex(&md, (unsigned char *) buf, NULL)) == 0)
-	{
-		/* Error in finalizing the Digest */
-		EVP_MD_CTX_cleanup( &md );
-		return( NULL );
-	}
+err:
+	// Let's free any allocated memory
+	if (ret) PKI_DIGEST_free(ret);
 
-	/* Set the size of the md */
-	digest_size = (size_t) EVP_MD_CTX_size( &md );
+	// No digest was calculated, return the error
+	return NULL;
 
-	/* Allocate the return structure */
-	if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) == NULL)
-	{
-		/* Memory Allocation Error! */
-		EVP_MD_CTX_cleanup(&md);
-		return( NULL );
-	}
+	/*
+
+	// Allocate a new CTX
+	if ((md_ctx = EVP_MD_CTX_new()) == NULL) return NULL;
+
+	// Let's initialize the MD context
+	EVP_MD_CTX_init(md_ctx);
 	
-	/* Allocate the buffer */
-	if ((ret->digest = PKI_Malloc(size)) == NULL)
-	{
-		/* Memory Error */
-		EVP_MD_CTX_cleanup(&md);
-		PKI_Free (ret);
-		return(NULL);
+	// Initializes the Digest
+	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
+
+		// Updates the digest value
+		EVP_DigestUpdate(md_ctx, data, size);
+
+		// Allocates the output memory
+		if ((buf = PKI_Malloc (EVP_MAX_MD_SIZE)) != NULL) {
+
+			// Finalize the digest
+			if ((EVP_DigestFinal_ex(md_ctx, (unsigned char *) buf, NULL)) == 1) {
+
+				// Set the size of the md
+				digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
+
+				// Allocate the return structure and the internal digest
+				if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
+	
+					// Sets the real size of the digest
+					ret->size = digest_size;
+
+					// Transfers the ownership to the return data structure
+					ret->digest = buf;
+					buf = NULL; // Safety
+
+					// Sets the algorithm used
+					ret->algor = alg;
+
+					// Let's clean everything up
+					EVP_MD_CTX_reset(md_ctx);
+					EVP_MD_CTX_free(md_ctx);
+
+					// Return the Digest Data structure
+					return ret;
+				}
+			}
+		}
 	}
 
-	/* Set the size of the Digest */
-	ret->size = digest_size;
+	// If we get here, an error occurred and we just free
+	// the half-used resources and return NULL
+	if (md_ctx) {
+		// Cleanup the CTX
+		EVP_MD_CTX_reset(md_ctx);
 
-	/* Copy the Digest Data */
-	memcpy(ret->digest, buf, ret->size);
+		// Free Memory
+		EVP_MD_CTX_free(md_ctx);
+	}
 
-	/* Sets the algorithm used */
-	ret->algor = alg;
+	// Free the buffer
+	if (buf) PKI_Free(buf);
 
-	/* Let's clean everything up */
-	EVP_MD_CTX_cleanup(&md);
+	// Free Memory
+	if (ret) PKI_Free(ret);
 
-	/* Return the Digest Data structure */
-	return ( ret );
-
+	// Nothing to return
+	return NULL;
+	*/
 }
 
 /*! \brief Calculates a digest over data buffer
  */
 
-PKI_DIGEST *PKI_DIGEST_new_by_name ( char *alg_name, 
-					unsigned char *data, size_t size ) {
+PKI_DIGEST *PKI_DIGEST_new_by_name(const char *alg_name, 
+				   const unsigned char *data,
+				   size_t size ) {
 
 	PKI_DIGEST_ALG *alg = NULL;
 
@@ -108,11 +221,12 @@ PKI_DIGEST *PKI_DIGEST_new_by_name ( char *alg_name,
 /*! \brief Calculates a digest over data contained in a PKI_MEM
  */
 
-PKI_DIGEST *PKI_DIGEST_MEM_new ( PKI_DIGEST_ALG *alg, PKI_MEM *data ) {
-	return ( PKI_DIGEST_new( alg, data->data, data->size ));
+PKI_DIGEST *PKI_DIGEST_MEM_new(const PKI_DIGEST_ALG *alg, const PKI_MEM *data) {
+	return (PKI_DIGEST_new(alg, data->data, data->size ));
 }
 
-PKI_DIGEST *PKI_DIGEST_MEM_new_by_name ( char *alg_name, PKI_MEM *data ) {
+PKI_DIGEST *PKI_DIGEST_MEM_new_by_name(const char *alg_name, 
+				       const PKI_MEM *data ) {
 
 	PKI_DIGEST_ALG *alg = NULL;
 
@@ -127,7 +241,7 @@ PKI_DIGEST *PKI_DIGEST_MEM_new_by_name ( char *alg_name, PKI_MEM *data ) {
 /*! \brief Calculate the digest of data retrieved via a URL
  */
 
-PKI_DIGEST *PKI_DIGEST_URL_new ( PKI_DIGEST_ALG *alg, URL *url ) {
+PKI_DIGEST *PKI_DIGEST_URL_new(const PKI_DIGEST_ALG *alg, const URL *url ) {
 
 	PKI_MEM_STACK * stack = NULL;
 	PKI_MEM *data = NULL;
@@ -157,7 +271,7 @@ PKI_DIGEST *PKI_DIGEST_URL_new ( PKI_DIGEST_ALG *alg, URL *url ) {
 	return ( ret );
 }
 
-PKI_DIGEST *PKI_DIGEST_URL_new_by_name ( char *alg_name, URL *url ) {
+PKI_DIGEST *PKI_DIGEST_URL_new_by_name(const char *alg_name, const URL *url) {
 
 	PKI_DIGEST_ALG *alg = NULL;
 
@@ -171,14 +285,14 @@ PKI_DIGEST *PKI_DIGEST_URL_new_by_name ( char *alg_name, URL *url ) {
 
 /*! \brief Returns the size of the output of the selected digest algorithm */
 
-ssize_t PKI_DIGEST_get_size(PKI_DIGEST_ALG *alg)
+ssize_t PKI_DIGEST_get_size(const PKI_DIGEST_ALG *alg)
 {
 	int digest_size = 0;
 	ssize_t ret = -1;
 
 	if (!alg) return ret;
 
-	digest_size = EVP_MD_size ( alg );
+	digest_size = EVP_MD_size(alg);
 
 	ret = (ssize_t) digest_size;
 
@@ -186,9 +300,45 @@ ssize_t PKI_DIGEST_get_size(PKI_DIGEST_ALG *alg)
 
 }
 
+/*! \brief Returns the size of the output of the provided algorithm */
+
+int PKI_DIGEST_get_size_by_name(const char *alg_name) {
+
+	const PKI_DIGEST_ALG *alg = NULL;
+
+	if ((alg = PKI_DIGEST_ALG_get_by_name(alg_name)) == NULL) {
+		/* Algorithm Error */
+		return -1;
+	}
+
+	return EVP_MD_size(alg);
+};
+
+/*! \brief Returns the pointer to the calculated digest */
+const unsigned char * PKI_DIGEST_get_value(const PKI_DIGEST *digest) {
+
+	// Input Checks	
+	if (!digest || !digest->digest || digest->size == 0)
+		return NULL;
+
+	// Returns the pointer
+	return digest->digest;
+
+}
+
+
+/*! \brief Returns the size of a calculated digest */
+
+int PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst)
+{
+	if (!dgst || !dgst->digest || !dgst->size) return -1;
+
+	return dgst->size;
+}
+
 /*! \brief Returns the parsed (string) version of the digest content */
 
-char * PKI_DIGEST_get_parsed ( PKI_DIGEST *digest ) {
+char * PKI_DIGEST_get_parsed(const PKI_DIGEST *digest ) {
 
 	char *ret = NULL;
 	int i = 0;

@@ -71,7 +71,7 @@ PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size ) {
 
 /*! \brief Duplicates a PKI_STRING data structure */
 
-PKI_STRING * PKI_STRING_dup ( PKI_STRING *a )
+PKI_STRING * PKI_STRING_dup(const PKI_STRING *a)
 {
 	if (!a) return NULL;
 
@@ -97,14 +97,14 @@ int PKI_STRING_set( PKI_STRING *s, char *content, ssize_t size )
 
 /*! \brief Returns the type of the PKI_STRING (PKI_STRING_IA5, etc.) */
 
-int PKI_STRING_get_type( PKI_STRING *s )
+int PKI_STRING_get_type(const PKI_STRING *s )
 {
 	int type = PKI_STRING_UNKNOWN;
 	int ret = PKI_STRING_UNKNOWN;
 
 	if( !s ) return ( ret );
 
-	type = ASN1_STRING_type ( s );
+	type = ASN1_STRING_type((ASN1_STRING *)s);
 
 	switch( type ) {
 		case PKI_STRING_IA5:
@@ -124,7 +124,7 @@ int PKI_STRING_get_type( PKI_STRING *s )
 
 /*! \brief Returns the parsed value (char *) of the PKI_STRING (in UTF-8) */
 
-char * PKI_STRING_get_parsed ( PKI_STRING *s )
+char * PKI_STRING_get_parsed (const PKI_STRING *s )
 {
 	char * ret = NULL;
 	unsigned short data;
@@ -167,13 +167,14 @@ char * PKI_STRING_get_parsed ( PKI_STRING *s )
 
 /*! \brief Returns the parsed value (char *) of the PKI_STRING (in UTF-8) */
 
-char * PKI_STRING_get_utf8( PKI_STRING *s ) {
+char * PKI_STRING_get_utf8( const PKI_STRING *s ) {
 
 	char *ret = NULL;
 
-	if( !s ) return ( NULL );
+	if (!s) return NULL;
 
-	if((ASN1_STRING_to_UTF8( (unsigned char **) &ret, s )) < 0 ) {
+	if ((ASN1_STRING_to_UTF8((unsigned char **)&ret, 
+						(ASN1_STRING *)s)) < 0 ) {
 		PKI_log_debug("Error, can not convert string to utf8!"
 					" [type %d]", s->type );
 		return NULL;
@@ -186,7 +187,8 @@ char * PKI_STRING_get_utf8( PKI_STRING *s ) {
  * 	\brief Returns the digest calculated on the string value
  */
 
-PKI_DIGEST * PKI_STRING_get_digest ( PKI_STRING *s, PKI_DIGEST_ALG *digest ) {
+PKI_DIGEST * PKI_STRING_get_digest (const PKI_STRING *s, 
+				    const PKI_DIGEST_ALG *digest ) {
 
 	PKI_DIGEST *ret = NULL;
 
@@ -216,13 +218,13 @@ void PKI_STRING_free( PKI_STRING *s ) {
 
 /*! \brief Prints the contents of a PKI_STRING to Standard Output */
 
-int PKI_STRING_print( PKI_STRING *s ) {
+int PKI_STRING_print( const PKI_STRING *s ) {
 	return ( PKI_STRING_print_fp( stdout, s ));
 }
 
 /*! \brief Prints the contents of a PKI_STRING to a FILE pointer (eg., stdout)*/
 
-int PKI_STRING_print_fp( FILE *fp, PKI_STRING *s ) {
+int PKI_STRING_print_fp( FILE *fp, const PKI_STRING *s ) {
 
 	char *str = NULL;
 
@@ -241,10 +243,10 @@ int PKI_STRING_print_fp( FILE *fp, PKI_STRING *s ) {
 
 /*! \brief Compares two ASN1 strings. Returns non-zero if the two string are equal */
 
-int PKI_STRING_cmp(PKI_STRING *a, PKI_STRING *b)
+int PKI_STRING_cmp(const PKI_STRING *a, const PKI_STRING *b)
 {
 	if (!a || !b) return -1;
 
-	return ASN1_STRING_cmp(a, b);
+	return ASN1_STRING_cmp((PKI_STRING *)a, (PKI_STRING *)b);
 }
 

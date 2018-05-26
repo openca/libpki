@@ -198,7 +198,7 @@ char * HSM_ENGINE_get_errdesc ( unsigned long err, char *str, size_t size ) {
 	return ret;
 }
 
-HSM *HSM_ENGINE_new ( PKI_CONFIG *conf )
+HSM *HSM_ENGINE_new (PKI_CONFIG *conf )
 {
 	HSM *hsm = NULL;
 	char *engine_id = NULL;

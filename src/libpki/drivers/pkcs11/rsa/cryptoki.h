@@ -96,8 +96,9 @@
 #define NULL_PTR 0
 #endif
 
-#include <libpki/drivers/pkcs11/rsa/pkcs11t.h>
-#include <libpki/drivers/pkcs11/rsa/pkcs11_func.h>
+#include <libpki/drivers/pkcs11/rsa/pkcs11.h>
+// #include <libpki/drivers/pkcs11/rsa/pkcs11t.h>
+// #include <libpki/drivers/pkcs11/rsa/pkcs11f.h>
 
 #if defined(WIN16) || (defined(_WINDOWS) && !defined(_WIN32))
 	#pragma pack()

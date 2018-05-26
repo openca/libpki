@@ -24,9 +24,9 @@ static char *def_conf_dirs[] = {
 
 /*
 #if LIBXML_VERSION >= LIBXML_MIN_VERSION
-#define logXmlMessages(a,b) PKI_log_debug("XML I/O Error: %s", b)
+#define logXmlMessages(a,b) PKI_DEBUG("XML I/O Error: %s", b)
 #else
-#define logXmlMessages(a,b) PKI_log_debug("XML I/O Error", b)
+#define logXmlMessages(a,b) PKI_DEBUG("XML I/O Error", b)
 #endif
 */
 
@@ -91,7 +91,7 @@ static char * _xml_search_namespace_add ( char *search ) {
 
 /*! \brief Loads a PKI_CONFIG object (XML config file) */
 
-PKI_CONFIG * PKI_CONFIG_load(char *urlPath)
+PKI_CONFIG * PKI_CONFIG_load(const char *urlPath)
 {
 	FILE *file = NULL;
 	PKI_CONFIG *doc = NULL;
@@ -179,7 +179,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_root ( PKI_CONFIG *doc ) {
 
 /*! \brief Loads an OID file and creates internal OIDs */
 
-PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
+PKI_CONFIG * PKI_CONFIG_OID_load(const char *oidFile ) {
 
 	PKI_OID *oid = NULL;
 	PKI_CONFIG *doc = NULL;
@@ -196,16 +196,9 @@ PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
 		return (NULL);
 	};
 
-	// if((oid = PKI_OID_get( searchName )) != NULL ) {
-	// 	return ( oid );
-	// }
-
-	// snprintf( (char *) oidSearchBuff, BUFF_MAX_SIZE,
-	// 	"/objectIdentifiers/oid[@name=\"%s\"]", searchName );
-
 	if (( sk = PKI_CONFIG_get_element_stack ( doc, 
 					(char *) "/objectIdentifiers/oid" )) == NULL ) {
-		// PKI_log_debug("[WARNING] no OID found in %s", oidFile );
+		// PKI_DEBUG("[WARNING] no OID found in %s", oidFile );
 		return NULL;
 	}
 	size = PKI_STACK_CONFIG_ELEMENT_elements ( sk );
@@ -222,7 +215,7 @@ PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
 			descr = xmlGetProp( curr, (xmlChar *) "description" );
 			val = xmlNodeListGetString(doc, curr->xmlChildrenNode, 1);
 
-			PKI_log_debug("[OID load] Creating OID (%s, %s, %s)",
+			PKI_DEBUG("[OID load] Creating OID (%s, %s, %s)",
 				name, descr, val );
 
 			oid = PKI_OID_new ( (char *) val, (char *) name, 
@@ -233,7 +226,7 @@ PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
 			if( val ) xmlFree ( val );
 
 			if( oid == NULL ) {
-				PKI_log_debug("Failed Creating OID (%s, %s, %s)",
+				PKI_DEBUG("Failed Creating OID (%s, %s, %s)",
 					name, descr, val );
 			}
 		}
@@ -244,7 +237,7 @@ PKI_CONFIG * PKI_CONFIG_OID_load ( char *oidFile ) {
 
 /*! \brief Searches for a specific OID inside a PKI_CONFIG object */
 
-PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
+PKI_OID * PKI_CONFIG_OID_search(const PKI_CONFIG *doc, const char *searchName ) {
 
 	PKI_OID *oid = NULL;
 	PKI_CONFIG_ELEMENT *curr = NULL;
@@ -264,8 +257,8 @@ PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
 	snprintf( (char *) oidSearchBuff, BUFF_MAX_SIZE,
 		"/objectIdentifiers/oid[@name=\"%s\"]", searchName );
 
-	if (( sk = PKI_CONFIG_get_element_stack ( doc, 
-					(char *)oidSearchBuff )) == NULL ) {
+	if ((sk = PKI_CONFIG_get_element_stack(doc, 
+					       (const char *)oidSearchBuff )) == NULL ) {
 		return NULL;
 	}
 
@@ -281,7 +274,7 @@ PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
 
 			name = xmlGetProp( curr, (xmlChar *) "name" );
 			descr = xmlGetProp( curr, (xmlChar *) "description" );
-			val = xmlNodeListGetString(doc, 
+			val = xmlNodeListGetString((PKI_CONFIG *)doc, 
 						curr->xmlChildrenNode, 1);
 
 			oid = PKI_OID_new ( (char *) val, (char *) name, 
@@ -292,7 +285,7 @@ PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
 			if( val ) xmlFree ( val );
 
 			if( oid != NULL ) {
-				PKI_log_debug("Failed Creating OID (%s, %s, %s)",
+				PKI_DEBUG("Failed Creating OID (%s, %s, %s)",
 					name, descr, val );
 				continue;
 			}
@@ -304,7 +297,7 @@ PKI_OID * PKI_CONFIG_OID_search ( PKI_CONFIG *doc, char *searchName ) {
 
 /*! \brief Returns a stack of values for the selected search path */
 
-PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
+PKI_STACK * PKI_CONFIG_get_stack_value(const PKI_CONFIG *doc, const char *search ) {
 
 	PKI_CONFIG_ELEMENT_STACK *sk = NULL;
 	PKI_STACK *ret = NULL;
@@ -313,7 +306,7 @@ PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
 	int size = -1;
 	char *val = NULL;
 
-	if (( sk = PKI_CONFIG_get_element_stack ( doc, search)) == NULL ) {
+	if ((sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search)) == NULL ) {
 		return NULL;
 	}
 
@@ -334,68 +327,12 @@ PKI_STACK * PKI_CONFIG_get_stack_value ( PKI_CONFIG *doc, char *search ) {
 	PKI_STACK_free_all ( sk );
 
 	return ret;
-
-	/*
-	xmlXPathContext *xpathCtx = NULL; 
-	xmlXPathObject *xpathObj = NULL;
-	xmlNodeSet *nodes = NULL;
-
-	PKI_STACK *sk = NULL;
-
-	char *val = NULL;
-	int size = 0;
-	int i = 0;
-
-	char *my_search = NULL;
-
-	if( !doc || !search ) return (NULL);
-
-	xpathCtx = xmlXPathNewContext(doc);
-	if(xpathCtx == NULL) {
-        	PKI_log_debug("ERROR, unable to create new XPath context!\n");
-		return(NULL);
-	}
-
-	my_search = _xml_search_namespace_add ( search );
-
-	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
-				(xmlChar *) PKI_NAMESPACE_HREF);
-
-	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
-	PKI_Free ( my_search );
-
-	if( xpathObj == NULL ) {
-		xmlXPathFreeContext(xpathCtx);
-		return(NULL);
-	}
-
-	nodes = xpathObj->nodesetval;
-	if( nodes ) {
-		size = nodes->nodeNr;
-	}
-
-	sk = PKI_STACK_new(NULL);
-	for( i=0; i < size; i++ ) {
-		PKI_CONFIG_ELEMENT *curr = NULL;
-
-		curr = nodes->nodeTab[i];
-		val = (char *) xmlNodeListGetString(doc, 
-						curr->xmlChildrenNode, 1);
-
-		PKI_STACK_push( sk, strdup( val ));
-	}
-
-	xmlXPathFreeObject(xpathObj);
-	xmlXPathFreeContext(xpathCtx);
-
-	return (sk);
-	*/
 }
 
 
 /*! \brief Returns the first value found via the provided search path */
 
-char * PKI_CONFIG_get_value ( PKI_CONFIG *doc, char *search ) {
+char * PKI_CONFIG_get_value(const PKI_CONFIG *doc, const char *search ) {
 
 	PKI_CONFIG_ELEMENT *curr = NULL;
 
@@ -404,65 +341,13 @@ char * PKI_CONFIG_get_value ( PKI_CONFIG *doc, char *search ) {
 	}
 
 	return PKI_CONFIG_get_element_value ( curr );
-
-	/*
-	val = (char *) xmlNodeListGetString(doc, curr->xmlChildrenNode, 1);
-
-	xmlXPathContext *xpathCtx = NULL; 
-	xmlXPathObject *xpathObj = NULL;
-	xmlNodeSet *nodes = NULL;
-
-
-	char *val = NULL;
-	int size = 0;
-
-	char *my_search = NULL;
-
-	if( !doc || !search ) return (NULL);
-
-	xpathCtx = xmlXPathNewContext(doc);
-	if(xpathCtx == NULL) {
-        	PKI_log_debug("ERROR, unable to create new XPath context!\n");
-		return(NULL);
-	}
-
-	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
-				(xmlChar *) PKI_NAMESPACE_HREF);
-
-	my_search = _xml_search_namespace_add ( search );
-
-	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
-	PKI_Free (my_search);
-
-	if( xpathObj == NULL ) {
-		xmlXPathFreeContext(xpathCtx);
-		return(NULL);
-	}
-
-	nodes = xpathObj->nodesetval;
-	if( nodes ) {
-		size = nodes->nodeNr;
-	}
-
-	if( size >= 1 ) {
-		PKI_CONFIG_ELEMENT *curr = NULL;
-
-		curr = nodes->nodeTab[0];
-		val = (char *) xmlNodeListGetString(doc, 
-						curr->xmlChildrenNode, 1);
-	}
-
-	xmlXPathFreeObject(xpathObj);
-	xmlXPathFreeContext(xpathCtx);
-
-	return (val);
-	*/
 }
  
 /*! \brief Returns the value of the named attribute in the searched item */
 
-char * PKI_CONFIG_get_attribute_value ( PKI_CONFIG *doc, 
-					char *search, char *attr_name ) {
+char * PKI_CONFIG_get_attribute_value(const PKI_CONFIG *doc, 
+				      const char *search,
+				      const char *attr_name ) {
 
 	PKI_CONFIG_ELEMENT *el = NULL;
 	char * ret = NULL;
@@ -482,13 +367,13 @@ char * PKI_CONFIG_get_attribute_value ( PKI_CONFIG *doc,
 
 /*! \brief Returns the number of items identified by the search path */
 
-int PKI_CONFIG_get_elements_num ( PKI_CONFIG *doc, char *search ) {
+int PKI_CONFIG_get_elements_num(const PKI_CONFIG *doc, const char *search ) {
 
 	PKI_STACK *sk = NULL;
 	int ret = -1;
 	PKI_CONFIG_ELEMENT *pnt = NULL;
 
-	if((sk = PKI_CONFIG_get_element_stack ( doc, search )) == NULL ) {
+	if((sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search )) == NULL ) {
 		return -1;
 	}
 
@@ -505,25 +390,39 @@ int PKI_CONFIG_get_elements_num ( PKI_CONFIG *doc, char *search ) {
 
 /*! \brief Returns the n-th PKI_CONFIG_ELEMENT identified by the search path */
 
-PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element ( PKI_CONFIG *doc, 
-						char *search, int num ) {
+PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc, 
+					    const char       * search,
+					    int                num ) {
 
 	PKI_CONFIG_ELEMENT_STACK *sk = NULL;
+		// Stack of Elements from the Search
+
 	PKI_CONFIG_ELEMENT *ret = NULL;
+    // Return Value
+  
 	PKI_CONFIG_ELEMENT *tmp_el = NULL;
+		// Temporary reference used to free
+		// the nodes from the returned stack
 
-	if ( !doc || !search ) return NULL;
+  	// Some input checks
+	if (!doc || !search) return NULL;
 
-	if ((sk = PKI_CONFIG_get_element_stack(doc, search)) == NULL) {
-		// PKI_log_debug ("PKI_CONFIG_get_element()::No Stack Returned");
+	// Checks if the search returns any element(s)
+	if ((sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search)) == NULL) {
+		PKI_DEBUG("Element Not Found [Search: %s, Position: %d]", search, num);
 		return NULL;
 	}
-
-	// Gets the right element
+  
+  // Use the magic 'negative' values as setting for the last
+	// element in the stack
+	if ( num < 0 ) num = PKI_STACK_CONFIG_ELEMENT_elements ( sk ) - 1;
+  
+  // Gets the right element
 	if ((ret = PKI_STACK_CONFIG_ELEMENT_get_num(sk, num)) == NULL) {
-		PKI_log_debug("PKI_CONFIG_get_element()::Can not get element %d from the stack", num);
-	}
-
+		PKI_DEBUG("Can not get element number %d from the search [Search: %s]",
+			num, search);
+  }
+  
 	// Free all remaining parts of the stack
 	while (tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) {
 		// Nothing to do - the elements are xmlNode and
@@ -536,78 +435,16 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element ( PKI_CONFIG *doc,
 	}
 
 	// Free all the remaining memory
-	PKI_STACK_CONFIG_ELEMENT_free(sk);
+	PKI_STACK_CONFIG_ELEMENT_free_all(sk);
 
+	// All Done.
 	return ret;
-		
-	
-
-	/*
-	xmlXPathContext *xpathCtx = NULL; 
-	xmlXPathObject *xpathObj = NULL;
-	xmlNodeSet *nodes = NULL;
-
-	PKI_CONFIG_ELEMENT *curr = NULL;
-
-	xmlParserCtxt *parserCtxt = NULL;
-
-	int size = 0;
-	int i = 0;
-
-	char *my_search = NULL;
-
-	if( !doc || !search ) return (NULL);
-
-	xpathCtx = xmlXPathNewContext(doc);
-	if(xpathCtx == NULL) {
-        	PKI_log_debug("ERROR, unable to create new XPath context!\n");
-		return(NULL);
-	}
-
-	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
-					(xmlChar *) PKI_NAMESPACE_HREF);
-
-	my_search = _xml_search_namespace_add ( search );
-	// my_search = strdup ( search );
-
-	PKI_log_debug (">>>> SEARCHING ====> %s (%s)", my_search, search );
-
-	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
-	if( xpathObj == NULL ) {
-		PKI_log_debug("<<<< xpathObj is NULL >>>>>" );
-
-		xmlXPathFreeContext(xpathCtx);
-		PKI_Free ( my_search );
-		return(NULL);
-	}
-
-	nodes = xpathObj->nodesetval;
-	if( nodes ) {
-		size = nodes->nodeNr;
-	}
-
-	if( size >= 1 ) {
-		curr = nodes->nodeTab[size-1];
-	} else {
-		PKI_log_debug("<<<<<<< returned vals size=%d >>>>>>>", size );
-	}
-
-	xmlXPathFreeObject(xpathObj);
-	xmlXPathFreeContext(xpathCtx);
-
-	PKI_Free ( my_search );
-
-	PKI_log_debug ( ">>>>>>>>>>>> SEARCH SUCCESSFUL!!! <<<<<<<<<<<<<<<<<<");
-
-
-	return (curr);
-	*/
 }
 
 /*! \brief Returns the stack of elements identified by the search path */
 
-PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack ( PKI_CONFIG *doc, 
-							char *search ) {
+PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack(const PKI_CONFIG * doc, 
+							const char * search ) {
 
 	xmlXPathContext *xpathCtx = NULL; 
 	xmlXPathObject *xpathObj = NULL;
@@ -622,16 +459,17 @@ PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack ( PKI_CONFIG *doc,
 
 	if( !doc || !search ) return (NULL);
 
-	xpathCtx = xmlXPathNewContext(doc);
+	xpathCtx = xmlXPathNewContext((PKI_CONFIG *)doc);
 	if(xpathCtx == NULL) {
-        	PKI_log_debug("ERROR, unable to create new XPath context!\n");
-		return(NULL);
+        	PKI_log_err("Unable to create new XPath context [Search: %s]",
+        		search);
+		return NULL;
 	}
 
 	xmlXPathRegisterNs(xpathCtx, (xmlChar *) PKI_NAMESPACE_PREFIX, 
 					(xmlChar *) PKI_NAMESPACE_HREF);
 
-	my_search = _xml_search_namespace_add ( search );
+	my_search = _xml_search_namespace_add((char *)search);
 
 	xpathObj = xmlXPathEvalExpression( (xmlChar *) my_search, xpathCtx);
 	if( xpathObj == NULL ) {
@@ -646,8 +484,6 @@ PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_stack ( PKI_CONFIG *doc,
 	} else {
 		size = -1;
 	}
-
-	// PKI_log_debug ( "PKI_CONFIG_get_element_stack()::Returned nodes => %d", size);
 
 	if( size > 0 ) {
 		ret = PKI_STACK_CONFIG_ELEMENT_new();
@@ -810,7 +646,7 @@ PKI_CONFIG_ELEMENT_STACK * PKI_CONFIG_get_element_children(PKI_CONFIG_ELEMENT *e
           contains the configuration named 'name'.
  */
 
-char * PKI_CONFIG_find ( char *dir, char *name )
+char * PKI_CONFIG_find(const char *dir, const char *name )
 {
 	struct dirent *dd = NULL;
 	DIR *dirp = NULL;
@@ -828,19 +664,19 @@ char * PKI_CONFIG_find ( char *dir, char *name )
 
 	if ((url = URL_new(dir)) == NULL)
 	{
-		PKI_log_debug("Dir [%s] is not a valid URI", dir );
+		PKI_DEBUG("Dir [%s] is not a valid URI", dir );
 		return (PKI_ERR);
 	}
 
 	if (url->proto != URI_PROTO_FILE)
 	{
-		PKI_log_debug("URL is not a file, skipping!", dir );
+		PKI_DEBUG("URL is not a file, skipping!", dir );
 		return (PKI_ERR);
 	}
 
 	if ((dirp = opendir(url->addr)) == NULL)
 	{
-		PKI_log_debug("Can not open directory [%s]", url->addr );
+		PKI_DEBUG("Can not open directory [%s]", url->addr );
 		return (PKI_ERR);
 	}
 	else
@@ -853,11 +689,11 @@ char * PKI_CONFIG_find ( char *dir, char *name )
 			filename = dd->d_name;
 			len = (long) strlen( filename );
 
-			PKI_log_debug("Processing file [%s]", filename );
+			PKI_DEBUG("Processing file [%s]", filename );
 
 			if (len < 4 || strcmp(".xml", filename +len-4) != 0)
 			{
-				PKI_log_debug("Skipping %s", filename );
+				PKI_DEBUG("Skipping %s", filename );
 				continue;
 			}
 			else
@@ -871,7 +707,7 @@ char * PKI_CONFIG_find ( char *dir, char *name )
 				snprintf(fullpath, BUFF_MAX_SIZE,
 					"%s/%s", url->addr, filename );
 
-				PKI_log_debug("Opening File %s", fullpath );
+				PKI_DEBUG("Opening File %s", fullpath );
 
 				// Check the allowed size
 				fullsize = strlen(url->addr) + strlen( filename ) + 1;
@@ -879,17 +715,17 @@ char * PKI_CONFIG_find ( char *dir, char *name )
 				
 				if ((tmp_cfg = PKI_CONFIG_load(fullpath)) == NULL)
 				{
-					PKI_log_debug("Can not load %s", fullpath );
+					PKI_DEBUG("Can not load %s", fullpath );
 					continue;
 				}
 
-				PKI_log_debug("Getting Name Param... ");
+				PKI_DEBUG("Getting Name Param... ");
 				tmp_name = PKI_CONFIG_get_value(tmp_cfg, "/*/name");
 				PKI_CONFIG_free(tmp_cfg);
 
 				if (tmp_name != NULL)
 				{
-					PKI_log_debug("Got Name::%s", tmp_name);
+					PKI_DEBUG("Got Name::%s", tmp_name);
 					if (strcmp_nocase(tmp_name, name) == 0)
 					{
 						PKI_Free(tmp_name);
@@ -897,13 +733,13 @@ char * PKI_CONFIG_find ( char *dir, char *name )
 
 						found = 1;
 						ret = strdup(fullpath);
-						PKI_log_debug("File successfully loaded %s", fullpath );
+						PKI_DEBUG("File successfully loaded %s", fullpath );
 						break;
 					}
 					PKI_Free(tmp_name);
 					tmp_name = NULL; // Safety
 				}
-				else PKI_log_debug("No Name found!");
+				else PKI_DEBUG("No Name found!");
 			}
 		}
 		closedir( dirp );
@@ -924,8 +760,10 @@ char * PKI_CONFIG_find ( char *dir, char *name )
           contains the configuration named 'name'.
  */
 
-char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
-{
+char * PKI_CONFIG_find_all(const char *dir, 
+			   const char *name,
+			   const char *subdir) {
+
 	PKI_STACK *dir_list = NULL;
 	char * dir_name = NULL;
 	char * ret = NULL;
@@ -933,7 +771,7 @@ char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
 	int i = 0;
 
 	// Checks the input
-	if (!dir || !name )
+	if (!name )
 	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
@@ -943,7 +781,7 @@ char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
 	if ((dir_list = PKI_CONFIG_get_search_paths(dir)) == NULL) return NULL;
 	
 	// Some debugging
-	PKI_log_debug( "GOT SEARCH PATHS => %d", PKI_STACK_elements( dir_list ));
+	PKI_DEBUG( "GOT SEARCH PATHS => %d", PKI_STACK_elements( dir_list ));
 
 	// Go throught the different elements of the directory and search them
 	for ( i=0; i < PKI_STACK_elements( dir_list ); i++ )
@@ -956,11 +794,11 @@ char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
 		else snprintf(buff, sizeof(buff), "%s", dir_name );
 
 		// Debugging
-		PKI_log_debug("SEARCHING FOR %s in dir %s", name, buff );
+		PKI_DEBUG("SEARCHING FOR %s in dir %s", name, buff );
 
 		if ((ret = PKI_CONFIG_find(buff, name)) != NULL)
 		{
-			PKI_log_debug("FOUND => %s [%s]", name, buff );
+			PKI_DEBUG("FOUND => %s [%s]", name, buff );
 			break;
 		}
 	}
@@ -977,7 +815,8 @@ char * PKI_CONFIG_find_all(char *dir, char *name, char *subdir)
  *        directory.
  */
 
-PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
+PKI_CONFIG_STACK * PKI_CONFIG_load_dir(const char *dir,
+				       PKI_CONFIG_STACK *sk ) {
 
         struct dirent *dd = NULL;
 	DIR *dirp = NULL;
@@ -992,25 +831,26 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
 	}
 
 	if(( url = URL_new ( dir )) == NULL ) {
-		PKI_log_debug( "Dir not valid for config (%s)", dir );
+		PKI_DEBUG( "Dir not valid for config (%s)", dir );
 		return ( NULL );
 	}
 
 	if( url->proto != URI_PROTO_FILE ) {
-		PKI_log_debug( "Dir not valid for config (%s)", dir );
+		PKI_DEBUG( "Dir not valid for config (%s)", dir );
 		return (NULL);
 	}
 
 	if((dirp = opendir( url->addr )) == NULL ) {
-		PKI_log_debug("ERROR, Can not open dir %s!\n", url->addr );
+		PKI_log_err("Can not open dir %s!\n", url->addr );
 		return (NULL);
 	} else {
+
 		if( !sk ) {
 			if((ret = PKI_STACK_CONFIG_new()) == NULL ) {
-				PKI_log_debug("Memory Error (%s:%d)", 
-							__FILE__, __LINE__ );
-				return(NULL);
+				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+				return NULL;
 			}
+
 		} else {
 			ret = sk;
 		}
@@ -1023,7 +863,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
 			len = (long) strlen( filename );
 
 			if( (len < 4) || (strcmp( ".xml", filename +len -4 ))) {
-				PKI_log_debug( "Skipping file %s", filename);
+				PKI_DEBUG( "Skipping file %s", filename);
 				continue;
 			} else {
 			
@@ -1032,7 +872,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
 
 				PKI_CONFIG *tmp_cfg = NULL;
 
-				PKI_log_debug( "Loading file %s" LIBPKI_PATH_SEPARATOR "%s", 
+				PKI_DEBUG( "Loading file %s" LIBPKI_PATH_SEPARATOR "%s", 
 							url->addr, filename );
 
 				snprintf(fullpath, BUFF_MAX_SIZE,
@@ -1049,7 +889,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
 					continue;
 				}
 
-				PKI_log_debug( "Loaded %s file", fullpath );
+				PKI_DEBUG( "Loaded %s file", fullpath );
 				PKI_STACK_CONFIG_push( ret, tmp_cfg );
 				found = 1;
 			}
@@ -1062,7 +902,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
 		return (ret);
 	} else {
 		PKI_STACK_CONFIG_free( ret );
-		PKI_log_debug("PKI_CONFIG_load_dir() Failed!\n" );
+		PKI_DEBUG("PKI_CONFIG_load_dir() Failed!\n" );
 		return ( NULL );
 	}
 }
@@ -1072,7 +912,7 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir ( char *dir, PKI_CONFIG_STACK *sk ) {
  *        directory plush the default search paths
  */
 
-PKI_CONFIG_STACK *PKI_CONFIG_load_all ( char * dir ) {
+PKI_CONFIG_STACK *PKI_CONFIG_load_all(const char * dir ) {
 
 	PKI_STACK *dir_list = NULL;
 	PKI_CONFIG_STACK *sk = NULL;
@@ -1093,7 +933,7 @@ PKI_CONFIG_STACK *PKI_CONFIG_load_all ( char * dir ) {
 /*! \brief Returns a PKI_STACK of directories (useful to search in default
            dirs for config files */
 
-PKI_STACK *PKI_CONFIG_get_search_paths ( char *dir ) {
+PKI_STACK *PKI_CONFIG_get_search_paths(const char *dir ) {
 
 	char *homedir = NULL;
 	char buff[BUFF_MAX_SIZE];
@@ -1101,7 +941,7 @@ PKI_STACK *PKI_CONFIG_get_search_paths ( char *dir ) {
 	PKI_STACK *list = NULL;
 	int i = 0;
 
-	// PKI_log_debug("get_search_paths() start");
+	// PKI_DEBUG("get_search_paths() start");
 
 	if((list = PKI_STACK_new_null()) == NULL ) {
 		return ( NULL );
@@ -1128,17 +968,18 @@ PKI_STACK *PKI_CONFIG_get_search_paths ( char *dir ) {
 		PKI_STACK_push ( list, strdup(def_conf_dirs[i]) );
 	}
 
-	// PKI_log_debug("get_search_paths()::Entries in list %d", 
+	// PKI_DEBUG("get_search_paths()::Entries in list %d", 
 	//				PKI_STACK_elements ( list ));
 
-	// PKI_log_debug("get_search_paths()::ENDING");
+	// PKI_DEBUG("get_search_paths()::ENDING");
 	return ( list );
 }
 
 
 /*! \brief Create a new Node for a PKI_X509_PROFILE */
 
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new ( char *name, char *value ) {
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new(const char *name, 
+					   const char *value ) {
 
 	PKI_CONFIG_ELEMENT *ret = NULL;
 	// xmlNsPtr ns = NULL;
@@ -1160,8 +1001,10 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_new ( char *name, char *value ) {
 }
 
 /*! \brief Adds an attribute to an existing profile element */
-int PKI_CONFIG_ELEMENT_add_attribute ( PKI_CONFIG *doc,
-		PKI_CONFIG_ELEMENT *node, char *name, char *value ) {
+int PKI_CONFIG_ELEMENT_add_attribute(PKI_CONFIG         * doc,
+				     PKI_CONFIG_ELEMENT * node,
+				     const char         * name,
+				     const char         * value ) {
 
 	if( (node == NULL) || ( name == NULL )) {
 		return ( PKI_ERR );
@@ -1181,11 +1024,9 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_add_node ( PKI_CONFIG *doc,
 	
 	PKI_CONFIG_ELEMENT *p_node = NULL;
 
-	// PKI_log_debug("add_node()::parent=%s, name=%s, value=%s",
-	// 			parent, name, value );
-
 	if((p_node = PKI_CONFIG_get_element( doc, parent, -1 )) == NULL ) {
-		PKI_log_debug("ERROR::Can not find Parent node (%s)", parent );
+		PKI_log_err("Can not find Parent node (%s) [Adding: %s]",
+			parent, name);
 		return NULL;
 	}
 
@@ -1194,23 +1035,25 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_add_node ( PKI_CONFIG *doc,
 
 /*! \brief Add a child element to an existing node */
 
-PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child ( PKI_CONFIG *doc, 
-			PKI_CONFIG_ELEMENT *node, char *name, char *value ) {
+PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child(PKI_CONFIG         * doc, 
+						 PKI_CONFIG_ELEMENT * node,
+						 const char         * name,
+						 const char         * value) {
 
 	PKI_CONFIG_ELEMENT *ret = NULL;
 
-	// PKI_log_debug ( "add_child():: name=%s, value=%s", name, value );
+	// PKI_DEBUG ( "add_child():: name=%s, value=%s", name, value );
 
 	if(!node || !name ) return NULL;
 
 	// snprintf(buf, sizeof(buf), "%s:%s", PKI_NAMESPACE_PREFIX, name );
 	// ns = xmlNewNs ( node, NULL, PKI_NAMESPACE_PREFIX);
 
-	// PKI_log_debug ( "add_child():: New Name::%s", name);
+	// PKI_DEBUG ( "add_child():: New Name::%s", name);
 
 	if((ret = xmlNewTextChild( node, NULL, BAD_CAST name, BAD_CAST value ))
 								== NULL ) {
-		// PKI_log_debug("add_child()::Failed!");
+		// PKI_DEBUG("add_child()::Failed!");
 	}
 
 

@@ -14,9 +14,9 @@
 #define PKI_EC_KEY	EC_KEY
 #endif
 
-#define PKI_RSA_KEY_MIN_SIZE		512
-#define PKI_DSA_KEY_MIN_SIZE		512
-#define PKI_EC_KEY_MIN_SIZE		56
+#define PKI_RSA_KEY_MIN_SIZE		1024
+#define PKI_DSA_KEY_MIN_SIZE		1024
+#define PKI_EC_KEY_MIN_SIZE			128
 
 #define RSA_SIGNATURE_MAX_SIZE		8192
 
@@ -38,14 +38,35 @@ int _pki_pkcs11_rand_init( void );
 /* End of _LIBPKI_INTERNAL_PKEY_H */
 #endif
 
+
+// Definition for the RSA Key Generation Mechs
+#define RSA_MECH_LIST_SIZE 2
+static CK_MECHANISM RSA_MECH_LIST[RSA_MECH_LIST_SIZE] = {
+	{CKM_RSA_X9_31_KEY_PAIR_GEN, NULL_PTR, 0 },
+	{CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0 }
+};
+
+// Definitions for the ECDSA Key Generation Mechs
+#define EC_MECH_LIST_SIZE 1
+static CK_MECHANISM EC_MECH_LIST[EC_MECH_LIST_SIZE] = {
+	{CKM_EC_KEY_PAIR_GEN, NULL_PTR, 0}
+};
+
+#ifdef __DISABLED__
+// Currently Disabled
+// Definitions for the DSA Key Generation Mechs
+#define DSA_MECH_LIST_SIZE 1
+static CK_MECHANISM DSA_MECH_LIST[DSA_MECH_LIST_SIZE] = {
+	{CKM_DSA_KEY_PAIR_GEN, NULL_PTR, 0}
+}
+#endif
+
 /* ---------------------------- Functions -------------------------------- */
 
 int _pki_pkcs11_rand_seed( void ) {
 	unsigned char seed[20];
 
-	if (!RAND_pseudo_bytes(seed, 20)) {
-		return 0;
-	}
+	if (!RAND_bytes(seed, 20)) return 0;
 	RAND_seed(seed, sizeof seed);
 
 	return(1);
@@ -95,13 +116,12 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 
 	CK_RV rv;
 
-	CK_MECHANISM RSA_MECH = {
-		CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0 };
+	CK_MECHANISM * RSA_MECH_PTR = NULL;
 
 	CK_ULONG i = 0;
 	CK_ULONG n = 0;
 
-	int bits = -1;
+	CK_ULONG bits = 0;
 
 	size_t label_len = 0;
 
@@ -115,6 +135,8 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	char *id     = NULL;
 	int   id_len = 8; 
 
+	int idx = 0;
+
 	if ( !url || !url->addr ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return ( NULL );
@@ -126,12 +148,47 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 	if ( kp ) {
 		if( kp->bits < PKI_RSA_KEY_MIN_SIZE ) {
 			PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE_SHORT, NULL);
-		};
+		} else {
+			bits = (CK_ULONG) kp->bits;
+		}
 	} else {
 		bits = PKI_RSA_KEY_DEFAULT_SIZE;
 	}
 
-	if ( kp && kp->rsa.exponent > 3) {
+	// Look for a supported key generation mechanism
+	for (idx = 0; idx < RSA_MECH_LIST_SIZE; idx++) {
+
+		// Checks if the mechanism is supported
+		if (HSM_PKCS11_check_mechanism(lib, 
+				RSA_MECH_LIST[idx].mechanism) == PKI_OK) {
+
+			// Set the pointer to the supported mechanism
+			RSA_MECH_PTR = &RSA_MECH_LIST[idx];
+
+			// Debugging Information
+			PKI_DEBUG("Found RSA KEY GEN MECHANISM 0x%8.8X",
+				RSA_MECH_LIST[idx].mechanism);
+
+			// Breaks out of the loop
+			break;
+
+		} else {
+
+			// Let's provide debug information for not-supported mechs
+			PKI_DEBUG("RSA KEY GEN MECHANISM 0x%8.8X not supported",
+				RSA_MECH_LIST[idx].mechanism);
+		}
+	}
+
+	// If no key gen algors are supported, abort
+	if (RSA_MECH_PTR == NULL) {
+		PKI_ERROR(PKI_ERR_HSM_KEYPAIR_GENERATE, "No KeyGen Mechanisms supported!");
+		return NULL;
+	}
+
+PKI_DEBUG("BITS FOR KEY GENERATION %lu (def: %lu)", bits, PKI_RSA_KEY_DEFAULT_SIZE);
+
+	if (kp && kp->rsa.exponent > 3) {
 		// TO be Implemented
 	} else {
 		if( BN_hex2bn(&bn, "10001") == 0 ) {
@@ -167,6 +224,7 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
         	}
 	}
 
+	PKI_DEBUG("Setting the Bits to %lu", bits);
 
 	/* Setting Attributes for the public Key Template */
 	n = 0;
@@ -217,7 +275,7 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 
 	PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Generating a new Key ... ");
 	rv = lib->callbacks->C_GenerateKeyPair (
-			lib->session, &RSA_MECH, 
+			lib->session, RSA_MECH_PTR, 
 			pubTemp, n,
 			privTemp, i,
 			handler_pubkey, 
@@ -251,7 +309,11 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 		goto err;
 	};
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	RSA_set0_key(ret, NULL, BN_bin2bn( data, (int) size, NULL), NULL);
+#else
 	ret->e = BN_bin2bn( data, (int) size, NULL );
+#endif
 	PKI_Free ( data );
 	data = NULL;
 
@@ -260,14 +322,25 @@ PKI_RSA_KEY * _pki_pkcs11_rsakey_new( PKI_KEYPARAMS *kp, URL *url,
 		goto err;
 	};
 
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	RSA_set0_key(ret, BN_bin2bn(data, (int) size, NULL), NULL, NULL);
+#else
 	ret->n = BN_bin2bn( data, (int) size, NULL );
+#endif
 	PKI_Free ( data );
 	data = NULL;
 
 	/* Let's get the Attributes from the Keypair and store into the
 	   key's pointer */
 	RSA_set_method( ret, HSM_PKCS11_get_rsa_method());
+
+#ifdef RSA_FLAG_SIGN_VER
+# if OPENSSL_VERSION_NUMBER >= 0x1010000fL 
+	RSA_set_flags( ret, RSA_FLAG_SIGN_VER);
+# else
 	ret->flags |= RSA_FLAG_SIGN_VER;
+# endif
+#endif
 
 	/* Push the priv and pub key handlers to the rsa->ex_data */
 	RSA_set_ex_data( ret, KEYPAIR_DRIVER_HANDLER_IDX, driver );
@@ -315,18 +388,280 @@ PKI_DSA_KEY * _pki_pkcs11_dsakey_new( PKI_KEYPARAMS *kp, URL *url,
 
 	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
 
+
 	return( k );
 }
 
 #ifdef ENABLE_ECDSA
-PKI_EC_KEY * _pki_pkcs11_ecdsakey_new( PKI_KEYPARAMS *kp,
-			URL *url, PKCS11_HANDLER *lib, void *driver ) {
+PKI_EC_KEY * _pki_pkcs11_ecdsakey_new(PKI_KEYPARAMS  * kp,
+                                      URL            * url,
+                                      PKCS11_HANDLER * lib,
+                                      void           * driver) {
 
-	PKI_EC_KEY *k = NULL;
+	PKI_EC_KEY * ret = NULL;
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL );
+	CK_OBJECT_HANDLE *handler_pubkey = NULL;
+	CK_OBJECT_HANDLE *handler_privkey = NULL;
 
-	return ( k );
+	CK_ATTRIBUTE privTemp[32];
+	CK_ATTRIBUTE pubTemp[32];
+
+	CK_RV rv;
+
+	CK_ULONG i = 0;
+	CK_ULONG n = 0;
+
+	CK_ULONG bits = 0;
+
+	size_t label_len = 0;
+
+	unsigned char *data = NULL;
+	CK_BYTE *esp = NULL;
+	CK_ULONG size = 0;
+
+	BIGNUM *bn = NULL;
+	BIGNUM *id_num = NULL;
+
+	CK_MECHANISM * EC_MECH_PTR = NULL;
+	int   idx    = 0;
+
+	char *id     = NULL;
+	int   id_len = 8; 
+
+	if ( !url || !url->addr ) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return ( NULL );
+	}
+
+	label_len = strlen( url->addr );
+
+	/* Check the min size for the key */
+	if ( kp ) {
+		if( kp->bits < PKI_EC_KEY_MIN_SIZE ) {
+			PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE_SHORT, NULL);
+		};
+	} else {
+		bits = PKI_EC_KEY_DEFAULT_SIZE;
+	}
+
+	// Look for a supported key generation mechanism
+	for (idx = 0; idx < EC_MECH_LIST_SIZE; idx++) {
+
+		// Checks if the mechanism is supported
+		if (HSM_PKCS11_check_mechanism(lib, 
+				EC_MECH_LIST[idx].mechanism) == PKI_OK) {
+
+			// Set the pointer to the supported mechanism
+			EC_MECH_PTR = &EC_MECH_LIST[idx];
+
+			// Debugging Information
+			PKI_DEBUG("Found EC KEY GEN MECHANISM 0x%8.8X",
+				EC_MECH_LIST[idx].mechanism);
+
+			// Breaks out of the loop
+			break;
+
+		} else {
+
+			// Let's provide debug information for not-supported mechs
+			PKI_DEBUG("EC KEY GEN MECHANISM 0x%8.8X not supported",
+				RSA_MECH_LIST[idx].mechanism);
+		}
+	}
+
+	// If no key gen algors are supported, abort
+	if (EC_MECH_PTR == NULL) {
+		PKI_ERROR(PKI_ERR_HSM_KEYPAIR_GENERATE, "No KeyGen Mechanisms supported!");
+		return NULL;
+	}
+
+PKI_DEBUG("BITS FOR KEY GENERATION %lu (def: %lu)", bits, PKI_EC_KEY_DEFAULT_SIZE);
+
+	if ( kp && kp->rsa.exponent > 3) {
+		// TO be Implemented
+	} else {
+		if( BN_hex2bn(&bn, "10001") == 0 ) {
+			PKI_log_debug("ERROR, can not convert 10001 to BIGNUM");
+			return ( NULL );
+		}
+	}
+
+	if( url->path != NULL ) {
+		if((BN_hex2bn(&id_num, url->path )) == 0 ) {
+			PKI_log_debug("ERROR, can not convert %s to BIGNUM",
+						url->path );
+			return ( NULL );
+		}
+		if((id_len = BN_num_bytes(id_num)) < 0 ) {
+			if ( bn ) BN_free ( bn );
+			if ( id_num ) BN_free ( id_num );
+			return ( NULL );
+		}
+		id = PKI_Malloc ( (size_t ) id_len );
+		BN_bn2bin( id_num, (unsigned char *) id );
+	} else {
+		id_len = 10;
+		if((id = PKI_Malloc ( (size_t) id_len )) == NULL ) {
+			if ( bn ) BN_free ( bn );
+			return ( NULL );
+		}
+
+		if( RAND_bytes( (unsigned char *) id, id_len) == 0 ) {
+			PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not generate RAND bytes");
+			if( bn ) BN_free ( bn );
+        	        return ( NULL );
+        	}
+	}
+
+	PKI_DEBUG("Setting the Bits to %lu", bits);
+
+	/* Setting Attributes for the public Key Template */
+	n = 0;
+	//HSM_PKCS11_set_attr_int( CKA_CLASS, CKO_PUBLIC_KEY, &pubTemp[n++]);
+	//HSM_PKCS11_set_attr_int( CKA_KEY_TYPE, CKK_RSA, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_int( CKA_MODULUS_BITS, bits, &pubTemp[n++]);
+
+	HSM_PKCS11_set_attr_bool( CKA_TOKEN, CK_TRUE, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_bool( CKA_ENCRYPT, CK_TRUE, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_bool( CKA_VERIFY, CK_TRUE, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_bool( CKA_WRAP, CK_TRUE, &pubTemp[n++]);
+
+	HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, bn, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_sn(CKA_LABEL, url->addr, label_len, &pubTemp[n++]);
+	HSM_PKCS11_set_attr_sn(CKA_ID, id, (size_t) id_len, &pubTemp[n++]);
+
+	/* Setting Attributes for the private Key Template */
+	i = 0;
+	//HSM_PKCS11_set_attr_int( CKA_CLASS, CKO_PRIVATE_KEY, &privTemp[i++]);
+	//HSM_PKCS11_set_attr_int( CKA_KEY_TYPE, CKK_RSA, &privTemp[i++]);
+	//HSM_PKCS11_set_attr_int( CKA_MODULUS_BITS, bits, &privTemp[i++]);
+
+	HSM_PKCS11_set_attr_bool( CKA_TOKEN, CK_TRUE, &privTemp[i++]);
+	HSM_PKCS11_set_attr_bool( CKA_PRIVATE, CK_TRUE, &privTemp[i++]);
+	HSM_PKCS11_set_attr_bool( CKA_SENSITIVE, CK_TRUE, &privTemp[i++]);
+	HSM_PKCS11_set_attr_bool( CKA_DECRYPT, CK_TRUE, &privTemp[i++]);
+	HSM_PKCS11_set_attr_bool( CKA_SIGN, CK_TRUE, &privTemp[i++]);
+	// HSM_PKCS11_set_attr_bool( CKA_NEVER_EXTRACTABLE, CK_TRUE, 
+	// 						&privTemp[i++]);
+	// HSM_PKCS11_set_attr_bool( CKA_EXTRACTABLE, CK_FALSE, &privTemp[i++]);
+	HSM_PKCS11_set_attr_bool( CKA_UNWRAP, CK_TRUE, &privTemp[i++]);
+
+	// HSM_PKCS11_set_attr_bn(CKA_PUBLIC_EXPONENT, bn, &privTemp[i++]);
+	HSM_PKCS11_set_attr_sn(CKA_LABEL, url->addr, label_len, &privTemp[i++]);
+	HSM_PKCS11_set_attr_sn(CKA_ID, id, (size_t) id_len, &privTemp[i++]);
+
+	/* Allocate the handlers for pub and priv keys */
+	handler_pubkey = (CK_OBJECT_HANDLE *) PKI_Malloc ( 
+						sizeof( CK_OBJECT_HANDLE ));
+	handler_privkey = (CK_OBJECT_HANDLE *) PKI_Malloc ( 
+						sizeof( CK_OBJECT_HANDLE ));
+
+	if( !handler_pubkey || !handler_privkey ) {
+		if ( bn ) BN_free ( bn );
+		if ( esp ) PKI_Free ( esp );
+		return ( NULL );
+	}
+
+	PKI_log_debug("Generating a new Key ... ");
+	rv = lib->callbacks->C_GenerateKeyPair (
+			lib->session, EC_MECH_PTR, 
+			pubTemp, n,
+			privTemp, i,
+			handler_pubkey, 
+			handler_privkey);
+
+	if( rv != CKR_OK ) {
+
+		if ( rv == CKR_MECHANISM_INVALID ) {
+			PKI_ERROR(PKI_ERR_HSM_SET_ALGOR, 
+				"EC Algorithm is not supported by the Token");
+		} else {
+			PKI_log_debug ("Failed with code 0x%8.8X", rv );
+		}
+
+		if ( bn ) BN_free ( bn );
+		if ( esp ) PKI_Free ( esp );
+
+		return ( NULL );
+	}
+
+	/* Clean up the Memory we are not using anymore */
+	if ( bn ) BN_free ( bn );
+	if ( esp ) PKI_Free ( esp );
+
+	/* Generate a new RSA container */
+	if((ret = EC_KEY_new()) == NULL ) goto err;
+	
+	if( HSM_PKCS11_get_attribute(handler_pubkey,
+                                 &lib->session,
+                                 CKA_PUBLIC_EXPONENT,
+                                 (void **) &data, 
+						         &size,
+						         lib) != PKI_OK ) {
+		goto err;
+	}
+
+	EC_KEY_set_private_key(ret, BN_bin2bn( data, (int) size, NULL));
+	PKI_Free(data);
+	data = NULL;
+
+	if( HSM_PKCS11_get_attribute(handler_pubkey,
+                                 &lib->session,
+                                 CKA_MODULUS,
+                                 (void **) &data,
+                                 &size,
+                                 lib) != PKI_OK ) {
+		goto err;
+	}
+
+	EC_KEY_set_public_key(ret, (const EC_POINT *) NULL);
+	PKI_Free ( data );
+	data = NULL;
+
+/*
+	ECDSA_set_method(ret, HSM_PKCS11_get_ecdsa_method());
+
+#ifdef RSA_FLAG_SIGN_VER
+# if OPENSSL_VERSION_NUMBER >= 0x1010000fL 
+	RSA_set_flags( ret, RSA_FLAG_SIGN_VER);
+# else
+	ret->flags |= RSA_FLAG_SIGN_VER;
+# endif
+#endif
+
+	// Push the priv and pub key handlers to the rsa->ex_data
+	EC_KEY_set_ex_data( ret, KEYPAIR_DRIVER_HANDLER_IDX, driver );
+	EC_KEY_set_ex_data( ret, KEYPAIR_PRIVKEY_HANDLER_IDX, handler_privkey );
+	EC_KEY_set_ex_data( ret, KEYPAIR_PUBKEY_HANDLER_IDX, handler_pubkey );
+
+	// Cleanup the memory for Templates
+	HSM_PKCS11_clean_template ( pubTemp, (int) n );
+	HSM_PKCS11_clean_template ( privTemp, (int) i );
+*/
+
+	// Let's return the RSA_KEY infrastructure
+	return (ret);
+
+err:
+	if (ret) EC_KEY_free(ret);
+
+	if ( handler_pubkey ) {
+		if((rv = lib->callbacks->C_DestroyObject( lib->session, 
+					*handler_pubkey )) != CKR_OK ) {
+			PKI_log_debug ("Failed to delete pubkey object");
+		}
+		PKI_Free(handler_pubkey);
+	}
+
+	if( handler_privkey ) {
+		if((rv = lib->callbacks->C_DestroyObject(lib->session, 
+					                             *handler_privkey)) != CKR_OK) {
+			PKI_log_debug ("Failed to delete privkey object");
+		}
+		PKI_Free(handler_privkey);
+	}
+
+	return NULL;
 }
 
 #else /* EVP_PKEY_EC */
@@ -387,7 +722,7 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 	}
 	*/
 
-	if ( kp && kp->scheme > -1 ) type = kp->scheme;
+	if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
 	switch (type) {
 		case PKI_SCHEME_RSA:
@@ -540,21 +875,113 @@ void HSM_PKCS11_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey ) {
 
 /* ----------------------------- RSA Callback Methods ----------------- */
 
-RSA_METHOD *HSM_PKCS11_get_rsa_method ( void ) {
+const RSA_METHOD * HSM_PKCS11_get_rsa_method ( void ) {
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 
 	static RSA_METHOD ret;
 
-	if (!ret.rsa_priv_enc) {
-		ret = *RSA_get_default_method();
-		// ret.rsa_priv_enc = HSM_PKCS11_rsa_encrypt;
-		ret.rsa_priv_enc = NULL;
-		// ret.rsa_priv_dec = HSM_PKCS11_rsa_decrypt;
-		ret.rsa_priv_dec = NULL;
-		ret.rsa_sign = HSM_PKCS11_rsa_sign;
-		// ret.rsa_verify = HSM_PKCS11_rsa_verify;
-		ret.rsa_verify = NULL;
-	}
+	ret = *RSA_get_default_method();
+
+	// Sets the name
+	ret.name = "LibPKI PKCS#11 RSA";
+
+	// Implemented Methods
+	ret.rsa_sign = HSM_PKCS11_rsa_sign;
+
+	// Not Implemented Methods
+	ret.rsa_priv_enc = NULL;
+	ret.rsa_priv_dec = NULL;
+
 	return &ret;
+
+#else
+
+	static RSA_METHOD * r_pnt = NULL;
+		// Static Pointer to the new PKCS11 RSA Method
+
+	// If the pointer is empty, let's get a new method
+	if (!r_pnt) {
+
+		// Duplicate the default method
+		if ((r_pnt = RSA_meth_dup(RSA_get_default_method())) != NULL) {
+
+			// Sets the name
+			RSA_meth_set1_name(r_pnt, "LibPKI PKCS#11 RSA");
+
+			// Sets the sign to use the PKCS#11 version
+			RSA_meth_set_sign(r_pnt, HSM_PKCS11_rsa_sign);
+
+			// Sets not implemented calls
+			RSA_meth_set_priv_enc(r_pnt, NULL);
+			RSA_meth_set_priv_dec(r_pnt, NULL);
+		}
+	}
+
+	// All Done
+	return r_pnt;
+
+#endif
+
+}
+
+const EC_KEY_METHOD * HSM_PKCS11_get_ecdsa_method ( void ) {
+
+	static EC_KEY_METHOD * r_pnt = NULL;
+
+	if (!r_pnt) {
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+		// ECDSA METHOD - it is required since OpenSSL is
+		// actually missing the duplication of the METHOD
+		/*
+		static ECDSA_METHOD ret = {
+		    "PKCS#11 ECDSA method",      // const char *name;
+		    HSM_PKCS11_ecdsa_sign,       // ECDSA_SIG *(*ecdsa_do_sign)(const unsigned char *dgst, int dgst_len, const BIGNUM *inv,
+		                                 //             const BIGNUM *rp, EC_KEY *eckey);
+		    HSM_PKCS11_ecdsa_sign_setup, // int (*ecdsa_sign_setup)(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **r);
+		    NULL,                        // int (*ecdsa_do_verify)(const unsigned char *dgst, int dgst_len, const ECDSA_SIG *sig,
+		                                 //      EC_KEY *eckey);
+		    0,                           // int flags;
+		    NULL                         // char *app_data;
+		};
+		*/
+
+	
+		if ((r_pnt = ECDSA_METHOD_new(ECDSA_get_default_method())) == NULL)
+			return NULL;
+
+		ECDSA_METHOD_set_name(r_pnt, "LibPKI PKCS#11 ECDSA");
+		ECDSA_METHOD_set_sign(r_pnt, HSM_PKCS11_ecdsa_sign);
+
+		// ECDSA_METHOD_set_sign_setup(r_pnt, HSM_PKCS11_ecdsa_sign_setup);
+		// ECDSA_METHOD_set_verify(&ret, NULL);
+
+#else
+		if ((r_pnt = EC_KEY_METHOD_new(EC_KEY_get_default_method())) == NULL)
+			return NULL;
+
+		// Sets the sign method
+		EC_KEY_METHOD_set_sign(r_pnt, 
+			                   HSM_PKCS11_ecdsa_sign, //int (*sign)(int type, const unsigned char *dgst,
+                                                      //            int dlen, unsigned char *sig,
+                                                      //            unsigned int *siglen,
+                                                      //            const BIGNUM *kinv, const BIGNUM *r,
+                                                      //            EC_KEY *eckey)
+			                   NULL,                  //int (*sign_setup)(EC_KEY *eckey, BN_CTX *ctx_in,
+                                                      //                  BIGNUM **kinvp, BIGNUM **rp)
+			                   NULL                   //ECDSA_SIG *(*sign_sig)(const unsigned char *dgst,
+                                                      //                       int dgst_len,
+                                                      //                       const BIGNUM *in_kinv,
+                                                      //                       const BIGNUM *in_r,
+                                                      //                       EC_KEY *eckey)
+			                   );
+#endif
+	}
+
+	return r_pnt;
+
 }
 
 int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
@@ -564,21 +991,21 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	CK_OBJECT_HANDLE *pHandle = NULL;
 	HSM *driver = NULL;
 
-	CK_MECHANISM RSA_MECH = {
-		CKM_RSA_PKCS, NULL_PTR, 0 };
-
-	ASN1_TYPE parameter;
-	X509_ALGOR algor;
-
-	X509_SIG sig;
+	CK_MECHANISM RSA_MECH = { CKM_RSA_PKCS, NULL_PTR, 0 };
 
 	unsigned char *p = NULL;
 	unsigned char *s = NULL;
 	unsigned char *tmps = NULL;
 
-	int i, j, rc;
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	X509_SIG sig;
+	X509_SIG * sig_pnt = &sig;
+#else
+	X509_SIG * sig_pnt = X509_SIG_new();
+#endif
 
-	ASN1_OCTET_STRING digest;
+	
+	int i, j, rc;
 
 	int keysize = 0;
 	CK_ULONG ck_sigsize = 0;
@@ -587,61 +1014,40 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 
 	unsigned char *buf = NULL;
 
-	PKI_log_debug("RSA::SIGN::PKCS#11::START");
-
 	/* Default checks for mis-passed pointers */
-	if (!m | !sigret | !siglen | !rsa ) 
-			return (0 /* 0 = PKI_ERR in OpenSSL */ );
+	if (!m || !sigret || !siglen || !rsa || !sig_pnt) goto err;
 
 	/* Retrieves the reference to the hsm */
 	if((driver = (HSM *) RSA_get_ex_data (rsa, KEYPAIR_DRIVER_HANDLER_IDX))
 								== NULL ) {
-		PKI_log_err ("HSM_PKCS11_rsa_sign()::Can't get Driver Handle");
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can't get PKCS#11 Driver Handle");
+		goto err;
 	}
 
 	/* Retrieves the privkey object handler */
 	if((pHandle = (CK_OBJECT_HANDLE *) RSA_get_ex_data (rsa, 
 				KEYPAIR_PRIVKEY_HANDLER_IDX)) == NULL ) {
-		PKI_log_err ("HSM_PKCS11_rsa_sign()::Can't get pKey Handle");
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can't get PrivateKey Handle");
+		goto err;
 	}
 
 	if ((lib = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
-                PKI_log_err("HSM_PKCS11_rsa_sign()::Can not get lib handler");
-                return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
-        }
-
-	/*
-	rv = lib->callbacks->C_CloseSession( lib->session );
-	*/
-
-	/*
-	if(( rv = lib->callbacks->C_GetSessionInfo(lib->session, 
-					&session_info)) != CKR_OK ) {
-		PKI_log_debug("HSM_PKCS11_rsa_sign()::SessionInfo error "
-							"(0x%8.8X)", rv );
-
-		PKI_log_debug("HSM_PKCS11_rsa_sign()::Opening new session");
-		if((rv = lib->callbacks->C_OpenSession (lib->slot_id, 
-				CKF_SERIAL_SESSION, NULL, NULL, 
-						&(lib->session))) != CKR_OK ) {
-			PKI_log_debug("HSM_PKCS11_rsa_sign()::Failed opening a "
-				"new sign session (R) with the token" );
-			return ( 0 );
-		}
-	}
-	*/
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get PKCS#11 Library handler");
+        goto err;
+    }
 
 	if(( HSM_PKCS11_session_new( lib->slot_id, &lib->session,
 				CKF_SERIAL_SESSION, lib )) == PKI_ERR ) {
-
-		PKI_log_debug("HSM_PKCS11_KEYPAIR_new()::Failed in opening a "
-				"new session (R/W) with the token" );
-		return ( 0 );
-	};
+		PKI_log_debug("Failed to open a new session (R/W) with the token");
+		goto err;
+	}
 
 	/* Now we need to check the real encoding */
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	ASN1_OCTET_STRING digest;
+	ASN1_TYPE parameter;
+	X509_ALGOR algor;
+
 	sig.algor = &algor;
 	if((sig.algor->algorithm = OBJ_nid2obj(type)) == NULL ) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::Algor not recognized");
@@ -661,58 +1067,48 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	sig.digest->data = (unsigned char *) m;
 	sig.digest->length = (int) m_len;
 
-	i = i2d_X509_SIG( &sig, NULL);
+	i = i2d_X509_SIG(sig_pnt, NULL);
+
+#else
+	X509_ALGOR * alg = NULL;
+	ASN1_OCTET_STRING * data = NULL;
+
+	// Allocates a new signature
+	if ((sig_pnt = X509_SIG_new()) == NULL) goto err;
+
+	// Gets the modifiable algorithm and digest pointers
+	X509_SIG_getm(sig_pnt, &alg, &data);
+
+	// Sets the algorithm
+	if (!X509_ALGOR_set0(alg, OBJ_nid2obj(type), V_ASN1_NULL, NULL)) goto err;
+
+	// Sets the digest data
+	if (!ASN1_OCTET_STRING_set(data, (unsigned char *)m, (int) m_len)) goto err;
+
+	// Gets the size of the DER encoded signature
+	i = i2d_X509_SIG(sig_pnt, NULL);
+#endif
 
 	if((keysize = RSA_size ( rsa )) == 0 ) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::KEY size is 0");
-		return ( 0 );
+		goto err;
 	}
 
 	j=RSA_size(rsa);
 	if( i > ( j - RSA_PKCS1_PADDING_SIZE )) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::Digest too big");
-		return ( 0 );
+		goto err;
 	}
 
 	if((tmps = ( unsigned char *) PKI_Malloc ((unsigned int) j + 1 ))
 								== NULL ) {
 		PKI_log_debug("HSM_PKCS11_rsa_sign()::Memory alloc error!");
 		return (0);
-	};
+	}
 	
 	p = tmps;
-	i2d_X509_SIG( &sig, &p );
+	i2d_X509_SIG(sig_pnt, &p);
 	s = tmps;
-
-	/*
-	if(( size = i2d_X509_SIG(&digest_info, NULL)) == 0 ) {
-		PKI_log_debug("HSM_PKCS11_rsa_sign()::size is 0");
-		return ( 0 );
-	}
-
-	PKI_log_debug("HSM_PKCS11_rsa_sign()::KEY size is %d", keysize);
-
-	sigsize = keysize;
-	*/
-
-	/* We should check that the size + padding < size of the key */
-	/*
-	if( size + RSA_PKCS1_PADDING_SIZE > keysize ) {
-		PKI_log_debug("HSM_PKCS11_rsa_sign()::size + pad > keysize");
-		return ( 0 );
-	}
-
-	if((encoded = (unsigned char *) PKI_Malloc (sigsize)) == NULL ) {
-		PKI_log_debug("HSM_PKCS11_rsa_sign()::Memory alloc err ");
-		return ( 0 );
-	} else {
-		unsigned char *tmp = encoded;
-
-		i2d_X509_SIG( &digest_info, &tmp );
-		m = encoded;
-		m_len = size;
-	}
-	*/
 
 	rc = pthread_mutex_lock( &lib->pkcs11_mutex );
 	PKI_log_debug( "pthread_mutex_lock()::RC=%d", rc );
@@ -731,39 +1127,8 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 		pthread_cond_signal( &lib->pkcs11_cond );
 		pthread_mutex_unlock( &lib->pkcs11_mutex );
 
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		goto err;
 	}
-
-/*
-		while (rv == CKR_OPERATION_ACTIVE ) {
-			pthread_mutex_lock( &lib->pkcs11_mutex );
-			mutex_acquired = 1;
-			if((rv = lib->callbacks->C_SignInit(lib->session, 
-					&RSA_MECH, *pHandle)) 
-						!= CKR_OPERATION_ACTIVE ) {
-
-				PKI_log_debug("HSM_PKCS11_rsa_sign()::SignInit "
-					"(2) failed with code 0x%8.8X", rv );
-				break;
-			}
-
-			pthread_cond_signal( &lib->pkcs11_cond );
-			pthread_mutex_unlock( &lib->pkcs11_mutex );
-			mutex_acquired = 0;
-
-		} 
-
-		if( rv != CKR_OK ) {
-			PKI_log_debug("HSM_PKCS11_rsa_sign()::SignInit failed "
-					"with code 0x%8.8X", rv );
-
-			pthread_cond_signal( &lib->pkcs11_cond );
-			pthread_mutex_unlock( &lib->pkcs11_mutex );
-			mutex_acquired = 0;
-
-			return ( 0 );
-		}
-*/
 
 	ck_sigsize = *siglen;
 	PKI_log_debug("HSM_PKCS11_rsa_sign()::i = %d, siglen = %d, "
@@ -793,11 +1158,8 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 		pthread_mutex_unlock( &lib->pkcs11_mutex );
 
 		PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-		if( buf ) PKI_Free ( buf );
 
-		PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-
-		return ( 0 /* 0 = PKI_ERR in OpenSSL */ );
+		goto err;
 	}
 
 	pthread_cond_signal( &lib->pkcs11_cond );
@@ -808,14 +1170,264 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
 
 	PKI_log_debug("HSM_PKCS11_rsa_sign():: BUF Written = %d", ck_sigsize );
-	memcpy( sigret, buf, *siglen );
+	memcpy(sigret, buf, *siglen);
 
-	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-	if( tmps ) PKI_Free ( tmps );
-	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
-	if( buf ) PKI_Free ( buf );
-	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+	// Free allocated memory
+	if (tmps) PKI_Free ( tmps );
+	if (buf) PKI_Free ( buf );
 
-	return ( 1 /* 1 = PKI_OK in OpenSSL */ );
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	if (sig_pnt) X509_SIG_free(sig_pnt);
+#endif
+
+	// Returns Success (1 is success in OpenSSL)
+	return 1;
+
+err:
+	// Frees associated memory
+	if (tmps) PKI_Free(tmps);
+	if (buf) PKI_Free(buf);
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	if (sig_pnt) X509_SIG_free(sig_pnt);
+#endif
+
+
+	// Returns the error (0 is error in OpenSSL)
+	return 0;
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+ECDSA_SIG *HSM_PKCS11_ecdsa_sign(const unsigned char *dgst, int dgst_len,
+                                 const BIGNUM *inv, const BIGNUM *rp, EC_KEY *eckey) {
+
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+	return 0;
+}
+
+#else
+
+int HSM_PKCS11_ecdsa_sign ( int type, const unsigned char *dgst, int dlen,
+	unsigned char *sig, unsigned int *siglen, const BIGNUM *kinv, const BIGNUM *r,
+    EC_KEY *eckey ) {
+
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
+	return 0;
+
+/*
+int HSM_PKCS11_ecdsa_sign ( int type, const unsigned char *m, unsigned int m_len,
+	unsigned char *sigret, unsigned int *siglen, const RSA *rsa ) {
+
+	PKCS11_HANDLER *lib = NULL;
+	CK_OBJECT_HANDLE *pHandle = NULL;
+	HSM *driver = NULL;
+
+	CK_MECHANISM EC_MECH = { CKM_RSA_PKCS, NULL_PTR, 0 };
+
+	unsigned char *p = NULL;
+	unsigned char *s = NULL;
+	unsigned char *tmps = NULL;
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	X509_SIG sig;
+	X509_SIG * sig_pnt = &sig;
+#else
+	X509_SIG * sig_pnt = X509_SIG_new();
+#endif
+
+	
+	int i, j, rc;
+
+	int keysize = 0;
+	CK_ULONG ck_sigsize = 0;
+
+	CK_RV rv = CKR_OK;
+
+	unsigned char *buf = NULL;
+
+	// Default checks for mis-passed pointers
+	if (!m || !sigret || !siglen || !rsa || !sig_pnt) goto err;
+
+	// Retrieves the reference to the hsm
+	if((driver = (HSM *) RSA_get_ex_data (rsa, KEYPAIR_DRIVER_HANDLER_IDX))
+								== NULL ) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can't get PKCS#11 Driver Handle");
+		goto err;
+	}
+
+	// Retrieves the privkey object handler
+	if((pHandle = (CK_OBJECT_HANDLE *) RSA_get_ex_data (rsa, 
+				KEYPAIR_PRIVKEY_HANDLER_IDX)) == NULL ) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can't get PrivateKey Handle");
+		goto err;
+	}
+
+	if ((lib = _hsm_get_pkcs11_handler ( driver )) == NULL ) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get PKCS#11 Library handler");
+        goto err;
+    }
+
+	if(( HSM_PKCS11_session_new( lib->slot_id, &lib->session,
+				CKF_SERIAL_SESSION, lib )) == PKI_ERR ) {
+		PKI_log_debug("Failed to open a new session (R/W) with the token");
+		goto err;
+	}
+
+	// Now we need to check the real encoding
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	ASN1_OCTET_STRING digest;
+	ASN1_TYPE parameter;
+	X509_ALGOR algor;
+
+	sig.algor = &algor;
+	if((sig.algor->algorithm = OBJ_nid2obj(type)) == NULL ) {
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::Algor not recognized");
+		return ( 0 );
+	}
+
+	if( algor.algorithm->length == 0 ) {
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::Algor length is 0");
+		return ( 0 );
+	}
+
+	parameter.type = V_ASN1_NULL;
+	parameter.value.ptr = NULL;
+	sig.algor->parameter = &parameter;
+
+	sig.digest = &digest;
+	sig.digest->data = (unsigned char *) m;
+	sig.digest->length = (int) m_len;
+
+	i = i2d_X509_SIG(sig_pnt, NULL);
+
+#else
+	X509_ALGOR * alg = NULL;
+	ASN1_OCTET_STRING * data = NULL;
+
+	// Allocates a new signature
+	if ((sig_pnt = X509_SIG_new()) == NULL) goto err;
+
+	// Gets the modifiable algorithm and digest pointers
+	X509_SIG_getm(sig_pnt, &alg, &data);
+
+	// Sets the algorithm
+	if (!X509_ALGOR_set0(alg, OBJ_nid2obj(type), V_ASN1_NULL, NULL)) goto err;
+
+	// Sets the digest data
+	if (!ASN1_OCTET_STRING_set(data, (unsigned char *)m, (int) m_len)) goto err;
+
+	// Gets the size of the DER encoded signature
+	i = i2d_X509_SIG(sig_pnt, NULL);
+#endif
+
+	if((keysize = RSA_size ( rsa )) == 0 ) {
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::KEY size is 0");
+		goto err;
+	}
+
+	j=RSA_size(rsa);
+	if( i > ( j - RSA_PKCS1_PADDING_SIZE )) {
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::Digest too big");
+		goto err;
+	}
+
+	if((tmps = ( unsigned char *) PKI_Malloc ((unsigned int) j + 1 ))
+								== NULL ) {
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::Memory alloc error!");
+		return (0);
+	}
+	
+	p = tmps;
+	i2d_X509_SIG(sig_pnt, &p);
+	s = tmps;
+
+	rc = pthread_mutex_lock( &lib->pkcs11_mutex );
+	PKI_log_debug( "pthread_mutex_lock()::RC=%d", rc );
+
+	while(( rv = lib->callbacks->C_SignInit(lib->session, 
+			&RSA_MECH, *pHandle)) == CKR_OPERATION_ACTIVE ) {
+		int rc = 0;
+
+		rc = pthread_cond_wait( &lib->pkcs11_cond, &lib->pkcs11_mutex );
+		PKI_log_debug( "pthread_cond_wait()::RC=%d", rc );
+	}
+
+	if( rv != CKR_OK ) {
+		PKI_log_debug("HSM_PKCS11_rsa_sign()::SignInit "
+					"(2) failed with code 0x%8.8X", rv );
+		pthread_cond_signal( &lib->pkcs11_cond );
+		pthread_mutex_unlock( &lib->pkcs11_mutex );
+
+		goto err;
+	}
+
+	ck_sigsize = *siglen;
+	PKI_log_debug("HSM_PKCS11_rsa_sign()::i = %d, siglen = %d, "
+		"sigret = %d (%p)", i, ck_sigsize, sizeof(sigret), sigret );
+
+	// Let's exagerate for now... 
+	buf = PKI_Malloc (RSA_SIGNATURE_MAX_SIZE);
+	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+
+	ck_sigsize = RSA_SIGNATURE_MAX_SIZE;
+
+	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+	// if((rv = lib->callbacks->C_Sign( lib->session, (CK_BYTE *) m, 
+	// 			m_len, sigret, &ck_sigsize)) != CKR_OK ) {
+	if((rv = lib->callbacks->C_Sign( lib->session, (CK_BYTE *) s, 
+				(CK_ULONG) i, buf, &ck_sigsize)) != CKR_OK ) {
+		PKI_log_err("HSM_PKCS11_rsa_sign()::Sign failed with 0x%8.8X",
+									rv);
+		if( rv == CKR_BUFFER_TOO_SMALL ) {
+			// The sign session has to be terminated
+			// To Be Done (TBD)
+			PKI_log_err("HSM_PKCS11_rsa_sign()::Buffer too ",
+				"small (%s:%d)", __FILE__, __LINE__ );
+		}
+
+		pthread_cond_signal( &lib->pkcs11_cond );
+		pthread_mutex_unlock( &lib->pkcs11_mutex );
+
+		PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+
+		goto err;
+	}
+
+	pthread_cond_signal( &lib->pkcs11_cond );
+	pthread_mutex_unlock( &lib->pkcs11_mutex );
+
+	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+	*siglen = (unsigned int) ck_sigsize;
+	PKI_log_debug("HSM_PKCS11_rsa_sign():: DEBUG %d", __LINE__ );
+
+	PKI_log_debug("HSM_PKCS11_rsa_sign():: BUF Written = %d", ck_sigsize );
+	memcpy(sigret, buf, *siglen);
+
+	// Free allocated memory
+	if (tmps) PKI_Free ( tmps );
+	if (buf) PKI_Free ( buf );
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	if (sig_pnt) X509_SIG_free(sig_pnt);
+#endif
+
+	// Returns Success (1 is success in OpenSSL)
+	return 1;
+
+err:
+	// Frees associated memory
+	if (tmps) PKI_Free(tmps);
+	if (buf) PKI_Free(buf);
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	if (sig_pnt) X509_SIG_free(sig_pnt);
+#endif
+
+	// Returns the error (0 is error in OpenSSL)
+	return 0;
+*/
+
+}
+
+#endif

@@ -20,7 +20,8 @@
 	static PKCS11_CTX   *ctx   = NULL;
 #endif /* HAVE_P11 */
 
-char *pkcs11_parse_url_getval ( URL * url, char *keyword ) {
+char *pkcs11_parse_url_getval(const URL  * url,
+		                      const char * keyword ) {
 
 	char * ret = NULL;
 	char * tmp_s = NULL;
@@ -65,7 +66,8 @@ end:
 	return( ret );
 }
 
-PKI_MEM_STACK *URL_get_data_pkcs11 ( char *url_s, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_pkcs11(const char * url_s,
+		                           ssize_t      size ) {
 	URL *url = NULL;
 
 	if( !url_s ) return (NULL);
@@ -76,13 +78,14 @@ PKI_MEM_STACK *URL_get_data_pkcs11 ( char *url_s, ssize_t size ) {
 		return (NULL);
 	}
 
-	return ( URL_get_data_pkcs11_url( url, size ));
+	return URL_get_data_pkcs11_url(url, size);
 }
 
-PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_pkcs11_url(const URL * url,
+		                               ssize_t     size ) {
 
 #ifdef HAVE_P11
-	// PKCS11_CTX   *ctx   = NULL;
+
 	PKCS11_SLOT  *slots = NULL;
 	PKCS11_TOKEN *tk    = NULL;
 
@@ -99,17 +102,6 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 	PKI_MEM_STACK *sk = NULL;
 
 	if( !url ) return (NULL);
-
-	/*
-	if((libfile = pkcs11_parse_url_libpath ( url )) == NULL ) {
-		return( NULL );
-	}
-	*/
-
-	/*
-	slot = pkcs11_parse_url_slot ( url );
-	id = pkcs11_parse_url_id ( url );
-	*/
 
 	if( ctx == NULL ) {
 		if((ctx = PKCS11_CTX_new ()) == NULL ) {
@@ -138,13 +130,13 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 	search_id     = pkcs11_parse_url_getval( url, "id" );
 	
 	if( search_slot )
-		PKI_log_debug("DEBUG::PKCS11::SEARCH::SLOT =>  %s\n", search_slot);
+		PKI_log_debug("PKCS#11::SEARCH::SLOT =>  %s\n", search_slot);
 	if( search_slotid )
-		PKI_log_debug("DEBUG::PKCS11::SEARCH::SLOTID =>  %s\n", search_slotid);
+		PKI_log_debug("PKCS#11::SEARCH::SLOTID =>  %s\n", search_slotid);
 	if( search_label )
-		PKI_log_debug("DEBUG::PKCS11::SEARCH::LABEL => %s\n", search_label);
+		PKI_log_debug("PKCS#11::SEARCH::LABEL => %s\n", search_label);
 	if( search_id )
-		PKI_log_debug("DEBUG::PKCS11::SEARCH::ID =>    %s\n", search_id);
+		PKI_log_debug("PKCS#11::SEARCH::ID =>    %s\n", search_id);
 
 	for(i = 0; i < num; i++ ) {
 
@@ -221,8 +213,8 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 					}
 
 					if( stop == 1 ) { 
-					printf("DEBUG::PKCS11::ID does not"
-						"match, SKIPPING!!!!\n");
+						PKI_log_debug("PKCS#11::ID does not"
+										"match, SKIPPING!!!!\n");
 						continue;
 					}
 				}
@@ -246,13 +238,13 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 		} else if (strncmp_nocase( url->attrs, "key", 3) == 0 ) {
 			char *pin = NULL;
 
-			PKI_log_debug("PKCS11::KEY DATATYPE SELECTED!\n");
+			PKI_log_debug("PKCS#11::KEY DATATYPE SELECTED!\n");
 
 			pin = pkcs11_parse_url_getval( url, "pin" );
 
 			if ( (tk->loginRequired == 1) && (pin != NULL ) ) {
 				p_ret = PKCS11_login ( p, 0, pin );
-				PKI_log_debug("PKCS11::LOGIN Result %d\n",
+				PKI_log_debug("PKCS#11::LOGIN Result %d\n",
 					p_ret );
         		}
 
@@ -265,9 +257,8 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 			for( n = 0; n < n_objs; n++ ) {
 				key = &keyList[n];
 
-				printf("DEBUG::PKCS11::KEY label=%s\n",
-					key->label);
-				printf("DEBUG::PKCS11::KEY id=");
+				PKI_log_debug("PKCS#11::KEY label=%s\n", key->label);
+				PKI_log_debug("PKCS#11::KEY id=");
 				for( t = 0; t < key->id_len; t ++ ) {
 					printf("%c", key->id[t] );
 				} printf("\n");
@@ -275,7 +266,8 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 				if( (search_label) &&
 					(strncmp_nocase( search_label, x->label,
 						strlen( search_label)) != 0 )){
-					printf("DEBUG::PKCS11::LABEL does not"
+
+					PKI_log_debug("PKCS11::LABEL does not"
 						"match, SKIPPING!!!!\n");
 					continue;
 				}
@@ -291,8 +283,8 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 					}
 
 					if( stop == 1 ) { 
-					printf("DEBUG::PKCS11::ID does not"
-						"match, SKIPPING!!!!\n");
+						PKI_log_debug("PKCS#11::ID does not"
+										"match, SKIPPING!!!!\n");
 						continue;
 					}
 				}
@@ -316,19 +308,12 @@ PKI_MEM_STACK *URL_get_data_pkcs11_url ( URL *url, ssize_t size ) {
 			if( mem ) BIO_free ( mem );
 
 		} else {
-			printf("DEBUG::PKCS11::OTHER DATATYPE SELECTED!\n");
+			PKI_log_debug("Selected Datatype Not Supported (%s)", url->attrs);
 		}
 	}
 
 err:
 	if( slots ) PKCS11_release_all_slots( ctx, slots, num );
-
-	/*
-	if( ctx ) { 
-		PKCS11_CTX_unload(ctx);
-		PKCS11_CTX_free(ctx);
-	}
-	*/
 
 	if( libfile ) PKI_Free (libfile);
 
@@ -340,334 +325,10 @@ err:
 	return ( sk );
 
 #else
+
+	PKI_log_debug("PKCS#11 Support not available in this build");
 	return ( NULL );
+
 #endif
 }
 
-
-/*
-int main () {
-
-	PKCS11_CTX *ctx = NULL;
-	char *libfile = NULL;
-	int ret;
-	int num = 0;
-	int i;
-	PKCS11_SLOT *slots = NULL;
-	PKCS11_SLOT *p = NULL;
-	PKCS11_TOKEN *token = NULL;
-	char * so_pin = "1234567890";
-	char * pin = NULL;
-
-	ctx = PKCS11_CTX_new();
-
-	libfile = prompt_pin("Enter Library Path (full): ");
-	printf("Loading %s library ... ", libfile);
-	ret = PKCS11_CTX_load(ctx, libfile);
-	free(libfile);
-
-	if( ret == 0 ) {
-		printf("LOADED!!!\n");
-	} else {
-		printf("ERROR: %d\n", ret);
-	}
-
-	ret = PKCS11_enumerate_slots( ctx, &slots, &num );
-	if( ret == -1 ) {
-		printf("ERROR: can not enumerate slots!\n");
-	} else {
-		printf("N. of Found Slots: %d\n", num);
-	}
-
-	for(i=0; i < num; i++ ) {
-		p = &slots[i];
-		token = p->token;
-
-		print_slot_info( p );
-	}
-		
-	if( num > 0 ) {
-		PKCS11_release_all_slots( ctx, slots, num );
-	}
-	PKCS11_CTX_free(ctx);
-
-	return 0;
-}
-
-int print_token_certs ( PKCS11_SLOT *slot ) {
-
-	PKCS11_CERT *certs = NULL;
-	PKCS11_CERT *x = NULL;
-	PKCS11_KEY  *key = NULL;
-	PKCS11_TOKEN *tk = NULL;
-
-	int ret = 0;
-	int i = 0;
-	int n = 0;
-	int r = 0;
-	int login = 0;
-	int loginReq = 0;
-
-	unsigned int num;
-
-	tk = slot->token;
-	if( !tk ) return (-1);
-
-	ret = PKCS11_enumerate_certs ( tk, &certs, &num );
-	if( ret == -1 ) {
-		printf("     - ERROR: Can not enumerate certs!\n");
-		return(-1);
-	}
-
-	loginReq = tk->loginRequired;
-
-	for( i=0; i < num; i++ ) {
-		BIO *bio = NULL;
-		RSA *rsa = NULL;
-		BIGNUM *bn = NULL;
-		char name[1024];
-
-		x = &certs[i];
-		printf("    - Certificate [%d]:\n", i);
-		printf("       - Label: %s\n", x->label );
-		printf("       - Id: ");
-
-		for(n=0;n<x->id_len;n++) {
-			printf("%c", x->id[n] );
-		} printf("\n");
- 
-		bio=BIO_new(BIO_s_file());
-		BIO_set_fp(bio,stdout,BIO_NOCLOSE);
-		X509_NAME_oneline(X509_get_subject_name(x->x509),
-							name,sizeof name);
-		BIO_printf(bio,"       - Subject: %s\n", name);
-		X509_NAME_oneline(X509_get_issuer_name(x->x509),
-							name,sizeof name);
-		BIO_printf(bio, "       - Issuer: %s\n", name);
-		BIO_free(bio);
-
-		if ( tk->loginRequired == 1 ) {
-			char * pin = NULL;
-			printf("\n   Token Login Required:\n");
-			if((pin = prompt_pin("\tEnter PIN: ")) != NULL){
-				ret = PKCS11_login ( slot, 0, pin );
-				free(pin);
-				login = 1;
-			} else {
-				ret = -1;
-			}
-		}
-
-		if( ret == -1 ) {
-			printf("\tERROR: Showing only public Info\n");
-		}
-
-		key = PKCS11_find_key( x );
-		if( key ) {
-			EVP_PKEY *evp_key = NULL;
-
-			printf("       - Private Key: found!\n");
-			printf("          - Label: %s\n", key->label);
-			printf("          - Id: ");
-			for( n=0;n<key->id_len;n++){
-				printf("%c", key->id[n]);
-			} printf( "\n");
-			printf("          - Present: %u\n", key->isPrivate);
-			printf("          - Need Login: %u\n", key->needLogin);
-
-			evp_key = PKCS11_get_private_key( key );
-
-			if( evp_key ) {
-				printf("          - PKey Loaded: yes\n");
-				printf("          - PKey type: ");
-				ret = PKCS11_get_key_type (key);
-				switch( ret ) {
-					case EVP_PKEY_RSA:
-						printf("RSA\n");
-						break;
-					case EVP_PKEY_DSA:
-						printf("DSA\n");
-						break;
-					case EVP_PKEY_EC:
-						printf("EC\n");
-						break;
-					default:
-						printf("Unknown\n");
-				}
-			} else {
-				printf("          - PKey Loaded: no\n");
-			}
-
-		}
-	}
-
-	if( login ) PKCS11_logout( slot );
-
-	return(0);
-}
-
-int print_token_keys ( PKCS11_SLOT *slot ) {
-
-	PKCS11_CERT *x = NULL;
-	PKCS11_KEY  *keyList = NULL;
-	PKCS11_KEY  *key = NULL;
-	PKCS11_TOKEN *tk = NULL;
-
-	int ret = 0;
-	int i = 0;
-	int n = 0;
-	int r = 0;
-	int login = 0;
-
-	unsigned int num;
-
-	tk = slot->token;
-	if( !tk ) return (-1);
-
-	if ( tk->loginRequired == 1 ) {
-		char * pin = NULL;
-		printf("\n   Token Login Required:\n");
-		if((pin = prompt_pin("\tEnter PIN: ")) != NULL){
-			ret = PKCS11_login ( slot, 0, pin );
-			free(pin);
-			login = 1;
-		} else {
-			ret = -1;
-		}
-	}
-
-	ret = PKCS11_enumerate_keys ( tk, &keyList, &num );
-
-	if( ret == -1 ) {
-		printf("     - ERROR: Can not enumerate certs!\n");
-		return(-1);
-	}
-
-	if( ret == -1 ) {
-		printf("\tERROR: Showing only public Info\n");
-	}
-
-	printf("TOKEN KEYS [%d]:\n", num);
-
-	for( i=0; i < num; i++ ) {
-		BIO *bio = NULL;
-		RSA *rsa = NULL;
-		BIGNUM *bn = NULL;
-		EVP_PKEY *evp_key = NULL;
-
-		key = &keyList[i];
-
-		printf("    - Key [%d]:\n", i);
-		printf("       - Label: %s\n", key->label );
-		printf("       - Id: ");
-		for(n=0;n<key->id_len;n++) {
-			printf("%c", key->id[n] );
-		} printf("\n");
-		printf("          - Present: %u\n", key->isPrivate);
-		printf("          - Need Login: %u\n", key->needLogin);
-		evp_key = PKCS11_get_private_key( key );
-		if( evp_key ) {
-			printf("          - PKey Loaded: yes\n");
-			printf("          - PKey type: ");
-			ret = PKCS11_get_key_type (key);
-			switch( ret ) {
-				case EVP_PKEY_RSA:
-					printf("RSA\n");
-					break;
-				case EVP_PKEY_DSA:
-					printf("DSA\n");
-					break;
-				case EVP_PKEY_EC:
-					printf("EC\n");
-					break;
-				default:
-					printf("Unknown\n");
-			}
-			bio=BIO_new(BIO_s_file());
-			BIO_set_fp(bio,stdout,BIO_NOCLOSE);
-
-			printf("          - PKey size: %d\n",
-				PKCS11_get_key_size (key)*8);
-
-			printf("          - PKey modulus: %d\n",
-				PKCS11_get_key_modulus( key, &bn ));
-			BN_print(bio, bn);
-
-			printf("          - PKey exponent: %d\n",
-				PKCS11_get_key_exponent( key, &bn ));
-
-			BN_print(bio, bn);
-
-			rsa = EVP_PKEY_get1_RSA(evp_key);
-
-			if( !rsa->d || !rsa->p || !rsa->q ) {
-				printf("          - Exportable: NO\n" );
-			} else {
-				if( rsa->n && rsa->e && rsa->d && rsa->p && rsa->q ) {
-					printf("          - Exportable: YES\n");
-				}
-			}
-
-
-			// Exporting the Key 
-			//
-			// bio=BIO_new(BIO_s_file());
-			// BIO_set_fp(bio,stdout,BIO_NOCLOSE);
-			// RSA_print(bio, rsa, 0);
-			// BIO_free( bio );
-
-		} else {
-			printf("          - PKey Loaded: no\n");
-		}
-
-		x = PKCS11_find_certificate( key );
-		if( x ) {
-
-			printf("       - Certificate: found!\n");
-			printf("          - Label: %s\n", x->label);
-			printf("          - Id: ");
-			for( n=0;n<x->id_len;n++){
-				printf("%c", x->id[n]);
-			} printf( "\n");
-		}
-		bio=BIO_new(BIO_s_file());
-		BIO_set_fp(bio,stdout,BIO_NOCLOSE);
-		X509_print(bio, x->x509);
-		BIO_free(bio);
-	}
-
-	if( login ) PKCS11_logout( slot );
-
-	return(0);
-}
-
-int print_slot_info ( PKCS11_SLOT *slot ) {
-
-	PKCS11_TOKEN *tk = NULL;
-
-	printf("\nSlot (Manufacturer: %s):\n"
-			" - description: %s\n - removable: %u\n",
-		slot->manufacturer, slot->description, slot->removable);
-
-	tk = slot->token;
-	if ( tk ) {
-		printf(" * token inserted:\n");
-		printf("    - label: %s\n", tk->label );
-		printf("    - manufacturer: %s\n", tk->manufacturer);
-		printf("    - model: %s\n", tk->model );
-		printf("    - serial: %s\n", tk->serialnr );
-		printf("    - initialized %u\n", tk->initialized );
-		printf("    - loginRequired: %u\n", tk->loginRequired);
-		printf("    - secure login: %u\n", tk->secureLogin);
-		printf("    - userPinSet: %u\n", tk->userPinSet);
-		printf("    - readOnly: %u\n", tk->readOnly );
-		printf("\n");
-
-		print_token_certs ( slot );
-		// print_token_keys ( slot );
-	}
-
-	return(0);
-}
-
-*/

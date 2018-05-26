@@ -1,7 +1,7 @@
 # src/global-vars.in
 
-VERSION			= @PACKAGE_VERSION@
-PACKAGE_VERSION	= @PACKAGE_VERSION@
+# VERSION			= @PACKAGE_VERSION@
+PACKAGE_VERSION		= @PACKAGE_VERSION@
 TODAY			= @TODAY@
 
 INTERFACE_CURRENT	= @iface_current@
@@ -18,7 +18,7 @@ lib_prefix		= $(DESTDIR)@libdir@
 var_prefix		= $(DESTDIR)${prefix}/var
 doc_prefix		= $(DESTDIR)$datadir/libpki
 
-DEST_SBINDIR	= $(DESTDIR)@sbindir@
+DEST_SBINDIR		= $(DESTDIR)@sbindir@
 DEST_BINDIR		= $(DESTDIR)@bindir@
 DEST_LIBDIR		= $(DESTDIR)@libdir@
 DEST_DATADIR		= @datadir@
