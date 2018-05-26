@@ -11,8 +11,6 @@
 
 #define PKI_IO				BIO
 
-// typedef hsm_st;
-
 typedef struct pki_x509_callbacks_st {
 
 	/* ---------------- Memory Management -------------------- */
@@ -82,6 +80,9 @@ typedef struct pki_x509_st {
 
 	/* Callbacks */
 	const PKI_X509_CALLBACKS *cb;
+
+	/* Template Reference */
+	const ASN1_ITEM * it;
 
 } PKI_X509;
 

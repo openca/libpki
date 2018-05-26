@@ -71,14 +71,16 @@ void PKI_log( int level, const char *fmt, ... );
 	PKI_log(a, "[%s:%d] " b, __FILE__, __LINE__, ## args)
 
 /* Macro To Automatically add [__FILE__:__LINE__]::DEBUG:: to the message */
-#define PKI_log_debug(a, args...) PKI_log_debug_simple( (const char *) "[%s:%d] [DEBUG] " a, __FILE__, __LINE__, ## args)
+#define PKI_log_debug(a, args...) \
+	PKI_log_debug_simple((const char *)"[%s:%d] [DEBUG] " a, \
+			     __FILE__, __LINE__, ## args)
+
+#define PKI_DEBUG(a, args...) \
+	PKI_log_debug_simple((const char *)"[%s:%d] [DEBUG] " a, \
+			     __FILE__, __LINE__, ## args)
+
 
 void PKI_log_debug_simple( const char *fmt, ... );
-
-
-/* Macro To Automatically add [__FILE__:__LINE__]::ERR:: to the message */
-// #define PKI_log_err(a, args...) 
-// 	PKI_log_err_simple("[%s:%d]::ERR::" a, __FILE__, __LINE__, ## args)
 
 #define PKI_log_err(a, args...) \
 	PKI_log_err_simple((const char *) "[%s:%d] [ERROR] " a, __FILE__, __LINE__, ## args)

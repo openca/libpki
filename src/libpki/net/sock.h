@@ -43,29 +43,29 @@ typedef enum {
 } PKI_NET_SOCK_TYPE;
 
 /* Public Functions */
-int PKI_NET_socket ( int family, int type, int protocol );
-int PKI_NET_listen ( char *host, int port, PKI_NET_SOCK_TYPE socktype );
-int PKI_NET_accept ( int sock, int timeout );
-int PKI_NET_open ( URL *url, int timeout );
-int PKI_NET_close ( int sock );
-ssize_t PKI_NET_write (int fd, void *bufptr, size_t nbytes);
-ssize_t PKI_NET_read (int fd, void *bufptr, size_t nbytes, int timeout);
+int PKI_NET_socket(int family, int type, int protocol);
+int PKI_NET_listen(const char *host, int port, PKI_NET_SOCK_TYPE socktype);
+int PKI_NET_accept(int sock, int timeout);
+int PKI_NET_open(const URL *url, int timeout);
+int PKI_NET_close(int sock);
+ssize_t PKI_NET_write (int fd, const void *bufptr, size_t nbytes);
+ssize_t PKI_NET_read (int fd, const void *bufptr, size_t nbytes, int timeout);
 PKI_MEM *PKI_NET_get_data ( int fd, int timeout, size_t max_size );
 
 /* Datagrams functions */
-ssize_t PKI_NET_recvfrom (int fd, void *bufptr, size_t nbytes, struct sockaddr_in *cli, socklen_t size);
-ssize_t PKI_NET_sendto (int sock, char *host, int port, void *data, size_t len);
+ssize_t PKI_NET_recvfrom (int fd, const void *bufptr, size_t nbytes, const struct sockaddr_in *cli, socklen_t size);
+ssize_t PKI_NET_sendto (int sock, const char *host, int port, const void *data, size_t len);
 
 /* Internal Socket Wrapping functions */
-int _Listen (char *hostname, int port, PKI_NET_SOCK_TYPE socktype);
-int _Accept (int listen_sockfd, SA *cliaddr, socklen_t *addrlenp);
-ssize_t _Read (int fd, void *bufptr, size_t nbytes);
-ssize_t _Write (int fd, void *bufptr, size_t nbytes);
+int _Listen (const char *hostname, int port, PKI_NET_SOCK_TYPE socktype);
+int _Accept (int listen_sockfd, const SA *cliaddr, const socklen_t *addrlenp);
+ssize_t _Read (int fd, const void *bufptr, size_t nbytes);
+ssize_t _Write (int fd, const void *bufptr, size_t nbytes);
 int _Select (int maxfdp1, fd_set *readset, fd_set *writeset, 
 			fd_set *exceptset, struct timeval *timeout);
 
 /* Externally available functions */
-int inet_connect ( URL *url );
+int inet_connect ( const URL *url );
 int inet_close ( int fd );
 
 #endif

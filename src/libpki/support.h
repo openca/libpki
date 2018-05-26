@@ -24,14 +24,22 @@
 
 /* Functions */
 
-char * get_env_string ( const char *str );
+char * get_env_string(const char *str);
 
-char * PKI_get_env ( char * name );
-int PKI_set_env ( char *name, char *value );
+char * PKI_get_env(const char * name);
 
-int strcmp_nocase( char *st1, char *st2);
-int strncmp_nocase( char *st1, char *st2, int n);
-char * strstr_nocase ( char *buf, char *string );
+int PKI_set_env(const char * name,
+		        const char * value);
+
+int strcmp_nocase(const char * st1,
+		          const char * st2);
+
+int strncmp_nocase(const char * st1,
+		           const char * st2,
+				   int          n);
+
+const char * strstr_nocase(const char * buf,
+		                   const char * string);
 
 #endif /* _LIBPKI_SUPPORT_H */
 

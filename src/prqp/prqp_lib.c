@@ -10,6 +10,9 @@
 #define __PKI_PRQP_LIB_C__
 
 #include <libpki/pki.h>
+#include <libpki/prqp/prqp_asn1.h>
+
+#include "../openssl/internal/x509_data_st.h"
 
 /* PKIX Defaults from http://www.imc.org/ietf-pkix/pkix-oid.asn
  *
@@ -220,20 +223,23 @@ int PRQP_init_all_services ( void ) {
 
 /*! \brief Generates a new CERT_IDENTIFIER to be used in a PRQP request */
 
-CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert ( PKI_X509_CERT *caCert, 
-		PKI_X509_CERT *issuerCert, PKI_X509_CERT *issuedCert,
-		char *subject_s, char *serial_s, PKI_DIGEST_ALG * dgst)
-{
-	PKI_X509_NAME *s_name = NULL;
-	PKI_X509_NAME *i_name = NULL;
+CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert(PKI_X509_CERT  * caCert, 
+					   PKI_X509_CERT  * issuerCert,
+					   PKI_X509_CERT  * issuedCert,
+					   char           * subject_s,
+					   char           * serial_s,
+					   PKI_DIGEST_ALG * dgst) {
+
+	const PKI_X509_NAME *s_name = NULL;
+	const PKI_X509_NAME *i_name = NULL;
 	PKI_INTEGER *serial = NULL;
 	/* BIT STRINGS */
 	PKI_STRING *caKeyHash = NULL;
 	PKI_STRING *issKeyHash = NULL;
 	PKI_STRING *cHash = NULL;
 	/* OCTET STRINGS */
-	PKI_STRING *skid = NULL;
-	PKI_STRING *ikid = NULL;
+	const PKI_STRING *skid = NULL;
+	const PKI_STRING *ikid = NULL;
 
 	CERT_IDENTIFIER *ret = NULL;
 
@@ -242,12 +248,50 @@ CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert ( PKI_X509_CERT *caCert,
 	/* Now get the IssuerName and the Serial of the Certificate x */
 	if (caCert && caCert->value)
 	{
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+		LIBPKI_X509_CERT *xx = NULL;
+#else
 		PKI_X509_CERT_VALUE *xx = NULL;
+#endif
 		PKI_DIGEST *myDigest = NULL;
 
 		xx = (X509 *) caCert->value;
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+
+		// Gets the SKID
+		skid = X509_get0_subject_key_id(xx);
+
+		/*
+		int num = 0;
+		PKI_X509_EXTENSION_VALUE *ext_v = NULL;
+
+		// Gets the SKID
+		num = X509_get_ext_by_NID(xx, NID_subject_key_identifier,-1);
+		if (num < 0) {
+			// Can not get SKID
+			skid = NULL;
+		} else if ((ext_v = X509_get_ext(xx, num)) != NULL) {
+			skid = ext_v->value;
+		}
+		*/
+
+		// Gets the AKID
+		if (xx->akid) ikid = xx->akid->keyid;
+
+		/*
+		num = X509_get_ext_by_NID(xx, NID_authority_key_identifier,-1);
+		if (num < 0) {
+			// Can not get SKID
+			skid = NULL;
+		} else if ((ext_v = X509_get_ext(xx, num)) != NULL) {
+			skid = ext_v->value;
+		}
+		*/
+#else
 		if (xx->skid) skid = xx->skid;
 		if (xx->akid) ikid = xx->akid->keyid;
+#endif
 
 		s_name = (X509_NAME *) 
 			PKI_X509_CERT_get_data( caCert, PKI_X509_DATA_SUBJECT );
@@ -442,10 +486,14 @@ CERT_IDENTIFIER * PKI_PRQP_CERTID_new_cert ( PKI_X509_CERT *caCert,
 
 
 CERT_IDENTIFIER *PKI_PRQP_CERTID_new( 
-		PKI_X509_NAME *caName, PKI_X509_NAME *caIssuerName,
-		PKI_INTEGER *serial, PKI_STRING *caCertHash, PKI_STRING *caKeyHash,
-		PKI_STRING *caKeyId, PKI_STRING *issKeyId, PKI_DIGEST_ALG *dgst )
-{
+		const PKI_X509_NAME  * caName,
+		const PKI_X509_NAME  * caIssuerName,
+		const PKI_INTEGER    * serial,
+		const PKI_STRING     * caCertHash,
+		const PKI_STRING     * caKeyHash,
+		const PKI_STRING     * caKeyId,
+		const PKI_STRING     * issKeyId,
+		const PKI_DIGEST_ALG * dgst) {
 	int nid;
 	PKI_ALGOR *alg;
 	CERT_IDENTIFIER *ca_id = NULL;
@@ -847,7 +895,7 @@ PKI_INTEGER *PKI_X509_PRQP_NONCE_new(int bits) {
         OPENSSL_free(nonce->data);
 
         nonce->length = len - i;
-        if (!(nonce->data = OPENSSL_malloc(nonce->length + 1)))
+        if (!(nonce->data = OPENSSL_malloc((size_t)(nonce->length + 1))))
 		return (NULL);
 
         memcpy(nonce->data, buf + i, (size_t) nonce->length);
@@ -1290,7 +1338,7 @@ PKI_X509_PRQP_RESP *PKI_X509_PRQP_RESP_new_req ( PKI_X509_PRQP_RESP **resp_pnt,
 PKI_STACK * PKI_X509_PRQP_RESP_url_sk ( PKI_X509_PRQP_RESP *r ) {
 
 	PKI_STACK *url_sk = NULL;
-	PKI_RESOURCE_RESPONSE_TOKEN_STACK *pki_sk=NULL;
+	STACK_OF(PKI_RESOURCE_RESPONSE_TOKEN_STACK) *pki_sk=NULL;
 
 	if( !r ) return (NULL);
 
@@ -1704,7 +1752,7 @@ int PKI_X509_PRQP_RESP_VALUE_print_bio (PKI_X509_PRQP_RESP_VALUE *resp, BIO *bio
 	PRQP_TBS_RESP_DATA *rd = NULL;
 	CERT_IDENTIFIER *ci = NULL;
 	BASIC_CERT_IDENTIFIER *bci = NULL;
-	PKI_RESOURCE_RESPONSE_TOKEN_STACK *pki_sk=NULL;
+	STACK_OF(RESOURCE_RESPONSE_TOKEN) *pki_sk=NULL;
 	PKI_STACK *referrals = NULL;
 
 	int i = 0;
@@ -1960,7 +2008,6 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 					PKI_X509_DATA type ) {
 
 	PKI_X509_CERT_VALUE *cert_val = NULL;
-	PKI_MEM *mem = NULL;
 	void * ret = NULL;
 
 	if (!r || !r->requestData ) return NULL;
@@ -2022,6 +2069,11 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 			// Nothing to do here
 			break;
 
+/*
+		// This shall be replaced with a dedicated
+		// function because this violates the memory
+		// contract (const for the returned item)
+		// PKI_X509_get_tbs_asn1();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if ((mem = PKI_MEM_new_null()) == NULL)
 			{
@@ -2032,6 +2084,7 @@ static void * PKI_X509_PRQP_REQ_VALUE_get_data ( PKI_X509_PRQP_REQ_VALUE *r,
 				&(mem->data), &PRQP_TBS_REQ_DATA_it );
 			ret = mem;
 			break;
+*/
 
 		case PKI_X509_DATA_PRQP_CAID:
 			if (r->requestData && r->requestData->serviceToken)
@@ -2108,7 +2161,6 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 					PKI_X509_DATA type ) {
 
 	PKI_X509_CERT_VALUE *cert_val = NULL;
-	PKI_MEM *mem = NULL;
 	void *ret = NULL;
 
 	if ( !r || !r->respData ) return NULL;
@@ -2244,6 +2296,11 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 			// Nothing to do here
 			break;
 
+/*
+		// This shall be replaced with a dedicated
+		// function because this violates the memory
+		// contract (const for the returned item)
+		// PKI_X509_get_tbs_asn1();
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if ((mem = PKI_MEM_new_null()) == NULL)
 			{
@@ -2254,6 +2311,7 @@ static void *PKI_X509_PRQP_RESP_VALUE_get_data ( PKI_X509_PRQP_RESP_VALUE *r,
 				&(mem->data), &PRQP_TBS_RESP_DATA_it );
 			ret = mem;
 			break;
+*/
 
 		case PKI_X509_DATA_PRQP_SERVICES:
 			if( r->respData && r->respData->responseToken )

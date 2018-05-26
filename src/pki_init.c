@@ -73,7 +73,7 @@ static int __create_object_with_id ( const char *oid, const char *sn,
 		return PKI_ERR;
 	};
 
-    if((buf=(unsigned char *)OPENSSL_malloc(i)) == NULL) {
+    if((buf=(unsigned char *)OPENSSL_malloc((size_t)i)) == NULL) {
         return PKI_ERR;
 	}
 
@@ -166,6 +166,8 @@ int PKI_init_all( void ) {
 		PKI_X509_SCEP_init();
 		xmlInitParser();
 
+		SSL_library_init();
+
 		__init_add_libpki_oids ();
 	}
 
@@ -240,7 +242,7 @@ int PKI_set_fips_mode(int k)
 	// intended mode for correctly initializing new HSMs
 	if (HSM_set_fips_mode(NULL, k) == PKI_ERR)
 	{
-		PKI_log_err("Can not set the default HSM in FIPS mode!");
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not set the default (software) HSM in FIPS mode!");
 
 		_libpki_fips_mode = 0;
 		return PKI_ERR;
@@ -428,7 +430,7 @@ PKI_TOKEN_STACK *PKI_get_all_tokens ( char *dir ) {
 		return ( NULL );
 	}
 
-	if((list = PKI_STACK_TOKEN_new_null()) == NULL ) {
+	if ((list = PKI_STACK_TOKEN_new()) == NULL) {
 		return ( NULL );
 	}
 
@@ -467,7 +469,7 @@ PKI_TOKEN_STACK *PKI_get_all_tokens_dir ( char *dir, PKI_TOKEN_STACK *list ) {
 	}
 
 	if( !list ) {
-		if((ret = PKI_STACK_TOKEN_new_null()) == NULL ) {
+		if((ret = PKI_STACK_TOKEN_new()) == NULL ) {
 			if( url ) URL_free (url );
 			return( NULL );
 		}

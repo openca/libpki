@@ -14,7 +14,11 @@ INCLUDES = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
+OPENSSL_INTERNAL_SRCS = \
+        internal/x509_data_st.h
+
 OPENSSL_SRCS = \
+        $(OPENSSL_INTERNAL_SRCS) \
 	pthread_init.c \
 	pki_id.c \
 	pki_oid.c \

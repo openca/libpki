@@ -66,23 +66,23 @@ char * PKI_TOKEN_get_name ( PKI_TOKEN *tk );
 PKI_X509_PKCS12 *PKI_TOKEN_get_p12 ( PKI_TOKEN *tk, PKI_CRED *cred );
 
 /* Save data to URL pointers */
-int PKI_TOKEN_export_p12 ( PKI_TOKEN *tk, int format, 
+int PKI_TOKEN_export_p12 ( PKI_TOKEN *tk, PKI_DATA_FORMAT format, 
 						char *url_s, PKI_CRED *cred );
-int PKI_TOKEN_export_cert ( PKI_TOKEN *tk, char *url_string, int format );
-int PKI_TOKEN_export_req ( PKI_TOKEN *tk, char *url_string, int format );
-int PKI_TOKEN_export_keypair ( PKI_TOKEN *tk, char *url_string, int format );
-int PKI_TOKEN_export_keypair_url( PKI_TOKEN *tk, URL *url, int format );
-int PKI_TOKEN_export_otherCerts ( PKI_TOKEN *tk, char *url_string, int format );
-int PKI_TOKEN_export_trustedCerts (PKI_TOKEN *tk, char *url_string, int format);
+int PKI_TOKEN_export_cert ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format );
+int PKI_TOKEN_export_req ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format );
+int PKI_TOKEN_export_keypair ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format );
+int PKI_TOKEN_export_keypair_url( PKI_TOKEN *tk, URL *url, PKI_DATA_FORMAT format );
+int PKI_TOKEN_export_otherCerts ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format );
+int PKI_TOKEN_export_trustedCerts (PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT format);
 
 /* Import data into the token (add) */
 int PKI_TOKEN_import_cert ( PKI_TOKEN *tk, PKI_X509_CERT *cert, 
-						int type, char *url_s);
+				PKI_DATATYPE type, char *url_s);
 int PKI_TOKEN_import_cert_stack ( PKI_TOKEN *tk, PKI_X509_CERT_STACK *sk, 
-						int type, char *url_s );
+				  PKI_DATATYPE type, char *url_s );
 
 /* Delete an object from the token (del) */
-int PKI_TOKEN_del_url ( PKI_TOKEN *tk, URL *url, int datatype );
+int PKI_TOKEN_del_url ( PKI_TOKEN *tk, URL *url, PKI_DATATYPE datatype );
 
 /* TOKEN operations */
 int PKI_TOKEN_new_keypair ( PKI_TOKEN *tk, int bits, char *label );
@@ -102,13 +102,14 @@ PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject,
 			char *profile_s, PKI_TOKEN *px_tk );
 
 /* TOKEN profile ops */
-int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr );
+int PKI_TOKEN_load_profiles(PKI_TOKEN *tk, char *urlStr);
+int PKI_TOKEN_clear_profiles(PKI_TOKEN * tk);
 int PKI_TOKEN_add_profile( PKI_TOKEN *tk, PKI_X509_PROFILE *profile );
 PKI_X509_PROFILE *PKI_TOKEN_search_profile( PKI_TOKEN *tk, char *profile_s );
 
 /* TOKEN Slot */
-int PKI_TOKEN_use_slot ( PKI_TOKEN *tk, long num );
-int PKI_TOKEN_print_info ( PKI_TOKEN *tk );
+int PKI_TOKEN_use_slot(PKI_TOKEN *tk, long num);
+int PKI_TOKEN_print_info(PKI_TOKEN *tk);
 
 #endif
 

@@ -2,28 +2,121 @@
 
 #include <libpki/pki.h>
 
+#include "openssl/internal/x509_data_st.h"
+
 typedef struct parsed_datatypes_st {
 	const char *descr;
 	int nid;
 } LIBPKI_PARSED_DATATYPES;
 
+typedef struct tbs_asn1_st {
+	const ASN1_ITEM * it;
+	const void * data;
+} PKI_TBS_ASN1;
+
 struct parsed_datatypes_st __parsed_datatypes[] = {
 	/* X509 types */
-	{ "Unknown",						PKI_DATATYPE_UNKNOWN },
-	{ "Public KeyPair", 				PKI_DATATYPE_X509_KEYPAIR },
+	{ "Unknown",				PKI_DATATYPE_UNKNOWN },
+	{ "Public KeyPair", 			PKI_DATATYPE_X509_KEYPAIR },
 	{ "X509 Public Key Certificate", 	PKI_DATATYPE_X509_CERT },
-	{ "X509 CRL", 						PKI_DATATYPE_X509_CRL },
+	{ "X509 CRL", 				PKI_DATATYPE_X509_CRL },
 	{ "PKCS#10 Certificate Request", 	PKI_DATATYPE_X509_REQ },
-	{ "PKCS#7 Message", 				PKI_DATATYPE_X509_PKCS7 },
-	{ "PKCS#12 PMI Object", 			PKI_DATATYPE_X509_PKCS12 },
-	{ "OCSP Request", 					PKI_DATATYPE_X509_OCSP_REQ },
-	{ "OCSP Response", 					PKI_DATATYPE_X509_OCSP_RESP },
-	{ "PRQP Request", 					PKI_DATATYPE_X509_PRQP_REQ },
-	{ "PRQP Response", 					PKI_DATATYPE_X509_PRQP_RESP },
+	{ "PKCS#7 Message", 			PKI_DATATYPE_X509_PKCS7 },
+	{ "PKCS#12 PMI Object", 		PKI_DATATYPE_X509_PKCS12 },
+	{ "OCSP Request", 			PKI_DATATYPE_X509_OCSP_REQ },
+	{ "OCSP Response", 			PKI_DATATYPE_X509_OCSP_RESP },
+	{ "PRQP Request", 			PKI_DATATYPE_X509_PRQP_REQ },
+	{ "PRQP Response", 			PKI_DATATYPE_X509_PRQP_RESP },
 	{ "Cross Certificate Pair", 		PKI_DATATYPE_X509_XPAIR },
-	{ "CMS Message", 					PKI_DATATYPE_X509_CMS_MSG },
+	{ "CMS Message", 			PKI_DATATYPE_X509_CMS_MSG },
 	{ NULL, -1 }
 };
+
+PKI_TBS_ASN1 * __datatype_get_asn1(PKI_DATATYPE   type, 
+				   const void    * v) {
+
+	PKI_TBS_ASN1 * ret = NULL;
+	const ASN1_ITEM * it = NULL;
+	const void * p = NULL;
+
+	// Gets the ASN1_ITEM * needed to get the tbSigned
+	switch (type) {
+
+		case PKI_DATATYPE_X509_CERT : {
+			it = &X509_CINF_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((LIBPKI_X509_CERT *)v)->cert_info);
+#else
+			p = ((PKI_X509_CERT_VALUE *)v)->cert_info;
+#endif
+		} break;
+
+		case PKI_DATATYPE_X509_CRL : {
+			it = &X509_CRL_INFO_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((PKI_X509_CRL_VALUE *)v)->crl);
+#else
+			p = ((PKI_X509_CRL_VALUE *)v)->crl;
+#endif
+		} break;
+
+		case PKI_DATATYPE_X509_REQ : {
+			it = &X509_REQ_INFO_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((LIBPKI_X509_REQ *)v)->req_info);
+#else
+			p = ((PKI_X509_REQ_VALUE *)v)->req_info;
+#endif
+		} break;
+
+		case PKI_DATATYPE_X509_OCSP_REQ : {
+			it = &OCSP_REQINFO_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((PKI_X509_OCSP_REQ_VALUE *)v)->tbsRequest);
+#else
+			p = ((PKI_X509_OCSP_REQ_VALUE *)v)->tbsRequest;
+#endif
+		} break;
+
+		case PKI_DATATYPE_X509_OCSP_RESP : {
+			it = &OCSP_RESPDATA_it;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			p = &(((PKI_OCSP_RESP *)v)->bs->tbsResponseData);
+#else
+			p = ((PKI_OCSP_RESP *)v)->bs->tbsResponseData;
+#endif
+		} break;
+
+		case PKI_DATATYPE_X509_PRQP_REQ : {
+			it = &PKI_PRQP_REQ_it;
+			p = ((PKI_X509_PRQP_REQ_VALUE *)v)->requestData;
+		} break;
+
+		case PKI_DATATYPE_X509_PRQP_RESP : {
+			it = &PKI_PRQP_RESP_it;
+			p = ((PKI_X509_PRQP_RESP_VALUE *)v)->respData;
+		} break;
+
+		default: {
+			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, 
+				  "Not Supported Datatype [%d]", type);
+			return NULL;
+		}
+	}
+
+	if ((ret = PKI_Malloc(sizeof(PKI_TBS_ASN1))) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Builds the return data
+	ret->it = it;
+	ret->data = p;
+
+	// Return the Pointer
+	return ret;
+
+}
 
 /*! \brief Returns the callbacks for a specific PKI_DATATYPE */
 
@@ -76,6 +169,7 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	// Crypto provider's specific data structure
 	ret->value = NULL;
 
+	// All Done
 	return ret;
 }
 
@@ -114,17 +208,17 @@ PKI_X509 *PKI_X509_new_value (PKI_DATATYPE type, void *value,
 
 	PKI_X509 *ret = NULL;
 
-	if (!value) return NULL;
-
 	if (( ret = PKI_X509_new ( type, hsm )) == NULL ) {
 		PKI_log_debug ( "Can not initialized a new PKI_X509 object.");
 		return NULL;
 	}
 
-	if((PKI_X509_set_value ( ret, value )) == PKI_ERR ) {
-		PKI_log_debug ( "Can not set the value in the PKI_X509 object");
-		PKI_X509_free ( ret );
-		return NULL;
+	if (value) {
+		if((PKI_X509_set_value ( ret, value )) == PKI_ERR ) {
+			PKI_DEBUG( "Error setting value in the PKI_X509 obj");
+			PKI_X509_free ( ret );
+			return NULL;
+		}
 	}
 
 	return ret;
@@ -132,8 +226,9 @@ PKI_X509 *PKI_X509_new_value (PKI_DATATYPE type, void *value,
 
 /*! \brief Allocates the memory for a new PKI_X509 and duplicates the data */
 
-PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, void *value, 
-						struct hsm_st *hsm ) {
+PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, 
+				  const void *value, 
+				  struct hsm_st *hsm ) {
 
 	PKI_X509 *ret = NULL;
 
@@ -150,8 +245,12 @@ PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, void *value,
 		return NULL;
 	}
 
-	ret->value = ret->cb->dup ( value );
-
+	if ((ret->value = ret->cb->dup((void *)value)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not duplicate internal value");
+		PKI_X509_free(ret);
+		return NULL;
+	};
+	
 	return ret;
 }
 
@@ -178,18 +277,30 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cVal = (PKI_X509_CERT_VALUE *) x->value;
 				// cVal->cert_info->enc.modified = 1;
-				if (cVal && cVal->cert_info) {
+# if OPENSSL_VERSION_NUMBER > 0x1010000fL
+				if (cVal) {
 					PKI_X509_CINF_FULL *cFull = NULL;
-					cFull = (PKI_X509_CINF_FULL *) cVal->cert_info;
+					cFull = (PKI_X509_CINF_FULL *) &(cVal->cert_info);
 					cFull->enc.modified = 1;
 				}
+# else
+				if (cVal && cVal->cert_info) {
+					X509_CINF *cFull = NULL;
+					cFull = (X509_CINF *) cVal->cert_info;
+					cFull->enc.modified = 1;
+				}
+# endif
 #endif
 				break;
 
 		case PKI_DATATYPE_X509_CRL:
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cRLVal = (PKI_X509_CRL_VALUE *) x->value;
+# if ( OPENSSL_VERSION_NUMBER >= 0x1010000f )
+				cRLVal->crl.enc.modified = 1;
+# else
 				cRLVal->crl->enc.modified = 1;
+# endif
 #endif
 				break;
 	};
@@ -200,7 +311,7 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 
 /*! \brief Returns the type of a PKI_X509 object */
 
-PKI_DATATYPE PKI_X509_get_type ( PKI_X509 *x ) {
+PKI_DATATYPE PKI_X509_get_type(const PKI_X509 *x) {
 
 	if (!x) return PKI_DATATYPE_UNKNOWN;
 
@@ -211,7 +322,7 @@ PKI_DATATYPE PKI_X509_get_type ( PKI_X509 *x ) {
  * \brief Returns a TXT description of the Object Type
  */
 
-const char * PKI_X509_get_type_parsed ( PKI_X509 *obj ) {
+const char * PKI_X509_get_type_parsed(const PKI_X509 *obj) {
 	int i = 0;
 	int type = 0;
 
@@ -240,7 +351,7 @@ int PKI_X509_set_hsm ( PKI_X509 *x, struct hsm_st *hsm ) {
 
 /*! \brief Retrieves the HSM reference from a PKI_X509 object */
 
-struct hsm_st *PKI_X509_get_hsm ( PKI_X509 *x ) {
+struct hsm_st *PKI_X509_get_hsm(const PKI_X509 *x) {
 
 	if (!x) return NULL;
 
@@ -260,7 +371,8 @@ int PKI_X509_set_reference ( PKI_X509 *x, URL *url ) {
 
 /*! \brief Retrieves the reference URL from a PKI_X509 object */
 
-URL *PKI_X509_get_reference ( PKI_X509 *x ) {
+URL *PKI_X509_get_reference(const PKI_X509 *x) {
+
 	if ( !x ) return NULL;
 
 	return x->ref;
@@ -270,7 +382,7 @@ URL *PKI_X509_get_reference ( PKI_X509 *x ) {
 /*! \brief Returns the reference to the PKI_X509_XXX_VALUE withing a PKI_X509
 	   object */
 
-void * PKI_X509_get_value ( PKI_X509 *x ) {
+void * PKI_X509_get_value(const PKI_X509 *x) {
 
 	if ( !x ) return NULL;
 
@@ -299,21 +411,21 @@ int PKI_X509_set_value ( PKI_X509 *x, void *data ) {
 
 /*! \brief Duplicates the PKI_X509_XXX_VALUE from the passed PKI_X509 object */
 
-void * PKI_X509_dup_value ( PKI_X509 *x ) {
+void * PKI_X509_dup_value (const PKI_X509 *x ) {
 
 	void *ret = NULL;
 
 	if (!x || !x->cb || !x->cb->dup || !x->value ) 
 		return NULL;
 
-	ret = x->cb->dup ( x->value );
+	ret = x->cb->dup ((void *) x->value );
 
 	return ret;
 }
 
 /*! \brief Duplicates a PKI_X509 object */
 
-PKI_X509 * PKI_X509_dup ( PKI_X509 *x ) {
+PKI_X509 * PKI_X509_dup (const PKI_X509 *x ) {
 
 	PKI_X509 *ret = NULL;
 
@@ -359,21 +471,21 @@ PKI_X509 * PKI_X509_dup ( PKI_X509 *x ) {
 
 /*! \brief Returns a ref to the X509 data (e.g., SUBJECT) within the passed PKI_X509 object */
 
-void * PKI_X509_get_data ( PKI_X509 *x, PKI_X509_DATA type ) {
+void * PKI_X509_get_data(const PKI_X509 *x, PKI_X509_DATA type ) {
 
-
-	if ( !x || !x->cb || !x->cb->get_data ) {
-		PKI_log_debug ( "ERROR, no x, cb or get_data!");
+	if (!x || !x->cb || !x->value || !x->cb->get_data) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
 	}
 
-	if( !x || !x->cb || !x->cb->get_data || !x->value ) return NULL;
-
-	return x->cb->get_data ( x, type );
+	// TODO: eventually this should be changed
+	// to use a const value in the callback
+	return x->cb->get_data((void *)x, type );
 }
 
 /*! \brief Returns PKI_OK if the PKI_X509 object is signed */
 
-int PKI_X509_is_signed( PKI_X509 *obj ) {
+int PKI_X509_is_signed(const PKI_X509 *obj ) {
 
 	if ( !obj || !obj->value ) return PKI_ERR;
 
@@ -384,24 +496,129 @@ int PKI_X509_is_signed( PKI_X509 *obj ) {
 	return PKI_OK;
 }
 
+/*! \brief Returns the DER encoded version of the toBeSigned portion of
+ *         the PKI_X509_VALUE structure
+ */
+
+PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v, 
+		                      const PKI_DATATYPE   type) {
+
+	PKI_TBS_ASN1 * ta = NULL;
+	PKI_MEM         * mem = NULL;
+
+	// Input Checks
+	if (v == NULL) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Gets the template and data pointer
+	if ((ta = __datatype_get_asn1(type, v)) == NULL) return NULL;
+
+	// Allocates the PKI_MEM data structure
+	if ((mem = PKI_MEM_new_null()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
+                                                   &(mem->data),
+                                                   ta->it);
+#else
+        mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
+                                                   &(mem->data),
+                                                   ta->it);
+#endif
+
+	return mem;
+}
+
+/*! \brief Returns the DER encoded version of the toBeSigned portion of
+ *         the X509 structure
+ */
+/*
+TODO: Investigate the feasibility of having a callback for the tbs
+      instead of using the it pointer inside the X509 structure
+      this would have the value to have its own encoding callback
+      instead of a unified functionality
+PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
+	
+	// Input Checks
+	if (!x || !x->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	if (!x->cb || !x->cb->get_tbs) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	return x->cb->get_tbs(x, type);
+}
+*/
+
+PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
+	
+	PKI_MEM * mem = NULL;
+	PKI_TBS_ASN1 * ta = NULL;
+
+	// Input Checks
+	if (!x || !x->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	if ((ta = __datatype_get_asn1(x->type, x->value)) == NULL)
+		return NULL;
+
+	// Allocates the PKI_MEM data structure
+	if ((mem = PKI_MEM_new_null()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
+                                                   &(mem->data),
+                                                   ta->it);
+/*
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
+                                                   &(mem->data),
+                                                   ta->it);
+#else
+        mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
+                                                   &(mem->data),
+                                                   ta->it);
+#endif
+*/
+
+	// Free the memory
+	PKI_Free(ta);
+
+	// Return the Encoded Data
+	return mem;
+}
+
 /*! \brief Returns the parsed (char *, int *, etc.) version of the data in
            a PKI_X509 object */
 
-void * PKI_X509_get_parsed ( PKI_X509 *x, PKI_X509_DATA type ) {
+void * PKI_X509_get_parsed(const PKI_X509 *x, PKI_X509_DATA type ) {
 
 	if ( !x || !x->cb || !x->cb->get_parsed || !x->value ) return NULL;
 
-	return x->cb->get_parsed ( x, type );
+	return x->cb->get_parsed((PKI_X509 *)x, type );
 }
 
 
 /*! \brief Prints the parsed data from a PKI_X509 object to a file descriptor */
 
-int PKI_X509_print_parsed ( PKI_X509 *x, PKI_X509_DATA type, int fd ) {
+int PKI_X509_print_parsed(const PKI_X509 *x, PKI_X509_DATA type, int fd ) {
 
 	if ( !x || !x->cb->print_parsed || !x->value ) return PKI_ERR;
 
-	return x->cb->print_parsed ( x, type, fd );
+	return x->cb->print_parsed((PKI_X509 *)x, type, fd );
 }
 
 /*! \brief Deletes the hard copy (eg., file, hsm file, etc.) of the PKI_X509

@@ -4,11 +4,10 @@
 
 PACKAGE_NAME		= @PACKAGE_NAME@
 PACKAGE_VERSION		= @PACKAGE_VERSION@
-VERSION				= @PACKAGE_VERSION@
-RC					= @RC@
+RC			= @RC@
 
-ARCH_TARGET			= @arch_target@
-MYARCH				= @myarch@
+ARCH_TARGET		= @arch_target@
+MYARCH			= @myarch@
 
 #-------- installation paths: --------
 
@@ -47,14 +46,14 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src docs etc .
 
 AUX_DIST = \
- 	acinclude.m4 \
- 	aclocal.m4 \
- 	$(ac_aux_dir)/config.guess \
- 	$(ac_aux_dir)/config.sub \
- 	$(ac_aux_dir)/install-sh \
+	acinclude.m4 \
+	aclocal.m4 \
+	$(ac_aux_dir)/config.guess \
+	$(ac_aux_dir)/config.sub \
+	$(ac_aux_dir)/install-sh \
 	$(ac_aux_dir)/ltmain.sh \
-	$(ac_aux_dir)/missing \
 	$(ac_aux_dir)/mkinstalldirs \
+	$(ac_aux_dir)/missing \
 	$(ac_aux_dir)/depcomp
 
 M4_EXTRA = \
@@ -77,8 +76,8 @@ EXTRA_DIST = $(EXTRA_SCRIPTS) $(AUX_DIST) $(INCLUDE_DIST) \
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 acinclude.m4 configure \
 	$(AUX_DIST)
 
-pkgconfig_DATA  = contrib/libpki.pc
-pkgconfigdir    = @libdir@/pkgconfig
+# pkgconfig_DATA  = contrib/libpki.pc contrib/openldap.pc
+# pkgconfigdir    = @libdir@/pkgconfig
 
 # TESTS_ENVIRONMENT = \
 # 	LD_LIBRARY_PATH="@openssl_prefix@/lib:$$LD_LIBRARY_PATH"
@@ -178,7 +177,7 @@ documentation:: pdfdocs
 
 distclean-local:
 	@echo "Cleaning local autoconf cache... " ; \
-	 rm -rf autom4te.cache/
+	 rm -rf autom4te.cache/ contrib/libpki.spec .autotools .settings/ results
 
 ########################## BINARY DISTRO STUFF ###########################
 
@@ -189,35 +188,35 @@ TODAY=`date +%Y%m%d`
 INSTALL_BUILDER = @INSTALL_BUILDER@
 
 snap:
-	@$(MAKE) -f Makefile dist VERSION=SNAP-$(TODAY)
+	@$(MAKE) -f Makefile dist PACKAGE_VERSION=SNAP-$(TODAY)
 
 snaprpm: snap
-	@$(MAKE) -f Makefile rpm VERSION="SNAP" RC="$(TODAY)"
+	@$(MAKE) -f Makefile rpm PACKAGE_VERSION="$(TODAY)" CUSTOM_RELEASE="snap"
 
 rc1:
-	$(MAKE) -f Makefile dist VERSION=$(VERSION)-rc1
+	$(MAKE) -f Makefile dist PACKAGE_VERSION=$(PACKAGE_VERSION)-rc1
 
 rc1rpm: rc1
 	$(MAKE) -f Makefile rpm RC="rc1"
 
 rc2:
-	$(MAKE) -f Makefile dist VERSION=$(VERSION)-rc2
+	$(MAKE) -f Makefile dist PACKAGE_VERSION=$(PACKAGE_VERSION)-rc2
 
 rc2rpm: rc2
 	$(MAKE) -f Makefile rpm RC="rc2"
 
 rc3:
-	$(MAKE) -f Makefile dist VERSION=$(VERSION)-rc3
+	$(MAKE) -f Makefile dist PACKAGE_VERSION=$(PACKAGE_VERSION)-rc3
 
 rc3rpm: rc3
 	$(MAKE) -f Makefile rpm RC="rc3"
 
 pkgbuild:
-	@rm -rf /tmp/$(PACKAGE_NAME)-build-$(VERSION)
-	@DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(VERSION) ./configure --prefix=/usr
+	@rm -rf /tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION)
+	@DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION) ./configure
 	@$(MAKE) -f Makefile
 	@$(MAKE) -f Makefile man
-	@$(MAKE) DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(VERSION) install
+	@$(MAKE) DESTDIR=/tmp/$(PACKAGE_NAME)-build-$(PACKAGE_VERSION) install
 	@$(MAKE) -f Makefile pkgconfig
 
 pkgconfig:
@@ -226,8 +225,8 @@ pkgconfig:
 		rm -rf $(PACKAGE_NAME)-*.app ; \
 		$(INSTALL_BUILDER) build contrib/libpki-inst.xml && \
 		hdiutil create -srcfolder "$$IB_OUTPUT" \
-			-volname "$(PACKAGE_NAME) v$(VERSION) Install" \
-			"$(PACKAGE_NAME)-$(VERSION)-$(RC)-osx-$(ARCH_TARGET).dmg" ; \
+			-volname "$(PACKAGE_NAME) v$(PACKAGE_VERSION) Install" \
+			"$(PACKAGE_NAME)-$(PACKAGE_VERSION)-$(RC)-osx-$(ARCH_TARGET).dmg" ; \
 		rm -r $$IB_OUTPUT/$(PACKAGE_NAME)-*.app ; \
 	else \
 		ret=`echo ${build_os} | grep 'solaris'`; \
@@ -253,7 +252,7 @@ rpm:
 	if [ -e "contrib/$$filename.orig" ] ; then \
 		echo -n "($$filename.orig) --> "; \
 		cat "contrib/$$filename.orig" | \
-			sed -e "s/@RPM_VERSION@/$(VERSION)/g" | \
+			sed -e "s/@RPM_VERSION@/$(PACKAGE_VERSION)/g" | \
 			sed -e "s/\@RC\@/$(RC)/g" | \
 			sed -e "s/@PKGNAME@/$(PACKAGE_NAME)/g" | \
 			sed -e "s/\@mybits\@/@mybits@/g" | \
@@ -270,7 +269,7 @@ rpm:
 	sudo bash -c "rm -rf /usr/src/redhat/BUILD/$(PACKAGE_NAME)* \
 		$(HOME)/rpmbuild/BUILD/$(PACKAGE_NAME)* ; \
 		/root/rpmbuild/BUILD/$(PACKAGE_NAME)* " ; \
-	sudo rpmbuild -ta $(PACKAGE_NAME)-$(VERSION).tar.gz ; \
+	sudo rpmbuild -ta $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz ; \
 	sudo bash -c " mv /usr/src/redhat/RPMS/*/$(PACKAGE_NAME)*.rpm . || \
 		mv $(HOME)/tmp/rpm/RPMS/*/$(PACKAGE_NAME)*.rpm . || \
 		mv $(HOME)/rpmbuild/RPMS/*/$(PACKAGE_NAME)*.rpm . || \
@@ -285,4 +284,16 @@ rpm:
 ########################################################
 ##                END RELEASE STUFF                   ##
 ########################################################
+
+########################################################
+##                MINTENANCE TOOLS                    ##
+########################################################
+
+osslcompat:
+	@for i in `find src/ -name '*.c'` ; do \
+		$(GREP) "OPENSSL_VERSION_NUMBER" "$$i" >/dev/null ; \
+		if [ $$? -eq 0 ] ; then \
+			$(ECHO) "$$i" >> oss_version_files.txt ; \
+		fi ; \
+	 done
 

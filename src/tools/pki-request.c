@@ -112,13 +112,14 @@ int main (int argc, char *argv[] ) {
 
 	int debug = 0;
 	int verbose = 0;
-	int log_debug = 0;
-	int log_level = PKI_LOG_ERR;
 	int text = 0;
 	int nosend = 0;
 	int noout = 0;
 	int reqout = 0;
 	// int respout = 0;
+
+	PKI_LOG_FLAGS log_debug = 0;
+	int log_level = PKI_LOG_ERR;
 
 	REQ_CMDS cmd = 0;
 

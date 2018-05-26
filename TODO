@@ -1,0 +1,56 @@
+                  OpenCA's LibPKI Next Milestones
+           [ Author: Massimiliano Pala, OpenCA's Founder ]
+                  [ Last Updated: Aug 30th, 2017 ]
+
+
+This is the current TODO (high-level) list for the next improvements for the
+LibPKI project. Please contact the project manager(s) or write to the devel
+mailing lists for new ideas or to comment on these ideas.
+
+Project's Next Steps:
+=====================
+
+- Provide support for OpenSSL v1.1+ (currently supported OpenSSL v0.9.x-v1.0.x
+
+- Provide support for SSLv3-disabled OpenSSL versions
+
+- Update the includes structure to avoid the inclusion of non-essentials
+  headers in each file to speedup the compilation of the library
+
+- Provide better documentation. In particular, we want to move all the
+  documentation in the headers files to make it available to developers where
+  it matter most. In our experience that should help a lot with the usability
+  of the library in general (also man pages would really be useful)
+
+- Update the support for CMS format. When the first interface to CMS was
+  introduced in LibPKI, OpenSSL did not support it. Now that OpenSSL has its
+  own implementation, we need to wrap it and provide similar interface to the
+  PKCS#7 one. This will enable support for CMC (and EST - see next point)
+
+- Add support for EST (the newer version of SCEP)
+
+- Define new EST version and add support for mass-certificate issuing (e.g.,
+  to support IoT certificate provisioning, renewal, and revocation)
+
+- Complete the PKI_MSG interface to support EST
+
+- Add support for JSON-based configuration files (still in debate if this
+  would be useful and which JSON library to use)
+
+- Add support for ACME protocol within the PKI_MSG interface (still in debate
+  if this would be useful because of the poor design of the ACME protocol
+  itself which is quite inefficient and mixes users and accounts management
+  with PKI operations)
+
+- Add support for revocation information distribution over DNS.
+
+- Improve the test suite that does not provide good coverage for all the
+  library functionalities
+
+- Integrate support for dynamic as well as static analysis tools
+
+for more information, please do not esitate to write to the development mailing
+list (https://www.openca.org/projects/libpki) or to the project manager(s).
+
+Enjoy OpenSource and PKIs!
+

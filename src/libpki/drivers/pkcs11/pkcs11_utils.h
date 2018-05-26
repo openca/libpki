@@ -57,10 +57,10 @@ int HSM_PKCS11_set_attribute (CK_OBJECT_HANDLE *hObj,
 int HSM_PKCS11_set_attr_bool (CK_ATTRIBUTE_TYPE type,
 				CK_BBOOL value, CK_ATTRIBUTE *attribute );
 int HSM_PKCS11_set_attr_int ( CK_ATTRIBUTE_TYPE type,
-				int value, CK_ATTRIBUTE *attribute );
+				CK_ULONG value, CK_ATTRIBUTE *attribute );
 int HSM_PKCS11_set_attr_sn ( CK_ATTRIBUTE_TYPE type, char *value, 
 					size_t len,CK_ATTRIBUTE *attribute);
-int HSM_PKCS11_set_attr_bn ( CK_ATTRIBUTE_TYPE type, BIGNUM *bn, 
+int HSM_PKCS11_set_attr_bn ( CK_ATTRIBUTE_TYPE type, const BIGNUM *bn, 
 						CK_ATTRIBUTE *attribute);
 
 /* Save a single attribute to an existing object */

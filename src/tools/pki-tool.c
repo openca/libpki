@@ -126,7 +126,11 @@ void usage_curves (char *curr_name) {
 	}
 
 	/* Alloc the needed memory */
-	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * (int) num_curves);
+#if OPENSSL_VERSION_NUMBER >= 0x1010000f
+	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * num_curves);
+#else
+	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * (int)num_curves);
+#endif
 
 	if (curves == NULL) goto err;
 
@@ -170,7 +174,7 @@ void version ( void ) {
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		char *url_s, char *algor_opt, char *profile_s, char *outform, int batch ) {
 
-	int algor_id = 0;
+	// int algor_id = 0;
 
 	char *prompt = NULL;
 	int outFormVal = PKI_DATA_FORMAT_PEM;
@@ -180,7 +184,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	PKI_KEYPARAMS *kp = NULL;
 	PKI_X509_PROFILE *prof = NULL;
 
-	int scheme = -1;
+	PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
 
 	if((url_s==NULL) || (strcmp_nocase("stdin", url_s) == 0)) {
 		if((url_s = tk->key_id) == NULL ) {
@@ -205,8 +209,8 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		} else {
 			fprintf(stderr, "ERROR, out format %s not supported!\n\n", outform);
 			exit(1);
-		};
-	};
+		}
+	}
 
 	// Output can not write to stdin, so, if that was specified, 
 	// let's re-route to stdout instead
@@ -224,41 +228,18 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	// Let's get the algor options from the ENV if not set
 	if( !algor_opt ) algor_opt = PKI_get_env ( "PKI_TOKEN_ALGORITHM" );
 
-	if( algor_opt != NULL )
-	{
-		PKI_ALGOR *algor = NULL;
-
-		/* Get the Algor Id from the cmd line option */
-		algor = PKI_ALGOR_get_by_name ( algor_opt );
-		if (!algor)
-		{
-			fprintf(stderr, "\nERROR: Algorithm %s is not recognized!\n\n", algor_opt);
-			exit(1);
-		}
-
-		algor_id = PKI_ALGOR_get_id ( algor );
-		scheme   = PKI_ALGOR_get_scheme ( algor );
-
-		if (verbose && !batch) 
-		{
-			fprintf(stderr, "\nSetting Token Algorithm to %s ... ", 
-					PKI_ALGOR_ID_txt ( algor_id ) );
-		}
-
-		if ((PKI_TOKEN_set_algor ( tk, algor_id )) == PKI_ERR)
-		{
-			fprintf(stderr, "ERROR, can not set the crypto scheme!\n\n");
-			exit(1);
-		}
-
-		if( verbose && !batch ) fprintf(stderr, "Ok.\n");
+	// Checks for the supported schemes
+	if ((scheme = PKI_ALGOR_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
+		fprintf(stderr, "\nERROR: Scheme not supported for key generation (%s)\n\n",
+			algor_opt);
+		exit(1);
 	}
 
 	// If specified, search the profile among the ones already loaded
 	if (profile_s) prof = PKI_TOKEN_search_profile( tk, profile_s );
 
 	// Let's now generate the new key parameters
-	if ((kp = PKI_KEYPARAMS_new ( scheme, prof )) == NULL )
+	if ((kp = PKI_KEYPARAMS_new(scheme, prof)) == NULL)
 	{
 		fprintf(stderr, "ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme);
 		exit(1);
@@ -294,14 +275,18 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 						} else {
 							PKI_OID_free ( oid );
 							usage_curves( curveName );
-						};
+						}
 					} else {
 						usage_curves( curveName );
-					};
-				};
+					}
+				}
 				break;
 #endif
-		};
+			case PKI_SCHEME_DH:
+			case PKI_SCHEME_UNKNOWN:
+				fprintf(stderr, "ERROR: Scheme not supported!\n\n");
+				return PKI_ERR;
+		}
 
 	}
 
@@ -355,7 +340,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				}
 
 				tmp_s = keyurl->url_s;
-				ret = PKI_TOKEN_export_keypair( tk, tmp_s, outFormVal );
+				ret = PKI_TOKEN_export_keypair( tk, tmp_s, (PKI_DATA_FORMAT)outFormVal );
 			}
 			else
 			{
@@ -405,7 +390,7 @@ int main (int argc, char *argv[] ) {
 	char * config = NULL;
 
 	int log_level = PKI_LOG_ERR;
-	int log_debug = 0;
+	PKI_LOG_FLAGS log_debug = 0;
 	int batch = 0;
 
 	int bits = 0;
@@ -438,7 +423,7 @@ int main (int argc, char *argv[] ) {
 	int secs  = 0;
 
 	unsigned long validity = 0;
-	int datatype = 0;
+	PKI_DATATYPE datatype = PKI_DATATYPE_UNKNOWN;
 
 	if( argc < 2 ) {
 		usage();
@@ -559,7 +544,7 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	if( !infile ) infile = "stdin";
+	if (!infile) infile = "stdin";
 
 	if((tk = PKI_TOKEN_new_null()) == NULL ) {
 		printf("ERROR, can not allocate token!\n\n");
@@ -570,7 +555,7 @@ int main (int argc, char *argv[] ) {
 		printf("Loading Token .. ");
 		fflush( stdout );
 	}
-	if(( PKI_TOKEN_init( tk, config, token_name )) == PKI_ERR) {
+	if(( PKI_TOKEN_init(tk, config, token_name)) == PKI_ERR) {
 		printf("ERROR, can not load token (enable debug for "
 							"details)!\n\n");
 		exit(1);
@@ -579,7 +564,7 @@ int main (int argc, char *argv[] ) {
 
 	if( batch ) {
 		PKI_TOKEN_cred_set_cb ( tk, NULL, NULL );
-	};
+	}
 
 	if( token_name == NULL ) {
 		if( hsm_name ) {
@@ -818,7 +803,21 @@ int main (int argc, char *argv[] ) {
 		if( sk ) PKI_STACK_TOKEN_free ( sk );
 
 	} else if ( strncmp_nocase(cmd, "genkey", 6) == 0 ) {
+
 		PKI_TOKEN_login( tk );
+
+		if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
+			algor_opt = "RSA";
+		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
+			algor_opt = "EC";
+		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
+			algor_opt = "DSA";
+		} else {
+			printf("\nERROR, algorithm (%s) not supported (use RSA, ECDSA, or DSA)!\n\n",
+				algor_opt);
+			exit(1);
+		}
+
 		if((gen_keypair ( tk, bits, param_s, outfile, algor_opt, 
 				profile, outform, batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
@@ -976,13 +975,13 @@ int main (int argc, char *argv[] ) {
 
 		if (verbose) printf("* Generating a new Certificate:\n");
 
-		if ( !infile ) 
+		if (!infile) 
 		{
 			printf("\nERROR, '-in <req>' is required!\n\n");
 			exit(1);
 		}
 
-		if( PKI_TOKEN_load_req ( tk, infile ) == PKI_ERR )
+		if (PKI_TOKEN_load_req ( tk, infile ) == PKI_ERR)
 		{
 			printf("\nERROR, can not load request %s!\n\n", infile);
 			return ( 1 );
@@ -1006,36 +1005,39 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if ( selfsign == 1 ) {
-			if ( verbose ) printf ("  - Self Signing "
+			if (verbose) printf("  - Self Signing "
 							"certificate .... ");
-			if((PKI_TOKEN_self_sign( tk, subject, serial, 
-					validity, profile )) == PKI_ERR ) {
+			if ((PKI_TOKEN_self_sign(tk, subject, serial, 
+						validity, profile )) == PKI_ERR ) {
 				printf("ERROR, can not self sign certificate!\n");
 				return(1);
 			}
-			if ( verbose ) printf("Ok.\n");
+
+			if (verbose) printf("Ok.\n");
 
 			if(verbose) {
 				printf("  - Writing Certificate to (%s)... ",
 								outfile );
 				fflush(stdout);
-			};
+			}
 
-			if ( outfile == NULL ) {
-				if((outfile = tk->cert_id) == NULL ) {
-					if(tk->config) {
-						if((outfile = PKI_CONFIG_get_value(tk->config, 
-						"/tokenConfig/cert")) == NULL) {
+			if (outfile == NULL) {
+				if ((outfile = tk->cert_id) == NULL ) {
+					if (tk->config) {
+						if ((outfile = PKI_CONFIG_get_value(tk->config, 
+								"/tokenConfig/cert")) == NULL) {
 							outfile = "stdout";
-						};
-					};
-				};
-			};
+						}
+					} else {
+						outfile = "stdout";
+					}
+				}
+			}
 
 			if((PKI_TOKEN_export_cert( tk, outfile,
 					PKI_DATA_FORMAT_PEM )) == PKI_ERR ) {
 				printf("ERROR,can not save cert in "
-							"certificate.pem!\n");
+							"'%s'\n", outfile);
 				return(1);
 			}
 			if ( verbose ) printf("Ok.\n");
@@ -1141,8 +1143,7 @@ int main (int argc, char *argv[] ) {
 			}
 
 			if(PKI_TOKEN_import_cert_stack(tk, sk, 
-					PKI_DATATYPE_X509_CERT, uri) 
-								== PKI_ERR) {
+				PKI_DATATYPE_X509_CERT, uri) == PKI_ERR) {
 				printf("ERROR!\n\n");
 				exit(1);
 			};

@@ -98,9 +98,9 @@ const HSM *HSM_get_default( void ) {
 
 HSM *HSM_new( char *dir, char *name ) {
 
-	HSM *hsm = NULL;
+	HSM  * hsm   = NULL;
 	char * url_s = NULL;
-	char * buff = NULL;
+	char * buff  = NULL;
 
 	PKI_CONFIG *conf = NULL;
 	char *type = NULL;
@@ -120,11 +120,11 @@ HSM *HSM_new( char *dir, char *name ) {
 
 	if((conf = PKI_CONFIG_load( url_s )) == NULL ) {
 		PKI_log_debug( "Can not load config from %s", url_s );
-		return(NULL);
+		goto err;
 	}
 
 	if((buff = PKI_Malloc ( BUFF_MAX_SIZE )) == NULL ) {
-		return(NULL);
+		goto err;
 	}
 
 	/* Let's generate the right searching string with the namespace
@@ -132,9 +132,7 @@ HSM *HSM_new( char *dir, char *name ) {
 	if((type = PKI_CONFIG_get_value ( conf, "/hsm/type")) == NULL ) {
 		/* No type in the config! */
 		PKI_log_debug("ERROR, No HSM type in the config!");
-		// PKI_CONFIG_free ( conf );
-		// return (NULL);
-		type = "software";
+		type = strdup("software");
 	}
 
 	if( strcmp_nocase(type,"software") == 0 ) {
@@ -167,14 +165,11 @@ HSM *HSM_new( char *dir, char *name ) {
 #endif
 	} else {
 		PKI_log_debug( "Unknown HSM type (%s)", type );
-		PKI_CONFIG_free ( conf );
-		return (NULL);
+		goto err;
 	}
 
-	if ( ( hsm != NULL ) && (HSM_init ( hsm ) != PKI_OK) )
-	{
-			HSM_free ( hsm );
-			return NULL;
+	if ( ( hsm != NULL ) && (HSM_init ( hsm ) != PKI_OK) ) {
+		goto err;
 	}
 
 	// Let' see if we can enforce the FIPS mode (optional, therefore
@@ -188,8 +183,7 @@ HSM *HSM_new( char *dir, char *name ) {
 			else
 			{
 				PKI_log_err("Can not create HSM in FIPS mode");
-				HSM_free(hsm);
-				return NULL;
+				goto err;
 			}
 	}
 	else
@@ -197,7 +191,24 @@ HSM *HSM_new( char *dir, char *name ) {
 		PKI_log_debug("HSM created in non-FIPS mode");
 	}
 
+	// Free memory
+	if (type) PKI_Free(type);
+	if (conf) PKI_CONFIG_free(conf);
+	if (url_s) PKI_Free(url_s);
+
+	// Returns the value
 	return (hsm);
+
+err:
+
+	// Free used memory
+	if (conf) PKI_CONFIG_free(conf);
+	if (url_s) PKI_Free(url_s);
+	if (hsm) HSM_free(hsm);
+	if (type) PKI_Free(type);
+
+	// Returns a NULL pointer
+	return NULL;
 }
 
 /*! \brief Allocates a new HSM structure and initializes it in FIPS mode
@@ -264,7 +275,7 @@ int HSM_init( HSM *hsm ) {
 	/* Call the init function provided by the hsm itself */
 	if( hsm->callbacks->init )
 	{
-		return (hsm->callbacks->init ( hsm->driver, hsm->config ));
+		return (hsm->callbacks->init(hsm, hsm->config ));
 	}
 	else
 	{
@@ -298,7 +309,7 @@ int HSM_login ( HSM *hsm, PKI_CRED *cred ) {
 	if (!hsm) return (PKI_ERR);
 
 	if ( hsm->callbacks->login ) {
-		return ( hsm->callbacks->login( hsm->driver, cred ));
+		return ( hsm->callbacks->login(hsm, cred ));
 	} else {
 		/* No login required by the HSM */
 		PKI_log_debug("No login function for selected HSM");
@@ -312,7 +323,7 @@ int HSM_logout ( HSM *hsm ) {
 	if (!hsm || !hsm->callbacks ) return (PKI_ERR);
 
 	if ( hsm->callbacks && hsm->callbacks->logout ) {
-		return ( hsm->callbacks->logout( hsm->driver ));
+		return ( hsm->callbacks->logout( hsm ));
 	} else {
 		/* No login required by the HSM */
 		PKI_log_debug("No login function for selected HSM");
@@ -357,22 +368,22 @@ int HSM_is_fips_mode(const HSM *hsm)
 
 /* -------------------------- General Crypto HSM ----------------------- */
 
-int HSM_set_algor ( PKI_ALGOR *alg, HSM *hsm ) {
+int HSM_set_sign_algor ( PKI_ALGOR *alg, HSM *hsm ) {
 
 	int ret = PKI_OK;
 
-	if( !alg ) {
-		PKI_log_debug( "HSM_set_algor()::Error, no algorithm passed!");
-		return ( PKI_ERR );
+	// Input Checks
+	if (!alg) return PKI_ERROR(PKI_ERR_PARAM_NULL, "No algorithm passed!");
+
+	// Sets the algorithm if it is an hardware token
+	if (hsm && hsm->callbacks && hsm->callbacks->sign_algor) {
+
+		// Using the HSM callback
+		PKI_log_debug("Setting the signature algorithm for selected HSM");
+		ret = hsm->callbacks->sign_algor(hsm, alg);
 	}
 
-	if( hsm && hsm->callbacks && hsm->callbacks->select_algor ) {
-		ret = hsm->callbacks->select_algor ( hsm, alg );
-	} else {
-		PKI_log_debug ("No set algor from selected HSM");
-		ret = PKI_OK;
-	}
-
+	// All Done
 	return (ret);
 }
 
@@ -395,15 +406,12 @@ typedef struct my_meth_st {
 } LIBPKI_METH;
 #endif
 
-int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
+int PKI_X509_sign(PKI_X509               * x, 
+		          const PKI_DIGEST_ALG   * digest,
+		          const PKI_X509_KEYPAIR * key) {
 
 	PKI_MEM *der = NULL;
 	PKI_MEM *sig = NULL;
-
-	/*
-	PKI_ALGOR *alg1 = NULL;
-	PKI_ALGOR *alg2 = NULL;
-	*/
 
 	PKI_ALGOR *algs[] = {
 		NULL,
@@ -441,30 +449,36 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 	*/
 
 	// Check we got at least one
-	if( !algs[0] && !algs[1] )
-	{
-		PKI_log_debug("Can not retrieve sign algorithm!");
+	if (!algs[0] && !algs[1]) {
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve the signing algorithm!");
 		return PKI_ERR;
 	}
 
+	// DEBUGGING for Signatures
+	if (algs[0]) PKI_DEBUG("ALG0 => %s", PKI_ALGOR_get_parsed(algs[0]));
+	if (algs[1]) PKI_DEBUG("ALG1 => %s", PKI_ALGOR_get_parsed(algs[1]));
 
 #ifdef ENABLE_AMETH
 	pkey = key->value;
 	ameth = (struct my_meth_st *) pkey->ameth;
 
-	if (digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE)
-	{
+# if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	if (digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE) {
 		if (!ameth || !OBJ_find_sigid_by_algs(&signid, EVP_MD_nid(digest), 
-			ameth->pkey_id))
-		{
+									ameth->pkey_id)) {
 			// ASN1_R_DIGEST_AND_KEY_TYPE_NOT_SUPPORTED
+			PKI_ERROR(PKI_ERR_GENERAL, "Digest and Key Type not supported");
 			return PKI_ERR;
 		}
+	} else {
+		signid = digest->pkey_type;
 	}
-	else signid = digest->pkey_type;
+# else
+	signid = EVP_MD_pkey_type(digest);
+# endif
 
-    if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) paramtype = V_ASN1_NULL;
-    else paramtype = V_ASN1_UNDEF;
+	if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) paramtype = V_ASN1_NULL;
+	else paramtype = V_ASN1_UNDEF;
 
 	for (i = 0; i < 2; i++)
 	{
@@ -473,139 +487,96 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 #else
 	/* Get the pointers to the internal algor data - very OpenSSL related */
 	for ( i = 0; i < 2; i ++ ) {
+
+		int p_type = 0;
+
 		PKI_ALGOR *a = NULL;
 
 		a = algs[i];
 
-		if ( a == NULL ) continue;
+		if (a == NULL) continue;
 
-		if ( (digest->pkey_type == PKI_ALGOR_DSA_SHA1)
+		// Gets the Signature Algorithm
+		p_type = EVP_MD_pkey_type(digest);
+
+		if ((p_type == PKI_ALGOR_DSA_SHA1)
 #ifdef ENABLE_ECDSA
-			|| ( digest->pkey_type == PKI_ALGOR_ECDSA_SHA1 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA256 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA384 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA512 )
+			|| (p_type == PKI_ALGOR_ECDSA_SHA1 )    ||
+			   ( p_type == PKI_ALGOR_ECDSA_SHA256 ) ||
+			   ( p_type == PKI_ALGOR_ECDSA_SHA384 ) ||
+			   ( p_type == PKI_ALGOR_ECDSA_SHA512 )
 #endif
 				) {
 			if(a->parameter) ASN1_TYPE_free(a->parameter);
 			a->parameter = NULL;
+
 		} else if ((a->parameter == NULL) ||
 				(a->parameter->type != V_ASN1_NULL)) {
 
 			if(a->parameter) ASN1_TYPE_free(a->parameter);
 			if ((a->parameter=ASN1_TYPE_new()) == NULL) {
-				PKI_log_err ("Memory Error");
-				return PKI_ERR;
-			};
+				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			}
+
 			a->parameter->type=V_ASN1_NULL;
 		}
 
-		a->algorithm = OBJ_nid2obj( digest->pkey_type );
+		a->algorithm = OBJ_nid2obj(p_type );
 
-		if (a->algorithm == NULL) {
-			PKI_log_err ("Unknown Object Type");
-			return PKI_ERR;
-		};
+		if (a->algorithm == NULL)
+			return PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Algorithm type is unknown");
 
-		if (a->algorithm->length == 0) {
-			PKI_log_err ("Object Identifier not valid or unknown!");
-			return PKI_ERR;
-		}
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+		if (a->algorithm->length == 0)
+			return PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Algorithm type is unknown");
+#endif
+
 	}
 #endif
 
-	// Now let's set the algorithms - NOTE: algs are passed by ref, no need to set it
-	// if (algs[0]) PKI_X509_CERT_set_data(x, PKI_X509_DATA_SIGNATURE_ALG1, algs[0]);
-	// if (algs[1]) PKI_X509_CERT_set_data(x, PKI_X509_DATA_SIGNATURE_ALG2, algs[1]);
-
-	/*
-    if (algs[0]) {
-        X509_ALGOR_set0(algs[0], OBJ_nid2obj(signid), paramtype, NULL);
-	};
-
-    if (algs[1]) {
-        X509_ALGOR_set0(algs[1], OBJ_nid2obj(signid), paramtype, NULL);
-	};
-	*/
-
-	/* Get the pointers to the internal algor data - very OpenSSL related */
-	/*
-	for ( i = 0; i < 2; i ++ ) {
-		if ( i == 0 )
-			a = alg1;
-		else
-			a = alg2;
-
-		if ( a == NULL ) continue;
-
-		if ( (digest->pkey_type == NID_dsaWithSHA1) ||
-				( digest->pkey_type == NID_ecdsa_with_SHA1 )) {
-
-			ASN1_TYPE_free(a->parameter);
-            a->parameter = NULL;
-		} else if ((a->parameter == NULL) ||
-				(a->parameter->type != V_ASN1_NULL)) {
-
-            ASN1_TYPE_free(a->parameter);
-            if ((a->parameter=ASN1_TYPE_new()) == NULL) {
-				PKI_log_err ("Memory Error");
-				return PKI_ERR;
-			};
-            a->parameter->type=V_ASN1_NULL;
-		}
-
-		a->algorithm = OBJ_nid2obj( digest->pkey_type );
-        if (a->algorithm == NULL) {
-            PKI_log_err ("Unknown Object Type");
-			return PKI_ERR;
-		};
-
-		if (a->algorithm->length == 0) {
-            PKI_log_err ("Object Identifier not valid or unknown!");
-            return PKI_ERR;
-		}
-	}
-	*/
-
-	/*
-	if (alg1)
-		__set_algorithm(alg1, OBJ_nid2obj(digest->pkey_type), paramtype);
-	if (alg2)
-		__set_algorithm(alg2, OBJ_nid2obj(digest->pkey_type), paramtype);
-	*/
-
-	if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
+	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) 
+	// if ((der = PKI_X509_get_der_tbs(x)) == NULL) 
+	// if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
 	{
+		// Puts the DER representation in a PKI_MEM structure
 		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, NULL, NULL )) == NULL)
 		{
-			PKI_log_debug("Can not convert object to ASN1");
-			return PKI_ERR;
+			// Can not encode into DER
+			return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
 		}
 	}
 
+	// Generates the Signature
 	if ((sig = PKI_sign(der, digest, key)) == NULL)
 	{
-		PKI_MEM_free ( der );
-		return PKI_ERR;
+		PKI_MEM_free(der);
+		return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 	}
 
-	/* der work is finished, let's free the memory */
-	PKI_MEM_free ( der );
+	// der work is finished, let's free the memory
+	PKI_MEM_free(der);
 
-	if((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE))==NULL)
-	{
+	// Gets the reference to the X509 signature field
+	if ((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE)) == NULL) {
+
+		// Free the generated signature
 		PKI_MEM_free (sig);
-		PKI_log_debug("Can't get signature data");
-		return PKI_ERR;
+
+		// Return the error
+		return PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get signature data");
 	}
 
-	if ( signature->data ) PKI_Free ( signature->data );
+	// TODO: Check if we need to free this memory or not
+	// if (signature->data) PKI_Free(signature->data);
 
+	// Transfer the ownership of the generated signature data (sig)
+	// to the signature field in the X509 structure (signature)
 	signature->data   = sig->data;
 	signature->length = (int) sig->size;
 
+	// Sets the flags into the signature field
 	signature->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT|0x07);
-  signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
+	signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
 
 	// We can not free the data in the sig PKI_MEM because that is
 	// actually owned by the signature now, so let's change the
@@ -622,10 +593,12 @@ int PKI_X509_sign(PKI_X509 *x, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key) {
 
 /*! \brief General signature function on data */
 
-PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
+PKI_MEM *PKI_sign(const PKI_MEM          * der,
+		  const PKI_DIGEST_ALG   * alg,
+		  const PKI_X509_KEYPAIR * key ) {
 
 	PKI_MEM *sig = NULL;
-	HSM *hsm = NULL;
+	const HSM *hsm = NULL;
 
 	// Input check
 	if (!der || !der->data || !key || !key->value)
@@ -635,17 +608,35 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
 	}
 
 	// Uses the default algorithm if none was provided
-	if ( !alg ) alg = PKI_DIGEST_ALG_DEFAULT;
+	if (!alg) alg = (const PKI_DIGEST_ALG *)PKI_DIGEST_ALG_DEFAULT;
 
 	// If no HSM is provided, let's get the default one
-	if (!(hsm && hsm->callbacks && hsm->callbacks->sign))
-		hsm = (HSM *) HSM_get_default();
+	hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());
 
 	// Requires the use of the HSM's sign callback
-	if (hsm && hsm->callbacks && hsm->callbacks->sign)
-	{
-		sig = hsm->callbacks->sign(der, alg, key); 
-		if (sig) PKI_log_debug("Signature Size (%d bytes)", sig->size);
+	if (hsm && hsm->callbacks && hsm->callbacks->sign) {
+
+		// Generates the signature by using the HSM callback
+		sig = hsm->callbacks->sign(
+			           (PKI_MEM *)der, 
+			           (PKI_DIGEST_ALG *)alg, 
+			           (PKI_X509_KEYPAIR *)key);
+
+		// 	Provides some usefuly debugging info 
+		if (sig) PKI_log_debug("Signature Size (%d bytes)",
+			sig->size);
+
+	} else {
+
+		// There is no callback for signing the X509 structure
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK,
+			  "No sign callback for key's HSM");
+
+		// Free Memory
+		PKI_MEM_free(sig);
+
+		// All Done
+		return NULL;
 	}
 
 	// Let's return the output of the signing function
@@ -656,26 +647,40 @@ PKI_MEM *PKI_sign ( PKI_MEM *der, PKI_DIGEST_ALG *alg, PKI_X509_KEYPAIR *key ) {
  * \brief Verifies a PKI_X509 by using a key from a certificate
  */
 
-int PKI_X509_verify_cert ( PKI_X509 *x, PKI_X509_CERT *cert ) {
+int PKI_X509_verify_cert(const PKI_X509 *x, const PKI_X509_CERT *cert) {
+
+	const PKI_X509_KEYPAIR *kval = NULL;
 
 	PKI_X509_KEYPAIR *kp = NULL;
-	PKI_X509_KEYPAIR *kval = NULL;
+
 	int ret = -1;
 
-	if (!x || !x->value || !cert || !cert->value ) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ERR;
-	}
+	// Input Check
+	if (!x || !x->value || !cert || !cert->value)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	kval = PKI_X509_CERT_get_data ( cert, PKI_X509_DATA_PUBKEY );
-	if ( !kval ) return PKI_ERR;
+	// Gets the internal value of the public key from the certificate
+	kval = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_PUBKEY);
+	if (!kval) return PKI_ERR;
 
-	kp = PKI_X509_new_value ( PKI_DATATYPE_X509_KEYPAIR, kval, NULL);
+	// Use the internal value to generate a new PKI_X509_KEYPAIR
+	kp = PKI_X509_new_value(PKI_DATATYPE_X509_KEYPAIR, 
+				            (PKI_X509_KEYPAIR_VALUE *)kval,
+				            NULL);
+
+	// Checks if the operation was successful
 	if ( !kp ) return PKI_ERR;
 
-	ret = PKI_X509_verify ( x, kp );
+	// Verifies the certificate by using the extracted public key
+	ret = PKI_X509_verify(x, kp);
+
+	// Take back the ownership of the internal value (avoid freeing
+	// the memory when freeing the memory associated with the
+	// PKI_X509_KEYPAIR data structure)
 	kp->value = NULL;
-	PKI_X509_KEYPAIR_free ( kp );
+
+	// Free the Memory
+	PKI_X509_KEYPAIR_free(kp);
 	
 	return ret;
 }
@@ -684,7 +689,7 @@ int PKI_X509_verify_cert ( PKI_X509 *x, PKI_X509_CERT *cert ) {
  * \brief Verifies a signature on a PKI_X509 object (not for PKCS7 ones)
  */
 
-int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
+int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 
 	int ret = PKI_ERR;
 	const HSM *hsm = NULL;
@@ -695,69 +700,94 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 	PKI_STRING *sig_value = NULL;
 	PKI_ALGOR *alg = NULL;
 
+	// Make sure the library is initialized
 	PKI_init_all();
 
-	if (!x || !x->value || !key || !key->value)
-	{
-		if (!x || !x->value) PKI_log_err("Missing data to verify");
-		if (!key || !key->value) PKI_log_err("Missing keypair to verify with");
+	// Input Checks
+	if (!x || !x->value || !key || !key->value) {
+
+		// Checks the X509 structure to verify
+		if (!x || !x->value)
+			return PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing data to verify");
+
+		// Checks the key value
+		if (!key || !key->value)
+			return PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing keypair to verify with");
+	}
+
+	// Gets the reference to the HSM to use
+	hsm = key->hsm != NULL ? key->hsm : HSM_get_default();
+
+	// Gets the algorithm from the X509 data
+	if (( alg = PKI_X509_get_data(x, PKI_X509_DATA_ALGORITHM)) == NULL) {
+
+		// Reports the error
+		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,
+			"Can not get algorithm from object!");
+	}
+
+	// Gets the DER representation of the data to be signed
+
+	// if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
+	// if ((data = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
+	if ((data = PKI_X509_get_tbs_asn1(x)) == NULL) {
+		return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, 
+			"Can not get To Be signed object!");
+	}
+
+	// Gets a reference to the Signature field in the X509 structure
+	if ((sig_value = PKI_X509_get_data(x, 
+					PKI_X509_DATA_SIGNATURE)) == NULL) {
+
+		// Free the memory
+		PKI_MEM_free(data);
+
+		// We could not get the reference to the signature field
+		return PKI_ERROR(PKI_ERR_POINTER_NULL,
+			"Can not get Signature field from the X509 object!");
+	}
+
+	// Copies the signature data structure from the sig_value (PKI_STRING)
+	// of the X509 structure to the sig one (PKI_MEM)
+	if ((sig = PKI_MEM_new_data((size_t)sig_value->length,
+							(unsigned char *)sig_value->data)) == NULL) {
+
+		// Free memory
+		PKI_MEM_free(data);
+
+		// Reports the memory error
 		return PKI_ERR;
 	}
 
-	if ( key->hsm ) hsm = key->hsm;
-	else hsm = HSM_get_default();
+	// Uses the callback to verify the signature that was copied
+	// in the sig (PKI_MEM) structure
+	if (hsm && hsm->callbacks && hsm->callbacks->verify) {
 
-	if (( alg = PKI_X509_get_data ( x, PKI_X509_DATA_ALGORITHM )) == NULL)
-	{
-		PKI_log_err("Can not get algorithm from object!");
-		return PKI_ERR;
-	}
-
-	if ((data = PKI_X509_get_data (x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
-	{
-		PKI_log_err("Can not get To Be signed object!");
-		return PKI_ERR;
-	}
-
-	if ((sig_value = PKI_X509_get_data (x, PKI_X509_DATA_SIGNATURE )) == NULL)
-	{
-		PKI_log_err("Can not get Signature from the object!");
-		PKI_MEM_free ( data );
-		return PKI_ERR;
-	}
-
-	if((sig = PKI_MEM_new_null ()) == NULL ){
-		PKI_MEM_free ( data );
-		return PKI_ERR;
-	}
-
-	if ((PKI_MEM_add(sig, (char *)sig_value->data, (size_t) sig_value->length)) == PKI_ERR)
-	{
-		PKI_MEM_free ( sig );
-		PKI_MEM_free ( data );
-		return PKI_ERR;
-	}
-
-	// PKI_log_debug(">>> GOT SIG [%p - size=%d]", sig, sig->size );
-
-	if (hsm && hsm->callbacks && hsm->callbacks->verify)
-	{
+		// Debugging Info
 		PKI_log_debug( "HSM verify() callback called " );
-		ret = hsm->callbacks->verify( data, sig, alg, key ); 
-	}
-	else
-	{
-		ret = PKI_verify_signature ( data, sig, alg, key );
+
+		// Calls the callback function
+		ret = hsm->callbacks->verify(data,
+					     sig,
+					     alg,
+					     (PKI_X509_KEYPAIR *)key );
+
+	} else {
+
+		// If there is no verify callback, let's call the internal one
+		ret = PKI_verify_signature(data, sig, alg, key);
+
 	}
 
+	// Free the allocated memory
 	if ( data ) PKI_MEM_free ( data );
 	if ( sig  ) PKI_MEM_free ( sig  );
 
 	// Provides some additional information in debug mode
-	if (ret != PKI_OK)
-	{
+	if (ret != PKI_OK) {
 		PKI_log_debug("Crypto Layer Error: %s (%d)", 
-			HSM_get_errdesc(HSM_get_errno(hsm), hsm), HSM_get_errno(hsm));
+			HSM_get_errdesc(HSM_get_errno(hsm), hsm), 
+			HSM_get_errno(hsm));
 	}
 
 	return (ret);
@@ -765,48 +795,94 @@ int PKI_X509_verify ( PKI_X509 *x, PKI_X509_KEYPAIR *key ) {
 
 /*! \brief Verifies a signature */
 
-int PKI_verify_signature ( PKI_MEM *data, PKI_MEM *sig, PKI_ALGOR *alg,
-						PKI_X509_KEYPAIR *key )
-{
-	EVP_MD_CTX ctx;
+int PKI_verify_signature(const PKI_MEM *data, 
+			 const PKI_MEM *sig,
+			 const PKI_ALGOR *alg,
+			 const PKI_X509_KEYPAIR *key ) {
+	int v_code = 0;
+	EVP_MD_CTX *ctx = NULL;
 	PKI_DIGEST_ALG *dgst = NULL;
 
+	// Input Checks
 	if( !data || !data->data || !sig || !sig->data ||
-			 !alg || !key || !key->value ) 
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ERR;
+			 !alg || !key || !key->value )  {
+
+		// Reports the Input Error
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-	if((dgst = PKI_ALGOR_get_digest( alg )) == PKI_ID_UNKNOWN ) {
-		PKI_log_debug( "PKI_verify_signature() can not get digest!");
-		return PKI_ERR;
+	// Gets the Digest Algorithm to verify with
+	if ((dgst = PKI_ALGOR_get_digest(alg)) == PKI_ID_UNKNOWN) {
+
+		// Reports the error
+		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,  NULL);
 	}
 
-	EVP_MD_CTX_init(&ctx);
+	// Creates and Initializes a new crypto context (CTX)
+	if ((ctx = EVP_MD_CTX_new()) == NULL) {
 
-	if((EVP_VerifyInit_ex(&ctx,dgst, NULL)) == 0 ) {
-		PKI_log_debug( "PKI_verify_signature() verify init failed!");
+		// Can not alloc memory, let's report the error
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	// Initializes the new CTX
+	EVP_MD_CTX_init(ctx);
+
+	// Initializes the Verify Function
+	if ((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0) {
+
+		// Error in initializing the signature verification function
+		PKI_log_err("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
+			HSM_get_errno(NULL));
+
+		// Done working
 		goto err;
 	}
 
-	if((EVP_VerifyUpdate(&ctx,(unsigned char *)data->data,
-							data->size)) <= 0 ) {
-		PKI_log_debug( "PKI_verify_signature() verifyUpdate failed!");
+	// Updates the Verify function
+	if ((v_code = EVP_VerifyUpdate(ctx,
+						(unsigned char *)data->data,
+						data->size)) <= 0 ) {
+
+		// Reports the error
+		PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code, 
+			HSM_get_errno(NULL));
+
+		// Done working
 		goto err;
 	}
 
-	if (EVP_VerifyFinal(&ctx,(unsigned char *)sig->data,
-                        (unsigned int)sig->size, key->value ) <= 0 ) {
-		PKI_log_debug( "PKI_verify_signature() verifyFinal failed!");
+	// Finalizes the Verify function
+	if ((v_code = EVP_VerifyFinal(ctx,
+						(unsigned char *)sig->data,
+                        (unsigned int)sig->size, key->value )) <= 0 ) {
+
+		// Reports the error
+		PKI_log_err("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,
+			HSM_get_errno(NULL));
+
+		// Done working
 		goto err;
 	}
 
-	EVP_MD_CTX_cleanup(&ctx);
+	// Free the memory
+	EVP_MD_CTX_reset(ctx);
+	EVP_MD_CTX_free(ctx);
+
+	// All Done
 	return PKI_OK;
 
 err:
-	EVP_MD_CTX_cleanup(&ctx);
+	// Free Memory
+	if (ctx) { 
+		EVP_MD_CTX_reset(ctx);
+		EVP_MD_CTX_free(ctx);
+	}
+
+	// Returns the error
 	return PKI_ERR;
 }
 

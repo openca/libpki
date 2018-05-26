@@ -563,29 +563,45 @@ int HSM_PKCS11_session_new( unsigned long slot_id, CK_SESSION_HANDLE *hSession,
 
 	CK_SESSION_INFO session_info;
 
-	if (!hSession || !lib ) return ( PKI_ERR );
+	// Input checks
+	if (!hSession || !lib) return PKI_ERR;
 	
-	if ( flags == 0 ) flags = CKF_SERIAL_SESSION;
+	// Default flags
+	if (flags == 0) flags = CKF_SERIAL_SESSION;
 
+	// Clears the memory
+	memset(&session_info, 0, sizeof(CK_SESSION_INFO));
+
+	// Gets the Session Info
 	if(( rv = lib->callbacks->C_GetSessionInfo(*hSession, &session_info)) 
 								== CKR_OK ) {
 
-		if ( session_info.flags == flags ) {
-			return ( PKI_OK );
-		}
+		// If flags are the same, we are successful
+		if (session_info.flags == flags) return PKI_OK;
+
+		// If flags are not the same, let's log the condition
+		PKI_log_debug("%s()::Session flags returned "
+			"from C_GetSessionInfo() differ from given argument: "
+			"Prev=0x%8.8X, Curr=0x%8.8X", __PRETTY_FUNCTION__,
+			session_info.flags, flags);
+	} else {
+		PKI_log_debug("%s()::C_GetSessionInfo failed: Error: [0x%8.8X]",
+			      __PRETTY_FUNCTION__, rv);
 	}
 
 
-	/* If we reach this point, then the current session is either
-	   not valid or has different flags set */
+	// If we reach this point, then the current session is either
+	// not valid or has different flags set
 	if((rv = lib->callbacks->C_OpenSession (slot_id, 
 			(CK_FLAGS) flags, NULL, NULL, hSession)) != CKR_OK ) {
-		PKI_log_debug("HSM_PKCS11_session new ()::Failed opening a "
-			"new session 0x%x with the token (%d) [0x%8.8X]",
-					flags, slot_id, rv );
-		return ( PKI_ERR );
+		PKI_log_debug("%s()::Failed opening a new session "
+			      "(flags = 0x%x) with the token (slot=%d) "
+			      "Error: [0x%8.8X]", __PRETTY_FUNCTION__,
+			      flags, slot_id, rv );
+		return PKI_ERR;
 	}
 
+	// All Done
 	return ( PKI_OK );
 }
 
@@ -644,15 +660,7 @@ int HSM_PKCS11_get_attribute (CK_OBJECT_HANDLE *hPkey,
 			void **data, CK_ULONG *size, PKCS11_HANDLER *lib ) {
 
 	CK_RV rv;
-
-	/*
-	CK_ATTRIBUTE pTemplate[] = {
-		{ 0, NULL,  0 },
-	};
-	*/
-
 	CK_ATTRIBUTE pTemplate[1];
-
 	CK_BYTE *p = NULL;
 
 	if( !hPkey || !hSession || !lib || !lib->callbacks ||
@@ -664,27 +672,21 @@ int HSM_PKCS11_get_attribute (CK_OBJECT_HANDLE *hPkey,
 	pTemplate[0].pValue = NULL;
 	pTemplate[0].ulValueLen = 0;
 
-	// PKI_log_debug("HSM_PKCS11_get_attribute()::getting attribute 0x%8.8X",
-	// 						attribute );
-
 	/* Let's get the size of the attribute */
 	if(( rv = lib->callbacks->C_GetAttributeValue(*hSession, *hPkey, 
 						pTemplate, 1 )) != CKR_OK ) {
-		PKI_log_debug("HSM_PKCS11_get_attribute()::Failed 0x%8.8X",rv);
+		PKI_log_debug("%s()::Failed 0x%8.8X", __PRETTY_FUNCTION__, rv);
 		return ( PKI_ERR );
 	}
 
-	// PKI_log_debug("HSM_PKCS11_get_attribute()::Attribute Size is %lu",
-	// 				pTemplate.ulValueLen );
-
 	if( pTemplate[0].ulValueLen <= 0 ) {
-		PKI_log_debug("Attribute is Empty!");
+		PKI_log_debug("%s()::Attribute is Empty!", __PRETTY_FUNCTION__);
 		return ( PKI_ERR );
 	}
 
 	if((p = (CK_BYTE *) PKI_Malloc ( pTemplate[0].ulValueLen )) == NULL ) {
-		PKI_log_err ("Memory Error");
-		return ( PKI_ERR );
+		PKI_log_err ("%s()::Memory Error", __PRETTY_FUNCTION__);
+		return ( PKI_ERR_MEMORY_ALLOC );
 	}
 
 	pTemplate[0].pValue = p;
@@ -693,23 +695,13 @@ int HSM_PKCS11_get_attribute (CK_OBJECT_HANDLE *hPkey,
 	/* Now that we know the size, let's get the attribute */
 	if(( rv = lib->callbacks->C_GetAttributeValue( *hSession, *hPkey, 
 						pTemplate, 1 )) != CKR_OK ) {
-		PKI_log_err("HSM_PKCS11_get_attribute()::Failed (0x%8.8X)",
-		 					rv );
+		PKI_log_err("%s()::PKCS11/C_GetAttributeValue Failed (0x%8.8X)",
+		 	    __PRETTY_FUNCTION__, rv );
 		PKI_Free ( p );
 		return ( PKI_ERR );
 	}
 
 	*data = p;
-
-	// PKI_log_debug("HSM_PKCS11_get_attribute()::Completed succesfully");
-
-	/*
-	fprintf(stderr, ">>>>>> ATTRIBUTE [0x%8.8X] VALUE => ", attribute );
-	for ( i = 0 ; i < *size; i++ ) {
-		fprintf(stderr, "%x:", p[i] );
-	};
-	fprintf (stderr, "\n");
-	*/
 
 	return ( PKI_OK );
 }
@@ -783,21 +775,16 @@ int HSM_PKCS11_get_attr_bn ( CK_OBJECT_HANDLE *hObj,
 	}
 
 	if( *val ) {
-		BN_bin2bn( data, (int) size, *val );
+		BN_bin2bn(data, (int) size, *val);
 	} else {
-		*val = BN_bin2bn( data, (int) size, NULL );
+		*val = BN_bin2bn(data, (int) size, NULL);
 	}
 
-	/*
-	if( data ) {
-		for ( i = size; i < sizeof(CK_ULONG); i++ ) {
-			*data = 0x0;
-		}
-		*val = *data;
-	}
-	*/
+	// Let's free the memory
+	if (data) PKI_Free(data);
 
-	return ( PKI_OK );
+	// All Done
+	return PKI_OK;
 }
 
 int HSM_PKCS11_get_attr_sn ( CK_OBJECT_HANDLE *hObj,
@@ -852,12 +839,12 @@ int HSM_PKCS11_set_attr_bool (CK_ATTRIBUTE_TYPE type,
 }
 
 int HSM_PKCS11_set_attr_int ( CK_ATTRIBUTE_TYPE type,
-				int value, CK_ATTRIBUTE *attribute ) {
+				CK_ULONG value, CK_ATTRIBUTE *attribute ) {
 
 	if ( !attribute ) return ( PKI_ERR );
 
 	attribute->type = type;
-	attribute->pValue = (void *) PKI_Malloc ( sizeof(int));
+	attribute->pValue = (void *) PKI_Malloc ( sizeof(CK_ULONG));
 	memcpy(attribute->pValue, &value, sizeof(value));
 	attribute->ulValueLen = sizeof( value );
 
@@ -879,7 +866,7 @@ int HSM_PKCS11_set_attr_sn ( CK_ATTRIBUTE_TYPE type, char *value,
 	return PKI_OK;
 }
 
-int HSM_PKCS11_set_attr_bn ( CK_ATTRIBUTE_TYPE type, BIGNUM *bn, 
+int HSM_PKCS11_set_attr_bn ( CK_ATTRIBUTE_TYPE type, const BIGNUM *bn, 
 						CK_ATTRIBUTE *attribute) {
 
 	int len = 0;

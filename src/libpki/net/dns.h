@@ -31,7 +31,9 @@ enum pki_dns {
 #define T_CERT	36
 #endif
 
-PKI_MEM_STACK *URL_get_data_dns_url(URL *url, ssize_t size);
-int URL_get_dns_type(char *str);
+PKI_MEM_STACK *URL_get_data_dns_url(const URL * url,
+		                            ssize_t     size);
+
+int URL_get_dns_type(const char *str);
 
 #endif

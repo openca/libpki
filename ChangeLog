@@ -1,3 +1,33 @@
+* Jan  3 2018 Massimiliano Pala <madwolf@openca.org>
+- Initial update to PKCS#11 v2.40 to support new algorithms
+- Updated the list of supported algorithms
+- Inital fix for key generation process for PKCS#11 devices
+- Fixed signature algorithm checks and setup for PKCS#11 devices
+- Added support for multiple RSA Key Gen (X9_31 default)
+
+* Oct 18 2017 Massimiliano Pala <madwolf@openca.org>
+- Small memory leak fix for logging on stderr and stdout
+- Fixed small memory leak in PKI_X509_NAME_get_parsed()
+- Simplified PKI_X509_CERT_check_pubkey() internals
+- Fixed memory leak for HTTP messages retrieving
+- Fixed memory leak for SNI servername
+- Fixed setting SNI server name to operate with virtual servers
+
+* Sep 25 2017 Massimiliano Pala <madwolf@openca.org>
+- Fixed an error for default HSM callbacks for OpenSSL tokens that prevented signature generation
+- Fixed an error for OpenSSL's key generation (wrong return code)
+
+* Jun  5 2017 Massimiliano Pala <madwolf@openca.org>
+- Fixed backward compatibility with OpenSSL v1.0.x
+
+* May 28 2017 Massimiliano Pala <madwolf@openca.org>
+- Initiated port to OpenSSL v1.1.x
+
+* Dec 26 2016 Massimiliano Pala <madwolf@openca.org>
+- Fixed distclean target to remove test and docs directories
+- Fixed some memory issues w/ PKCS11 module
+- Fixed some tests details (min key sizes updated)
+
 * Mar 25 2015 Massimiliano Pala <madwolf@openca.org>
 - Added responderId type parameter in OCSP response signing
 

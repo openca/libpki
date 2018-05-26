@@ -20,7 +20,7 @@
   <!-- Where the Password should be read from -->
   <pki:passin>$passwd</pki:passin>
   <!-- ... or simply specify the password here -->
-  <pki:passwd></pki:passwd>
+  <pki:password></pki:password>
   <!-- Certificates -->
   <pki:othercerts>file:://$USER/.pki/tpm-certs.pem</pki:othercerts>
   <!-- Or you can specify a .p12 file where all the data are loaded

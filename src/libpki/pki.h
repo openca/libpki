@@ -6,30 +6,7 @@
 * Released under OpenCA LICENSE
 */
 
-/* BEGIN_C_DECLS should be used at the beginning of your declarations,
-so that C++ compilers don't mangle their names.  Use END_C_DECLS at
-the end of C declarations. */
-#undef BEGIN_C_DECLS
-#undef END_C_DECLS
-#ifdef __cplusplus
-	# define BEGIN_C_DECLS extern "C" {
-	# define END_C_DECLS }
-#else
-	# define BEGIN_C_DECLS /* empty */
-	# define END_C_DECLS /* empty */
-#endif
-     
-/* PARAMS is a macro used to wrap function prototypes, so that
-compilers that don't understand ANSI C prototypes still work,
-and ANSI C compilers can issue warnings about type mismatches. */
-#undef PARAMS
-#if defined (__STDC__) || defined (_AIX) \
-	|| (defined (__mips) && defined (_SYSTYPE_SVR4)) \
-		|| defined(WIN32) || defined(__cplusplus)
-	# define PARAMS(protos) protos
-#else
-	# define PARAMS(protos) ()
-#endif
+#include <libpki/compat.h>
 
 #ifndef _LIBPKI_PKI_H
 #define _LIBPKI_PKI_H	1
@@ -89,7 +66,7 @@ extern const long LIBPKI_OS_DETAILS;
 BEGIN_C_DECLS
 
 #define PKI_NAMESPACE_PREFIX		"pki"
-#define PKI_NAMESPACE_HREF			"http://www.openca.org/openca/pki/1/0/0"
+#define PKI_NAMESPACE_HREF		    "http://www.openca.org/openca/pki/1/0/0"
 
 #define PKI_SUBSCRIBER_REQ_TYPE		"application/pki-subscriber-request"
 #define PKI_SUBSCRIBER_RESP_TYPE	"application/pki-subscriber-response"
@@ -97,7 +74,7 @@ BEGIN_C_DECLS
 #define PKI_MANAGEMENT_RESP_TYPE	"application/pki-management-response"
 
 #ifdef HAVE_ENGINE
-#define ENV_OPENCA_ENGINE			"engine"
+#define ENV_OPENCA_ENGINE		    "engine"
 #define ENV_OPENCA_ENGINE_ID		"engine_id"
 #define ENV_OPENCA_ENGINE_PRE		"engine_pre"
 #define ENV_OPENCA_ENGINE_POST		"engine_post"
@@ -105,102 +82,8 @@ BEGIN_C_DECLS
 
 #define PKI_IO				BIO
 
-/* PKI Datatypes */
-typedef enum {
-	/* Driver(s) Datatype */
-	PKI_DATATYPE_UNKNOWN = 0,
-	PKI_DATATYPE_ANY,
-	PKI_DATATYPE_APPLICATION,
-	PKI_DATATYPE_PUBKEY,
-	PKI_DATATYPE_PRIVKEY,
-	PKI_DATATYPE_SECRET_KEY,
-	PKI_DATATYPE_CRED,
-	/* X509 types */
-	PKI_DATATYPE_X509_KEYPAIR,
-	PKI_DATATYPE_X509_CERT,
-	PKI_DATATYPE_X509_CRL,
-	PKI_DATATYPE_X509_REQ,
-	PKI_DATATYPE_X509_PKCS7,
-	PKI_DATATYPE_X509_PKCS12,
-	PKI_DATATYPE_X509_OCSP_REQ,
-	PKI_DATATYPE_X509_OCSP_RESP,
-	PKI_DATATYPE_X509_PRQP_REQ,
-	PKI_DATATYPE_X509_PRQP_RESP,
-	PKI_DATATYPE_X509_XPAIR,
-	PKI_DATATYPE_X509_CMS_MSG,
-	PKI_DATATYPE_X509_LIRT,
-	/* Non-X509 types */
-	PKI_DATATYPE_SCEP_MSG,
-	/* Custom Type */
-	PKI_DATATYPE_CUSTOM,
-	/* Used in PKCS11 driver */
-	PKI_DATATYPE_X509_CA,
-	PKI_DATATYPE_X509_TRUSTED,
-	PKI_DATATYPE_X509_OTHER
-} PKI_DATATYPE;
-
-/* Token Datatypes */
-typedef enum {
-	PKI_TOKEN_DATATYPE_UNKNOWN = 0,
-	PKI_TOKEN_DATATYPE_KEYPAIR,
-	PKI_TOKEN_DATATYPE_PRIVKEY,
-	PKI_TOKEN_DATATYPE_PUBKEY,
-	PKI_TOKEN_DATATYPE_CERT,
-	PKI_TOKEN_DATATYPE_CACERT,
-	PKI_TOKEN_DATATYPE_TRUSTEDCERT,
-	PKI_TOKEN_DATATYPE_OTHERCERT,
-	PKI_TOKEN_DATATYPE_CRL,
-	PKI_TOKEN_DATATYPE_CRED,
-	PKI_TOKEN_DATATYPE_NICKNAME,
-	PKI_TOKEN_DATATYPE_IDENTITY
-} PKI_TOKEN_DATATYPE;
-
-typedef enum {
-	/* Usual Ok */
-	PKI_TOKEN_STATUS_OK					= 0,
-	/* General Setup Errors */
-	PKI_TOKEN_STATUS_INIT_ERR			= 1,
-	PKI_TOKEN_STATUS_LOGIN_ERR			= 4,
-	/* Configuration  Errors */
-	PKI_TOKEN_STATUS_KEYPAIR_ERR 		= 8,
-	PKI_TOKEN_STATUS_CERT_ERR			= 16,
-	PKI_TOKEN_STATUS_CACERT_ERR			= 32,
-	PKI_TOKEN_STATUS_OTHERCERTS_ERR		= 64,
-	PKI_TOKEN_STATUS_TRUSTEDCERTS_ERR 	= 128,
-	/* Generic Errors */
-	PKI_TOKEN_STATUS_MEMORY_ERR			= 1024,
-	PKI_TOKEN_STATUS_UNKNOWN			= 2048,
-} PKI_TOKEN_STATUS;
-
-/* Data Export Format */
-typedef enum {
-	PKI_DATA_FORMAT_UNKNOWN		= 0,
-	PKI_DATA_FORMAT_PEM,
-	PKI_DATA_FORMAT_ASN1,
-	PKI_DATA_FORMAT_B64,
-	PKI_DATA_FORMAT_TXT,
-	PKI_DATA_FORMAT_XML,
-	PKI_DATA_FORMAT_URL,
-} PKI_DATA_FORMAT;
-
-#define PKI_DATA_FORMAT_SIZE		6
-
-typedef enum {
-	PKI_DATA_FORMAT_FLAG_NONE		      = 0,
-	PKI_DATA_FORMAT_FLAG_B64_SKIPNEWLINES = 1
-} PKI_DATA_FORMAT_FLAG;
-
-typedef enum {
-	PKI_FORMAT_UNDEF		= 0,
-	PKI_FORMAT_CMS,
-	PKI_FORMAT_SCEP,
-	PKI_FORMAT_NETSCAPE,
-	PKI_FORMAT_PKCS11,
-	PKI_FORMAT_SMIME,
-	PKI_FORMAT_ENGINE
-} PKI_FORMAT;
-
-#define PKI_FORMAT_SIZE			10
+/* Imports the library's datatypes */
+#include <libpki/datatypes.h>
 
 /* Supported Signing schemes identifiers */
 typedef enum {
@@ -213,67 +96,12 @@ typedef enum {
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 
-/* Supported Datatype for retrieving data from an X509 data object */
-typedef enum {
-	PKI_X509_DATA_SERIAL		= 0,
-	PKI_X509_DATA_VERSION,
-	PKI_X509_DATA_SUBJECT,
-	PKI_X509_DATA_ISSUER,
-	PKI_X509_DATA_NOTBEFORE,
-	PKI_X509_DATA_NOTAFTER,
-	PKI_X509_DATA_THISUPDATE,
-	PKI_X509_DATA_LASTUPDATE,
-	PKI_X509_DATA_NEXTUPDATE,
-	PKI_X509_DATA_PRODUCEDAT,
-	PKI_X509_DATA_ALGORITHM,
-	PKI_X509_DATA_KEYSIZE,
-	PKI_X509_DATA_KEYPAIR_VALUE,
-	PKI_X509_DATA_PUBKEY,
-	PKI_X509_DATA_PUBKEY_BITSTRING,
-	PKI_X509_DATA_PRIVKEY,
-	PKI_X509_DATA_SIGNATURE,
-	PKI_X509_DATA_SIGNATURE_ALG1,
-	PKI_X509_DATA_SIGNATURE_ALG2,
-	PKI_X509_DATA_TBS_MEM_ASN1,
-	PKI_X509_DATA_SIGNER_CERT,
-	PKI_X509_DATA_SIGNATURE_CERTS,
-	PKI_X509_DATA_PRQP_SERVICES,
-	PKI_X509_DATA_PRQP_STATUS_STRING,
-	PKI_X509_DATA_PRQP_STATUS_VALUE,
-	PKI_X509_DATA_PRQP_REFERRALS,
-	PKI_X509_DATA_PRQP_CAID,
-	PKI_X509_DATA_NONCE,
-	PKI_X509_DATA_CERT_TYPE,
-	PKI_X509_DATA_EXTENSIONS
-} PKI_X509_DATA;
-
-typedef enum {
-	PKI_X509_CERT_TYPE_UNKNOWN	= 0,
-	PKI_X509_CERT_TYPE_CA		= (1<<0),
-	PKI_X509_CERT_TYPE_USER		= (1<<1),
-	PKI_X509_CERT_TYPE_SERVER	= (1<<2),
-	PKI_X509_CERT_TYPE_PROXY	= (1<<3),
-	PKI_X509_CERT_TYPE_ROOT		= (1<<4)
-} PKI_X509_CERT_TYPE;
-
-typedef enum {
-	PKI_RSA_KEY_MIN_SIZE		= 1024,
-	PKI_DSA_KEY_MIN_SIZE		= 2048,
-	PKI_EC_KEY_MIN_SIZE			= 256,
-} PKI_KEY_MIN_SIZE;
-
-typedef enum {
-	PKI_RSA_KEY_DEFAULT_SIZE	= 2048,
-	PKI_DSA_KEY_DEFAULT_SIZE	= 2048,
-	PKI_EC_KEY_DEFAULT_SIZE		= 256,
-} PKI_KEY_DEFAULT_SIZE;
-
-#define CRL_OK			1
-#define	CRL_NOT_YET_VALID	2
-#define	CRL_EXPIRED		3
+#define CRL_OK			        1
+#define	CRL_NOT_YET_VALID	    2
+#define	CRL_EXPIRED		        3
 #define	CRL_ERROR_NEXT_UPDATE	4
 #define	CRL_ERROR_LAST_UPDATE	5
-#define CRL_ERROR_UNKNOWN	10
+#define CRL_ERROR_UNKNOWN       10
 
 #define	PKI_VALIDITY_ONE_HOUR	3600
 #define PKI_VALIDITY_ONE_DAY	PKI_VALIDITY_ONE_HOUR*24
@@ -392,24 +220,24 @@ typedef enum {
 	size_t s_size;
   } PKI_PTHREAD_ATTR;
 
-#define PKI_THREAD_CREATE_JOINABLE 0
-#define PKI_THREAD_CREATE_DETACHED 0x04
+#define PKI_THREAD_CREATE_JOINABLE       0
+#define PKI_THREAD_CREATE_DETACHED       0x04
 
-#define PKI_THREAD_EXPLICT_SCHED 0
-#define PKI_THREAD_INHERIT_SCHED 0x08
+#define PKI_THREAD_EXPLICT_SCHED         0
+#define PKI_THREAD_INHERIT_SCHED         0x08
 
-#define PKI_THREAD_SCOPE_PROCESS 		0
-#define PKI_THREAD_SCOPE_SYSTEM 		0x10
+#define PKI_THREAD_SCOPE_PROCESS 		 0
+#define PKI_THREAD_SCOPE_SYSTEM 		 0x10
 
 #define PKI_THREAD_DESTRUCTOR_ITERATIONS 256
 
-#define PKI_THREAD_PRIO_NONE 			0
-#define PKI_THREAD_PRIO_INHERIT 		8
-#define PKI_THREAD_PRIO_PROTECT 		16
-#define PKI_THREAD_PRIO_MULT 			32
+#define PKI_THREAD_PRIO_NONE 			 0
+#define PKI_THREAD_PRIO_INHERIT 		 8
+#define PKI_THREAD_PRIO_PROTECT 		 16
+#define PKI_THREAD_PRIO_MULT 			 32
 
-#define PKI_THREAD_PROCESS_SHARED 		0
-#define PKI_THREAD_PROCESS_PRIVATE 		1
+#define PKI_THREAD_PROCESS_SHARED 		 0
+#define PKI_THREAD_PROCESS_PRIVATE 		 1
 
 #else
 /* Pthread lib include */
@@ -464,11 +292,11 @@ typedef enum {
 
 /* Credentials */
 #include <libpki/pki_cred.h>
-
 #include <libpki/errors.h>
 #include <libpki/support.h>
 #include <libpki/pki_mem.h>
 #include <libpki/stack.h>
+#include <libpki/crypto.h>
 #include <libpki/net/sock.h>
 #include <libpki/net/ssl.h>
 #include <libpki/net/pki_socket.h>
@@ -487,8 +315,11 @@ typedef enum {
 #define PKI_X509_REQ	PKI_X509
 
 /* Libpki Includes */
+#include <libpki/pki_time.h>
+#include <libpki/pki_integer.h>
 #include <libpki/pki_x509_profile.h>
-#include <libpki/crypto.h>
+#include <libpki/pki_x509_mem.h>
+#include <libpki/pki_keyparams.h>
 #include <libpki/pki_string.h>
 #include <libpki/pki_init.h>
 #include <libpki/pki_algor.h>
@@ -497,40 +328,37 @@ typedef enum {
 #include <libpki/pki_oid.h>
 #include <libpki/pki_digest.h>
 #include <libpki/pki_hmac.h>
-#include <libpki/pki_conf.h>
-#include <libpki/pki_x509_attribute.h>
+// #include <libpki/pki_conf.h>
+#include <libpki/pki_config.h>
 #include <libpki/pki_keypair.h>
+#include <libpki/pki_x509_attribute.h>
 #include <libpki/pki_x509_signature.h>
 #include <libpki/pki_x509_name.h>
-#include <libpki/pki_x509_cert.h>
 #include <libpki/pki_x509_req.h>
+#include <libpki/pki_x509_cert.h>
 #include <libpki/pki_x509_crl.h>
-#include <libpki/pki_time.h>
-#include <libpki/pki_integer.h>
 #include <libpki/pki_x509_pkcs7.h>
 #include <libpki/pki_x509_p12.h>
-#include <libpki/pki_x509_mem.h>
 
 /* OCSP support */
 
 typedef enum {
 	PKI_OCSP_CERTSTATUS_GOOD 	= V_OCSP_CERTSTATUS_GOOD,
-	PKI_OCSP_CERTSTATUS_REVOKED = V_OCSP_CERTSTATUS_REVOKED,
-	PKI_OCSP_CERTSTATUS_UNKNOWN = V_OCSP_CERTSTATUS_UNKNOWN,
+	PKI_OCSP_CERTSTATUS_REVOKED	= V_OCSP_CERTSTATUS_REVOKED,
+	PKI_OCSP_CERTSTATUS_UNKNOWN	= V_OCSP_CERTSTATUS_UNKNOWN,
 } PKI_OCSP_CERTSTATUS;
 
 typedef enum {
 	PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL 			= 0,
 	PKI_X509_OCSP_RESP_STATUS_MALFORMEDREQUEST		= 1,
 	PKI_X509_OCSP_RESP_STATUS_INTERNALERROR 		= 2,
-	PKI_X509_OCSP_RESP_STATUS_TRYLATER 				= 3,
+	PKI_X509_OCSP_RESP_STATUS_TRYLATER 			    = 3,
 	PKI_X509_OCSP_RESP_STATUS_SIGREQUIRED 			= 5,
 	PKI_X509_OCSP_RESP_STATUS_UNAUTHORIZED 			= 6
 } PKI_X509_OCSP_RESP_STATUS;
 
 #include <libpki/pki_ocsp_req.h>
 #include <libpki/pki_ocsp_resp.h>
-
 
 /* HSM Support */
 #include <libpki/drivers/hsm_keypair.h>

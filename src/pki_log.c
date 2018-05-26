@@ -62,16 +62,16 @@ static PKI_LOG _log_st = {
 	NULL,
 
 	/* Init Callback Pointer */
-	_pki_syslog_init,
+	NULL,
 
 	/* Add Callback Pointer */
-	_pki_syslog_add,
+	NULL,
 
 	/* Finalize Callback Pointer */
-	_pki_syslog_finalize,
+	NULL,
 
 	/* Sign Callback Pointer */
-	_pki_syslog_entry_sign,
+	NULL,
 };
 
 /*!
@@ -131,30 +131,40 @@ int PKI_log_init ( PKI_LOG_TYPE type, PKI_LOG_LEVEL level, char *resource,
 
 	/* Let's use different functions for different log types */
 	switch ( type ) {
-		case PKI_LOG_TYPE_SYSLOG:
+
+		case PKI_LOG_TYPE_SYSLOG: {
 			_log_st.init = _pki_syslog_init;
 			_log_st.add = _pki_syslog_add;
 			_log_st.finalize = _pki_syslog_finalize;
-			break;
-		case PKI_LOG_TYPE_STDOUT:
+			_log_st.entry_sign = _pki_syslog_entry_sign;
+		} break;
+
+		case PKI_LOG_TYPE_STDOUT: {
 			_log_st.init = _pki_stdout_init;
 			_log_st.add = _pki_stdout_add;
 			_log_st.finalize = _pki_stdout_finalize;
-			break;
-		case PKI_LOG_TYPE_STDERR:
+			_log_st.entry_sign = NULL;
+		} break;
+
+		case PKI_LOG_TYPE_STDERR: {
 			_log_st.init = _pki_stderr_init;
 			_log_st.add = _pki_stderr_add;
 			_log_st.finalize = _pki_stderr_finalize;
-			break;
-		case PKI_LOG_TYPE_FILE:
+			_log_st.entry_sign = NULL;
+		} break;
+
+		case PKI_LOG_TYPE_FILE: {
 			_log_st.init = _pki_file_init;
 			_log_st.add = _pki_file_add;
 			_log_st.finalize = _pki_file_finalize;
-			break;
+			_log_st.entry_sign = NULL;
+		} break;
+
 		case PKI_LOG_TYPE_FILE_XML:
-		default:
+		default: {
 			ret = PKI_ERR;
 			goto err;
+		}
 	}
 
 	if ( _log_st.init ) {
@@ -189,6 +199,13 @@ int PKI_log_end( void )
 		ret = _log_st.finalize ( & _log_st );
 	else
 		ret = PKI_OK;
+
+    _log_st.level = PKI_LOG_NONE;
+    _log_st.flags = PKI_LOG_FLAGS_NONE;
+    _log_st.init = NULL;
+	_log_st.add = NULL;
+	_log_st.finalize = NULL;
+	_log_st.entry_sign = NULL;
 
 	pthread_cond_signal ( &log_cond );
 	pthread_mutex_unlock( &log_mutex );
@@ -386,36 +403,48 @@ static void _pki_syslog_add( int level, const char *fmt, va_list ap ) {
 
 static void _pki_stdout_add( int level, const char *fmt, va_list ap ) {
 
-	PKI_TIME *now = NULL;
+	PKI_TIME *now = PKI_TIME_new(0);
+		// Current GMT Time
 
-	now = PKI_TIME_new(0);
+	char * now_s = PKI_TIME_get_parsed(now);
+		// Text Representation of the now time
+
+	// Let's make sure we have some text to write
+	if (now_s == NULL) now_s = strdup("<time error>");
 
 	/* Let's print the log entry */
-	fprintf ( stdout, "%s [%d] %s: ", 
-		PKI_TIME_get_parsed( (PKI_TIME *) now ), 
-					getpid(), _get_info_string( level ));
+	fprintf ( stdout, "%s [%d] %s: ",
+		now_s, getpid(), _get_info_string(level));
 	vfprintf( stdout, fmt, ap );
 	fprintf ( stdout, "\n" );
-
+ 
+	// Free Memory
 	PKI_TIME_free( now );
+	PKI_Free(now_s);
 
 	return;
 }
 
 static void _pki_stderr_add( int level, const char *fmt, va_list ap ) {
 
-	PKI_TIME *now = NULL;
+	PKI_TIME *now = PKI_TIME_new(0);
+		// Current GMT Time
 
-	now = PKI_TIME_new(0);
+	char * now_s = PKI_TIME_get_parsed(now);
+		// Text Representation of the now time
+
+	// Let's make sure we have some text to write
+	if (now_s == NULL) now_s = strdup("<time error>");
 
 	/* Let's print the log entry */
-	fprintf ( stderr, "%s [%d] %s: ", 
-		PKI_TIME_get_parsed( (PKI_TIME *) now ), 
-					getpid(), _get_info_string( level ));
+	fprintf(stderr, "%s [%d] %s: ", 
+		now_s, getpid(), _get_info_string(level));
 	vfprintf( stderr, fmt, ap );
 	fprintf ( stderr, "\n" );
 
-	PKI_TIME_free( now );
+	// Free Memory
+	PKI_TIME_free(now);
+	PKI_Free(now_s);
 
 	return;
 }
@@ -426,6 +455,10 @@ static void _pki_file_add( int level, const char *fmt, va_list ap ) {
 	FILE *file = NULL;
 
 	PKI_TIME *now = NULL;
+		// Current GMT Time
+
+	char * now_s = NULL;
+		// Text Representation of the now time
 
 	if( ! _log_st.resource ) return;
 
@@ -441,14 +474,21 @@ static void _pki_file_add( int level, const char *fmt, va_list ap ) {
 		return;
 	}
 
-	now = PKI_TIME_new(0);
+	// Gets the Current Time
+	if ((now = PKI_TIME_new(0)) == NULL) return;
+	if ((now_s = PKI_TIME_get_parsed(now)) == NULL) {
+		now_s = strdup("<time error>");
+	}
+
 	/* Let's print the log entry */
 	fprintf ( file, "%s [%d]: %s: ", 
-		PKI_TIME_get_parsed( (PKI_TIME *) now ), 
-					getpid(), _get_info_string( level ));
+		now_s, getpid(), _get_info_string( level ));
 	vfprintf( file, fmt, ap );
 	fprintf ( file, "\n");
-	PKI_TIME_free( now );
+
+	// Free Memory
+	PKI_TIME_free(now);
+	PKI_Free(now_s);
 
 	/* Now close the file stream */
 	fclose( file );

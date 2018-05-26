@@ -118,41 +118,46 @@ int main (int argc, char *argv[]) {
 	//
 	// -------------------------- Setup the SSL Options ------------------------
 	//
-	if(( ssl = PKI_SSL_new( NULL )) == NULL ) {
+	if ((ssl = PKI_SSL_new(NULL)) == 0) {
 		fprintf(stderr, "ERROR: Memory allocation error (PKI_SSL_new)\n");
 		return ( 1 );
 	}
 
 	if ( trusted_certs ) {
+
 		PKI_X509_CERT_STACK *sk = NULL;
 
-		if(( sk = PKI_X509_CERT_STACK_get ( trusted_certs, NULL, NULL))
-								== NULL ) {
-			PKI_log_err ("Can't load Trusted Certs from %s",
-						trusted_certs );
+		if ((sk = PKI_X509_CERT_STACK_get(trusted_certs, NULL, NULL)) == 0) {
+			fprintf(stderr, "Can't load Trusted Certs from %s", trusted_certs);
 			return 1;
 		}		
 
-		PKI_SSL_set_trusted ( ssl, sk );
-
-		if ( verify_chain ) {
-			PKI_SSL_set_verify(ssl, PKI_SSL_VERIFY_PEER_REQUIRE);
-		} else {
-			PKI_SSL_set_verify(ssl, PKI_SSL_VERIFY_PEER);
+		if (PKI_SSL_set_trusted(ssl, sk) != PKI_OK) {
+			PKI_log_err("Can not set the stack of trusted certificates from %s",
+	      trusted_certs);
+			return 1;
 		}
+
+		PKI_log_debug("Added %d certificates to the trusted list (from %s)\n",
+			PKI_STACK_X509_CERT_elements(sk), trusted_certs);
 	}
 
-	if ( verify_chain == 0 ) {
-			PKI_SSL_set_verify ( ssl, PKI_SSL_VERIFY_NONE );
-			fprintf(stderr, "WARNING: no verify set!\n");
+	if (verify_chain != 0) {
+		PKI_SSL_set_verify(ssl, PKI_SSL_VERIFY_PEER_REQUIRE);
+	} else {
+		PKI_SSL_set_verify(ssl, PKI_SSL_VERIFY_NONE );
+		PKI_log_debug("WARNING: no verify set!");
 	}
 
-	if(( sock = PKI_SOCKET_new ()) == NULL ) {
+	if ((sock = PKI_SOCKET_new()) == 0) {
 		fprintf(stderr, "ERROR, can not create a new Socket!\n\n");
-		exit(1);
+		return 1;
 	}
 
-	PKI_SOCKET_set_ssl ( sock, ssl );
+	if (PKI_SOCKET_set_ssl(sock, ssl) != PKI_OK) {
+		fprintf(stderr, "ERROR, can not set the socket for SSL/TLS!\n\n");
+		return 1;
+	}
 
 	//
 	// ------------------------------ Retrieve Data -----------------------------
@@ -194,19 +199,21 @@ int main (int argc, char *argv[]) {
 					"ERROR: Can not dump cert (no SSL)\n");
 			}
 
-			if((x_sk = PKI_SSL_get_peer_chain ( ssl )) == NULL ) {
+			if ((x_sk = PKI_SSL_get_peer_chain(ssl)) == NULL ) {
 				fprintf( stderr,
 					"ERROR: No certificate chain is available\n");
 			}
 
-			if( PKI_X509_CERT_STACK_put ( x_sk, PKI_DATA_FORMAT_PEM,
-					dump_chain, NULL, NULL, NULL ) == PKI_ERR){
+			if (PKI_X509_CERT_STACK_put(x_sk, 
+	                                PKI_DATA_FORMAT_PEM,
+					                        dump_chain,
+	                                NULL, NULL, NULL ) != PKI_OK) {
 				fprintf(stderr, "ERROR: can not write Peer cert to "
 					"%s\n", dump_cert );
 			}
 		}
 
-		if((sk = URL_get_data_socket ( sock, timeout, 0 )) == NULL ) {
+		if ((sk = URL_get_data_socket(sock, timeout, 0)) == 0) {
 			fprintf(stderr, "ERROR, can not retrieve data!\n\n");
 			return(-1);
 		}
@@ -216,7 +223,7 @@ int main (int argc, char *argv[]) {
 	}
 	else // Get Data via the usual URL socket-less approach
 	{
-		sk = URL_get_data_url (url, timeout, 0, ssl);
+		sk = URL_get_data_url(url, timeout, 0, ssl);
 	}
 
 	PKI_log_debug("URL: Number of retrieved entries is %d",

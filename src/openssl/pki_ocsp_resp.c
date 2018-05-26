@@ -9,8 +9,13 @@
 PKI_OCSP_RESP *PKI_OCSP_RESP_new ( void )
 {
 	// Crypto Provider's specific data structures
-	PKI_X509_OCSP_RESP_VALUE *r = NULL;
-	OCSP_BASICRESP *bs = NULL;
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	OSSL_OCSP_RESPONSE  * r = NULL;
+	OSSL_OCSP_BASICRESP * bs = NULL;
+#else
+	PKI_X509_OCSP_RESP_VALUE * r = NULL;
+	OCSP_BASICRESP           * bs = NULL;
+#endif
 
 	// Return container
 	PKI_OCSP_RESP * ret = NULL;
@@ -152,8 +157,9 @@ int PKI_X509_OCSP_RESP_set_status ( PKI_X509_OCSP_RESP *x,
 
 int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp, 
 			OCSP_CERTID *cid, PKI_OCSP_CERTSTATUS status,
-			PKI_TIME *revokeTime, PKI_TIME *thisUpdate,
-			PKI_TIME *nextUpdate, 
+			const PKI_TIME *revokeTime, 
+			const PKI_TIME *thisUpdate,
+			const PKI_TIME *nextUpdate, 
 			PKI_X509_CRL_REASON reason,
 			PKI_X509_EXTENSION *invalidityDate ) {
 
@@ -186,7 +192,10 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 	}
 
 	if((single = OCSP_basic_add1_status(r->bs, cid,
-			status, reason, revokeTime, myThisUpdate, nextUpdate))== NULL)
+			status, reason, 
+			(ASN1_TIME *)revokeTime, 
+			(ASN1_TIME*)myThisUpdate,
+			(ASN1_TIME*)nextUpdate))== NULL)
 	{
 		PKI_log_err ("Can not create basic entry!");
 		return ( PKI_ERR );
@@ -204,6 +213,65 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 		}
 	}
 
+	return PKI_OK;
+}
+
+/*!
+ * \brief set the id-pkix-ocsp-extended-revoke extension in the response
+ */ 
+
+int PKI_X509_OCSP_RESP_set_extendedRevoke(PKI_X509_OCSP_RESP * resp) {
+
+	PKI_X509_EXTENSION_VALUE * ext_val = NULL;
+	OCSP_BASICRESP *bs = NULL;
+
+	// Input Checks
+	if (!resp || !resp->value) 
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Checks we have the basic response
+	bs = (OCSP_BASICRESP *) resp->value;
+	if (!bs) return PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+
+	// Allocates the memory
+	if ((ext_val = X509_EXTENSION_new()) == NULL) 
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
+
+	// Let's create the extension and add it to the stack of extensions of
+	// the OCSP response. Due to an error reported here:
+	//
+	// http://marc.info/?1=openssl-users&m=138573884214852&w=2
+	//
+	// We do specify the OID with the dotted notation {id-pkix-ocsp 9}
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	PKI_OID * obj = NULL;
+	
+	if ((obj = PKI_OID_get("1.3.6.1.5.5.7.48.1.9")) != NULL) {
+
+		// Sets the Object, Criticality, and Value
+		X509_EXTENSION_set_object(ext_val, obj);
+		X509_EXTENSION_set_critical(ext_val, 0);
+		X509_EXTENSION_set_data(ext_val, NULL);
+
+		// Free the Allocated Memory
+		PKI_OID_free(obj);
+	}
+#else
+	ext_val->object = PKI_OID_get("1.3.6.1.5.5.7.48.1.9");
+
+	// Let's now set the non-critical flag and the value should be NULL
+	ext_val->critical = 0;
+	ext_val->value = NULL;
+#endif
+
+	// Let's add the extension to the basicresponse
+	if (!OCSP_BASICRESP_add_ext(bs, ext_val, -1)) {
+		// Free memory and return error
+		X509_EXTENSION_free(ext_val);
+		return PKI_ERR;
+	}
+
+	// Done
 	return PKI_OK;
 }
 
@@ -279,13 +347,17 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 }
 
 /*! \brief Signs a PKI_X509_OCSP_RESP, for a simpler API use PKI_X509_OCSP_RESP_sign_tk */
-int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp, 
-		PKI_X509_KEYPAIR *keypair, PKI_X509_CERT *cert, 
-		PKI_X509_CERT *issuer, PKI_X509_CERT_STACK * otherCerts,
-		PKI_DIGEST_ALG *digest, PKI_X509_OCSP_RESPID_TYPE respidType ) {
+int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp, 
+			    PKI_X509_KEYPAIR          * keypair,
+			    PKI_X509_CERT             * cert, 
+			    PKI_X509_CERT             * issuer,
+			    PKI_X509_CERT_STACK       * otherCerts,
+			    PKI_DIGEST_ALG            * digest,
+			    PKI_X509_OCSP_RESPID_TYPE   respidType) {
 
-	OCSP_RESPID *rid;
+	OCSP_RESPID *rid = NULL;
 	PKI_OCSP_RESP *r = NULL;
+	ASN1_GENERALIZEDTIME * time = NULL;
 
 	if (!resp || !resp->value || !keypair || !keypair->value)
 	{
@@ -323,7 +395,36 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 			"issuer's certificate!");
 	}
 
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
 	// Let's get the responderId
+	rid = &(r->bs->tbsResponseData.responderId);
+
+	// Set the appropriate by name or by key
+	if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME) {
+		if (!cert) {
+			return PKI_ERROR(PKI_ERR, 
+			"PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
+		}
+		if (1 != OCSP_RESPID_set_by_name(rid, cert->value)) {
+			return PKI_ERROR(PKI_ERR, "Can not set RESPID by name");
+		}
+	}
+	else
+	{
+		if (1 != OCSP_RESPID_set_by_key(rid, cert->value)) {
+			return PKI_ERROR(PKI_ERR, "Can not set RESPID by key");
+		}
+	}
+
+	if ((time = X509_gmtime_adj(r->bs->tbsResponseData.producedAt, 0)) == 0)
+		PKI_log_err("Error adding signed time to response");
+
+	if (!r->bs->tbsResponseData.producedAt)
+		r->bs->tbsResponseData.producedAt = time;
+
+#else
+
+	// Gets the responderId
 	rid = r->bs->tbsResponseData->responderId;
 
 	// Sets the responderId
@@ -371,10 +472,13 @@ int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *resp,
 		PKI_DIGEST_free(dgst);
 	}
 
-	if(X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0) == 0)
-	{
+	if ((time = X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0)) == 0)
 		PKI_log_err("Error adding signed time to response");
-	}
+
+	if (!r->bs->tbsResponseData->producedAt)
+		r->bs->tbsResponseData->producedAt = time;
+
+#endif
 
 	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new()))
 	{
@@ -445,12 +549,12 @@ int PKI_X509_OCSP_RESP_sign_tk(PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk,
 /*! \brief Returns a pointer to the data present in the OCSP request
  */
 
-void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type )
-{
-	void * ret = NULL;
+const void * PKI_X509_OCSP_RESP_get_data(PKI_X509_OCSP_RESP * r,
+					 PKI_X509_DATA        type) {
+
+	const void * ret = NULL;
 	PKI_OCSP_RESP *val = NULL;
 	OCSP_BASICRESP *tmp_x = NULL;
-	PKI_MEM *mem = NULL;
 	int idx = -1;
 
 	if( !r || !r->value ) return NULL;
@@ -469,13 +573,24 @@ void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type )
 			if (idx >= 0)
 			{
 				X509_EXTENSION *ext = OCSP_BASICRESP_get_ext(tmp_x, idx);
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+				if (ext) ret = X509_EXTENSION_get_data(ext);
+#else
+				if (ext) ret = ext->value;
+				/*
 				if (ext) ret = PKI_STRING_new(ext->value->type,
 						(char *) ext->value->data, (ssize_t) ext->value->length);
+				*/
+#endif
 			}
 			break;
 
 		case PKI_X509_DATA_NOTBEFORE:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			ret = OCSP_resp_get0_produced_at(tmp_x);
+#else
 			ret = tmp_x->tbsResponseData->producedAt;
+#endif
 			break;
 
 		case PKI_X509_DATA_NOTAFTER:
@@ -489,14 +604,19 @@ void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type )
 
 		case PKI_X509_DATA_ALGORITHM:
 		case PKI_X509_DATA_SIGNATURE_ALG1:
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			if (tmp_x) ret = &(tmp_x->signatureAlgorithm);
+#else
 			if ( tmp_x && tmp_x->signatureAlgorithm ) {
 				ret = tmp_x->signatureAlgorithm;
 			}
+#endif
 			break;
 
 		case PKI_X509_DATA_SIGNATURE_ALG2:
 			break;
 
+/*
 		case PKI_X509_DATA_TBS_MEM_ASN1:
 			if((mem = PKI_MEM_new_null()) == NULL )
 			{
@@ -507,6 +627,7 @@ void * PKI_X509_OCSP_RESP_get_data ( PKI_X509_OCSP_RESP *r, PKI_X509_DATA type )
 				&(mem->data), &OCSP_RESPDATA_it );
 			ret = mem;
 			break;
+*/
 
 		default:
 			return NULL;

@@ -35,19 +35,20 @@ typedef enum {
 /* Manipulating functions */
 PKI_STRING * PKI_STRING_new_null ( int type );
 PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size );
-PKI_STRING * PKI_STRING_dup ( PKI_STRING *a );
+PKI_STRING * PKI_STRING_dup ( const PKI_STRING *a );
 void PKI_STRING_free( PKI_STRING *s );
 
-int PKI_STRING_cmp(PKI_STRING *a, PKI_STRING *b);
+int PKI_STRING_cmp(const PKI_STRING *a, const PKI_STRING *b);
 int PKI_STRING_set( PKI_STRING *s, char *content, ssize_t size );
-int PKI_STRING_get_type( PKI_STRING *s );
-char * PKI_STRING_get_parsed( PKI_STRING *s );
-char * PKI_STRING_get_utf8( PKI_STRING *s );
-PKI_DIGEST * PKI_STRING_get_digest( PKI_STRING *s, PKI_DIGEST_ALG *digest);
+int PKI_STRING_get_type( const PKI_STRING *s );
+char * PKI_STRING_get_parsed( const PKI_STRING *s );
+char * PKI_STRING_get_utf8( const PKI_STRING *s );
+PKI_DIGEST * PKI_STRING_get_digest( const PKI_STRING *s, 
+				    const PKI_DIGEST_ALG *digest);
 
 /* Printing to fd or stdout */
-int PKI_STRING_print( PKI_STRING *s );
-int PKI_STRING_print_fp( FILE *fp, PKI_STRING *s );
+int PKI_STRING_print( const PKI_STRING *s );
+int PKI_STRING_print_fp( FILE *fp, const PKI_STRING *s );
 
 #endif
 
