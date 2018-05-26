@@ -510,27 +510,33 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element ( PKI_CONFIG *doc,
 
 	PKI_CONFIG_ELEMENT_STACK *sk = NULL;
 	PKI_CONFIG_ELEMENT *ret = NULL;
+	PKI_CONFIG_ELEMENT *tmp_el = NULL;
 
 	if ( !doc || !search ) return NULL;
 
-	// PKI_log_debug ("PKI_CONFIG_get_element()::Start");
-
-	if(( sk = PKI_CONFIG_get_element_stack ( doc, search )) == NULL ) {
+	if ((sk = PKI_CONFIG_get_element_stack(doc, search)) == NULL) {
 		// PKI_log_debug ("PKI_CONFIG_get_element()::No Stack Returned");
 		return NULL;
 	}
 
-	if ( num < 0 ) num = PKI_STACK_CONFIG_ELEMENT_elements ( sk ) - 1;
-	// PKI_log_debug ("PKI_CONFIG_get_element()::Stack Elements => %d",
-	// 			PKI_STACK_CONFIG_ELEMENT_elements( sk ));
-	
-	ret = PKI_STACK_CONFIG_ELEMENT_get_num ( sk, num );
+	// Gets the right element
+	if ((ret = PKI_STACK_CONFIG_ELEMENT_get_num(sk, num)) == NULL) {
+		PKI_log_debug("PKI_CONFIG_get_element()::Can not get element %d from the stack", num);
+	}
 
-	while ( PKI_STACK_CONFIG_ELEMENT_pop ( sk ));
+	// Free all remaining parts of the stack
+	while (tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) {
+		// Nothing to do - the elements are xmlNode and
+		// the memory would be freed with xmlFreeNode function,
+		// however, it is our understanding that the passed
+		// nodes are just references and do not need to be
+		// freed by the calling function
+		//
+		// Not Needed: xmlFreeNode(tmp_el);
+	}
 
-	PKI_STACK_CONFIG_ELEMENT_free ( sk );
-
-	// PKI_log_debug ("PKI_CONFIG_get_element()::End (ret => %p", ret);
+	// Free all the remaining memory
+	PKI_STACK_CONFIG_ELEMENT_free(sk);
 
 	return ret;
 		
@@ -1228,77 +1234,3 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child_el ( PKI_CONFIG * doc,
 
 	return ( el );
 }
-
-/*
-PKI_CONFIG *PKI_CONFIG_update ( PKI_CONFIG *doc ) {
-
-	// PKI_X509_PROFILE *origDoc = NULL;
-	PKI_X509_PROFILE *newDoc = NULL;
-	xmlParserCtxt *parserCtxt = NULL;
-	PKI_MEM *mem = NULL;
-
-	// PKI_CONFIG_ELEMENT *root = NULL;
-	// root = xmlDocGetRootElement ( doc );
-	// xmlSetTreeDoc ( root, *doc );
-	// return;
-
-	// xmlChar *mem = NULL;
-	// int size = 0;
-
-	// origDoc = *doc;
-
-	// newDoc = xmlCopyDoc ( *doc, 1 );
-	// xmlFreeDoc ( *doc );
-
-	// *doc = newDoc;
-
-	// return PKI_OK;
-
-	if((parserCtxt = xmlNewParserCtxt()) == NULL ) {
-        	return(PKI_ERR);
-    	}
-
-#if LIBXML_VERSION > LIBXML_MIN_VERSION
-    	xmlSetStructuredErrorFunc( parserCtxt, logXmlMessages );
-#endif
-
-    	xmlKeepBlanksDefault(0);
-
-	mem = PKI_MEM_new_null();
-
-	xmlDocDumpMemory( doc, &mem->data, &mem->size);
-
-	newDoc = (PKI_CONFIG *) xmlCtxtReadDoc(parserCtxt, mem->data, 
-			"noname.xml", NULL, 
-			XML_PARSE_RECOVER | XML_PARSE_NOERROR |
-                                XML_PARSE_NOWARNING | XML_PARSE_NOENT );
-
-	// xmlInitParser();
-
-	// *doc = xmlParseMemory ( mem->data, mem->size );
-	//
-	// *doc = xmlReadMemory( (char*) mem, size, "noname.xml", NULL, 
-	// 		XML_PARSE_RECOVER | XML_PARSE_NOERROR |
-        //                         XML_PARSE_NOWARNING | XML_PARSE_NOENT );
-	//
-
-	PKI_MEM_free ( mem );
-
-	if( newDoc == NULL ) {
-		return ( PKI_ERR );
-	}
-
-	//
-	// PKI_log_debug ( "[UPDATE] >>>> FLAGS => %d  PROPERTIES => %d   TYPE => %d",
-	// 			(*doc)->parseFlags, (*doc)->properties, (*doc)->type );
-
-	// (*doc)->parseFlags = 0;
-	// (*doc)->properties = 32;
-	//
-
-	// *doc = newDoc;
-	xmlClearParserCtxt ( parserCtxt );
-
-	return newDoc;
-}
-*/
