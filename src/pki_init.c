@@ -79,11 +79,11 @@ static int __create_object_with_id ( const char *oid, const char *sn,
 
     if((i=a2d_ASN1_OBJECT(buf,i,oid,-1)) == 0 ) {
         goto err;
-	};
+	}
 
     if((obj=(ASN1_OBJECT *)ASN1_OBJECT_create(id,buf,i,sn,ln)) == 0 ) {
         goto err;
-	};
+	}
 
     ret = OBJ_add_object(obj);
 
