@@ -271,9 +271,9 @@ PKI_MEM_STACK *URL_get_data(const char * url_s,
  */
 
 PKI_MEM_STACK *URL_get_data_url(const URL * url,
-		                int         timeout,
-				ssize_t     size,
-				PKI_SSL   * ssl ) {
+                                int         timeout,
+                                ssize_t     size,
+                                PKI_SSL   * ssl ) {
 
 	PKI_MEM_STACK * ret = NULL;
 
@@ -322,7 +322,7 @@ PKI_MEM_STACK *URL_get_data_url(const URL * url,
 		case URI_PROTO_ID:
 		case URI_PROTO_FTP:
 		default:
-			ret = NULL;
+			PKI_ERROR(PKI_ERR_URI_UNSUPPORTED, NULL);
 			break;
 	}
 
@@ -388,6 +388,7 @@ PKI_MEM_STACK * URL_get_data_socket(const PKI_SOCKET * sock,
 		case URI_PROTO_FTP:
 		case URI_PROTO_DNS:
 		default:
+			PKI_ERROR(PKI_ERR_URI_UNSUPPORTED, NULL);
 			ret = NULL;
 			break;
 	}
@@ -407,35 +408,71 @@ PKI_MEM_STACK * URL_get_data_socket(const PKI_SOCKET * sock,
  * URI_PROTO_MYSQL, URI_PROTO_PG.
  */
 
-int URL_put_data(const char     * url_s,
-		         const PKI_MEM  * data,
-				 const char     * contType,
-		         PKI_MEM_STACK ** ret_sk,
-				 int              timeout,
-				 ssize_t          max_size,
-			     PKI_SSL  * ssl ) {
+int URL_put_data(const char          * url_s,
+		 const PKI_MEM       * data,
+		 const char          * contType,
+	         PKI_MEM_STACK      ** ret_sk,
+		 int                   timeout,
+		 ssize_t               max_size,
+		 PKI_SSL             * ssl ) {
 
 	URL *url = NULL;
 	int ret = 0;
 
-	if( !url_s || !data ) {
-		return (PKI_ERR);
-	}
+	if( !url_s || !data || !data->size)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if(( url = URL_new(url_s)) == NULL ) {
-		return (PKI_ERR);
-	}
+	if ((url = URL_new(url_s)) == NULL)
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 
 	ret = URL_put_data_url( url, data, contType, ret_sk, 
 					timeout, max_size, ssl );
 
-	if( url ) URL_free ( url );
+	if (url) URL_free(url);
 
-	return( ret );
+	return ret;
+}
+
+int URL_put_data_raw(const char          * url_s,
+                     const unsigned char * data,
+                     const size_t          size,
+                     const char          * contType,
+                     PKI_MEM_STACK      ** ret_sk,
+                     int                   timeout,
+                     ssize_t               max_size,
+                     PKI_SSL             * ssl ) {
+
+	int ret = 0;
+	PKI_MEM * mem_data = NULL;
+
+	if (!url_s || !data || !size)
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	if ((mem_data = PKI_MEM_new_null()) == NULL)
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
+	mem_data->data = (unsigned char *)data;
+	mem_data->size = size;
+
+	ret = URL_put_data(url_s,
+			   mem_data,
+			   contType,
+			   ret_sk,
+			   timeout,
+			   max_size,
+			   ssl);
+
+	mem_data->data = NULL;
+	mem_data->size = 0;
+
+	PKI_MEM_free(mem_data);
+
+	return ret;
+
 }
 
 int URL_put_data_fd (const URL     * url,
-		             const PKI_MEM * data ) {
+		     const PKI_MEM * data ) {
 
 	int fd = 0;
 
@@ -452,7 +489,7 @@ int URL_put_data_fd (const URL     * url,
 }
 
 int URL_put_data_file(const URL     * url,
-		              const PKI_MEM * data) {
+		      const PKI_MEM * data) {
 
 	int fd = 0;
 
@@ -475,12 +512,12 @@ int URL_put_data_file(const URL     * url,
 }
 
 int URL_put_data_url(const URL      * url,
-		             const PKI_MEM  * data,
-					 const char     * contType,
-		             PKI_MEM_STACK ** ret_sk,
-					 int              timeout,
-					 ssize_t          max_size,
-			         PKI_SSL  * ssl) {
+		     const PKI_MEM  * data,
+		     const char     * contType,
+		     PKI_MEM_STACK ** ret_sk,
+		     int              timeout,
+		     ssize_t          max_size,
+		     PKI_SSL        * ssl) {
 
 	int ret = PKI_OK;
 
@@ -522,7 +559,7 @@ int URL_put_data_url(const URL      * url,
 		case URI_PROTO_FTP:
 		case URI_PROTO_DNS:
 		default:
-			ret = PKI_ERR;
+			return PKI_ERROR(PKI_ERR_URI_UNSUPPORTED, NULL);
 			break;
 	}
 
@@ -531,11 +568,11 @@ int URL_put_data_url(const URL      * url,
 
 
 int URL_put_data_socket(const PKI_SOCKET * sock,
-		                const PKI_MEM    * data,
-						const char       * contType,
-		                PKI_MEM_STACK   ** ret_sk,
-						int                timeout,
-						ssize_t            max_size) {
+		        const PKI_MEM    * data,
+			const char       * contType,
+		        PKI_MEM_STACK   ** ret_sk,
+			int                timeout,
+			ssize_t            max_size) {
 
 	int ret = PKI_OK;
 

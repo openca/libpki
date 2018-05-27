@@ -206,10 +206,16 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		ssl = (PKI_SSL *) cred->ssl;
 
 		// Checks for Username in the URL itself
-		if (!url->usr && cred->username) url->usr = strdup(cred->username);
+		if (!url->usr && cred->username) {
+			if (url->usr) PKI_Free(url->usr);
+			url->usr = strdup(cred->username);
+		}
 
 		// Checks for the Password in the URL itself
-		if (!url->pwd && cred->password) url->pwd = strdup(cred->password);
+		if (!url->pwd && cred->password) {
+			if (url->pwd) PKI_Free(url->pwd);
+			url->pwd = strdup(cred->password);
+		}
 
 	}
 
@@ -247,7 +253,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		PKI_MEM *mem_data = NULL;
 
 		// Gets the i-th PKI_MEM from the stack of elements
-		if ((mem_data = PKI_STACK_MEM_get_num( mem_sk, i)) == NULL) {
+		if ((mem_data = PKI_STACK_MEM_get_num(mem_sk, i)) == NULL) {
 
 			// Reports the Error
 			PKI_ERROR(PKI_ERR_POINTER_NULL, 
@@ -300,12 +306,12 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 
 							// No object number was specified, let's add
 							// every PKI_MEM we get from the stack
-							PKI_STACK_X509_push( ret, x );
+							PKI_STACK_X509_push(ret, x);
 						}
 					}
 
 					// Free the memory associated with the Stack
-					PKI_STACK_X509_free_all ( tmp_x_sk );
+					PKI_STACK_X509_free_all(tmp_x_sk);
 				}
 			}
 
@@ -381,15 +387,15 @@ int PKI_X509_put ( PKI_X509 *x, PKI_DATA_FORMAT format, char *url_string,
 	PKI_X509_STACK *sk = NULL;
 	int ret = PKI_OK;
 
-	if( !x || !url_string ) return (PKI_ERR);
+	if (!x || !url_string) return (PKI_ERR);
 
-	if(( sk = PKI_STACK_X509_new()) == NULL ) {
-		return( PKI_ERR );
+	if ((sk = PKI_STACK_X509_new()) == NULL) {
+		return PKI_ERR;
 	}
 
-	if( PKI_STACK_X509_push( sk, x ) == PKI_ERR ) {
-		PKI_STACK_X509_free ( sk );
-		return ( PKI_ERR );
+	if (PKI_STACK_X509_push(sk, x) == PKI_ERR) {
+		PKI_STACK_X509_free(sk);
+		return PKI_ERR;
 	}
 
 	ret = PKI_X509_STACK_put(sk, format, url_string, mime, cred, hsm);
@@ -415,25 +421,25 @@ int PKI_X509_put_url ( PKI_X509 *x, PKI_DATA_FORMAT format, URL *url,
 	PKI_X509_STACK *sk = NULL;
 	int ret = PKI_OK;
 
-	if( !x || !url ) return (PKI_ERR);
+	if (!x || !url) return (PKI_ERR);
 
-	if(( sk = PKI_STACK_X509_new()) == NULL ) {
-		return( PKI_ERR );
+	if ((sk = PKI_STACK_X509_new()) == NULL) {
+		return PKI_ERR;
 	}
 
-	if( PKI_STACK_X509_push( sk, x ) == PKI_ERR ) {
-		PKI_STACK_X509_free ( sk );
-		return ( PKI_ERR );
+	if (PKI_STACK_X509_push(sk, x) == PKI_ERR) {
+		PKI_STACK_X509_free(sk);
+		return PKI_ERR;
 	}
 
 	ret = PKI_X509_STACK_put_url(sk, format, url, mime, cred, hsm);
 
 	if( sk ) {
 		// We just need to pop the cert - not free the mem
-		while ((x = PKI_STACK_X509_pop( sk )) != NULL)  { /* Nop */ };
+		while ((x = PKI_STACK_X509_pop(sk)) != NULL)  { /* Nop */ };
 
 		// Let's free the list itself
-        PKI_STACK_X509_free( sk );
+        PKI_STACK_X509_free(sk);
 	}
 
 	return (ret);
@@ -447,19 +453,19 @@ int PKI_X509_put_value ( void *x, PKI_DATATYPE type, PKI_DATA_FORMAT format,
 	PKI_X509 *x_obj = NULL;
 	int ret = PKI_OK;
 
-	if ( !x || !url_string ) return PKI_ERR;
+	if (!x || !url_string) return PKI_ERR;
 
-	if(( x_obj = PKI_X509_new ( type, hsm )) == NULL ) {
+	if ((x_obj = PKI_X509_new(type, hsm)) == NULL) {
 		return PKI_ERR;
 	}
 
 	x_obj->value = x;
 
-	ret = PKI_X509_put ( x_obj, format, url_string, mime, cred, hsm );
+	ret = PKI_X509_put(x_obj, format, url_string, mime, cred, hsm);
 
 	x_obj->value = NULL;
 
-	PKI_X509_free ( x_obj );
+	PKI_X509_free(x_obj);
 
 	return ret;
 }
@@ -472,17 +478,17 @@ int PKI_X509_STACK_put (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 	URL *url = NULL;
 	int ret = PKI_OK;
 
-	if( !sk || !url_string ) return (PKI_ERR);
+	if (!sk || !url_string) return PKI_ERR;
 
-	if((url = URL_new (url_string)) == NULL ) {
-		return (PKI_ERR);
+	if ((url = URL_new(url_string)) == NULL) {
+		return PKI_ERR;
 	}
 
-	ret = PKI_X509_STACK_put_url( sk, format, url, mime, cred, hsm );
+	ret = PKI_X509_STACK_put_url(sk, format, url, mime, cred, hsm);
 
-	if( url ) URL_free ( url );
+	if (url) URL_free(url);
 
-	return ( ret );
+	return ret;
 	
 }
 

@@ -32,8 +32,8 @@ struct parsed_datatypes_st __parsed_datatypes[] = {
 	{ NULL, -1 }
 };
 
-PKI_TBS_ASN1 * __datatype_get_asn1(PKI_DATATYPE   type, 
-				   const void    * v) {
+PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type, 
+                                       const void   * v) {
 
 	PKI_TBS_ASN1 * ret = NULL;
 	const ASN1_ITEM * it = NULL;
@@ -501,10 +501,10 @@ int PKI_X509_is_signed(const PKI_X509 *obj ) {
  */
 
 PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v, 
-		                      const PKI_DATATYPE   type) {
+                                      const PKI_DATATYPE   type) {
 
 	PKI_TBS_ASN1 * ta = NULL;
-	PKI_MEM         * mem = NULL;
+	PKI_MEM      * mem = NULL;
 
 	// Input Checks
 	if (v == NULL) {
@@ -513,7 +513,7 @@ PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v,
 	}
 
 	// Gets the template and data pointer
-	if ((ta = __datatype_get_asn1(type, v)) == NULL) return NULL;
+	if ((ta = __datatype_get_asn1_ref(type, v)) == NULL) return NULL;
 
 	// Allocates the PKI_MEM data structure
 	if ((mem = PKI_MEM_new_null()) == NULL) {
@@ -523,82 +523,25 @@ PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v,
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
-                                                   &(mem->data),
-                                                   ta->it);
+                                               &(mem->data),
+                                               ta->it);
 #else
-        mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
-                                                   &(mem->data),
-                                                   ta->it);
+	mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
+                                               &(mem->data),
+                                               ta->it);
 #endif
+
+	 // Free the TA Data
+	 PKI_Free(ta);
 
 	return mem;
 }
 
-/*! \brief Returns the DER encoded version of the toBeSigned portion of
- *         the X509 structure
- */
-/*
-TODO: Investigate the feasibility of having a callback for the tbs
-      instead of using the it pointer inside the X509 structure
-      this would have the value to have its own encoding callback
-      instead of a unified functionality
-PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
-	
-	// Input Checks
-	if (!x || !x->value) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return NULL;
-	}
-
-	if (!x->cb || !x->cb->get_tbs) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return NULL;
-	}
-
-	return x->cb->get_tbs(x, type);
-}
-*/
 
 PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
 	
-	PKI_MEM * mem = NULL;
-	PKI_TBS_ASN1 * ta = NULL;
+	return PKI_X509_VALUE_get_tbs_asn1(x->value, x->type);
 
-	// Input Checks
-	if (!x || !x->value) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return NULL;
-	}
-
-	if ((ta = __datatype_get_asn1(x->type, x->value)) == NULL)
-		return NULL;
-
-	// Allocates the PKI_MEM data structure
-	if ((mem = PKI_MEM_new_null()) == NULL) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return NULL;
-	}
-
-	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
-                                                   &(mem->data),
-                                                   ta->it);
-/*
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
-                                                   &(mem->data),
-                                                   ta->it);
-#else
-        mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
-                                                   &(mem->data),
-                                                   ta->it);
-#endif
-*/
-
-	// Free the memory
-	PKI_Free(ta);
-
-	// Return the Encoded Data
-	return mem;
 }
 
 /*! \brief Returns the parsed (char *, int *, etc.) version of the data in
