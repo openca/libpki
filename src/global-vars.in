@@ -1,6 +1,5 @@
 # src/global-vars.in
 
-# VERSION			= @PACKAGE_VERSION@
 PACKAGE_VERSION		= @PACKAGE_VERSION@
 TODAY			= @TODAY@
 

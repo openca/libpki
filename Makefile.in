@@ -108,7 +108,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/libpki/config.h
 CONFIG_CLEAN_FILES = src/scripts/libpki-config src/libpki/pki_config.h \
-	contrib/libpki.pc contrib/libpki-inst.xml \
+	src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml \
 	examples/prqp/Makefile examples/profiles/Makefile \
 	examples/token/Makefile examples/url/Makefile \
 	examples/crl/Makefile examples/pkcs11/Makefile \
@@ -396,6 +396,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/compile \
 	$(top_srcdir)/examples/token/Makefile.in \
 	$(top_srcdir)/examples/url/Makefile.in \
 	$(top_srcdir)/src/libpki/config.h.in \
+	$(top_srcdir)/src/libpki/libpkiv.h.in \
 	$(top_srcdir)/src/libpki/pki_config.h.in \
 	$(top_srcdir)/src/scripts/libpki-config.in AUTHORS COPYING \
 	ChangeLog INSTALL NEWS README TODO build/compile \
@@ -604,7 +605,11 @@ ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@
 ldap_prefix = @ldap_prefix@
 ldap_vendor = @ldap_vendor@
+lib_major = @lib_major@
+lib_micro = @lib_micro@
+lib_minor = @lib_minor@
 lib_prefix = @lib_prefix@
+lib_revision = @lib_revision@
 libdir = @libdir@
 libexecdir = @libexecdir@
 libpki_cflags = @libpki_cflags@
@@ -651,6 +656,8 @@ sbindir = @sbindir@
 sdkver = @sdkver@
 sharedstatedir = @sharedstatedir@
 shlext = @shlext@
+shlib_history = @shlib_history@
+shlib_version = @shlib_version@
 
 #-------- installation paths: --------
 srcdir = @srcdir@
@@ -790,6 +797,8 @@ distclean-hdr:
 src/scripts/libpki-config: $(top_builddir)/config.status $(top_srcdir)/src/scripts/libpki-config.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 src/libpki/pki_config.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/pki_config.h.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+src/libpki/libpkiv.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/libpkiv.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 contrib/libpki.pc: $(top_builddir)/config.status $(top_srcdir)/contrib/libpki.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

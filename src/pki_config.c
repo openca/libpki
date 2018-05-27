@@ -398,33 +398,33 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
 		// Stack of Elements from the Search
 
 	PKI_CONFIG_ELEMENT *ret = NULL;
-		// Return Value
-
+    // Return Value
+  
 	PKI_CONFIG_ELEMENT *tmp_el = NULL;
 		// Temporary reference used to free
 		// the nodes from the returned stack
 
-	// Some input checks
+  	// Some input checks
 	if (!doc || !search) return NULL;
 
 	// Checks if the search returns any element(s)
-	if(( sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search )) == NULL ) {
+	if ((sk = PKI_CONFIG_get_element_stack((PKI_CONFIG *)doc, search)) == NULL) {
 		PKI_DEBUG("Element Not Found [Search: %s, Position: %d]", search, num);
 		return NULL;
 	}
-
-	// Use the magic 'negative' values as setting for the last
+  
+  // Use the magic 'negative' values as setting for the last
 	// element in the stack
 	if ( num < 0 ) num = PKI_STACK_CONFIG_ELEMENT_elements ( sk ) - 1;
-	
-	// Gets the right element
+  
+  // Gets the right element
 	if ((ret = PKI_STACK_CONFIG_ELEMENT_get_num(sk, num)) == NULL) {
 		PKI_DEBUG("Can not get element number %d from the search [Search: %s]",
 			num, search);
-	}
-
+  }
+  
 	// Free all remaining parts of the stack
-	while ((tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) != NULL) {
+	while (tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) {
 		// Nothing to do - the elements are xmlNode and
 		// the memory would be freed with xmlFreeNode function,
 		// however, it is our understanding that the passed
@@ -435,7 +435,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
 	}
 
 	// Free all the remaining memory
-	PKI_STACK_CONFIG_ELEMENT_free(sk);
+	PKI_STACK_CONFIG_ELEMENT_free_all(sk);
 
 	// All Done.
 	return ret;

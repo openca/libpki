@@ -49,15 +49,20 @@ PKI_MEM *PKI_MEM_new_data ( size_t size, unsigned char *data ) {
 
 	PKI_MEM *ret = NULL;
 
-	if( !data || size == 0 ) return ( NULL );
-
-	if((ret = PKI_MEM_new ( size )) == NULL ) {
-		return ( NULL );
+	if (size == 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
 	}
 
-	memcpy(ret->data, data, size);
+	if ((ret = PKI_MEM_new(size)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
 
-	return ( ret );
+	if (data) memcpy(ret->data, data, size);
+	else memset(ret->data, 0, size);
+
+	return ret;
 }
 
 /*! \brief Duplicates a PKI_MEM */
