@@ -36,6 +36,10 @@ case "$my_arch" in
     mybits="64"
     mybits_install="64"
     ;;
+  *amd64)
+    mybits="64"
+    mybits_install="64"
+    ;;
   *sparc*)
     mybits="64"
     mybits_install="64"
