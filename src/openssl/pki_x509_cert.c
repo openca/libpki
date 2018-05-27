@@ -11,26 +11,25 @@ extern int NID_proxyCertInfo;
 
 /*! \brief Returns an empty PKI_X509_CERT data structure */
 PKI_X509_CERT *PKI_X509_CERT_new_null ( void ) {
-  return PKI_X509_new ( PKI_DATATYPE_X509_CERT, NULL );
+  return PKI_X509_new(PKI_DATATYPE_X509_CERT, NULL);
 }
 
 void PKI_X509_CERT_free_void( void *x ) {
-  PKI_X509_free( (PKI_X509 *) x );
+  PKI_X509_free((PKI_X509 *) x);
 
   return;
 }
 
 /*! \brief Frees the memory associated with a certificate */
 
-void PKI_X509_CERT_free( PKI_X509_CERT *x ) {
-
-   if (x) PKI_X509_free ( x );
+void PKI_X509_CERT_free(PKI_X509_CERT *x) {
+   if (x) PKI_X509_free(x);
   return;
 }
 
 /*! \brief Returns a copy of the PKI_X509_CERT structure */
 
-PKI_X509_CERT *PKI_X509_CERT_dup(const PKI_X509_CERT *x ) {
+PKI_X509_CERT *PKI_X509_CERT_dup(const PKI_X509_CERT *x) {
 
   if( !x ) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -42,17 +41,16 @@ PKI_X509_CERT *PKI_X509_CERT_dup(const PKI_X509_CERT *x ) {
 
 /*! \brief Generates a new certificate */
 
-PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert, 
-    				   const PKI_X509_KEYPAIR *kPair,
-				   const PKI_X509_REQ *req,
-				   const char *subj_s, 
-    				   const char *serial_s,
-				   uint64_t validity,
-				   const PKI_X509_PROFILE *conf,
-    				   const PKI_ALGOR *algor,
-				   const PKI_CONFIG *oids,
-				   HSM *hsm )
-{
+PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT    * ca_cert, 
+                                   const PKI_X509_KEYPAIR * kPair,
+                                   const PKI_X509_REQ     * req,
+                                   const char             * subj_s, 
+                                   const char             * serial_s,
+                                   uint64_t                 validity,
+                                   const PKI_X509_PROFILE * conf,
+                                   const PKI_ALGOR        * algor,
+                                   const PKI_CONFIG       * oids,
+                                   HSM *hsm ) {
   PKI_X509_CERT *ret = NULL;
   PKI_X509_CERT_VALUE *val = NULL;
   PKI_X509_NAME *subj = NULL;

@@ -72,27 +72,30 @@ int     PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj );
 #define PKI_STACK_ERR		PKI_ERR
 #define PKI_STACK_OK		PKI_OK
 
-#define PKI_MEM_STACK 			PKI_STACK
+#define PKI_MEM_STACK 				PKI_STACK
+#define PKI_X509_STACK				PKI_STACK
 #define PKI_X509_KEYPAIR_STACK 		PKI_STACK
-#define PKI_X509_CERT_STACK		PKI_STACK
-#define PKI_X509_REQ_STACK 		PKI_STACK
+#define PKI_X509_CERT_STACK			PKI_STACK
+#define PKI_X509_REQ_STACK 			PKI_STACK
 #define PKI_X509_CRL_STACK  		PKI_STACK
 #define PKI_X509_XPAIR_STACK 		PKI_STACK
 #define PKI_X509_PROFILE_STACK 		PKI_STACK
 #define PKI_X509_EXTENSION_STACK 	PKI_STACK
 #define PKI_X509_CRL_ENTRY_STACK 	PKI_STACK
-#define PKI_X509_CRL_STACK 		PKI_STACK
-#define PKI_CONFIG_STACK 		PKI_STACK
+#define PKI_X509_CRL_STACK 			PKI_STACK
+#define PKI_CONFIG_STACK 			PKI_STACK
 #define PKI_CONFIG_ELEMENT_STACK	PKI_STACK
-#define PKI_OID_STACK			PKI_STACK
-#define PKI_ID_INFO_STACK		PKI_STACK
-#define PKI_TOKEN_STACK			PKI_STACK
+#define PKI_OID_STACK				PKI_STACK
+#define PKI_ID_INFO_STACK			PKI_STACK
+#define PKI_TOKEN_STACK				PKI_STACK
 #define PKI_X509_OCSP_REQ_STACK		PKI_STACK
 #define PKI_X509_OCSP_RESP_STACK	PKI_STACK
 
-#define PKI_X509_STACK			PKI_STACK
+#define PKI_RESOURCE_IDENTIFIER_STACK		PKI_STACK
+#define PKI_RESOURCE_RESPONSE_TOKEN_STACK	PKI_STACK
 
 /* Void freeing functions, used for freeing the stacks */
+/*
 void PKI_MEM_free_void ( void * );
 void PKI_X509_CERT_free_void ( void * );
 void PKI_X509_REQ_free_void ( void * );
@@ -108,6 +111,7 @@ void PKI_TOKEN_free_void ( void * );
 
 void PKI_RESOURCE_IDENTIFIER_free_void( void * );
 void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
+*/
 
 /* define for PKI_MEM stacks - implement object type casting */
 #define PKI_STACK_MEM_new() (PKI_MEM_STACK *) PKI_STACK_new((void (*)(void *))PKI_MEM_free)
@@ -157,7 +161,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_REQ_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for X509_PROFILE stacks - implement object type casting */
-#define PKI_STACK_X509_PROFILE_new() (PKI_X509_PROFILE_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_PROFILE_free_void)
+#define PKI_STACK_X509_PROFILE_new() (PKI_X509_PROFILE_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_PROFILE_free)
 #define PKI_STACK_X509_PROFILE_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_PROFILE_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_PROFILE_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
@@ -212,8 +216,10 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_CONFIG_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for CONFIG_ELEMENT stacks - implement object type casting */
-#define PKI_STACK_CONFIG_ELEMENT_new() (PKI_CONFIG_ELEMENT_STACK *) PKI_STACK_new((void (*)(void *))xmlFreeNode)
+// #define PKI_STACK_CONFIG_ELEMENT_new() (PKI_CONFIG_ELEMENT_STACK *) PKI_STACK_new((void (*)(void *))xmlFreeNode)
+#define PKI_STACK_CONFIG_ELEMENT_new() (PKI_CONFIG_ELEMENT_STACK *) PKI_STACK_new(NULL)
 #define PKI_STACK_CONFIG_ELEMENT_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
+#define PKI_STACK_CONFIG_ELEMENT_free_all( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_CONFIG_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_CONFIG_ELEMENT_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
 #define PKI_STACK_CONFIG_ELEMENT_pop(p) (PKI_CONFIG_ELEMENT *) PKI_STACK_pop( (PKI_STACK *) p )
@@ -223,7 +229,6 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_CONFIG_ELEMENT_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_OID stacks - implement object type casting */
-// #define PKI_STACK_OID_new_null() (PKI_OID_STACK *) PKI_STACK_new((void (*)(void *)PKI_OID_free)
 #define PKI_STACK_OID_new() (PKI_OID_STACK *) PKI_STACK_new((void (*)(void *))PKI_OID_free)
 #define PKI_STACK_OID_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_OID_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
@@ -246,7 +251,6 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_INFO_ID_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_TOKEN stacks - implement object type casting */
-// #define PKI_STACK_TOKEN_new_null() (PKI_TOKEN_STACK *) PKI_STACK_new((void (*)(void *)PKI_TOKE_free)
 #define PKI_STACK_TOKEN_new() (PKI_TOKEN_STACK *) PKI_STACK_new((void (*)(void *))PKI_TOKEN_free)
 #define PKI_STACK_TOKEN_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_TOKEN_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
@@ -258,7 +262,6 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_TOKEN_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_X509_KEYPAIR stacks - implement object type casting */
-// #define PKI_STACK_X509_KEYPAIR_new_null() (PKI_X509_KEYPAIR_STACK *) PKI_STACK_new( PKI_X509_KEYPAIR_free_void )
 #define PKI_STACK_X509_KEYPAIR_new() (PKI_X509_KEYPAIR_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_KEYPAIR_free)
 #define PKI_STACK_X509_KEYPAIR_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_KEYPAIR_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)

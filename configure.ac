@@ -1,10 +1,10 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2017 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2018 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.8.9, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.8.8, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -83,25 +83,56 @@ iface_current=$iface_version
 iface_revision=$iface_current
 
 # Oldest Interface Supported
-iface_oldest=89
+iface_oldest=88
 
 # Range of supported interfaces (current - oldest)
 let "iface_age=$iface_current - $iface_oldest"
 
-#iface_version="$iface_current$iface_revision"
-dnl export iface_version
+# Builds the major, minor, micro, and revision variables
+# from the PACKAGE_VERSION set with the init
+lib_major=`echo $PACKAGE_VERSION | sed -e "s|\..*||"`
+lib_minor=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.||" | sed -e "s|\..*||g"`
+lib_micro=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.[[0-9]]*\.||"`
+lib_revision=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.[[0-9]]*\.[[0-9]]*\.*||"`
 
-dnl AC_MESSAGE([>>>>>>>>> let "iface_version=${iface_current} + ${iface_revision} + ${iface_age}" ])
-dnl let "iface_version=${iface_current} + ${iface_revision} + ${iface_age}"
+# Basic Library Config
+shlib_version="$lib_major.$lib_minor"
+shlib_history="$lib_major.$lib_minor"
 
-# if [[ "x$iface_age" = "x$v" ]] ; then
-# 	iface_age=0
-# fi
+if [[ $lib_major -lt 10 ]] ; then
+	lib_major="0"$lib_major
+	AC_MSG_RESULT([Major => $lib_major])
+fi
 
+if [[ $lib_minor -lt 10 ]] ; then
+       	lib_minor="0"$lib_minor
+	AC_MSG_RESULT([Minor => $lib_minor])
+fi
+
+if [[ $lib_micro -lt 10 ]] ; then
+       	lib_micro="0"$lib_micro
+	AC_MSG_RESULT([Micro => $lib_micro])
+fi
+
+if [[ "x$lib_revision" = "x" ]] ; then
+	lib_revision=00
+else if [[ $lib_revision -lt 10 ]] ; then
+		lib_revision = "0"$lib_revision
+	fi
+fi
+
+AC_SUBST(iface_age)
 AC_SUBST(iface_current)
 AC_SUBST(iface_revision)
-AC_SUBST(iface_age)
 AC_SUBST(iface_version)
+
+AC_SUBST(lib_major)
+AC_SUBST(lib_minor)
+AC_SUBST(lib_micro)
+AC_SUBST(lib_revision)
+
+AC_SUBST(shlib_version)
+AC_SUBST(shlib_history)
 
 # Checks for header files.
 
@@ -1532,6 +1563,7 @@ AC_CONFIG_FILES(
 	src/scripts/libpki-config
 	src/tests/Makefile
 	src/libpki/pki_config.h
+	src/libpki/libpkiv.h
 	contrib/libpki.pc
 	contrib/libpki-inst.xml
 	examples/prqp/Makefile
