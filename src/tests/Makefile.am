@@ -4,14 +4,14 @@
 
 TOP     = ..
 
-LIBPKI_CFLAGS		= @libpki_cflags@
-BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
+LIBPKI_CFLAGS	= @libpki_cflags@
+LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
 
 if STATIC_COMPILE
-testLDFLAGS=$(BUILD_LIBPKI_LDFLAGS)
+testLDFLAGS=$(LIBPKI_LDFLAGS)
 testLDADD=../libpki.la ../openssl/libpki-openssl.la
 else
-testLDFLAGS=$(BUILD_LIBPKI_LDFLAGS)
+testLDFLAGS=$(LIBPKI_LDFLAGS)
 testLDADD=../libpki.la ../openssl/libpki-openssl.la
 endif
 

@@ -10,7 +10,7 @@ BASE_DEFS =
 DEFS = $(OPENCA_DEFS)
 LIRT_VERSION = 0.1.0
 
-INCLUDES = -I$(TOP) \
+AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)

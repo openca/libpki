@@ -4,7 +4,7 @@ AC_COPYRIGHT([Copyright 2007-2018 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.8.8, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.8.9, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -101,22 +101,20 @@ shlib_history="$lib_major.$lib_minor"
 
 if [[ $lib_major -lt 10 ]] ; then
 	lib_major="0"$lib_major
-	AC_MSG_RESULT([Major => $lib_major])
 fi
 
 if [[ $lib_minor -lt 10 ]] ; then
        	lib_minor="0"$lib_minor
-	AC_MSG_RESULT([Minor => $lib_minor])
 fi
 
 if [[ $lib_micro -lt 10 ]] ; then
        	lib_micro="0"$lib_micro
-	AC_MSG_RESULT([Micro => $lib_micro])
 fi
 
 if [[ "x$lib_revision" = "x" ]] ; then
 	lib_revision=00
-else if [[ $lib_revision -lt 10 ]] ; then
+else 
+	if [[ $lib_revision -lt 10 ]] ; then
 		lib_revision = "0"$lib_revision
 	fi
 fi
