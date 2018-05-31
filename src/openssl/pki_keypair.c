@@ -304,8 +304,8 @@ int PKI_X509_KEYPAIR_VALUE_get_size (const PKI_X509_KEYPAIR_VALUE *pKey ) {
 
 /*! \brief Returns the (unsigned char *) digest of a pubkey value */
 
-PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE *pkey,
-						const	PKI_DIGEST_ALG *md ) {
+PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pkey,
+					       const PKI_DIGEST_ALG         * md) {
 
 	X509_PUBKEY *xpk = NULL;
 	PKI_DIGEST * ret = NULL;
@@ -326,9 +326,30 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE *pke
 		return NULL;
 	}
 
+#if OPENSSL_VERSION_NUMBER < 0x10000000fL
+
+	/*
+	typedef struct X509_pubkey_st {
+	    X509_ALGOR *algor;
+	    ASN1_BIT_STRING *public_key;
+	    EVP_PKEY *pkey;
+	} X509_PUBKEY;
+	*/
+
+	buf = xpk->public_key->data;
+	buf_size = xpk->public_key->length;
+#else
+
+	if (1 != X509_PUBKEY_get0_param(NULL, &buf, &buf_size, NULL, xpk)) {
+		PKI_log_err("Can not get the PublicKeyInfo from the KeyPair.")
+		return NULL;
+	}
+
+#endif
+
 	// Let's allocate enough space for the DER representation
 	// of the key
-	buf_size = i2d_X509_PUBKEY(xpk, &buf);
+	// buf_size = i2d_X509_PUBKEY(xpk, &buf);
 
 	// Calculates the digest over the DER representation of the pubkey
 	if (buf != NULL && buf_size > 0) {
@@ -344,25 +365,38 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE *pke
 		PKI_Free(buf);
 	}
 
-	/*
-	ASN1_BIT_STRING *key = NULL;
+	// Now we might need to free the X509_PUBKEY structure
+	// if (xpk) X509_PUBKEY_free(xpk);
+	// xpk = NULL; // Safety
 
-	if((key = xpk->public_key ) == NULL ) {
-		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::No pubkey found!");
-		return ( NULL );
-	}
+	/* TODO: Remove this Debugging Info
+	printf("[DEBUG] PUBKEY Bit String:\n");
+	for (int i = 0; i < buf_size; i++) {
+		uint8_t c;
+                c = buf[i];
+                printf("%2.2X",c);
+                if (i < buf_size) printf(":");
+		if (i > 0 && (i+1) % 20 == 0) printf("\n");
+        } printf("\n");
 
-	if( key->length < 1 ) {
-		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::Pubkey len is 0!");
-		return ( NULL );
-	}
+	// TODO: Remove this Debugging
+        URL_put_data_raw("libpki_key_raw_value.bin",
+                         (const unsigned char *)buf,
+                         buf_size,
+                         NULL,
+                         NULL,
+                         0,
+                         0,
+                         NULL);
 
-	if(( ret = PKI_DIGEST_new( md, key->data, 
-					(size_t) key->length )) == NULL ) {
-		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::%s",
-			ERR_error_string( ERR_get_error(), NULL ));
-		return ( NULL );
-	}
+	// TODO: Remove this Debugging
+        URL_put_data("libpki_digest_over_key_sha1_value.bin",
+                     (const PKI_MEM *)ret,
+                     NULL,
+                     NULL,
+                     0,
+                     0,
+                     NULL);
 	*/
 
 	return ret;

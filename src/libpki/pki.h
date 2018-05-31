@@ -7,6 +7,7 @@
 */
 
 #include <libpki/compat.h>
+#include <libpki/libpkiv.h>
 
 #ifndef _LIBPKI_PKI_H
 #define _LIBPKI_PKI_H	1

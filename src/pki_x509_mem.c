@@ -70,8 +70,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 	if (cred && cred->password) pwd = (char *) cred->password;
 
 	// Create a read only memory buffer - it's faster than a read/write one
-	if( (ro = BIO_new_mem_buf(mem->data, (int)mem->size)) == NULL)
-	{
+	if( (ro = BIO_new_mem_buf(mem->data, (int)mem->size)) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
@@ -82,7 +81,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		case PKI_DATA_FORMAT_PEM :
 			if( cb->read_pem ) {
 				// Read PEM formatted data
-				ret = cb->read_pem(ro, NULL, NULL, pwd );
+				ret = cb->read_pem(ro, NULL, NULL, pwd);
 			} else {
 				// No support for data decoding
 				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
@@ -110,20 +109,19 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 			break;
 
 		case PKI_DATA_FORMAT_B64 :
-			if (cb->read_b64)
-			{
+			if (cb->read_b64) {
+
 				// Read B64 formatted data
 				ret = cb->read_b64(ro, NULL);
-			}
-			else if (cb->read_der)
-			{
+
+			} else if (cb->read_der) {
+
 				PKI_MEM * dup_mem = NULL;
 					// Temporary Duplicate Memory
 
 				// We need to duplicate the buffer as PKI_MEM_decode()
 				// alter the contents of the buffer
-				if( (dup_mem = PKI_MEM_dup(mem) ) == NULL)
-				{
+				if ((dup_mem = PKI_MEM_dup(mem)) == NULL) {
 					// Here we duplicate the data to avoid issues with
 					// the double decoding (if the first fails the data
 					// would be altered, we want to be able to work on
@@ -144,12 +142,13 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 				}
 
 				// Close the current BIO
-				BIO_free(ro);
+				BIO_free_all(ro);
 
 				// Create a read only memory buffer for further usage it's faster
 				// than a read/write one
-				if( (ro = BIO_new_mem_buf(dup_mem->data, (int)dup_mem->size)) == NULL)
-				{
+				if ((ro = BIO_new_mem_buf(dup_mem->data, 
+							  (int)dup_mem->size)) == NULL) {
+					// Error, can not allocate another RO BIO
 					PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 					// Free Memory
 					PKI_MEM_free(dup_mem);

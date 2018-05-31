@@ -158,6 +158,7 @@ int PKI_STACK_free_all (PKI_STACK * st)
 	// Let's free the PKI_STACK data structure's memory
 	PKI_Free(st);
 
+	// All Done.
 	return PKI_OK;
 }
 
@@ -241,6 +242,7 @@ int PKI_STACK_pop_free ( PKI_STACK *st )
 		(st->free)(data);
 	}
 
+	// All Done
 	return PKI_OK;
 }
 
