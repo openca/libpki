@@ -276,7 +276,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	PKI_MEM *out_mem = NULL;
 	EVP_PKEY *pkey = NULL;
 
-	if ( !der || !der->data || !key || !key->value )
+	if (!der || !der->data || !key || !key->value)
 	{
 		PKI_ERROR( PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
@@ -286,22 +286,22 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	pkey = key->value;
 
 	// Get the Maximum size of a signature
-	ossl_ret = out_size = (size_t) EVP_PKEY_size( pkey );
+	ossl_ret = out_size = (size_t) EVP_PKEY_size(pkey);
 
 	// Initialize the return structure
 	out_mem = PKI_MEM_new ((size_t)out_size);
 	ctx = EVP_MD_CTX_new();
 
-	if ( !out_mem || !ctx) {
+	if (!out_mem || !ctx) {
 		if (ctx) EVP_MD_CTX_free(ctx);
 		if (out_mem) PKI_MEM_free(out_mem);
 		PKI_ERROR( PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
 
-	EVP_MD_CTX_init( ctx );
-	EVP_SignInit_ex( ctx, digest, NULL );
-	EVP_SignUpdate ( ctx, der->data, der->size );
+	EVP_MD_CTX_init(ctx);
+	EVP_SignInit_ex(ctx, digest, NULL);
+	EVP_SignUpdate (ctx, der->data, der->size);
 
 	// Finalize the signature
 	if (!EVP_SignFinal(ctx, out_mem->data, (unsigned int *) &ossl_ret, pkey))

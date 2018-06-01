@@ -64,8 +64,10 @@ PKI_X509 *PKI_X509_get ( char *url_s, PKI_DATATYPE type,
  *
  */
 
-PKI_X509 *PKI_X509_get_url ( URL *url, PKI_DATATYPE type, 
-					PKI_CRED *cred, HSM *hsm ) {
+PKI_X509 *PKI_X509_get_url(URL          * url,
+			   PKI_DATATYPE   type, 
+			   PKI_CRED     * cred,
+			   HSM          * hsm ) {
 
 	PKI_X509_STACK *sk = NULL;
 	PKI_X509 * ret = NULL;
@@ -84,7 +86,7 @@ PKI_X509 *PKI_X509_get_url ( URL *url, PKI_DATATYPE type,
 	// Checks we have at least one element, otherwise we return null
 	if (PKI_STACK_X509_elements(sk) <= 0) {
 			// Free the memory for the Stack
-			PKI_STACK_X509_free(sk);
+			PKI_STACK_X509_free_all(sk);
 			// Returns
 			return NULL;
 	}
@@ -276,10 +278,10 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 					// Gets the current type from the array
 
 				// Retrieves the Stack of PKI_MEM structure from the stack
-				if((tmp_x_sk = PKI_X509_STACK_get_mem(mem_data,
-													  curr_type, 
-													  cred,
-													  hsm)) != NULL) {
+				if ((tmp_x_sk = PKI_X509_STACK_get_mem(mem_data,
+								       curr_type, 
+								       cred,
+								       hsm)) != NULL) {
 
 					// For each of the returned objects (if any) we get
 					// the next PKI_X509 generic structure
@@ -294,10 +296,10 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 							// Adds only object with the same number
 							if (count == url->object_num)  {
 								// Pushes the PKI_MEM to the returned stack
-							    PKI_STACK_X509_push(ret, x);
+								PKI_STACK_X509_push(ret, x);
 							} else {
 								// Free the Memory
-							    PKI_X509_free(x);
+								PKI_X509_free(x);
 							}
 
 						} else {
@@ -318,9 +320,9 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 			// Here we have a specific datatype we are looking for so we
 			// do not have to cycle through all the supported datatypes
 			if ((tmp_x_sk = PKI_X509_STACK_get_mem(mem_data,
-												   type, 
-												   cred,
-												   hsm)) != NULL) {
+							       type, 
+							       cred,
+							       hsm)) != NULL) {
 
 				// Processes (removes) next element from the inner stack
 				while ((x = PKI_STACK_X509_pop(tmp_x_sk)) != NULL ) {
@@ -347,12 +349,12 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 						// No specific object number was provided in the
 						// URL, therefore let's add all objects to the
 						// return stack
-						PKI_STACK_X509_push( ret, x );
+						PKI_STACK_X509_push(ret, x);
 					}
 				}
 
 				// Nothing more to do with the stack, let's free it
-				PKI_STACK_X509_free_all ( tmp_x_sk );
+				PKI_STACK_X509_free_all(tmp_x_sk);
 			}
 		}
 	}

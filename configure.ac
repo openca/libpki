@@ -105,22 +105,20 @@ shlib_history="$lib_major.$lib_minor"
 
 if [[ $lib_major -lt 10 ]] ; then
 	lib_major="0"$lib_major
-	AC_MSG_RESULT([Major => $lib_major])
 fi
 
 if [[ $lib_minor -lt 10 ]] ; then
        	lib_minor="0"$lib_minor
-	AC_MSG_RESULT([Minor => $lib_minor])
 fi
 
 if [[ $lib_micro -lt 10 ]] ; then
        	lib_micro="0"$lib_micro
-	AC_MSG_RESULT([Micro => $lib_micro])
 fi
 
 if [[ "x$lib_revision" = "x" ]] ; then
 	lib_revision=00
-else if [[ $lib_revision -lt 10 ]] ; then
+else 
+	if [[ $lib_revision -lt 10 ]] ; then
 		lib_revision = "0"$lib_revision
 	fi
 fi
