@@ -1,3 +1,57 @@
+* May 31 2018 Massimiliano Pala <madwolf@openca.org>
+- Updated build system by converting INCLUDES to AM_CPPFLAGS in Makefiles.
+
+* May 26 2018 Massimiliano Pala <madwolf@openca.org>
+- Added LIBPKI_VERSION_NUMBER symbol for versioning control (libpkiv.h).
+- Fixed definitions for the different types of stacks.
+- Fixed calculation of digest over public keys to align with X509_pubkey_digest().
+- Fixed the generation of the ResponderID for OCSP responses when using byKey option.
+- Small fixes backported from later versions of the library.
+- Removed the use of PKI_STACK_TOKEN_new_null() from pki_init.c
+- Backported fixes for pki_config.c
+
+* May 24 2018 Massimiliano Pala <madwolf@openca.org>
+- Small fixes for the HTTP message parsing.
+- Added comments for processing X509 URLs in io/pki_x509_io.c.
+- Fixed error meessages and code style for token.c
+- Small fixes for stack definition.
+- Removed the use of _new_null() in stack definitions.
+- Fixed memory management for URL data retrieval.
+- Added better debugging info for __get_data_callback() for URL retrieving.
+- Fixed stack behavior for _free_all() functions.
+
+* Jan 30 2018 Massimiliano Pala <madwolf@openca.org>
+- Added management functions for KEYPARAMS.
+
+* Jan 29 2018 Massimiliano Pala <madwolf@openca.org>
+- Added PKI_DIGEST_get_size_by_name()
+- Added PKI_DIGEST_get_value()
+- PKI_DIGEST_get_value_size()
+
+* Jan 28 2018 Massimiliano Pala <madwolf@openca.org>
+- Fix for SNAP package building.
+- Removed un-used variables in KEYPAIR dup function.
+- Fixed compilation for OSSL < 1.1.0x.
+
+* Jan 28 2018 Massimiliano Pala <madwolf@openca.org>
+- Fixed OpenSSL's HSM Key Duplication.
+- Fixed PKI_X509_CERT_is_ca() and PKI_X509_CERT_is_selfsigned() to correctly report the right value.
+- Fixed defaults for build on MacOS X.
+- Fixed missing automake, autoconf, and libtool files.
+- Updated autoconf options to remove requirements for pkgconfig(openldap).
+- Fixed Log closing and removed initial defaults for the logging facitily.
+- Small optimization for FIPS switching..
+
+* Jan  9 2018 Massimiliano Pala <madwolf@openca.org>
+- Fixed certificate generation for OpenSSL 1.0.x branches.
+- Fixed profile load priority and parsing.
+- Fixed pki-tool certificate generation procedures and default output (now stdout).
+- Fixed pre-processor directives (OSSLV numbers).
+- Fixed missing #endif for PKCS#11 driver.
+- Initial fix for ECDSA PKCS#11 compatibilty for OpenSSL 1.0.x branches.
+- Fixed typo in PKCS#11 RSA signing method.
+- Fixed C99 int variable declaration.
+
 * Jan  3 2018 Massimiliano Pala <madwolf@openca.org>
 - Initial update to PKCS#11 v2.40 to support new algorithms
 - Updated the list of supported algorithms
