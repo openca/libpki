@@ -416,7 +416,7 @@ xml2_ldflags = @xml2_ldflags@
 xml2_prefix = @xml2_prefix@
 TOP = ..
 BASE_DEFS = 
-INCLUDES = -I$(TOP) \
+AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)

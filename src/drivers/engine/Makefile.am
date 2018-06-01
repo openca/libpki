@@ -9,7 +9,7 @@ BASE_DEFS =
 
 DEFS = $(OPENCA_DEFS)
 
-INCLUDES = -I$(TOP) \
+AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)

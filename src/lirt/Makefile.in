@@ -396,7 +396,7 @@ xml2_prefix = @xml2_prefix@
 TOP = ..
 BASE_DEFS = 
 LIRT_VERSION = 0.1.0
-INCLUDES = -I$(TOP) \
+AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)

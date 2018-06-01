@@ -1553,25 +1553,25 @@ distclean-local:
 	 rm -rf autom4te.cache/ contrib/libpki.spec .autotools .settings/ results
 
 snap:
-	@$(MAKE) -f Makefile dist PACKAGE_VERSION=SNAP-$(TODAY)
+	@$(MAKE) -f Makefile dist VERSION=SNAP-$(TODAY)
 
 snaprpm: snap
-	@$(MAKE) -f Makefile rpm PACKAGE_VERSION="$(TODAY)" CUSTOM_RELEASE="snap"
+	@$(MAKE) -f Makefile rpm VERSION="$(TODAY)" CUSTOM_RELEASE="snap"
 
 rc1:
-	$(MAKE) -f Makefile dist PACKAGE_VERSION=$(PACKAGE_VERSION)-rc1
+	$(MAKE) -f Makefile dist VERSION=$(PACKAGE_VERSION)-rc1
 
 rc1rpm: rc1
 	$(MAKE) -f Makefile rpm RC="rc1"
 
 rc2:
-	$(MAKE) -f Makefile dist PACKAGE_VERSION=$(PACKAGE_VERSION)-rc2
+	$(MAKE) -f Makefile dist VERSION=$(PACKAGE_VERSION)-rc2
 
 rc2rpm: rc2
 	$(MAKE) -f Makefile rpm RC="rc2"
 
 rc3:
-	$(MAKE) -f Makefile dist PACKAGE_VERSION=$(PACKAGE_VERSION)-rc3
+	$(MAKE) -f Makefile dist VERSION=$(PACKAGE_VERSION)-rc3
 
 rc3rpm: rc3
 	$(MAKE) -f Makefile rpm RC="rc3"
