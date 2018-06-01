@@ -12,7 +12,7 @@ BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ @pthread_opts@ @my_cflags@ @sys_cflags@
 BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
 BUILD_LIBPKI_LDADD	= @my_ldadd@
 
-INCLUDES = -I$(TOP)
+AM_CPPFLAGS = -I$(TOP)
 MYLDADD = ../.libs/libpki.la
 
 bin_PROGRAMS   = \

@@ -451,7 +451,7 @@ HSM_PKCS11_OBJ = $(top_builddir)/src/drivers/pkcs11/libpki-token-pkcs11.la
 HSMS = $(HSM_SOFTWARE) $(HSM_KMF) $(HSM_ENGINE) $(HSM_PKCS11)
 OBJECTS = $(HSM_KMF_OBJ) $(HSM_SOFTWARE_OBJ) $(HSM_ENGINE_OBJ) $(HSM_PKCS11_OBJ)
 SUBDIRS = $(HSMS) .
-INCLUDES = -I$(TOP)
+AM_CPPFLAGS = -I$(TOP)
 SRCS = \
 	hsm_main.c \
 	hsm_slot.c \
