@@ -133,13 +133,8 @@ int PKI_STACK_free (PKI_STACK * st)
 
 int PKI_STACK_free_all (PKI_STACK * st)
 {
-	PKI_STACK_NODE *n = NULL;
-
 	// Input check
 	if (!st) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-
-	// Let's start from the head
-	n = st->head;
 
 	// Provides some debugging (helps with memory leaking)
 	if (st->free == NULL) {

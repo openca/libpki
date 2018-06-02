@@ -424,7 +424,7 @@ PKI_CONFIG_ELEMENT * PKI_CONFIG_get_element(const PKI_CONFIG * doc,
   }
   
 	// Free all remaining parts of the stack
-	while (tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) {
+	while ((tmp_el = PKI_STACK_CONFIG_ELEMENT_pop(sk)) != NULL) {
 		// Nothing to do - the elements are xmlNode and
 		// the memory would be freed with xmlFreeNode function,
 		// however, it is our understanding that the passed
