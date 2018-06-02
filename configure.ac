@@ -4,7 +4,7 @@ AC_COPYRIGHT([Copyright 2007-2018 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.9.0, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.8.9, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -87,7 +87,7 @@ iface_current=$iface_version
 iface_revision=$iface_current
 
 # Oldest Interface Supported
-iface_oldest=90
+iface_oldest=88
 
 # Range of supported interfaces (current - oldest)
 let "iface_age=$iface_current - $iface_oldest"
@@ -508,9 +508,9 @@ else
 	fi
 fi
 
-AC_ARG_WITH( libdir,
-   [  --with-libdir=DIR         installed package prefix directory],
-   [ libdir=$withval ] , [ libdir=$prefix/lib$mybits_install ] )
+AC_ARG_WITH(libdir,
+            [  --with-libdir=DIR         installed package prefix directory],
+            [ libdir=$withval ] , [ libdir=$prefix/lib$mybits_install ] )
 
 AC_SUBST(package_prefix)
 AC_SUBST(prefix)
@@ -523,11 +523,11 @@ supported_urls="file http https"
 
 dnl =========================== Include and lib prefixes ===============
 
-AC_ARG_WITH( lib-prefix,
+AC_ARG_WITH(lib-prefix,
   AC_HELP_STRING( [--with-lib-prefix=LIBPREFIX],
-                  [sets library prefix (default is PREFIX/lib)]),
-	lib_prefix=$withval, lib_prefix=${prefix}/lib${mybits_install})
-AC_SUBST( lib_prefix)
+                  [sets library prefix (default is PREFIX/$libdir)]),
+                  lib_prefix=$withval, lib_prefix=${libdir})
+AC_SUBST(lib_prefix)
 
 dnl databases, tmp, crypto, mails
 AC_ARG_WITH( include-prefix,
