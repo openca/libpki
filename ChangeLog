@@ -1,3 +1,8 @@
+* Jun  2 2018 Massimiliano Pala <madwolf@openca.org>
+- Fixed all warnings from Automake and Autoconf.
+- Fixed includes (-I) parameter for tools Makefile.
+- Fixed version number and behavior for --with-libdir option.
+
 * May 31 2018 Massimiliano Pala <madwolf@openca.org>
 - Updated build system by converting INCLUDES to AM_CPPFLAGS in Makefiles.
 
