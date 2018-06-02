@@ -858,12 +858,12 @@ dnl ====================== mySQL LIBRARIES ===================
 	LDFLAGS="$mysql_ldflags $mysql_ldadd"
 	ok=0
 
-	AC_RUN_IFELSE( [
+	AC_RUN_IFELSE([ AC_LANG_SOURCE([
 		#include <mysql.h>
 		int main(void) {
 		        MYSQL *x;
 		        return(0);
-		}], [ ok=1 ], [ ok=0 ])
+		}])], [ ok=1 ], [ ok=0 ])
 
 	CFLAGS="$OLD_CFLAGS"
 	LDFLAGS="$OLD_LDFLAGS"
@@ -962,12 +962,12 @@ dnl ====================== PostgreSQL LIBRARIES ===================
 	LDFLAGS="$pg_ldflags $pg_ldadd"
 	ok=0
 
-	AC_RUN_IFELSE( [
+	AC_RUN_IFELSE([AC_LANG_SOURCE([
 		#include <libpq-fe.h>
 		int main(void) {
 			PGconn *sql;
 		        return(0);
-		}], [ ok=1 ], [ ok=0 ])
+		}])], [ ok=1 ], [ ok=0 ])
 
 	CFLAGS="$OLD_CFLAGS"
 	LDFLAGS="$OLD_LDFLAGS"

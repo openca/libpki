@@ -22,7 +22,7 @@ endif
 SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cms prqp lirt . $(TOOLS_AND_TESTS)
 
 AM_CPPFLAGS = \
-	-I$(top_srcdir)/src/libpki \
+	-I$(top_srcdir)/src \
 	$(COND_INCLUDES)
  
 nobase_include_HEADERS = \

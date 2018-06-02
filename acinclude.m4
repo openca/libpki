@@ -1,6 +1,6 @@
 dnl Check for library paths and if static-dynamic linking is
 dnl supported
-AC_DEFUN(AC_CHECK_OPENSSL_PATH,
+AC_DEFUN([AC_CHECK_OPENSSL_PATH],
 [
 _package=OPENSSL
 _version=$1
@@ -297,12 +297,12 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$library_path
 
 dnl AC_MSG_RESULT([LD_LIBRARY_PATH=$library_path]);
 
-AC_RUN_IFELSE( [
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 #include <openssl/x509.h>
 int main(void) {
 	X509 *x = NULL;
 	return(0);
-}], [ ok=1 ], [ ok=0 ])
+}])], [ ok=1 ], [ ok=0 ])
 
 CFLAGS=$old_cflags
 LDFLAGS=$old_ldflags
@@ -334,19 +334,19 @@ fi # End of Library Setup
 
 
 dnl Check for extra support libraries and options 
-AC_DEFUN(AC_CHECK_C_OPTION,
+AC_DEFUN([AC_CHECK_C_OPTION],
 [ 
 old_cflags=$CFLAGS
 CFLAGS="$CFLAGS $1"
 
 AC_MSG_CHECKING([checking for $1 support]);
 
-AC_RUN_IFELSE( [
+AC_RUN_IFELSE([AC_LANG_SOURCE([
 #include <stdlib.h>
 int main(void)
 {
         return(0);
-}], [ _supported=yes ], [ _supported=no])
+}])], [ _supported=yes ], [ _supported=no])
 
 if [[ $_supported = no ]] ; then
         AC_MSG_RESULT([not supported]);
@@ -355,7 +355,7 @@ else
         AC_MSG_RESULT([yes]);
 fi])
 
-AC_DEFUN(AC_LDAP_VENDOR,
+AC_DEFUN([AC_LDAP_VENDOR],
 [
 _prefix=$1
 
@@ -484,7 +484,7 @@ fi
 
 ])
 
-AC_DEFUN(CHECK_EC, [
+AC_DEFUN([CHECK_EC], [
 ossl_prefix=$1
 
 if [[ "$cross_compiling" = yes ]]; then
@@ -579,14 +579,14 @@ dnl else
 dnl 	AC_MSG_RESULT([OpenSSL ECDSA support    : yes]);
 dnl fi
 
-AC_DEFUN(AC_OPENSSL_OCSP,
-[ AC_RUN_IFELSE( [
+AC_DEFUN([AC_OPENSSL_OCSP],
+[ AC_RUN_IFELSE([ AC_LANG_SOURCE([
 #include <openssl/ocsp.h>
 int main(void)
 {
 	OCSP_CERTID *cid = NULL;
 	return(0);
-}], [ AC_DEFINE(HAVE_OCSP) ], [ocsp_error=1])
+}])], [ AC_DEFINE(HAVE_OCSP) ], [ocsp_error=1])
 
 if [[ ocsp_error = 1 ]] ; then
 	AC_MSG_RESULT([checking for OpenSSL OCSP support ... no])
@@ -599,7 +599,7 @@ else
 	AC_MSG_RESULT([OpenSSL OCSP support    : yes]);
 fi])
 
-AC_DEFUN(AC_OPENSSL_VERSION,
+AC_DEFUN([AC_OPENSSL_VERSION],
 [ AC_EGREP_HEADER( [\#define\sOPENSSL_VERSION_NUMBER\s0x],
 	[ $openssl_prefix/include/openssl.h ],
 	[ openssl_ver="0.9.8+"], 
@@ -614,20 +614,20 @@ fi
 	AC_MSG_RESULT([OpenSSL Detected Version: $openssl_ver])
 ])
 
-AC_DEFUN(AC_GCC_CHECK_PRAGMA_IGNORED,
-[ AC_RUN_IFELSE( [
+AC_DEFUN([AC_GCC_CHECK_PRAGMA_IGNORED],
+[ AC_RUN_IFELSE([ AC_LANG_SOURCE([
 #include <stdio.h>
 #pragma GCC diagnostic ignored "-Wconversion"
 int main(void)
 {
 	return(0);
 }
-],[ AC_DEFINE(HAVE_GCC_PRAGMA_IGNORED, 1, [GCC pragma ignored]) ], [])
+])],[ AC_DEFINE(HAVE_GCC_PRAGMA_IGNORED, 1, [GCC pragma ignored]) ], [])
 
 ])
 
-AC_DEFUN(AC_GCC_CHECK_PRAGMA_POP,
-[ AC_RUN_IFELSE( [
+AC_DEFUN([AC_GCC_CHECK_PRAGMA_POP],
+[ AC_RUN_IFELSE([ AC_LANG_SOURCE([
 #include <stdio.h>
 #pragma GCC diagnostic ignored "-Wconversion"
 int main(void)
@@ -635,7 +635,7 @@ int main(void)
 	return(0);
 }
 #pragma GCC diagnostic pop
-], [ AC_DEFINE(HAVE_GCC_PRAGMA_POP, 1, [GCC pragma pop]) ], [])
+])], [ AC_DEFINE(HAVE_GCC_PRAGMA_POP, 1, [GCC pragma pop]) ], [])
 
 ])
 
