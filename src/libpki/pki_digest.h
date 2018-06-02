@@ -37,7 +37,7 @@ int PKI_DIGEST_get_size_by_name(const char *alg_name);
 
 const unsigned char * PKI_DIGEST_get_value(const PKI_DIGEST *digest);
 
-int PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst);
+size_t PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst);
 
 char * PKI_DIGEST_get_parsed(const PKI_DIGEST *digest);
 

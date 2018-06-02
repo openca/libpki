@@ -329,9 +329,9 @@ const unsigned char * PKI_DIGEST_get_value(const PKI_DIGEST *digest) {
 
 /*! \brief Returns the size of a calculated digest */
 
-int PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst)
+size_t PKI_DIGEST_get_value_size(const PKI_DIGEST *dgst)
 {
-	if (!dgst || !dgst->digest || !dgst->size) return -1;
+	if (!dgst || !dgst->digest || !dgst->size) return 0;
 
 	return dgst->size;
 }
