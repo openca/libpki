@@ -326,7 +326,7 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pk
 		return NULL;
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x10000000fL
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 
 	/*
 	typedef struct X509_pubkey_st {
@@ -340,8 +340,9 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pk
 	buf_size = xpk->public_key->length;
 #else
 
-	if (1 != X509_PUBKEY_get0_param(NULL, &buf, &buf_size, NULL, xpk)) {
-		PKI_log_err("Can not get the PublicKeyInfo from the KeyPair.")
+	if (1 != X509_PUBKEY_get0_param(NULL, 
+			(const unsigned char **)&buf, &buf_size, NULL, xpk)) {
+		PKI_log_err("Can not get the PublicKeyInfo from the KeyPair.");
 		return NULL;
 	}
 

@@ -226,13 +226,15 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 	// Let's get the algor options from the ENV if not set
-	if( !algor_opt ) algor_opt = PKI_get_env ( "PKI_TOKEN_ALGORITHM" );
+	if (!algor_opt) algor_opt = PKI_get_env("PKI_TOKEN_ALGORITHM");
 
 	// Checks for the supported schemes
-	if ((scheme = PKI_ALGOR_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
-		fprintf(stderr, "\nERROR: Scheme not supported for key generation (%s)\n\n",
-			algor_opt);
-		exit(1);
+	if (algor_opt) {
+		if ((scheme = PKI_ALGOR_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
+			fprintf(stderr, "\nERROR: Scheme not supported for key generation (%s)\n\n",
+				algor_opt);
+			exit(1);
+		}
 	}
 
 	// If specified, search the profile among the ones already loaded
@@ -812,14 +814,22 @@ int main (int argc, char *argv[] ) {
 			algor_opt = "EC";
 		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
 			algor_opt = "DSA";
-		} else {
+		}
+	        /*else {
 			printf("\nERROR, algorithm (%s) not supported (use RSA, ECDSA, or DSA)!\n\n",
 				algor_opt);
 			exit(1);
 		}
+		*/
 
-		if((gen_keypair ( tk, bits, param_s, outfile, algor_opt, 
-				profile, outform, batch )) == PKI_ERR ) {
+		if ((gen_keypair(tk, 
+				 bits,
+				 param_s,
+				 outfile,
+				 algor_opt, 
+				 profile,
+				 outform,
+				 batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
 			exit(1);
 		}

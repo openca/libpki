@@ -308,8 +308,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 	}
 
 	if (!ext) {
-		PKI_DEBUG("Can not generate the extension value from (%s)", 
-			valString);
+		PKI_DEBUG("Can not generate the extension value from (%s=%s)", 
+			name_s, valString);
 		PKI_ERROR(PKI_ERR_X509_CERT_CREATE_EXT, 
                            ERR_error_string(ERR_get_error(), NULL));
 		goto err;

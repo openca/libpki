@@ -695,13 +695,18 @@ const void * PKI_X509_OCSP_RESP_get_data(PKI_X509_OCSP_RESP * r,
 			break;
 
 		case PKI_X509_DATA_TBS_MEM_ASN1:
-			if((mem = PKI_MEM_new_null()) == NULL )
+			if ((mem = PKI_MEM_new_null()) == NULL)
 			{
 				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL );
 				break;
 			}
-			mem->size = (size_t) ASN1_item_i2d ( (void *) tmp_x->tbsResponseData, 
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+			mem->size = (size_t)ASN1_item_i2d((void *)&(tmp_x->tbsResponseData),
 				&(mem->data), &OCSP_RESPDATA_it );
+#else
+			mem->size = (size_t)ASN1_item_i2d((void *)tmp_x->tbsResponseData, 
+				&(mem->data), &OCSP_RESPDATA_it );
+#endif
 			ret = mem;
 			break;
 

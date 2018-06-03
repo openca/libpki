@@ -985,9 +985,8 @@ int PKI_verify_signature(const PKI_MEM *data,
 	}
 
 	// Updates the Verify function
-	if ((v_code = EVP_VerifyUpdate(ctx,
-						(unsigned char *)data->data,
-						data->size)) <= 0 ) {
+	if ((v_code = EVP_VerifyUpdate(ctx, (unsigned char *)data->data,
+					data->size)) <= 0 ) {
 
 		// Reports the error
 		PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
@@ -999,8 +998,7 @@ int PKI_verify_signature(const PKI_MEM *data,
 	}
 
 	// Finalizes the Verify function
-	if ((v_code = EVP_VerifyFinal(ctx,
-						(unsigned char *)sig->data,
+	if ((v_code = EVP_VerifyFinal(ctx, (unsigned char *)sig->data,
                         (unsigned int)sig->size, key->value )) <= 0 ) {
 
 		// Reports the error
@@ -1013,8 +1011,11 @@ int PKI_verify_signature(const PKI_MEM *data,
 	}
 
 	// Free the memory
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	EVP_MD_CTX_cleanup(ctx);
+#else
 	EVP_MD_CTX_reset(ctx);
+#endif
 	EVP_MD_CTX_free(ctx);
 
 	// All Done
@@ -1023,8 +1024,11 @@ int PKI_verify_signature(const PKI_MEM *data,
 err:
 	// Free Memory
 	if (ctx) {
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
 		EVP_MD_CTX_cleanup(ctx);
+#else
 		EVP_MD_CTX_reset(ctx);
+#endif
 		EVP_MD_CTX_free(ctx);
 	}
 
