@@ -526,7 +526,7 @@ PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v,
                                                &(mem->data),
                                                ta->it);
 #else
-	mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
+	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
                                                &(mem->data),
                                                ta->it);
 #endif
