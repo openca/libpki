@@ -521,7 +521,7 @@ PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v,
 		return NULL;
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
 	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
                                                &(mem->data),
                                                ta->it);
