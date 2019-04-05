@@ -17,9 +17,9 @@
 
 #ifdef HAVE_SYS_SOCKET_H
 # include <sys/select.h>
+# include <sys/socket.h>
 #else
 # include <sys/types.h>
-# include <sys/socket.h>
 #endif
 
 #include <netdb.h>

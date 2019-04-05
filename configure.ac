@@ -4,7 +4,7 @@ AC_COPYRIGHT([Copyright 2007-2018 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.8.9, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.9.1, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -1152,15 +1152,21 @@ AC_MSG_RESULT([with openssl-prefix     : $openssl_prefix ])
 if [[ "${enableopenssl}" = "yes" ]] ; then
    if ! [[ "x${openssl_prefix}" = "x" ]]; then
       if [[ -d "$openssl_prefix/lib$mybits_install" ]] ; then
-        openssl_path=$openssl_prefix/lib$mybits_install
-      else
-        openssl_path=$openssl_prefix/lib
+      	if [[ -f "$openssl_prefix/lib$mybits_install/libcrypto.$shlext" -o
+      	      -f "$openssl_prefix/lib$mybits_install/libcrypto.a" ]] ; then
+          openssl_path=$openssl_prefix/lib$mybits_install
+        else
+          openssl_path=$openssl_prefix/lib
+        fi
       fi
 
-	  openssl_ldadd="-lcrypto -lssl"
-	  openssl_ldflags=
+    openssl_ldadd="-lcrypto -lssl"
+    openssl_ldflags=
+
     AC_MSG_RESULT([openssl lib dir         : $openssl_path])
+
    else
+
     AC_MSG_RESULT([openssl lib dir         : $openssl_path (default)])
 
 	  openssl_ldadd="-lcrypto -lssl"
@@ -1189,6 +1195,11 @@ dnl		else  dnl else of prefix...
 			   openssl_cflags=$OPENSSL_CFLAGS
 			   openssl_ldflags=$OPENSSL_LIBS
 			   openssl_prefix=$prefix
+    			   if [[ -d "$prefix/lib$mybits_install" ]] ; then
+      			     openssl_path="/usr/lib$mybits_install"
+			   else
+      			     openssl_path="/usr/lib"
+                           fi
 			   openssl_ldadd="-lssl -lcrypto"
 			   openssl_ldflags=`echo $openssl_ldflags | sed "s|-lssl||" | sed "s|-lcrypto||"`
 			   openssl_setup=yes
@@ -1246,19 +1257,19 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 
 		AC_MSG_RESULT([OpenSSL Prefix: $openssl_prefix])
 
-		if ! [[ "x$openssl_prefix" = "x" ]] ; then
-			if [[ -d "${openssl_prefix}/lib$mybits_install" ]] ; then
-				openssl_path="${openssl_prefix}/lib$mybits_install";
-			else
-				openssl_path="${openssl_prefix}/lib"
-			fi
+		if ! [[ "x$openssl_path" = "x" ]] ; then
+		  if [[ -d "${openssl_prefix}/lib$mybits_install" ]] ; then
+		    openssl_path="${openssl_prefix}/lib$mybits_install";
+		  else
+		    openssl_path="${openssl_prefix}/lib"
+		  fi
 
-			if test ! -z "$need_dash_r" ; then
-	   	     	rpath="${rpath_opt} \"${openssl_path}\" ${rpath}"
-			else
-	   	     	rpath="${rpath_opt}\"${openssl_path}\" ${rpath}"
-			fi
-			ld_lib_path="$xml2_path:$ld_lib_path"
+		  if test ! -z "$need_dash_r" ; then
+	   	    rpath="${rpath_opt} \"${openssl_path}\" ${rpath}"
+		  else
+	   	    rpath="${rpath_opt}\"${openssl_path}\" ${rpath}"
+		  fi
+		  ld_lib_path="$openssl_path:$ld_lib_path"
 		fi
 
 		# else 
@@ -1280,6 +1291,12 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 
 	if [[ "x$openssl_ldadd" = "x" ]] ; then
 		openssl_ldadd="-lcrypto -lssl"
+	fi
+
+	if [[ "x$openssl_ldflags" = "x" ]] ; then
+	  if ! [[ "x$openssl_path" = "x" ]] ; then
+	    openssl_ldflags="-L$openssl_path"
+          fi
 	fi
 
 	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
