@@ -204,8 +204,10 @@ int HSM_PKCS11_free ( HSM *hsm, PKI_CONFIG *conf ) {
 	if (hsm->driver) PKI_Free(hsm->driver);
 
 	// Set the mutex to an invalid value
-	pthread_mutex_destroy ( &handle->pkcs11_mutex );
-	pthread_cond_destroy ( &handle->pkcs11_cond );
+	// NOTE: The call to pthread_mutext_destroy() seem
+	// to cause issues on some platforms, need investigation
+	// pthread_mutex_destroy ( &handle->pkcs11_mutex );
+	// pthread_cond_destroy ( &handle->pkcs11_cond );
 
 	// Free the Memory
 	PKI_Free(handle);
