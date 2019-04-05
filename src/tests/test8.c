@@ -4,9 +4,9 @@
 int main (int argc, char *argv[] ) {
 
 	PKI_TOKEN *tk = NULL;
-	PKI_OID *oid = NULL;
+	// PKI_OID *oid = NULL;
 
-	HSM *hsm = NULL;
+	// HSM *hsm = NULL;
 
 	printf("\n\nlibpki Test - Massimiliano Pala <madwolf@openca.org>\n");
 	printf("(c) 2006 by Massimiliano Pala and OpenCA Project\n");

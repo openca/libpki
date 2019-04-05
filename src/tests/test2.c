@@ -55,7 +55,6 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 	PKI_X509_CERT *r = NULL;
 	// PKI_ALGOR * alg = PKI_ALGOR_DEFAULT;
 	PKI_ALGOR_ID *algs = NULL;
-	char *sc = NULL;
 	size_t list_size = 0;
 	int i = 0;
 
@@ -107,7 +106,6 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 
 	list_size = PKI_ALGOR_list_size ( algs );
 	for( i=0; i < list_size ; i++ ) {
-		PKI_DIGEST_ALG *dgst = NULL;
 
 		printf("    - Generating CERT (%s) ... " ,
 					PKI_ALGOR_ID_txt (algs[i]));

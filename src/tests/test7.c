@@ -65,12 +65,12 @@ int main (int argc, char *argv[] ) {
 
 	PKI_TOKEN *tk = NULL;
 	PKI_X509_PROFILE *prof =  NULL;
-	PKI_OID *oid = NULL;
+	// PKI_OID *oid = NULL;
 
 	PKI_MEM * mem_data = NULL;
 
-	PKI_X509_CRL *crl = NULL;
-	PKI_X509_CRL_ENTRY       *entry = NULL;
+	// PKI_X509_CRL *crl = NULL;
+	// PKI_X509_CRL_ENTRY       *entry = NULL;
 	PKI_MEM_STACK       *data = NULL;
 	PKI_X509_CERT_STACK *cert_data = NULL;
 	// PKI_KEY_STACK  *key_data = NULL;
@@ -91,10 +91,12 @@ int main (int argc, char *argv[] ) {
 		"pg://openca:openca@localhost/openca/certificate/(cert_key=\"9999\")?data",
         };
 
+	/*
 	char *key_url[] = {
 		"pkcs11:///usr/lib/libeTPkcs11.so/(pin=\"1234567890\")?key",
 		"pkcs11:///usr/lib/libeTPkcs11.so/(pin=\"1234567890\")(label=\"openca\")?key"
 	};
+	*/
 
 	char *crl_url[] = { 
 		"ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?certificateRevocationList;binary"
