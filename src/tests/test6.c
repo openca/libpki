@@ -5,7 +5,7 @@ int main (int argc, char *argv[] ) {
 
 	PKI_TOKEN *tk = NULL;
 	PKI_X509_PROFILE *prof =  NULL;
-	PKI_OID *oid = NULL;
+	// PKI_OID *oid = NULL;
 
 	PKI_X509_CRL *crl = NULL;
 	PKI_X509_CRL_ENTRY *entry = NULL;

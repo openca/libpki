@@ -41,8 +41,8 @@ int main (int argc, char *argv[] ) {
 int gen_X509_tk(int scheme, int bits, char *file ) {
 
 	PKI_TOKEN *tk = NULL;
-	PKI_X509_KEYPAIR *p = NULL;
-	PKI_X509_CERT *r = NULL;
+	// PKI_X509_KEYPAIR *p = NULL;
+	// PKI_X509_CERT *r = NULL;
 	PKI_ALGOR_ID algor = PKI_ALGOR_UNKNOWN;
 
 	switch (scheme) {
