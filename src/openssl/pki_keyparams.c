@@ -193,6 +193,7 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
                             PKI_EC_KEY_FORM   curveForm,
                             PKI_EC_KEY_ASN1   asn1flags) {
 
+#ifdef ENABLE_ECDSA
 	int curveId = 0;
 
 	// Input Checks
@@ -214,6 +215,9 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
 
 	// All Done
 	return PKI_OK;
+#else
+	return PKI_ERR;
+#endif
 };
 
 /*! \brief Sets the bits size for key generation */
