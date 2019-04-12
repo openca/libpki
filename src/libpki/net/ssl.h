@@ -18,6 +18,7 @@
 #define _LIBPKI_PKI_SSL_H
 
 #include <openssl/ssl.h>
+#include <libpki/pki_x509_data_st.h>
 
 /*! \brief Algorithms for PKI_SSL connections */
 typedef SSL_METHOD PKI_SSL_ALGOR;
@@ -273,7 +274,7 @@ typedef struct  pki_ssl_t {
 
   /* Forward Declaration for PKI_X509 structure */
   struct pki_x509_st;
-  typedef struct pki_x509_st PKI_X509;
+//  typedef struct pki_x509_st PKI_X509;
 
   /* Forward Definition for PKI_X509_CERT */
 #define PKI_X509_CERT PKI_X509
