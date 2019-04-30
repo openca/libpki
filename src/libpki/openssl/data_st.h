@@ -460,7 +460,6 @@ typedef struct pki_x509_extension_st {
 
 #define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
 
-#ifdef ENABLE_ECDSA
 typedef enum {
 	PKI_EC_KEY_FORM_UNKNOWN		=	0,
 	PKI_EC_KEY_FORM_COMPRESSED	=	POINT_CONVERSION_COMPRESSED,
@@ -478,7 +477,6 @@ typedef enum {
 
 #define PKI_EC_KEY_ASN1_DEFAULT			PKI_EC_KEY_ASN1_NAMED_CURVE
 
-#endif // ENABLE_ECDSA
 
 typedef struct pki_keyparams_st {
 	int bits;

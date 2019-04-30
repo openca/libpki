@@ -8,7 +8,7 @@
  
 #include <libpki/pki.h>
 
-char *parse_url_query ( URL * url ) {
+char *parse_url_query ( const URL * url ) {
 
 	char * ret = NULL;
 	char * table = NULL;
@@ -99,7 +99,7 @@ char *parse_url_query ( URL * url ) {
 	return( ret );
 }
 
-char *parse_url_put_query ( URL * url, PKI_MEM *data ) {
+char *parse_url_put_query ( const URL * url, const PKI_MEM *data ) {
 
 	char * ret = NULL;
 	char * table = NULL;
@@ -209,7 +209,7 @@ char *parse_url_put_query ( URL * url, PKI_MEM *data ) {
 	return( ret );
 }
 
-char *parse_url_table ( URL * url ) {
+char *parse_url_table ( const URL * url ) {
 	char *tmp_s = NULL;
 	char *tmp_s2 = NULL;
 	char *ret = NULL;
@@ -242,7 +242,7 @@ char *parse_url_table ( URL * url ) {
 	return( ret );
 }
 
-char *parse_url_dbname ( URL *url ) {
+char *parse_url_dbname ( const URL *url ) {
 
 	char *tmp_s = NULL;
 	char *ret = NULL;
@@ -267,7 +267,7 @@ char *parse_url_dbname ( URL *url ) {
 
 #ifdef HAVE_MYSQL
 
-MYSQL *db_connect ( URL *url ) {
+MYSQL *db_connect ( const URL *url ) {
 
 	MYSQL *sql = NULL;
 	char * table = NULL;
@@ -308,7 +308,7 @@ int db_close ( MYSQL *sql ) {
 
 #endif
 
-PKI_MEM_STACK *URL_get_data_mysql ( char *url_s, ssize_t size )
+PKI_MEM_STACK *URL_get_data_mysql ( const char *url_s, ssize_t size )
 {
 	PKI_MEM_STACK *ret = NULL;
 	URL *url = NULL;
@@ -343,7 +343,7 @@ PKI_MEM_STACK *URL_get_data_mysql ( char *url_s, ssize_t size )
 	return ret;
 }
 
-PKI_MEM_STACK *URL_get_data_mysql_url ( URL *url, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_mysql_url ( const URL *url, ssize_t size ) {
 
 #ifdef HAVE_MYSQL
 	MYSQL_ROW row;
@@ -426,7 +426,7 @@ end:
 #endif
 }
 
-int URL_put_data_mysql ( char *url_s, PKI_MEM *data ) {
+int URL_put_data_mysql ( const char *url_s, const PKI_MEM *data ) {
 
 	int ret = 0;
 	URL *url = NULL;
@@ -463,7 +463,7 @@ int URL_put_data_mysql ( char *url_s, PKI_MEM *data ) {
 	return ret;
 }
 
-int URL_put_data_mysql_url ( URL *url, PKI_MEM *data ) {
+int URL_put_data_mysql_url ( const URL *url, const PKI_MEM *data ) {
 
 #ifdef HAVE_MYSQL
 	MYSQL * sql = NULL;

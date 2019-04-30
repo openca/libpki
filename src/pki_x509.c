@@ -521,15 +521,10 @@ PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v,
 		return NULL;
 	}
 
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	// distinction between openssl versions is done inside __datatype_get_asn1_ref 
 	mem->size = (size_t) ASN1_item_i2d((void *)ta->data,
                                                &(mem->data),
                                                ta->it);
-#else
-	mem->size = (size_t) ASN1_item_i2d((void *)&ta->data,
-                                               &(mem->data),
-                                               ta->it);
-#endif
 
 	 // Free the TA Data
 	 PKI_Free(ta);
