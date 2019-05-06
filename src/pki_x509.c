@@ -16,19 +16,20 @@ typedef struct tbs_asn1_st {
 
 struct parsed_datatypes_st __parsed_datatypes[] = {
 	/* X509 types */
-	{ "Unknown",				PKI_DATATYPE_UNKNOWN },
-	{ "Public KeyPair", 			PKI_DATATYPE_X509_KEYPAIR },
-	{ "X509 Public Key Certificate", 	PKI_DATATYPE_X509_CERT },
-	{ "X509 CRL", 				PKI_DATATYPE_X509_CRL },
-	{ "PKCS#10 Certificate Request", 	PKI_DATATYPE_X509_REQ },
-	{ "PKCS#7 Message", 			PKI_DATATYPE_X509_PKCS7 },
-	{ "PKCS#12 PMI Object", 		PKI_DATATYPE_X509_PKCS12 },
-	{ "OCSP Request", 			PKI_DATATYPE_X509_OCSP_REQ },
-	{ "OCSP Response", 			PKI_DATATYPE_X509_OCSP_RESP },
-	{ "PRQP Request", 			PKI_DATATYPE_X509_PRQP_REQ },
-	{ "PRQP Response", 			PKI_DATATYPE_X509_PRQP_RESP },
-	{ "Cross Certificate Pair", 		PKI_DATATYPE_X509_XPAIR },
-	{ "CMS Message", 			PKI_DATATYPE_X509_CMS_MSG },
+	{ "Unknown", PKI_DATATYPE_UNKNOWN },
+	{ "Public KeyPair", PKI_DATATYPE_X509_KEYPAIR },
+	{ "X509 Public Key Certificate", PKI_DATATYPE_X509_CERT },
+	{ "X509 CRL", PKI_DATATYPE_X509_CRL },
+	{ "PKCS#10 Certificate Request", PKI_DATATYPE_X509_REQ },
+	{ "PKCS#7 Message", PKI_DATATYPE_X509_PKCS7 },
+	{ "CMS Message", PKI_DATATYPE_X509_CMS },
+	{ "PKCS#12 PMI Object", PKI_DATATYPE_X509_PKCS12 },
+	{ "OCSP Request", PKI_DATATYPE_X509_OCSP_REQ },
+	{ "OCSP Response", PKI_DATATYPE_X509_OCSP_RESP },
+	{ "PRQP Request", PKI_DATATYPE_X509_PRQP_REQ },
+	{ "PRQP Response", PKI_DATATYPE_X509_PRQP_RESP },
+	{ "Cross Certificate Pair", PKI_DATATYPE_X509_XPAIR },
+	{ "CMS Message", PKI_DATATYPE_X509_CMS_MSG },
 	{ NULL, -1 }
 };
 
@@ -96,6 +97,11 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 			it = &PKI_PRQP_RESP_it;
 			p = ((PKI_X509_PRQP_RESP_VALUE *)v)->respData;
 		} break;
+
+		case PKI_DATATYPE_X509_CMS : {
+			it = &CMS_ContentInfo_it;
+			p = NULL;
+		}
 
 		default: {
 			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, 
@@ -169,6 +175,9 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	// Crypto provider's specific data structure
 	ret->value = NULL;
 
+	// Auxillary Data
+	ret->aux_data = NULL;
+
 	// All Done
 	return ret;
 }
@@ -195,6 +204,9 @@ void PKI_X509_free ( PKI_X509 *x ) {
 	if (x->cred) PKI_CRED_free(x->cred);
 
 	if (x->ref ) URL_free(x->ref);
+
+	if (x->aux_data && x->free_aux_data)
+		x->free_aux_data(x->aux_data);
 
 	PKI_ZFree ( x, sizeof(PKI_X509) );
 
@@ -592,5 +604,71 @@ int PKI_X509_delete ( PKI_X509 *x )
 	}
 
 	return ret;
+}
+
+/*! \brief Sets the Aux Data into an PKI_X509 structure */
+int PKI_X509_aux_data_set (PKI_X509 * x,
+	                         void     * data, 
+	                         void       (*data_free_func)(void *),
+	                         void     * (*data_dup_func )(void *)) {
+
+	// Input Check
+	if (!x || !data) return PKI_ERR_PARAM_NULL;
+
+	// Requires at least the free function
+	if (!data_free_func) {
+		PKI_ERROR(PKI_ERR_X509_AUX_DATA_MEMORY_FREE_CB_NULL, NULL);
+		return 0;
+	}
+	
+	// Checks if we do have data already set
+	if (x->aux_data) {
+		// If we have the free function, let's use it
+		if (x->free_aux_data) x->free_aux_data(x->aux_data);
+		else PKI_ERROR(PKI_ERR_X509_AUX_DATA_MEMORY_FREE_CB_NULL, NULL);
+	}
+
+	// Assignment
+	x->aux_data      = data;
+	x->free_aux_data = data_free_func;
+	x->dup_aux_data  = data_dup_func;
+
+  // All Done
+	return 1;
+}
+
+void * PKI_X509_aux_data_get(PKI_X509 * x) {
+
+	// Input Check
+	if (!x || !x->aux_data) return NULL;
+
+	// Returns the pointer to the data
+	return x->aux_data;
+}
+
+void * PKI_X509_aux_data_dup(PKI_X509 * x) {
+	// Input Check
+	if (!x || !x->aux_data) return NULL;
+
+	// Checks we have the dup function
+	if (!x->dup_aux_data) return NULL;
+
+	// Returns the duplicate of the aux_data
+	return x->dup_aux_data(x->aux_data);
+}
+
+int PKI_X509_aux_data_del(PKI_X509 * x) {
+
+	// Input Check
+	if (!x || !x->aux_data) return 1;
+
+  // Error Condition: Missing the 'free' callback
+	if (!x->free_aux_data) return 0;
+
+	// Free the memory
+	x->free_aux_data(x->aux_data);
+
+	// All Done
+	return 1;
 }
 

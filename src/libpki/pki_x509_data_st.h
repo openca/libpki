@@ -85,6 +85,15 @@ typedef struct pki_x509_st {
 	/* Template Reference */
 	const ASN1_ITEM * it;
 
+	/* Auxillary Data */
+	void * aux_data;
+
+	/* Callback to free auxillary data */
+	void (*free_aux_data)(void *);
+
+	/* Callback to duplicate auxillary data */
+	void * (*dup_aux_data)(void *);
+
 } PKI_X509;
 
 /* End of _LIBPKI_PKI_X509_DATA_ST_H */

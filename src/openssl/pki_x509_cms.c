@@ -168,57 +168,44 @@ const PKI_ALGOR * PKI_X509_CMS_get_encode_alg(
 	return ret;
 }
 
-const PKCS7_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
+const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
 					const PKI_X509_CMS * const cms, 
-					int                    idx ) {
+					int                        idx ) {
 
-	int type = 0;
-	int cnt = 0;
-	const STACK_OF(PKCS7_SIGNER_INFO) *sk = NULL;
-	const PKCS7_SIGNER_INFO *ret = NULL;
+  STACK_OF(CMS_SignerInfo) * x_sk = NULL;
+    // Stack of Signer Info
 
-	PKI_X509_CMS_VALUE *value = NULL;
+  PKI_X509_CMS_VALUE * val = NULL;
+    // Pointer to Internal value for CMS
 
-	if ( !cms || !cms->value ) return ( NULL );
+  PKI_X509_CMS_SIGNER_INFO * ret = NULL;
+    // Pointer for the return value
 
-	type = PKI_X509_CMS_get_type ( cms );
+  int cnt = 0;
+    // Number of SignerInfo
 
-	value = cms->value;
+	// Input Check
+	if (!cms || !(val = PKI_X509_get_value(cms)))
+		return NULL;
 
-	switch (type) {
-
-		case PKI_X509_CMS_TYPE_SIGNED: {
-			if (value && value->d.sign) {
-				sk = value->d.sign->signer_info;
-			}
-		} break;
-
-		case PKI_X509_CMS_TYPE_SIGNEDANDENCRYPTED: {
-			if (value && value->d.signed_and_enveloped) {
-				sk = value->d.signed_and_enveloped->signer_info;
-			}
-		} break;
-
-		default: {
-			PKI_ERROR(PKI_ERR_X509_CMS_TYPE_UNKNOWN, NULL);
-			return NULL;
-		}
-	}
+	// Gets the list of signer info
+	if ((x_sk = CMS_get0_SignerInfos((CMS_ContentInfo *)cms)) == NULL)
+		return NULL;
 
 	// Retrieves the Signer Info structure
-	if((cnt = sk_CMS_SIGNER_INFO_num ( sk )) <= 0 ) {
+	if ((cnt = sk_CMS_SignerInfo_num(x_sk)) < 0) {
 		PKI_ERROR(PKI_ERR_X509_CMS_SIGNER_INFO_NULL, NULL);
-		return ( NULL );
+		return NULL;
 	}
 
 	// If the requested is out of scope, nothing to return
-	if (idx > cnt ) return NULL;
+	if (idx > cnt) return NULL;
 
 	// Retrieves the value
 	if( idx >= 0 ) {
-		ret = sk_CMS_SIGNER_INFO_value( sk, idx );
+		ret = sk_CMS_SignerInfo_value(x_sk, idx);
 	} else {
-		ret = sk_CMS_SIGNER_INFO_value( sk, cnt-1 );
+		ret = sk_CMS_SignerInfo_value(x_sk, cnt-1);
 	}
 	
 	// All Done
@@ -227,15 +214,15 @@ const PKCS7_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
 
 /* --------------------- Internal Mem Functions ----------------------- */
 
-CMS_ContentInfo * const CMS_new(void) {
+CMS_ContentInfo * CMS_new(void) {
 	return M_ASN1_new_of(CMS_ContentInfo);
 }
 
-CMS_ContentInfo * const CMS_dup(CMS_ContentInfo *cms) {
-	return ASN1_item_dup(cms, NULL);
+CMS_ContentInfo * CMS_dup(CMS_ContentInfo *cms) {
+	return ASN1_item_dup((const ASN1_ITEM *)cms, NULL);
 }
 
-void * const CMS_free(CMS_ContentInfo *cms) {
+void CMS_free(CMS_ContentInfo *cms) {
 	M_ASN1_free_of(cms, CMS_ContentInfo);
 }
 
@@ -243,35 +230,32 @@ void * const CMS_free(CMS_ContentInfo *cms) {
 
 CMS_ContentInfo *PEM_read_bio_CMS( PKI_IO *bp ) {
 #if OPENSSL_VERSION_NUMBER < 0x0090800fL
-	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (char *(*)()) d2i_CMS, 
-				PEM_STRING_X509_CMS, bp, NULL, NULL, NULL);
+	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (char *(*)()) d2i_CMS_ContentInfo, 
+				PEM_STRING_CMS, bp, NULL, NULL, NULL);
 #else
-	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (void *(*)()) d2i_CMS, 
-				PEM_STRING_X509_CMS, bp, NULL, NULL, NULL);
+	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (void *(*)()) d2i_CMS_ContentInfo, 
+				PEM_STRING_CMS, bp, NULL, NULL, NULL);
 #endif
 }
 
 int PEM_write_bio_CMS( BIO *bp, CMS_ContentInfo *o ) {
-	return PEM_ASN1_write_bio ( (int (*)())i2d_CMS, 
-			PEM_STRING_X509_CMS, bp, (char *) o, NULL, 
+	return PEM_ASN1_write_bio ( (int (*)())i2d_CMS_ContentInfo, 
+			PEM_STRING_CMS, bp, (char *) o, NULL, 
 				NULL, 0, NULL, NULL );
 }
 
 
 /* ----------------------- Exported Functions ------------------------- */
 
-void PKI_X509_CMS_free_void ( void *cms ) {
-
-	PKI_X509_free ( (PKI_X509_CMS *) cms );
+void PKI_X509_CMS_free_void(void *cms) {
+	// Free the memory associated with the CMS
+	if (cms) PKI_X509_free((PKI_X509_CMS *) cms);
 	return;
 }
 
-void PKI_X509_CMS_free ( PKI_X509_CMS *cms ) {
-
-	if( cms == NULL ) return;
-
-	PKI_X509_free( cms );
-
+void PKI_X509_CMS_free(PKI_X509_CMS *cms) {
+	// Free the memory associated with the CMS
+	if (cms) PKI_X509_free(cms);
 	return;
 }
 
@@ -285,6 +269,7 @@ PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type) {
 		return NULL;
 	}
 
+	/*
 	if(!PKCS7_set_type(value, type)) {
 		PKCS7_free(value);
 		PKI_ERROR(PKI_ERR_X509_CMS_TYPE_UNKNOWN, NULL);
@@ -322,13 +307,14 @@ PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type) {
 			return NULL;
 		} break;
 	}
+	*/
 
 	// Allocates the new structure with the generated value
 	if ((cms = PKI_X509_new_value(PKI_DATATYPE_X509_CMS, value, NULL)) == NULL) {
 
 		// Reports the error
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		PKCS7_free(value);
+		CMS_ContentInfo_free(value);
 
 		// Nothing to return
 		return NULL;
@@ -343,6 +329,11 @@ PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type) {
 
 PKI_X509_CMS_TYPE PKI_X509_CMS_get_type(const PKI_X509_CMS * const cms ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+	return 0;
+
+	/*
 	PKI_ID type = PKI_ID_UNKNOWN;
 	PKI_X509_CMS_VALUE *value = NULL;
 
@@ -417,6 +408,7 @@ int PKI_X509_CMS_add_crl_stack(PKI_X509_CMS           * cms,
 	}
 
 	return PKI_OK;
+	*/
 }
 
 
@@ -424,11 +416,18 @@ int PKI_X509_CMS_add_crl_stack(PKI_X509_CMS           * cms,
 
 int PKI_X509_CMS_get_crls_num(const PKI_X509_CMS * const cms ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	const STACK_OF(X509_CRL) *x_sk = NULL;
 
 	if ((x_sk = __get_crl(cms)) == NULL) return -1;
 
 	return sk_X509_CRL_num((STACK_OF(X509_CRL) *) x_sk);
+	*/
 }
 
 
@@ -437,6 +436,12 @@ int PKI_X509_CMS_get_crls_num(const PKI_X509_CMS * const cms ) {
 PKI_X509_CRL *PKI_X509_CMS_get_crl(const PKI_X509_CMS * const cms,
 				     int idx) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	PKI_X509_CRL_VALUE *x = NULL;
 	const STACK_OF(X509_CRL) *x_sk = NULL;
 
@@ -449,7 +454,7 @@ PKI_X509_CRL *PKI_X509_CMS_get_crl(const PKI_X509_CMS * const cms,
 	if ((x = sk_X509_CRL_value(x_sk, idx)) == NULL) return NULL;
 
 	return PKI_X509_new_dup_value(PKI_DATATYPE_X509_CRL, x, NULL);
-
+	*/
 }
 
 /*! \brief Adds a certificate to the signature's certificate chain */
@@ -457,6 +462,12 @@ PKI_X509_CRL *PKI_X509_CMS_get_crl(const PKI_X509_CMS * const cms,
 int PKI_X509_CMS_add_cert(const PKI_X509_CMS * cms, 
 			    const PKI_X509_CERT  * const x) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	if (!cms || !cms->value || !x || !x->value) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
@@ -465,12 +476,20 @@ int PKI_X509_CMS_add_cert(const PKI_X509_CMS * cms,
 	PKCS7_add_certificate( cms->value, x->value );
 
 	return( PKI_OK );
+	*/
 }
 
 /*! \brief Adds a stack of certificates to the signature's certificate chain */
 
 int PKI_X509_CMS_add_cert_stack(const PKI_X509_CMS      * cms, 
 				  const PKI_X509_CERT_STACK * const x_sk) {
+
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	int i;
 
 	if( !cms || !cms->value || !x_sk ) {
@@ -489,17 +508,25 @@ int PKI_X509_CMS_add_cert_stack(const PKI_X509_CMS      * cms,
 	}
 
 	return ( PKI_OK );
+	*/
 }
 
 /*! \brief Returns the number of certificates present in the signature chain */
 
 int PKI_X509_CMS_get_certs_num(const PKI_X509_CMS * const cms ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	const STACK_OF(X509) *x_sk = NULL;
 
 	if ((x_sk = __get_chain(cms)) == NULL) return -1;
 
 	return sk_X509_num((STACK_OF(X509) *)x_sk);
+	*/
 }
 
 
@@ -508,6 +535,12 @@ int PKI_X509_CMS_get_certs_num(const PKI_X509_CMS * const cms ) {
 PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
 				       int idx) {
 
+PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	PKI_X509_CERT_VALUE *x = NULL;
 	const STACK_OF(X509) *x_sk = NULL;
 
@@ -520,7 +553,7 @@ PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
 	if ((x = sk_X509_value(x_sk, idx)) == NULL) return NULL;
 
 	return PKI_X509_new_dup_value ( PKI_DATATYPE_X509_CERT, x, NULL );
-
+	*/
 }
 
 
@@ -528,6 +561,12 @@ PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
 
 int PKI_X509_CMS_clear_certs(const PKI_X509_CMS * cms) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	STACK_OF(X509) *x_sk = NULL;
 		// Pointer to the stack of certificates
 
@@ -540,6 +579,7 @@ int PKI_X509_CMS_clear_certs(const PKI_X509_CMS * cms) {
 
 	// All Done
 	return PKI_OK;
+	*/
 }
 
 /*!
@@ -567,6 +607,12 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS   * cms,
 			      const PKI_X509_KEYPAIR * const k,
 			      const PKI_DIGEST_ALG   * md ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
 	if ( !cms || !signer || !k ) {
@@ -592,7 +638,7 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS   * cms,
 	PKCS7_add_certificate ( cms->value, signer->value );
 
 	return ( PKI_OK );
-
+	*/
 }
 
 /*! \brief Returns PKI_OK if the cms has signers already set, PKI_ERR
@@ -601,6 +647,12 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS   * cms,
 
 int PKI_X509_CMS_has_signers(const PKI_X509_CMS * const cms ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	int type = 0;
 
 	if ( !cms || !cms->value ) return ( PKI_ERR );
@@ -618,7 +670,7 @@ int PKI_X509_CMS_has_signers(const PKI_X509_CMS * const cms ) {
 	}
 
 	return PKI_ERR;
-
+	*/
 }
 
 /*! \brief Returns PKI_OK if the cms has recipients already set, PKI_ERR
@@ -634,7 +686,7 @@ int PKI_X509_CMS_has_recipients(const PKI_X509_CMS * const cms) {
 	if (!cms || !(val = PKI_X509_get_value(cms))) return PKI_ERR;
 
 	// Gets the stack of recipient info
-	x_sk = CMS_get0_RecipientInfos(cms)
+	x_sk = CMS_get0_RecipientInfos(val);
 
 	// Returns PKI_OK if we have any recipient info
 	return (x_sk != NULL ? PKI_OK : PKI_ERR);
@@ -648,6 +700,12 @@ int PKI_X509_CMS_encode(const PKI_X509_CMS * const cms,
 			  unsigned char *data, 
 			  size_t size ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	int type = NID_CMS_signed;
 	const PKCS7_SIGNER_INFO * signerInfo = NULL;
 	BIO *bio = NULL;
@@ -703,7 +761,7 @@ int PKI_X509_CMS_encode(const PKI_X509_CMS * const cms,
 	if( bio ) BIO_free_all ( bio );
 
 	return ( PKI_OK );
-
+	*/
 }
 
 /*!
@@ -712,6 +770,12 @@ int PKI_X509_CMS_encode(const PKI_X509_CMS * const cms,
 
 PKI_MEM *PKI_X509_CMS_get_raw_data(const PKI_X509_CMS * const cms ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	unsigned char *data = NULL;
 	ssize_t len = -1;
 	int type = -1;
@@ -778,19 +842,18 @@ PKI_MEM *PKI_X509_CMS_get_raw_data(const PKI_X509_CMS * const cms ) {
 		return NULL;
 	}
 
-	/*
-        if((p7bio = PKCS7_dataInit(cms->value ,NULL)) != NULL ) {
-		(void)BIO_flush(p7bio);
-                ret = PKI_MEM_new_bio( p7bio, NULL );
-		BIO_free_all ( p7bio );
-        } else {
-		PKI_log_debug("PKCS7::get_raw_data()::Can not get data [%s]",
-			ERR_error_string(ERR_get_error(), NULL ));
-	}
-	*/
+	//
+  //      if((p7bio = PKCS7_dataInit(cms->value ,NULL)) != NULL ) {
+	//	(void)BIO_flush(p7bio);
+  //              ret = PKI_MEM_new_bio( p7bio, NULL );
+	//	BIO_free_all ( p7bio );
+  //      } else {
+	//	PKI_log_debug("PKCS7::get_raw_data()::Can not get data [%s]",
+	//		ERR_error_string(ERR_get_error(), NULL ));
+	// }
 
 	return ( ret );
-	
+	*/
 }
 
 /*!
@@ -814,6 +877,12 @@ PKI_MEM *PKI_X509_CMS_get_data(const PKI_X509_CMS * const cms,
 				 const PKI_X509_KEYPAIR * const k,
 				 const PKI_X509_CERT * const x ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	PKI_ID type;
 
 	if( !cms || !cms->value ) return ( NULL );
@@ -830,6 +899,7 @@ PKI_MEM *PKI_X509_CMS_get_data(const PKI_X509_CMS * const cms,
 			PKI_log_debug("PKI_X509_CMS_get_data()::cms not encrypted");
 			return PKI_X509_CMS_get_raw_data ( cms );
 	}
+	*/
 }
 
 /*!
@@ -841,6 +911,12 @@ PKI_MEM *PKI_X509_CMS_decode(const PKI_X509_CMS * const cms,
 			       const PKI_X509_KEYPAIR * const k, 
 			       const PKI_X509_CERT * const x ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	BIO *bio = NULL;
 	PKI_MEM *mem = NULL;
 	PKI_ID type = 0;
@@ -882,6 +958,7 @@ PKI_MEM *PKI_X509_CMS_decode(const PKI_X509_CMS * const cms,
 	if (bio ) BIO_free_all ( bio );
 
 	return ( mem );
+	*/
 }
 
 /*! \brief Set the cipher in a encrypted (or signed and encrypted) PKCS7 */
@@ -889,6 +966,12 @@ PKI_MEM *PKI_X509_CMS_decode(const PKI_X509_CMS * const cms,
 int PKI_X509_CMS_set_cipher(const PKI_X509_CMS * cms,
 			      const PKI_CIPHER     * const cipher) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	int type;
 
 	if( !cms || !cms->value || !cipher ) return ( PKI_ERR );
@@ -909,6 +992,8 @@ int PKI_X509_CMS_set_cipher(const PKI_X509_CMS * cms,
 	}
 
 	return PKI_OK;
+	*/
+
 }
 	
 
@@ -917,6 +1002,12 @@ int PKI_X509_CMS_set_cipher(const PKI_X509_CMS * cms,
 int PKI_X509_CMS_set_recipients(const PKI_X509_CMS *cms, 
 				  const PKI_X509_CERT_STACK * const x_sk ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+/*
 	int i = 0;
 	int type;
 
@@ -939,18 +1030,27 @@ int PKI_X509_CMS_set_recipients(const PKI_X509_CMS *cms,
 	}
 
 	return ( PKI_OK );
+*/
+
 }
 
 /*! \brief Adds a new recipient for the PKI_X509_CMS */
 int PKI_X509_CMS_add_recipient(const PKI_X509_CMS * cms,
 				 const PKI_X509_CERT  * x ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	if (!cms || !cms->value || !x || !x->value) return PKI_ERR;
 
 	PKCS7_add_recipient( cms->value, x->value );
 	PKI_X509_CMS_add_cert(cms, x);
 
 	return PKI_OK;
+	*/
 }
 
 /* -------------------------------- Add Attributes ---------------------- */
@@ -958,6 +1058,12 @@ int PKI_X509_CMS_add_recipient(const PKI_X509_CMS * cms,
 int PKI_X509_CMS_add_signed_attribute(const PKI_X509_CMS * cms, 
 					PKI_X509_ATTRIBUTE   * a) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
 	if (!cms || !cms->value || !a) return PKI_ERR;
@@ -973,12 +1079,18 @@ int PKI_X509_CMS_add_signed_attribute(const PKI_X509_CMS * cms,
 	}
 
 	return PKI_STACK_X509_ATTRIBUTE_add(signerInfo->auth_attr, a);
-
+	*/
 }
 
 int PKI_X509_CMS_add_attribute(const PKI_X509_CMS * cms,
 				 PKI_X509_ATTRIBUTE   * a) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
 	if( !cms || !cms->value || !a ) return ( PKI_ERR );
@@ -994,7 +1106,7 @@ int PKI_X509_CMS_add_attribute(const PKI_X509_CMS * cms,
 	}
 
 	return PKI_STACK_X509_ATTRIBUTE_add( signerInfo->unauth_attr, a);
-
+	*/
 }
 
 /* -------------------------------- Get Attributes ---------------------- */
@@ -1003,6 +1115,12 @@ const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_signed_attribute(
 					              const PKI_X509_CMS * const cms,
 					              PKI_ID                 id) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
     if (!cms || !cms->value) {
@@ -1016,12 +1134,19 @@ const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_signed_attribute(
     if (signerInfo->auth_attr == NULL) return NULL;
 
 	return PKI_STACK_X509_ATTRIBUTE_get(signerInfo->auth_attr, id);
+	*/
 }
 
 const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute(
 					const PKI_X509_CMS * const cms, 
 					PKI_ID id ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
         if (!cms || !cms->value) return NULL;
@@ -1034,12 +1159,18 @@ const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute(
         if (signerInfo->unauth_attr == NULL) return NULL;
 
 	return PKI_STACK_X509_ATTRIBUTE_get(signerInfo->auth_attr, id);
+	*/
 }
 
 const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_signed_attribute_by_name( 
 					const PKI_X509_CMS * const cms,
 					const char *name ) {
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
 
+	return NULL;
+
+	/*
 	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
         if (!cms || !cms->value) return NULL;
@@ -1053,12 +1184,19 @@ const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_signed_attribute_by_name(
 
 	return PKI_STACK_X509_ATTRIBUTE_get_by_name(signerInfo->auth_attr, 
 						    name);
+	*/
 }
 
 const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute_by_name(
 					const PKI_X509_CMS * const cms, 
 					const char *name) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return NULL;
+
+	/*
 	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
         if (!cms || !cms->value) return NULL;
@@ -1072,6 +1210,7 @@ const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute_by_name(
 
 	return PKI_STACK_X509_ATTRIBUTE_get_by_name(signerInfo->auth_attr, 
 						    name);
+	*/
 }
 
 /* ------------------------------- Delete Attributes ---------------------- */
@@ -1081,6 +1220,12 @@ const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute_by_name(
 int PKI_X509_CMS_delete_signed_attribute(const PKI_X509_CMS *cms, 
 					   PKI_ID id) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
 	if (!cms || !cms->value) return PKI_ERR;
@@ -1093,13 +1238,19 @@ int PKI_X509_CMS_delete_signed_attribute(const PKI_X509_CMS *cms,
 	if (signerInfo->auth_attr == NULL) return PKI_OK;
 
 	return PKI_STACK_X509_ATTRIBUTE_delete(signerInfo->auth_attr, id);
-
+	*/
 }
 
 /*! \brief Deletes an attribute (id) from a PKI_X509_CMS */
 
 int PKI_X509_CMS_delete_attribute(const PKI_X509_CMS *cms, PKI_ID id ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	const PKCS7_SIGNER_INFO *signerInfo = NULL;
 
 	if (!cms || !cms->value) return PKI_ERR;
@@ -1112,7 +1263,7 @@ int PKI_X509_CMS_delete_attribute(const PKI_X509_CMS *cms, PKI_ID id ) {
 	if (signerInfo->unauth_attr == NULL) return PKI_OK;
 
 	return PKI_STACK_X509_ATTRIBUTE_delete(signerInfo->unauth_attr, id);
-
+	*/
 }
 
 /* ---------------------------- TEXT Format ---------------------------- */
@@ -1120,6 +1271,12 @@ int PKI_X509_CMS_delete_attribute(const PKI_X509_CMS *cms, PKI_ID id ) {
 int PKI_X509_CMS_VALUE_print_bio ( PKI_IO *bio, 
 				     const PKI_X509_CMS_VALUE *p7val ) {
 
+	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
+		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+
+	return -1;
+
+	/*
 	int type;
 	int i,j;
 
@@ -1360,8 +1517,7 @@ int PKI_X509_CMS_VALUE_print_bio ( PKI_IO *bio,
 		}
 	}
 
-	/* Now Let's Check the CRLs */
-
+	// Now Let's Check the Certificates
 	BIO_printf(bio, "\r\n    Certificates:\r\n");
 	if ((cert_num = PKI_X509_CMS_get_certs_num ( msg )) > 0 ) {
 		PKI_X509_CERT * cert = NULL;
@@ -1417,6 +1573,7 @@ int PKI_X509_CMS_VALUE_print_bio ( PKI_IO *bio,
 		BIO_printf( bio, "            None.\r\n");
 	}
 
+	// Now Let's Check out the CRLs
 	BIO_printf(bio, "\r\n    Certificate Revocation Lists:\r\n");
 	if((crl_num = PKI_X509_CMS_get_crls_num ( msg )) > 0 ) {
 		PKI_X509_CRL * crl  = NULL;
@@ -1464,4 +1621,5 @@ int PKI_X509_CMS_VALUE_print_bio ( PKI_IO *bio,
 	BIO_printf(bio, "\r\n");
 
 	return PKI_OK;
+	*/
 }

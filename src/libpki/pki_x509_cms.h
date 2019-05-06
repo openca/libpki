@@ -25,11 +25,11 @@ typedef enum {
 
 /* --------------------- Internal Mem Functions ------------------------- */
 
-CMS_ContentInfo * const CMS_new(void);
+CMS_ContentInfo * CMS_new(void);
 
-CMS_ContentInfo * const CMS_dup(CMS_ContentInfo *cms);
+CMS_ContentInfo * CMS_dup(CMS_ContentInfo *cms);
 
-void * const CMS_free(CMS_ContentInfo *cms);
+void CMS_free(CMS_ContentInfo *cms);
 
 /* ------------------------ PEM I/O Functions --------------------------- */
 
@@ -85,7 +85,7 @@ int PKI_X509_CMS_add_signer_tk(PKI_X509_CMS         * cms,
                                const PKI_TOKEN      * const tk,
                                const PKI_DIGEST_ALG * const md);
 
-const PKCS7_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
+const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
                             const PKI_X509_CMS * const cms,
                             int                  idx);
 
