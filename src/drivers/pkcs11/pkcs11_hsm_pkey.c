@@ -46,11 +46,13 @@ static CK_MECHANISM RSA_MECH_LIST[RSA_MECH_LIST_SIZE] = {
 	{CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0 }
 };
 
+#ifdef ENABLE_ECDSA
 // Definitions for the ECDSA Key Generation Mechs
 #define EC_MECH_LIST_SIZE 1
 static CK_MECHANISM EC_MECH_LIST[EC_MECH_LIST_SIZE] = {
 	{CKM_EC_KEY_PAIR_GEN, NULL_PTR, 0}
 };
+#endif
 
 #ifdef __DISABLED__
 // Currently Disabled
@@ -928,7 +930,7 @@ const RSA_METHOD * HSM_PKCS11_get_rsa_method ( void ) {
 const EC_KEY_METHOD * HSM_PKCS11_get_ecdsa_method ( void ) {
 
 	static EC_KEY_METHOD * r_pnt = NULL;
-
+#ifdef ENABLE_ECDSA
 	if (!r_pnt) {
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
@@ -979,7 +981,7 @@ const EC_KEY_METHOD * HSM_PKCS11_get_ecdsa_method ( void ) {
 			                   );
 #endif
 	}
-
+#endif
 	return r_pnt;
 
 }

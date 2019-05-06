@@ -8,7 +8,7 @@
  
 #include <libpki/pki.h>
 
-char *pg_parse_url_query ( URL * url ) {
+char *pg_parse_url_query ( const URL * url ) {
 
 	char * ret = NULL;
 	char * table = NULL;
@@ -79,7 +79,7 @@ char *pg_parse_url_query ( URL * url ) {
 	return( ret );
 }
 
-char *pg_parse_url_put_query ( URL * url, PKI_MEM *data ) {
+char *pg_parse_url_put_query ( const URL * url, const PKI_MEM *data ) {
 
 	char * ret = NULL;
 	char * table = NULL;
@@ -190,7 +190,7 @@ char *pg_parse_url_put_query ( URL * url, PKI_MEM *data ) {
 }
 
 
-char *pg_parse_url_table ( URL * url ) {
+char *pg_parse_url_table ( const URL * url ) {
 	char *tmp_s = NULL;
 	char *tmp_s2 = NULL;
 	char *ret = NULL;
@@ -223,7 +223,7 @@ char *pg_parse_url_table ( URL * url ) {
 	return( ret );
 }
 
-char *pg_parse_url_dbname ( URL *url ) {
+char *pg_parse_url_dbname ( const URL *url ) {
 
 	char *tmp_s = NULL;
 	char *ret = NULL;
@@ -248,7 +248,7 @@ char *pg_parse_url_dbname ( URL *url ) {
 
 #ifdef HAVE_PG
 
-PGconn *pg_db_connect ( URL *url ) {
+PGconn *pg_db_connect ( const URL *url ) {
 
         PGconn *sql = NULL;
 	char * dbname = NULL;
@@ -280,7 +280,7 @@ int pg_db_close ( PGconn *sql ) {
 
 #endif
 
-PKI_MEM_STACK *URL_get_data_pg ( char *url_s, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_pg ( const char *url_s, ssize_t size ) {
 	URL *url = NULL;
 
 	if( !url_s ) return (NULL);
@@ -293,7 +293,7 @@ PKI_MEM_STACK *URL_get_data_pg ( char *url_s, ssize_t size ) {
 	return ( URL_get_data_pg_url( url, size ));
 }
 
-PKI_MEM_STACK *URL_get_data_pg_url ( URL *url, ssize_t size ) {
+PKI_MEM_STACK *URL_get_data_pg_url ( const URL *url, ssize_t size ) {
 
 #ifdef HAVE_PG
 	PGconn *sql;
@@ -368,7 +368,7 @@ PKI_MEM_STACK *URL_get_data_pg_url ( URL *url, ssize_t size ) {
 #endif
 }
 
-int URL_put_data_pg ( char *url_s, PKI_MEM *data ) {
+int URL_put_data_pg ( const char *url_s, const PKI_MEM *data ) {
 
 	URL *url = NULL;
 	int ret = 0;
@@ -386,7 +386,7 @@ int URL_put_data_pg ( char *url_s, PKI_MEM *data ) {
 	return ( ret );
 }
 
-int URL_put_data_pg_url ( URL *url, PKI_MEM *data ) {
+int URL_put_data_pg_url ( const URL *url, const PKI_MEM *data ) {
 
 #ifdef HAVE_PG
 	PGconn * sql = NULL;
