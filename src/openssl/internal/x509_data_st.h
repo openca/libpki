@@ -131,4 +131,18 @@ typedef X509_EXTENSION	LIBPKI_X509_EXTENSION;
 
 # endif /* OPENSSL_VERSION */
 
+/* ---------------- CMS ------------------- */
+
+# if OPENSSL_VERSION_NUMBER <= 0x1000ffffL
+#  include "cms_lcl_ossl_1_0_x.h"
+# else /* OpenSSL 1.0.x */
+
+#  if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+#    include "cms_lcl_ossl_1_1_x.h"
+#  else /* OpenSSL 1.1.x */
+#    pragma ERROR
+#  endif /* OpenSSL 1.1.x */
+
+# endif /* OpenSSL 1.0.x */
+
 #endif

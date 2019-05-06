@@ -1,6 +1,9 @@
 #include <libpki/pki.h>
 #include <libpki/scep/scep.h>
 
+#include <openssl/cms.h>
+#include <libpki/pki_x509_cms.h>
+
 const PKI_X509_CALLBACKS PKI_OPENSSL_X509_KEYPAIR_CALLBACKS = {
 	// Memory Management
 	(void *) EVP_PKEY_new, // PKI_KEYPAIR_new_null
@@ -134,6 +137,35 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_PKCS7_CALLBACKS = {
 	/* Data Conversion */
 	(void *) PEM_read_bio_PKCS7,     // PEM format
 	(void *) d2i_PKCS7_bio,          // DER format
+	(void *) NULL,		        // TXT format
+	(void *) NULL,			// B64 format
+	(void *) NULL		        // XML format
+};
+
+
+const PKI_X509_CALLBACKS PKI_OPENSSL_X509_CMS_CALLBACKS = {
+
+	/* Memory Management */
+	(void *) CMS_new,
+	(void *) CMS_free,
+	(void *) CMS_dup,
+
+	/* Data Retrieval */
+	(void *) NULL, // PKI_X509_PKCS7_get_parsed;
+	(void *) NULL, // PKI_X509_PKCS7_get_data;
+	(void *) NULL, // PKI_X509_PKCS7_print_parsed;
+
+	/* Data Conversion */
+	(void *) PEM_write_bio_CMS,     // PEM format
+	NULL,  							// PEM EX (encrypted) format
+	(void *) i2d_CMS_bio,		    // DER format
+	(void *) PKI_X509_CMS_VALUE_print_bio, // TXT format
+	(void *) NULL,			// B64 format
+	(void *) NULL,			// XML format
+
+	/* Data Conversion */
+	(void *) PEM_read_bio_CMS,     // PEM format
+	(void *) d2i_CMS_bio,          // DER format
 	(void *) NULL,		        // TXT format
 	(void *) NULL,			// B64 format
 	(void *) NULL		        // XML format
@@ -316,14 +348,14 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_PKI_LIRT_CALLBACKS = {
 
 	// Data Conversion (write of the ->value data )
 	(void *) PEM_write_bio_PKI_LIRT,	// PEM format
-  NULL,  												// PEM EX (encrypted) format
+        NULL,                           // PEM EX (encrypted) format
 	(void *) i2d_PKI_LIRT_bio,	// DER format
 	(void *) NULL,			// TXT format
 	(void *) NULL,			// B64 format
 	(void *) NULL,			// XML format
 
 	// Data Conversion (read the ->value)
-	(void *) PEM_read_bio_PKI_LIRT,// PEM format
+	(void *) PEM_read_bio_PKI_LIRT, // PEM format
 	(void *) d2i_PKI_LIRT_bio, 	// DER format
 	(void *) NULL,			// TXT format
 	(void *) NULL,  		// B64 format
@@ -341,6 +373,8 @@ const PKI_X509_CALLBACKS_FULL PKI_OPENSSL_X509_CALLBACKS_FULL = {
 	&PKI_OPENSSL_X509_CRL_CALLBACKS,
 	// X509_PKCS7
 	&PKI_OPENSSL_X509_PKCS7_CALLBACKS,
+	// X509_CMS
+	&PKI_OPENSSL_X509_CMS_CALLBACKS,
 	// X509_PKCS12
 	&PKI_OPENSSL_X509_PKCS12_CALLBACKS,
 	// X509_OCSP_REQ
@@ -350,7 +384,7 @@ const PKI_X509_CALLBACKS_FULL PKI_OPENSSL_X509_CALLBACKS_FULL = {
 	// X509_OCSP_XPAIR
 	&PKI_OPENSSL_X509_XPAIR_CALLBACKS,
 	// X509_OCSP_CMS
-	NULL, // &PKI_OPENSSL_X509_CMS_CALLBACKS,
+	NULL, // &PKI_OPENSSL_X509_CMC_CALLBACKS,
 	// X509_OCSP_SCEP
 	&PKI_OPENSSL_X509_PKCS7_CALLBACKS, // &PKI_OPENSSL_X509_SCEP_CALLBACKS
 	// PRQP_REQ
@@ -380,6 +414,9 @@ const PKI_X509_CALLBACKS *HSM_OPENSSL_X509_get_cb ( PKI_DATATYPE type ) {
 			break;
 		case PKI_DATATYPE_X509_PKCS7 :
 			ret = &PKI_OPENSSL_X509_PKCS7_CALLBACKS;
+			break;
+		case PKI_DATATYPE_X509_CMS :
+			ret = &PKI_OPENSSL_X509_CMS_CALLBACKS;
 			break;
 		case PKI_DATATYPE_X509_PKCS12 :
 			ret = &PKI_OPENSSL_X509_PKCS12_CALLBACKS;

@@ -19,7 +19,7 @@ else
 TOOLS_AND_TESTS = tools tests
 endif
 
-SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cms prqp lirt . $(TOOLS_AND_TESTS)
+SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cmc prqp lirt . $(TOOLS_AND_TESTS)
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
@@ -32,7 +32,7 @@ nobase_include_HEADERS = \
 	libpki/scep/*.h \
 	libpki/prqp/*.h \
 	libpki/lirt/*.h \
-	libpki/cms/*.h \
+	libpki/cmc/*.h \
 	libpki/openssl/*.h \
 	libpki/drivers/*.h \
 	libpki/drivers/openssl/*.h \
@@ -79,7 +79,7 @@ libpki_la_LIBADD   = \
 			drivers/libpki-token.la \
 			io/libpki-io.la \
 			net/libpki-net.la \
-			cms/libpki-cms.la \
+			cmc/libpki-cmc.la \
 			scep/libpki-scep.la \
 			prqp/libpki-prqp.la \
 			lirt/libpki-lirt.la \

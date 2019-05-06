@@ -1575,7 +1575,7 @@ AC_CONFIG_FILES(
 	src/io/Makefile
 	src/net/Makefile
 	src/scep/Makefile
-	src/cms/Makefile
+	src/cmc/Makefile
 	src/prqp/Makefile
 	src/lirt/Makefile
 	src/tools/Makefile

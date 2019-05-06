@@ -114,6 +114,7 @@ am__objects_1 = libpki_io_la-pki_keypair_io.lo \
 	libpki_io_la-pki_ocsp_req_io.lo \
 	libpki_io_la-pki_x509_cert_io.lo libpki_io_la-pki_x509_io.lo \
 	libpki_io_la-pki_x509_pkcs7_io.lo \
+	libpki_io_la-pki_x509_cms_io.lo \
 	libpki_io_la-pki_x509_xpair_io.lo
 am_libpki_io_la_OBJECTS = $(am__objects_1)
 libpki_io_la_OBJECTS = $(am_libpki_io_la_OBJECTS)
@@ -430,6 +431,7 @@ SRCS = \
 	pki_x509_cert_io.c \
 	pki_x509_io.c \
 	pki_x509_pkcs7_io.c \
+	pki_x509_cms_io.c \
 	pki_x509_xpair_io.c
 
 noinst_LTLIBRARIES = libpki-io.la
@@ -495,6 +497,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_ocsp_req_io.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_ocsp_resp_io.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_x509_cert_io.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_x509_cms_io.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_x509_crl_io.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_x509_io.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_io_la-pki_x509_p12_io.Plo@am__quote@
@@ -602,6 +605,13 @@ libpki_io_la-pki_x509_pkcs7_io.lo: pki_x509_pkcs7_io.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_pkcs7_io.c' object='libpki_io_la-pki_x509_pkcs7_io.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_io_la_CFLAGS) $(CFLAGS) -c -o libpki_io_la-pki_x509_pkcs7_io.lo `test -f 'pki_x509_pkcs7_io.c' || echo '$(srcdir)/'`pki_x509_pkcs7_io.c
+
+libpki_io_la-pki_x509_cms_io.lo: pki_x509_cms_io.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_io_la_CFLAGS) $(CFLAGS) -MT libpki_io_la-pki_x509_cms_io.lo -MD -MP -MF $(DEPDIR)/libpki_io_la-pki_x509_cms_io.Tpo -c -o libpki_io_la-pki_x509_cms_io.lo `test -f 'pki_x509_cms_io.c' || echo '$(srcdir)/'`pki_x509_cms_io.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_io_la-pki_x509_cms_io.Tpo $(DEPDIR)/libpki_io_la-pki_x509_cms_io.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_cms_io.c' object='libpki_io_la-pki_x509_cms_io.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_io_la_CFLAGS) $(CFLAGS) -c -o libpki_io_la-pki_x509_cms_io.lo `test -f 'pki_x509_cms_io.c' || echo '$(srcdir)/'`pki_x509_cms_io.c
 
 libpki_io_la-pki_x509_xpair_io.lo: pki_x509_xpair_io.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_io_la_CFLAGS) $(CFLAGS) -MT libpki_io_la-pki_x509_xpair_io.lo -MD -MP -MF $(DEPDIR)/libpki_io_la-pki_x509_xpair_io.Tpo -c -o libpki_io_la-pki_x509_xpair_io.lo `test -f 'pki_x509_xpair_io.c' || echo '$(srcdir)/'`pki_x509_xpair_io.c

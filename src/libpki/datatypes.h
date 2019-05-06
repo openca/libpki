@@ -27,6 +27,7 @@ typedef enum {
 	PKI_DATATYPE_X509_CRL,
 	PKI_DATATYPE_X509_REQ,
 	PKI_DATATYPE_X509_PKCS7,
+	PKI_DATATYPE_X509_CMS,
 	PKI_DATATYPE_X509_PKCS12,
 	PKI_DATATYPE_X509_OCSP_REQ,
 	PKI_DATATYPE_X509_OCSP_RESP,
@@ -45,6 +46,8 @@ typedef enum {
 	PKI_DATATYPE_X509_OTHER
 } PKI_DATATYPE;
 
+#define PKI_DATATYPE_SIZE          26
+
 /* Token Datatypes */
 typedef enum {
 	PKI_TOKEN_DATATYPE_UNKNOWN = 0,
@@ -60,6 +63,8 @@ typedef enum {
 	PKI_TOKEN_DATATYPE_NICKNAME,
 	PKI_TOKEN_DATATYPE_IDENTITY
 } PKI_TOKEN_DATATYPE;
+
+#define PKI_TOKEN_DATATYPE_SIZE    12
 
 typedef enum {
 	/* Usual Ok */
@@ -78,6 +83,8 @@ typedef enum {
 	PKI_TOKEN_STATUS_UNKNOWN			= 2048,
 } PKI_TOKEN_STATUS;
 
+#define PKI_TOKEN_STATUS_SIZE      10
+
 /* Data Export Format */
 typedef enum {
 	PKI_DATA_FORMAT_UNKNOWN		= 0,
@@ -89,12 +96,14 @@ typedef enum {
 	PKI_DATA_FORMAT_URL,
 } PKI_DATA_FORMAT;
 
-#define PKI_DATA_FORMAT_SIZE		6
+#define PKI_DATA_FORMAT_SIZE        6
 
 typedef enum {
 	PKI_DATA_FORMAT_FLAG_NONE		      = 0,
 	PKI_DATA_FORMAT_FLAG_B64_SKIPNEWLINES = 1
 } PKI_DATA_FORMAT_FLAG;
+
+#define PKI_DATA_FORMAT_FLAG_SIZE   2
 
 typedef enum {
 	PKI_FORMAT_UNDEF		= 0,
@@ -106,7 +115,7 @@ typedef enum {
 	PKI_FORMAT_ENGINE
 } PKI_FORMAT;
 
-#define PKI_FORMAT_SIZE			10
+#define PKI_FORMAT_SIZE			7
 
 /* Supported Datatype for retrieving data from an X509 data object */
 typedef enum {
@@ -142,6 +151,8 @@ typedef enum {
 	PKI_X509_DATA_EXTENSIONS
 } PKI_X509_DATA;
 
+#define PKI_X509_DATA_SIZE     30
+
 typedef enum {
 	PKI_X509_CERT_TYPE_UNKNOWN	= 0,
 	PKI_X509_CERT_TYPE_CA		= (1<<0),
@@ -151,10 +162,12 @@ typedef enum {
 	PKI_X509_CERT_TYPE_ROOT		= (1<<4)
 } PKI_X509_CERT_TYPE;
 
+#define PKI_X509_CERT_TYPE_SIZE  6
+
 typedef enum {
 	PKI_RSA_KEY_MIN_SIZE		= 1024,
 	PKI_DSA_KEY_MIN_SIZE		= 2048,
-	PKI_EC_KEY_MIN_SIZE		= 256,
+	PKI_EC_KEY_MIN_SIZE		    = 256,
 } PKI_KEY_MIN_SIZE;
 
 typedef enum {

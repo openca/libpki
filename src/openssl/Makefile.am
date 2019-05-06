@@ -36,6 +36,7 @@ OPENSSL_SRCS = \
 	pki_x509_crl.c \
 	pki_x509_req.c \
 	pki_x509_pkcs7.c \
+	pki_x509_cms.c \
 	pki_x509_p12.c \
 	pki_x509_extension.c \
 	pki_x509_signature.c \

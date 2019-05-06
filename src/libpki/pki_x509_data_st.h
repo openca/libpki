@@ -49,11 +49,12 @@ typedef struct pki_x509_all_callbacks_st {
 	const PKI_X509_CALLBACKS * x509_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_crl_cb_set;
 	const PKI_X509_CALLBACKS * x509_pkcs7_cb_set;
+	const PKI_X509_CALLBACKS * x509_cms_cb_set;
 	const PKI_X509_CALLBACKS * x509_pkcs12_cb_set;
 	const PKI_X509_CALLBACKS * x509_ocsp_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_ocsp_resp_cb_set;
 	const PKI_X509_CALLBACKS * x509_xpair_cb_set;
-	const PKI_X509_CALLBACKS * x509_cms_cb_set;
+	const PKI_X509_CALLBACKS * x509_cmc_cb_set;
 	const PKI_X509_CALLBACKS * x509_scep_cb_set;
 	const PKI_X509_CALLBACKS * x509_prqp_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_prqp_resp_cb_set;

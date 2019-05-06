@@ -26,6 +26,7 @@ SRCS = \
 	pki_x509_cert_io.c \
 	pki_x509_io.c \
 	pki_x509_pkcs7_io.c \
+	pki_x509_cms_io.c \
 	pki_x509_xpair_io.c
 
 noinst_LTLIBRARIES = libpki-io.la

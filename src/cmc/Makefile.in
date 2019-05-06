@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src/cms
+subdir = src/cmc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -104,17 +104,17 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libpki_cms_la_LIBADD =
-am__objects_1 = libpki_cms_la-asn1.lo libpki_cms_la-cms_cert_req.lo \
-	libpki_cms_la-cms_simple.lo
-am_libpki_cms_la_OBJECTS = $(am__objects_1)
-libpki_cms_la_OBJECTS = $(am_libpki_cms_la_OBJECTS)
+libpki_cmc_la_LIBADD =
+am__objects_1 = libpki_cmc_la-asn1.lo libpki_cmc_la-cmc_cert_req.lo \
+	libpki_cmc_la-cmc_simple.lo
+am_libpki_cmc_la_OBJECTS = $(am__objects_1)
+libpki_cmc_la_OBJECTS = $(am_libpki_cmc_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_cms_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_cms_la_CFLAGS) \
+libpki_cmc_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_cmc_la_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -150,8 +150,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_cms_la_SOURCES)
-DIST_SOURCES = $(libpki_cms_la_SOURCES)
+SOURCES = $(libpki_cmc_la_SOURCES)
+DIST_SOURCES = $(libpki_cmc_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -412,12 +412,12 @@ AM_CPPFLAGS = -I$(TOP) \
 
 SRCS = \
 	asn1.c \
-	cms_cert_req.c \
-	cms_simple.c
+	cmc_cert_req.c \
+	cmc_simple.c
 
-noinst_LTLIBRARIES = libpki-cms.la
-libpki_cms_la_SOURCES = $(SRCS)
-libpki_cms_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+noinst_LTLIBRARIES = libpki-cmc.la
+libpki_cmc_la_SOURCES = $(SRCS)
+libpki_cmc_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -431,9 +431,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/cms/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/cmc/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/cms/Makefile
+	  $(AUTOMAKE) --gnu src/cmc/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -463,8 +463,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki-cms.la: $(libpki_cms_la_OBJECTS) $(libpki_cms_la_DEPENDENCIES) $(EXTRA_libpki_cms_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_cms_la_LINK)  $(libpki_cms_la_OBJECTS) $(libpki_cms_la_LIBADD) $(LIBS)
+libpki-cmc.la: $(libpki_cmc_la_OBJECTS) $(libpki_cmc_la_DEPENDENCIES) $(EXTRA_libpki_cmc_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_cmc_la_LINK)  $(libpki_cmc_la_OBJECTS) $(libpki_cmc_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -472,9 +472,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_cms_la-asn1.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_cms_la-cms_cert_req.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_cms_la-cms_simple.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_cmc_la-asn1.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_cmc_la-cmc_cert_req.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_cmc_la-cmc_simple.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -500,26 +500,26 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libpki_cms_la-asn1.lo: asn1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cms_la_CFLAGS) $(CFLAGS) -MT libpki_cms_la-asn1.lo -MD -MP -MF $(DEPDIR)/libpki_cms_la-asn1.Tpo -c -o libpki_cms_la-asn1.lo `test -f 'asn1.c' || echo '$(srcdir)/'`asn1.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_cms_la-asn1.Tpo $(DEPDIR)/libpki_cms_la-asn1.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1.c' object='libpki_cms_la-asn1.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_cmc_la-asn1.lo: asn1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cmc_la_CFLAGS) $(CFLAGS) -MT libpki_cmc_la-asn1.lo -MD -MP -MF $(DEPDIR)/libpki_cmc_la-asn1.Tpo -c -o libpki_cmc_la-asn1.lo `test -f 'asn1.c' || echo '$(srcdir)/'`asn1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_cmc_la-asn1.Tpo $(DEPDIR)/libpki_cmc_la-asn1.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1.c' object='libpki_cmc_la-asn1.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cms_la_CFLAGS) $(CFLAGS) -c -o libpki_cms_la-asn1.lo `test -f 'asn1.c' || echo '$(srcdir)/'`asn1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cmc_la_CFLAGS) $(CFLAGS) -c -o libpki_cmc_la-asn1.lo `test -f 'asn1.c' || echo '$(srcdir)/'`asn1.c
 
-libpki_cms_la-cms_cert_req.lo: cms_cert_req.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cms_la_CFLAGS) $(CFLAGS) -MT libpki_cms_la-cms_cert_req.lo -MD -MP -MF $(DEPDIR)/libpki_cms_la-cms_cert_req.Tpo -c -o libpki_cms_la-cms_cert_req.lo `test -f 'cms_cert_req.c' || echo '$(srcdir)/'`cms_cert_req.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_cms_la-cms_cert_req.Tpo $(DEPDIR)/libpki_cms_la-cms_cert_req.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cms_cert_req.c' object='libpki_cms_la-cms_cert_req.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_cmc_la-cmc_cert_req.lo: cmc_cert_req.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cmc_la_CFLAGS) $(CFLAGS) -MT libpki_cmc_la-cmc_cert_req.lo -MD -MP -MF $(DEPDIR)/libpki_cmc_la-cmc_cert_req.Tpo -c -o libpki_cmc_la-cmc_cert_req.lo `test -f 'cmc_cert_req.c' || echo '$(srcdir)/'`cmc_cert_req.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_cmc_la-cmc_cert_req.Tpo $(DEPDIR)/libpki_cmc_la-cmc_cert_req.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cmc_cert_req.c' object='libpki_cmc_la-cmc_cert_req.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cms_la_CFLAGS) $(CFLAGS) -c -o libpki_cms_la-cms_cert_req.lo `test -f 'cms_cert_req.c' || echo '$(srcdir)/'`cms_cert_req.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cmc_la_CFLAGS) $(CFLAGS) -c -o libpki_cmc_la-cmc_cert_req.lo `test -f 'cmc_cert_req.c' || echo '$(srcdir)/'`cmc_cert_req.c
 
-libpki_cms_la-cms_simple.lo: cms_simple.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cms_la_CFLAGS) $(CFLAGS) -MT libpki_cms_la-cms_simple.lo -MD -MP -MF $(DEPDIR)/libpki_cms_la-cms_simple.Tpo -c -o libpki_cms_la-cms_simple.lo `test -f 'cms_simple.c' || echo '$(srcdir)/'`cms_simple.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_cms_la-cms_simple.Tpo $(DEPDIR)/libpki_cms_la-cms_simple.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cms_simple.c' object='libpki_cms_la-cms_simple.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_cmc_la-cmc_simple.lo: cmc_simple.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cmc_la_CFLAGS) $(CFLAGS) -MT libpki_cmc_la-cmc_simple.lo -MD -MP -MF $(DEPDIR)/libpki_cmc_la-cmc_simple.Tpo -c -o libpki_cmc_la-cmc_simple.lo `test -f 'cmc_simple.c' || echo '$(srcdir)/'`cmc_simple.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_cmc_la-cmc_simple.Tpo $(DEPDIR)/libpki_cmc_la-cmc_simple.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cmc_simple.c' object='libpki_cmc_la-cmc_simple.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cms_la_CFLAGS) $(CFLAGS) -c -o libpki_cms_la-cms_simple.lo `test -f 'cms_simple.c' || echo '$(srcdir)/'`cms_simple.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_cmc_la_CFLAGS) $(CFLAGS) -c -o libpki_cmc_la-cmc_simple.lo `test -f 'cmc_simple.c' || echo '$(srcdir)/'`cmc_simple.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

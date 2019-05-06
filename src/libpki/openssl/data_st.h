@@ -23,6 +23,8 @@
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
 
+#include <openssl/cms.h>
+
 #ifdef ENABLE_ECDSA
 #include <openssl/ec.h>
 #endif
@@ -441,6 +443,7 @@ typedef enum {
 	PKI_X509_NAME_TYPE_name	=	NID_name ,
 	PKI_X509_NAME_TYPE_dnQualifier	=	NID_dnQualifier ,
 	PKI_X509_NAME_TYPE_DATA	=	NID_data ,
+	PKI_X509_NAME_TYPE_SERIALNUMBER	=	NID_serialNumber ,
 } PKI_X509_NAME_TYPE;
 
 /* PKI_X509_NAME_RDN - useful when getting specific parts of a DN only */
@@ -658,30 +661,36 @@ typedef struct pki_store_st {
 
 // #define PKI_IO			BIO
 
-#define PKI_X509_KEYPAIR_VALUE		EVP_PKEY
-#define PKI_X509_KEYPAIR		PKI_X509
+#define PKI_X509_KEYPAIR_VALUE  EVP_PKEY
+#define PKI_X509_KEYPAIR        PKI_X509
 
-#define PKI_X509_CERT_VALUE 		X509 	
-#define PKI_X509_CERT 			PKI_X509 	
+#define PKI_X509_CERT_VALUE     X509 	
+#define PKI_X509_CERT           PKI_X509 	
 
-#define PKI_X509_REQ_VALUE 		X509_REQ
-#define PKI_X509_REQ 			PKI_X509 	
+#define PKI_X509_REQ_VALUE      X509_REQ
+#define PKI_X509_REQ            PKI_X509 	
 
-#define PKI_X509_CRL_VALUE		X509_CRL 
-#define PKI_X509_CRL			PKI_X509 
+#define PKI_X509_CRL_VALUE      X509_CRL 
+#define PKI_X509_CRL            PKI_X509 
 
-#define PKI_X509_PKCS7_VALUE		PKCS7
-#define PKI_X509_PKCS7			PKI_X509
+#define PKI_X509_PKCS7_VALUE    PKCS7
+#define PKI_X509_PKCS7          PKI_X509
 
-#define PKI_X509_PKCS12_VALUE		PKCS12
-#define PKI_X509_PKCS12_DATA		STACK_OF(PKCS7)
-#define PKI_X509_PKCS12			PKI_X509
+#define PKI_X509_CMS_VALUE      CMS_ContentInfo
+#define PKI_X509_CMS            PKI_X509
 
-#define PKI_OCSP_REQ_SINGLE		OCSP_ONEREQ
-#define PKI_OCSP_CERTID			OCSP_CERTID
+#define PKI_X509_CMS_SIGNER_INFO CMS_SignerInfo
+#define PKI_X509_CMS_RECIPIENT_INFO CMS_RecipientInfo
 
-#define PKI_X509_OCSP_REQ_VALUE		OCSP_REQUEST
-#define PKI_X509_OCSP_REQ		PKI_X509
+#define PKI_X509_PKCS12_VALUE   PKCS12
+#define PKI_X509_PKCS12_DATA    STACK_OF(PKCS7)
+#define PKI_X509_PKCS12         PKI_X509
+
+#define PKI_OCSP_REQ_SINGLE     OCSP_ONEREQ
+#define PKI_OCSP_CERTID         OCSP_CERTID
+
+#define PKI_X509_OCSP_REQ_VALUE OCSP_REQUEST
+#define PKI_X509_OCSP_REQ       PKI_X509
 
 typedef struct pki_ocsp_resp_st {
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
@@ -699,20 +708,20 @@ typedef enum {
 	PKI_X509_OCSP_RESPID_TYPE_BY_KEYID =  1
 } PKI_X509_OCSP_RESPID_TYPE;
 
-#define PKI_X509_OCSP_RESP_VALUE	OCSP_RESPONSE
-#define PKI_X509_OCSP_RESP		PKI_X509
+#define PKI_X509_OCSP_RESP_VALUE OCSP_RESPONSE
+#define PKI_X509_OCSP_RESP       PKI_X509
 
-#define PKI_X509_XPAIR_VALUE		PKI_XPAIR
-#define PKI_X509_XPAIR			PKI_X509
+#define PKI_X509_XPAIR_VALUE     PKI_XPAIR
+#define PKI_X509_XPAIR           PKI_X509
 
-#define PKI_X509_PRQP_REQ_VALUE		PKI_PRQP_REQ
-#define PKI_X509_PRQP_REQ		PKI_X509
+#define PKI_X509_PRQP_REQ_VALUE  PKI_PRQP_REQ
+#define PKI_X509_PRQP_REQ        PKI_X509
 
-#define PKI_X509_PRQP_RESP_VALUE	PKI_PRQP_RESP
-#define PKI_X509_PRQP_RESP		PKI_X509
+#define PKI_X509_PRQP_RESP_VALUE PKI_PRQP_RESP
+#define PKI_X509_PRQP_RESP       PKI_X509
 
-#define PKI_X509_LIRT_VALUE		PKI_LIRT
-#define PKI_X509_LIRT			PKI_X509
+#define PKI_X509_LIRT_VALUE      PKI_LIRT
+#define PKI_X509_LIRT            PKI_X509
 
 #include <libpki/hsm_st.h>
 #include <libpki/token_st.h>

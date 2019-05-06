@@ -340,6 +340,7 @@ typedef enum {
 #include <libpki/pki_x509_crl.h>
 #include <libpki/pki_x509_pkcs7.h>
 #include <libpki/pki_x509_p12.h>
+#include <libpki/pki_x509_cms.h>
 
 /* OCSP support */
 
@@ -417,8 +418,8 @@ typedef enum {
 // #include <libpki/scep/scep_pk7.h>
 // #include <libpki/scep/scep_sigattr.h>
 
-/* CMS Interface */
-#include <libpki/cms.h>
+/* CMC Interface */
+#include <libpki/cmc.h>
 
 /* General PKI Messaging System */
 #include <libpki/pki_msg.h>
