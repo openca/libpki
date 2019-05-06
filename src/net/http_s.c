@@ -158,9 +158,7 @@ int __parse_http_header(PKI_HTTP *msg)
   	  else if(sscanf(http_version,"HTTP/%f", &msg->version) < 1)
   	  {
   		  PKI_log_debug("ERROR Parsing HTTP Version");
-  		  PKI_Free(http_version);
   		  PKI_Free(line);
-
   		  return PKI_ERR;
   	  }
     }
