@@ -41,8 +41,8 @@ int PKI_X509_delete ( PKI_X509 *x );
 
 int PKI_X509_aux_data_set (PKI_X509 * x,
 	                         void     * data, 
-	                         void       (* data_free_func )(void *),
-	                         void     * (* data_dup_func  )(void *));
+	                         void       (*data_free_func)(void *),
+	                         void     * (*data_dup_func )(void *));
 
 void * PKI_X509_aux_data_get(PKI_X509 * x);
 

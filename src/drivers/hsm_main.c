@@ -406,7 +406,7 @@ typedef struct my_meth_st {
 
 /*! \brief Signs a PKI_X509 object */
 
-int PKI_X509_sign(PKI_X509               * x, 
+int PKI_X509_sign(PKI_X509           * x, 
 		          const PKI_DIGEST_ALG   * digest,
 		          const PKI_X509_KEYPAIR * key) {
 
@@ -435,8 +435,11 @@ int PKI_X509_sign(PKI_X509               * x,
 
 	if (!digest) digest = PKI_DIGEST_ALG_DEFAULT;
 
-	algs[0] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1);
-	algs[1] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2);
+	if ((algs[0] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1)) == NULL)
+		PKI_DEBUG("Cannot get ALG1 from Certificae");
+
+	if ((algs[1] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2)) == NULL)
+		PKI_DEBUG("Cannot get ALG2 from Certificate")
 
 	// Check we got at least one
 	if (!algs[0] && !algs[1]) {
