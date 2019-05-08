@@ -61,18 +61,18 @@ typedef struct CMS_ReceiptsFrom_st LIBPKI_CMS_RECEIPTS_FROM;
 typedef int CRYPTO_REF_COUNT;
 
 // ----- Includes specific for OpenSSL v1.0.x ----- //
-#    if OPENSSL_VERSION_NUMBER <= 0x1000fffL
+#    if OPENSSL_VERSION_NUMBER <= 0x1000ffffL
 #      include "ossl_1_0_x/cms_lcl.h"
 #    else
 // ----- Includes specific for OpenSSL v1.1.0+ ----- //
-#      if OPENSSL_VERSION_NUMBER <= 0x101000fL
+#      if OPENSSL_VERSION_NUMBER <= 0x10100fffL
 #        include "ossl_1_1_0/x509_lcl.h"
 #        include "ossl_1_1_0/x509_int.h"
 #        include "ossl_1_1_0/ocsp_lcl.h"
 #        include "ossl_1_1_0/cms_lcl.h"
 #      else
 // ----- Includes specific for OpenSSL v1.1.1+ ----- //
-#        if OPENSSL_VERSION_NUMBER > 0x1010000L
+#        if OPENSSL_VERSION_NUMBER >= 0x1010100fL
 #          include "ossl_1_1_1/x509_lcl.h"
 #          include "ossl_1_1_1/x509_int.h"
 #          include "ossl_1_1_1/ocsp_lcl.h"

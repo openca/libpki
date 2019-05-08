@@ -10,22 +10,22 @@
 
 struct X509_VERIFY_PARAM_st {
     char *name;
-    time_t check_time;          /* Time to use */
-    uint32_t inh_flags;         /* Inheritance flags */
-    unsigned long flags;        /* Various verify flags */
-    int purpose;                /* purpose to check untrusted certificates */
-    int trust;                  /* trust setting to check */
-    int depth;                  /* Verify depth */
-    int auth_level;             /* Security level for chain verification */
-    STACK_OF(ASN1_OBJECT) *policies; /* Permissible policies */
-    /* Peer identity details */
-    STACK_OF(OPENSSL_STRING) *hosts; /* Set of acceptable names */
-    unsigned int hostflags;     /* Flags to control matching features */
-    char *peername;             /* Matching hostname in peer certificate */
-    char *email;                /* If not NULL email address to match */
+    time_t check_time;          // Time to use
+    uint32_t inh_flags;         // Inheritance flags
+    unsigned long flags;        // Various verify flags
+    int purpose;                // purpose to check untrusted certificates
+    int trust;                  // trust setting to check
+    int depth;                  // Verify depth
+    int auth_level;             // Security level for chain verification
+    STACK_OF(ASN1_OBJECT) *policies; // Permissible policies
+    // Peer identity details
+    STACK_OF(OPENSSL_STRING) *hosts; // Set of acceptable names
+    unsigned int hostflags;     // Flags to control matching features
+    char *peername;             // Matching hostname in peer certificate
+    char *email;                // If not NULL email address to match
     size_t emaillen;
-    unsigned char *ip;          /* If not NULL IP address to match */
-    size_t iplen;               /* Length of IP address */
+    unsigned char *ip;          // If not NULL IP address to match
+    size_t iplen;               // Length of IP address
 };
 
 /* No error callback if depth < 0 */
@@ -129,9 +129,5 @@ struct x509_store_st {
     CRYPTO_RWLOCK *lock;
 };
 
-typedef struct lookup_dir_hashes_st BY_DIR_HASH;
-typedef struct lookup_dir_entry_st BY_DIR_ENTRY;
-DEFINE_STACK_OF(BY_DIR_HASH)
-DEFINE_STACK_OF(BY_DIR_ENTRY)
-typedef STACK_OF(X509_NAME_ENTRY) STACK_OF_X509_NAME_ENTRY;
-DEFINE_STACK_OF(STACK_OF_X509_NAME_ENTRY)
+#endif
+
