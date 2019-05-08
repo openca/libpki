@@ -288,8 +288,6 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	// Get the Maximum size of a signature
 	ossl_ret = out_size = (size_t) EVP_PKEY_size(pkey);
 
-	PKI_DEBUG("[ OUT SIZE: %d ]", ossl_ret);
-
 	// Initialize the return structure
 	if ((out_mem = PKI_MEM_new ((size_t)out_size)) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
@@ -302,8 +300,6 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 		if (out_mem) PKI_MEM_free(out_mem);
 		return NULL;
 	}
-
-PKI_DEBUG("[ OUT MEM SIZE: %d ]", PKI_MEM_get_size(out_mem));
 
 	// Initializes the Context
 	EVP_MD_CTX_init(ctx);
@@ -324,8 +320,8 @@ PKI_DEBUG("[ OUT MEM SIZE: %d ]", PKI_MEM_get_size(out_mem));
 	}
 	else out_mem->size = (size_t) ossl_ret;
 
-	PKI_DEBUG("[Signature Generated: %d bytes (estimated: %d bytes)]", 
-		ossl_ret, out_size);
+	// PKI_DEBUG("[Signature Generated: %d bytes (estimated: %d bytes)]", 
+	//	ossl_ret, out_size);
 
 	// Cleanup the context
 #if OPENSSL_VERSION_NUMBER <= 0x1010000f
