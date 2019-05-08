@@ -675,7 +675,7 @@ URL *URL_new(const char * url_s ) {
 			goto err;
 
 	} else {
-
+		
 		// Copy the name in the URL itself
 		ret->url_s = strdup(url_s);
 	}
@@ -1501,49 +1501,25 @@ URL *URL_new(const char * url_s ) {
 	}
 	else
 	{
-		/* No protocol specified, we assume file:// or sock:// */
-		tmp_s = ret->url_s;
+		// No protocol specified, we assume file:// or sock://
+		size_t len = 0;
 
-		if (strchr( tmp_s, ':'))
+		ret->port = -1;
+		ret->proto = URI_PROTO_FILE;
+
+		if (ret->url_s)
 		{
-			/* Shall we be more liberal ??? */
-			PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
-			goto err;
+			len = strlen(ret->url_s);
 
-			tmp_s2 = strchr(tmp_s,':');
-
-			len = (size_t) ( tmp_s2 - tmp_s );
-			ret->addr = (char *) malloc (len+1);
-			memset( ret->addr, 0, len+1 );
-
-			strncpy( ret->addr, tmp_s, len);
-			ret->addr[len] = '\x0';
-
-			tmp_s = tmp_s2+1;
-			ret->port = atoi( tmp_s );
-			ret->proto = URI_PROTO_SOCK;
+			ret->addr = (char *) PKI_Malloc( len+1 );
+			memcpy(ret->addr, ret->url_s, len);
 		}
 		else
 		{
-			size_t len = 0;
+			PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
 
-			ret->port = -1;
-			ret->proto = URI_PROTO_FILE;
-
-			if (ret->url_s)
-			{
-				len = strlen(ret->url_s);
-
-				ret->addr = (char *) PKI_Malloc( len+1 );
-				memcpy(ret->addr, ret->url_s, len);
-			}
-			else
-			{
-				PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
-
-				// return NULL;
-				goto err;
-			}
+			// return NULL;
+			goto err;
 		}
 	}
 

@@ -399,29 +399,7 @@ int PKI_X509_put ( PKI_X509 *x, PKI_DATA_FORMAT format, char *url_string,
 		return PKI_ERR;
 	}
 
-	{
-		PKI_DEBUG("[ >>>> Saving 'cert1.pem' <<<<<< ]");
-
-		BIO *bio = NULL;
-
-		if ((bio = BIO_new_file("cert1.pem", "w")) != 0) {
-			PEM_write_bio_X509_AUX(bio, (X509 *)x->value);
-  			BIO_free(bio);
-  		}
-  	}
-
 	ret = PKI_X509_STACK_put(sk, format, url_string, mime, cred, hsm);
-
-	{
-		PKI_DEBUG("[ >>>> Saving 'cert2.pem' <<<<<< ]");
-
-		BIO *bio = NULL;
-
-		if ((bio = BIO_new_file("cert2.pem", "w")) != 0) {
-			PEM_write_bio_X509_AUX(bio, (X509 *)x->value);
-  			BIO_free(bio);
-  		}
-  	}
 
 	if (sk) {
 
@@ -506,31 +484,7 @@ int PKI_X509_STACK_put (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 	if ((url = URL_new(url_string)) == NULL)
 		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not parse URL (%s)", url_string);
 
-	{
-		PKI_DEBUG("[ >>>> Saving 'cert-a1.pem' <<<<<< ]");
-
-		BIO *bio = NULL;
-		PKI_X509_CERT * x = PKI_STACK_X509_get_num(sk, 0);
-
-		if ((bio = BIO_new_file("cert-a1.pem", "w")) != 0) {
-			PEM_write_bio_X509_AUX(bio, (X509 *)x->value);
-  			BIO_free(bio);
-  		}
-  	}
-
 	ret = PKI_X509_STACK_put_url(sk, format, url, mime, cred, hsm);
-
-	{
-		PKI_DEBUG("[ >>>> Saving 'cert-a2.pem' <<<<<< ]");
-
-		BIO *bio = NULL;
-		PKI_X509_CERT * x = PKI_STACK_X509_get_num(sk, 0);
-
-		if ((bio = BIO_new_file("cert-a2.pem", "w")) != 0) {
-			PEM_write_bio_X509_AUX(bio, (X509 *)x->value);
-  			BIO_free(bio);
-  		}
-  	}
 
 	if (url) URL_free(url);
 
@@ -562,18 +516,6 @@ int PKI_X509_STACK_put_url (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 	if( url->proto == URI_PROTO_ID && hsm )
 		return ( HSM_X509_STACK_put_url ( sk, url, cred, hsm ));
 
-	{
-		PKI_DEBUG("[ >>>> Saving 'cert-b1.pem' <<<<<< ]");
-
-		BIO *bio = NULL;
-		PKI_X509_CERT * x = PKI_STACK_X509_get_num(sk, 0);
-
-		if ((bio = BIO_new_file("cert-b1.pem", "w")) != 0) {
-			PEM_write_bio_X509_AUX(bio, (X509 *)x->value);
-  			BIO_free(bio);
-  		}
-  	}
-
 	// Put the content of the stack into the destination URL
 	if(PKI_X509_STACK_put_mem(sk, format, &mem, cred, hsm) == NULL) {
 		// Free the Memory
@@ -581,20 +523,6 @@ int PKI_X509_STACK_put_url (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 		// Returns and reports the error
 		return PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
 	}
-
-	{
-		PKI_DEBUG("[ >>>> Saving 'cert-b2.pem' <<<<<< ]");
-
-		BIO *bio = NULL;
-		PKI_X509_CERT * x = PKI_STACK_X509_get_num(sk, 0);
-
-		if ((bio = BIO_new_file("cert-b2.pem", "w")) != 0) {
-			PEM_write_bio_X509_AUX(bio, (X509 *)x->value);
-  			BIO_free(bio);
-  		}
-  	}
-
-	PKI_DEBUG("[ Encoded Stack Container: %d bytes ]", mem->size);
 
 	// Lets get the type of X509 objects we have on the stack
 	if((x_obj = PKI_STACK_X509_get_num ( sk, 0 )) != NULL ) {
@@ -615,20 +543,7 @@ int PKI_X509_STACK_put_url (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 		}
 	}
 
-{ PKI_DEBUG("[ >>>> Saving 'cert-after.pem' <<<<<< ]");
-  BIO *bio = NULL;
-  PKI_X509 * x_obj = PKI_STACK_X509_get_num(sk, 0);
-
-  if ((bio = BIO_new_file("cert-after.pem", "w")) != 0) {
-    PEM_write_bio_X509_AUX(bio, (X509 *)x_obj->value);
-      BIO_free(bio);
-}}
-
-PKI_DEBUG("[ ***** Before URL_put_data_url(): url: %s, mem->size: %d, ret: %d ]", url->url_s, mem->size, ret);
-
 	ret = URL_put_data_url(url, mem, (char *) mime, NULL, 60, 0, ssl);
-
-PKI_DEBUG("[ ***** After URL_put_data_url(): url: %s, mem->size: %d, ret: %d ]", url->url_s, mem->size, ret);
 
 	if ( mem ) PKI_MEM_free ( mem );
 

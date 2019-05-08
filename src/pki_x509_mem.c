@@ -276,8 +276,6 @@ PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem,
 PKI_MEM *PKI_X509_put_mem (PKI_X509 *x, PKI_DATA_FORMAT format, 
 				PKI_MEM **mem, PKI_CRED *cred ) {
 
-	PKI_DEBUG("[ STARTED ]");
-
 	PKI_DATATYPE type = PKI_DATATYPE_UNKNOWN;
 
 	// Checks the input
@@ -316,7 +314,6 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 			PKI_MEM **pki_mem, PKI_DATA_FORMAT format, 
 				PKI_CRED *cred, HSM *hsm)
 {
-	PKI_DEBUG("[ STARTED ]");
 
 	PKI_IO *membio = NULL;
 	const PKI_X509_CALLBACKS *cb = NULL;
@@ -349,14 +346,9 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 		enc=NULL;
 	}
 
-	PKI_DEBUG("[ DEBUG ]");
-
 	switch (format)
 	{
 		case PKI_DATA_FORMAT_PEM: {
-			// PKI_DEBUG("[ Replacing Callback with direct call for Certs only ]");
-			// PEM_write_bio_X509_AUX(membio, x);
-
 			if (cb->to_pem_ex) {
 				rv = cb->to_pem_ex(membio, x, (void *) enc, NULL, 0, NULL, pwd );
 			} else if (cb->to_pem) {
@@ -364,15 +356,15 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 			} else {
 				PKI_DEBUG("No Callback for PEM encoding [Obj Type: %d, Format: %d]", type, format);
 			}
-
-			PKI_DEBUG("[ Output Bio Size: %d ]", BIO_pending(membio));
 		} break;
 
 		case PKI_DATA_FORMAT_URL:
 		case PKI_DATA_FORMAT_ASN1: {
 			if (cb->to_der) {
 				rv = cb->to_der ( membio, x );
-			} else PKI_DEBUG("No Callback for DER encoding [Obj Type: %d, Format: %d]", type, format);
+			} else {
+				PKI_DEBUG("No Callback for DER encoding [Obj Type: %d, Format: %d]", type, format);
+			}
 		} break;
 
 		case PKI_DATA_FORMAT_TXT: {
@@ -397,7 +389,9 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 				} else {
 					rv = 0;
 				}
-			} else PKI_DEBUG("No Callback for B64 encoding [Obj Type: %d, Format: %d]", type, format);
+			} else { 
+				PKI_DEBUG("No Callback for B64 encoding [Obj Type: %d, Format: %d]", type, format);
+			}
 		} break;
 
 		case PKI_DATA_FORMAT_XML: {
@@ -435,22 +429,6 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 
 	BIO_free_all(membio);
 
-	if (ret && (format == PKI_DATA_FORMAT_URL))
-	{
-		PKI_DEBUG("Encoding Data in URL format");
-
-		if (PKI_MEM_encode(ret, PKI_DATA_FORMAT_URL, 1 ) != PKI_OK)
-		{
-			PKI_MEM_free(ret);
-			return NULL;
-		}
-	}
-
-	PKI_DEBUG("Encoded Successfully [Obj Type: %d, Format: %d, Size: %d]",
-		type, format, ret->size);
-
-	PKI_DEBUG("[ ENDED ]");
-
 	return ret;
 }
 
@@ -458,9 +436,6 @@ PKI_MEM *PKI_X509_put_mem_value (void *x, PKI_DATATYPE type,
 
 PKI_MEM * PKI_X509_STACK_put_mem ( PKI_X509_STACK *sk, PKI_DATA_FORMAT format, 
 				PKI_MEM **pki_mem, PKI_CRED *cred, HSM *hsm ) {
-
-
-	PKI_DEBUG("[STACK STARTED]");
 
 	PKI_MEM *ret = NULL;
 	int i = 0;
@@ -499,41 +474,14 @@ PKI_MEM * PKI_X509_STACK_put_mem ( PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 
 		if((x_obj = PKI_STACK_X509_get_num( sk, i )) != NULL) {
 
-{
-	PKI_DEBUG("[ >>>> Saving 'cert-c1.pem' <<<<<< ]");
-
-	BIO *bio = NULL;
-	// PKI_X509_CERT * x = PKI_STACK_X509_get_num(sk, 0);
-
-	if ((bio = BIO_new_file("cert-c1.pem", "w")) != 0) {
-		PEM_write_bio_X509_AUX(bio, (X509 *)x_obj->value);
-		BIO_free(bio);
-	}
-}
-
 			if((tmp_mem = PKI_X509_put_mem ( x_obj, 
 					format, pki_mem, cred )) == NULL ) {
 				PKI_log_debug("ERROR adding item %d to PKI_MEM", i);
 				continue;
 			}
 
-{
-	PKI_DEBUG("[ >>>> Saving 'cert-c2.pem' <<<<<< ]");
-
-	BIO *bio = NULL;
-	// PKI_X509_CERT * x = PKI_STACK_X509_get_num(sk, 0);
-
-	if ((bio = BIO_new_file("cert-c2.pem", "w")) != 0) {
-		PEM_write_bio_X509_AUX(bio, (X509 *)x_obj->value);
-		BIO_free(bio);
-	}
-}
-
 			if ( x_obj->cred ) PKI_CRED_free ( x_obj->cred );
 			if ( cred ) x_obj->cred = PKI_CRED_dup ( cred );
-
-			PKI_DEBUG("[ Item: %d, Mem Encoded Size: %d", i, tmp_mem->size);
-
 		}
 	}
 

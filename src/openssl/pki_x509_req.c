@@ -54,8 +54,6 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 	}
 	kVal = (EVP_PKEY *) k->value;
 
-	PKI_log_debug( "Digest Algorithm: %s", PKI_DIGEST_ALG_get_parsed ( digest ));
-
 	/* Let's set the digest for the right signature scheme */
 	if( !digest ) {
 		if((digest = PKI_DIGEST_ALG_get_by_key( k )) == NULL ) {
