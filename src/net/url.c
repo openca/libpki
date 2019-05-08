@@ -655,13 +655,6 @@ URL *URL_new(const char * url_s ) {
 
 	size_t len = 0;
 
-	// If no URL is passed, we assume stdin was meant
-	if (url_s == NULL)	{
-		is_alloc = strdup("stdin");
-		url_s = (const char *) is_alloc;
-	}
-
-
 	ret = (URL *) PKI_Malloc ( sizeof( URL ));
 	if(ret == 0) 
 	{
@@ -670,19 +663,21 @@ URL *URL_new(const char * url_s ) {
 	}
 	memset( ret, 0, sizeof(URL) );
 
-	if ((ret->url_s = get_env_string(url_s)) == NULL)
-	{
-		// if( ret ) URL_free ( ret );
-		// return ( NULL );
-		goto err;
-	}
+	// If no URL is passed, we assume stdin was meant
+	if (url_s == NULL)	{
 
-	if (!ret->url_s)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		// if( ret ) URL_free ( ret );
-		// return ( NULL );
-		goto err;
+		// If no URL is passed, let's use stdin as the source
+		is_alloc = strdup("stdin");
+		url_s = (const char *) is_alloc;
+
+		// Gets the data from the env variable
+		if ((ret->url_s = get_env_string(url_s)) == NULL)
+			goto err;
+
+	} else {
+
+		// Copy the name in the URL itself
+		ret->url_s = strdup(url_s);
 	}
 
 	if (strncmp_nocase(ret->url_s, "stdin", 5) == 0)

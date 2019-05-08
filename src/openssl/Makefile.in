@@ -108,11 +108,9 @@ libpki_openssl_la_LIBADD =
 am__objects_1 =
 am__objects_2 = $(am__objects_1) libpki_openssl_la-pthread_init.lo \
 	libpki_openssl_la-pki_id.lo libpki_openssl_la-pki_oid.lo \
-	libpki_openssl_la-pki_algor.lo \
-	libpki_openssl_la-pki_algorithm.lo \
-	libpki_openssl_la-pki_digest.lo libpki_openssl_la-pki_hmac.lo \
-	libpki_openssl_la-pki_string.lo libpki_openssl_la-pki_time.lo \
-	libpki_openssl_la-pki_integer.lo \
+	libpki_openssl_la-pki_algor.lo libpki_openssl_la-pki_digest.lo \
+	libpki_openssl_la-pki_hmac.lo libpki_openssl_la-pki_string.lo \
+	libpki_openssl_la-pki_time.lo libpki_openssl_la-pki_integer.lo \
 	libpki_openssl_la-pki_keypair.lo \
 	libpki_openssl_la-pki_keyparams.lo \
 	libpki_openssl_la-pki_x509_name.lo \
@@ -442,7 +440,6 @@ OPENSSL_SRCS = \
 	pki_id.c \
 	pki_oid.c \
 	pki_algor.c \
-	pki_algorithm.c \
 	pki_digest.c \
 	pki_hmac.c \
 	pki_string.c \
@@ -465,6 +462,8 @@ OPENSSL_SRCS = \
 	pki_ocsp_resp.c \
 	pki_x509_attribute.c
 
+
+# pki_algorithm.c
 noinst_LTLIBRARIES = libpki-openssl.la
 libpki_openssl_la_SOURCES = $(OPENSSL_SRCS)
 libpki_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
@@ -523,7 +522,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_algorithm.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_digest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_hmac.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_id.Plo@am__quote@
@@ -600,13 +598,6 @@ libpki_openssl_la-pki_algor.lo: pki_algor.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_algor.c' object='libpki_openssl_la-pki_algor.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_algor.lo `test -f 'pki_algor.c' || echo '$(srcdir)/'`pki_algor.c
-
-libpki_openssl_la-pki_algorithm.lo: pki_algorithm.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_algorithm.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_algorithm.Tpo -c -o libpki_openssl_la-pki_algorithm.lo `test -f 'pki_algorithm.c' || echo '$(srcdir)/'`pki_algorithm.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_openssl_la-pki_algorithm.Tpo $(DEPDIR)/libpki_openssl_la-pki_algorithm.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_algorithm.c' object='libpki_openssl_la-pki_algorithm.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_algorithm.lo `test -f 'pki_algorithm.c' || echo '$(srcdir)/'`pki_algorithm.c
 
 libpki_openssl_la-pki_digest.lo: pki_digest.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_digest.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_digest.Tpo -c -o libpki_openssl_la-pki_digest.lo `test -f 'pki_digest.c' || echo '$(srcdir)/'`pki_digest.c

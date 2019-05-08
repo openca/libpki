@@ -43,33 +43,6 @@ typedef struct CMS_PasswordRecipientInfo_st CMS_PasswordRecipientInfo;
 typedef struct CMS_OtherRecipientInfo_st CMS_OtherRecipientInfo;
 typedef struct CMS_ReceiptsFrom_st CMS_ReceiptsFrom;
 
-/* LibPKI Forward references */
-typedef struct CMS_IssuerAndSerialNumber_st LIBPKI_CMS_ISSUER_AND_SERIAL_NUMBER;
-typedef struct CMS_EncapsulatedContentInfo_st LIBPKI_CMS_CI_ENCAPSULATED;
-typedef struct CMS_SignerIdentifier_st LIBPKI_CMS_SIGNER_IDENTIFIER;
-typedef struct CMS_SignedData_st LIBPKI_CMS_SIGNED_DATA;
-typedef struct CMS_OtherRevocationInfoFormat_st LIBPKI_CMS_OTHER_REVOCATION_INFO_FORMAT;
-typedef struct CMS_OriginatorInfo_st LIBPKI_CMS_ORIGINATOR_INFO;
-typedef struct CMS_EncryptedContentInfo_st LIBPKI_CMS_CI_ENCRYPTED;
-typedef struct CMS_EnvelopedData_st LIBPKI_CMS_DATA_ENVELOPED;
-typedef struct CMS_DigestedData_st LIBPKI_CMS_DATA_DIGESTED;
-typedef struct CMS_EncryptedData_st LIBPKI_CMS_DATA_ENCRYPTED;
-typedef struct CMS_AuthenticatedData_st LIBPKI_CMS_DATA_AUTH;
-typedef struct CMS_CompressedData_st LIBPKI_CMS_DATA_COMPRESSED;
-typedef struct CMS_OtherCertificateFormat_st LIBPKI_CMS_OTHER_CERTIFICATE_FORMAT;
-typedef struct CMS_KeyTransRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_KTRANS;
-typedef struct CMS_OriginatorPublicKey_st LIBPKI_CMS_ORIGINATOR_PUBLIC_KEY;
-typedef struct CMS_OriginatorIdentifierOrKey_st LIBPKI_CMS_ORIGINATOR_IDENTIFIER_OR_KEY;
-typedef struct CMS_KeyAgreeRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_KAGREE;
-typedef struct CMS_RecipientKeyIdentifier_st LIBPKI_CMS_RECIPIENT_KEY_IDENTIFIER;
-typedef struct CMS_KeyAgreeRecipientIdentifier_st
-    LIBPKI_CMS_KAGREE_RECIPIENT_IDENTIFIER;
-typedef struct CMS_KEKIdentifier_st LIBPKI_CMS_KEK_IDENTIFIER;
-typedef struct CMS_KEKRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_KEK;
-typedef struct CMS_PasswordRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_PASSWORD;
-typedef struct CMS_OtherRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_OTHER;
-typedef struct CMS_ReceiptsFrom_st LIBPKI_CMS_RECEIPTS_FROM;
-
 struct CMS_ContentInfo_st {
     ASN1_OBJECT *contentType;
     union {

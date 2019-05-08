@@ -1,6 +1,7 @@
 /* src/openssl/pki_x509_attribute.c */
 
 #include <libpki/pki.h>
+#include "internal/x509_data_st.h"
 
 /*! \brief Frees the memory associated with a PKI_X509_ATTRIBUTE */
 
@@ -241,9 +242,6 @@ const PKI_STRING *PKI_X509_ATTRIBUTE_get_value(
                 return NULL;
         }
 	*/
-
-	PKI_log_debug("ATTRIBUTE TYPE=>%s SINGLE=>%d", 
-			PKI_OID_get_descr ( a->object ), a->single);
 
 	string_type = ASN1_TYPE_get( a_type );
 	switch ( string_type) {

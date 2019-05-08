@@ -292,6 +292,7 @@ typedef enum {
 #include <libpki/openssl/pthread_init.h>
 
 /* Credentials */
+#include <libpki/pki_err.h>
 #include <libpki/pki_cred.h>
 #include <libpki/errors.h>
 #include <libpki/support.h>
@@ -324,7 +325,7 @@ typedef enum {
 #include <libpki/pki_string.h>
 #include <libpki/pki_init.h>
 #include <libpki/pki_algor.h>
-#include <libpki/pki_algorithm.h>
+// #include <libpki/pki_algorithm.h>
 #include <libpki/pki_id.h>
 #include <libpki/pki_oid.h>
 #include <libpki/pki_digest.h>

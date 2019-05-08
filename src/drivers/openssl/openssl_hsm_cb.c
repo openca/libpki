@@ -44,19 +44,23 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_CERT_CALLBACKS = {
 	(void *) PKI_X509_CERT_print_parsed,
 
 	/* Data Conversion */
-	(void *) PEM_write_bio_X509, 	// PEM format
-	NULL,  				// PEM EX (encrypted) format
-	(void *) i2d_X509_bio,	    	// DER format
-	(void *) X509_print,         	// TXT format
-	NULL, 		    		// B64 format (B64_write_bio)
-	NULL,		    		// XML format
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	(void *) PEM_write_bio_X509_AUX, // PEM format
+#else
+	(void *) PEM_write_bio_X509, // PEM format
+#endif
+	NULL,                        // PEM EX (encrypted) format
+	(void *) i2d_X509_bio,       // DER format
+	(void *) X509_print,         // TXT format
+	NULL,                        // B64 format (B64_write_bio)
+	NULL,                        // XML format
 
 	/* Data Conversion */
-	(void *) PEM_read_bio_X509,  	// PEM format
-	(void *) d2i_X509_bio,	    	// DER format
-	NULL,		    		// TXT format
-	NULL,               		// B64 format
-	NULL		    		// XML format
+	(void *) PEM_read_bio_X509,  // PEM format
+	(void *) d2i_X509_bio,       // DER format
+	NULL,                        // TXT format
+	NULL,                        // B64 format
+	NULL                         // XML format
 };
 
 

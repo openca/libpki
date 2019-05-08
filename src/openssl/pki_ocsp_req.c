@@ -1,6 +1,7 @@
 /* PKI_X509_OCSP_REQ object management */
 
 #include <libpki/pki.h>
+#include "internal/x509_data_st.h"
 
 PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_new_null ( void ) {
 
@@ -260,7 +261,11 @@ int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ * req,
 
 	int ret = 0;
 
-	PKI_X509_OCSP_REQ_VALUE *val = NULL;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	LIBPKI_X509_OCSP_REQ * val = NULL;
+#else
+	PKI_X509_OCSP_REQ_VALUE * val = NULL;
+#endif
 
 	if (!req || !req->value || !k || !k->value)
 	{
@@ -416,7 +421,7 @@ void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req,
 	int idx = -1;
 
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
-	OSSL_OCSP_REQUEST *tmp_x = NULL;
+	LIBPKI_X509_OCSP_REQ *tmp_x = NULL;
 #else
 	PKI_X509_OCSP_REQ_VALUE *tmp_x = NULL;
 #endif

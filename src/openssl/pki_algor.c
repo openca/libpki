@@ -140,9 +140,7 @@ PKI_ALGOR *PKI_ALGOR_get_by_name ( const char *alg_s ) {
 		}
 	}
 
-	PKI_log_debug("GOT ALGORITHM ID: %d", alg_nid );
-
-	return PKI_ALGOR_get ( alg_nid );
+	return PKI_ALGOR_get(alg_nid);
 
 }
 
@@ -166,11 +164,19 @@ const char * PKI_ALGOR_get_parsed (const PKI_ALGOR * algor ) {
 
 	int id;
 
-	if (!algor || !algor->algorithm) return (NULL);
+	// Input Check
+	if (!algor || !algor->algorithm) {
+		// Error: We are Missing the Algorithm
+		return NULL;
+	}
 
-	if ((id = OBJ_obj2nid(algor->algorithm)) == PKI_ID_UNKNOWN )
+	// Gets the NID from the object
+	if ((id = OBJ_obj2nid(algor->algorithm)) == PKI_ID_UNKNOWN) {
+		// Returns Nothing
 		return ( NULL );
+	}
 
+	// Returns the Text Representation of the OID for the Algorithm
 	return OBJ_nid2ln( id );
 }
 
@@ -226,15 +232,14 @@ PKI_SCHEME_ID PKI_ALGOR_get_scheme_by_txt(const char * data) {
  * \brief Build a PKI_ALGOR structure from its ID
  */
 
-PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor )
-{
+PKI_ALGOR * PKI_ALGOR_get( PKI_ALGOR_ID algor ) {
+
 	PKI_ALGOR *ret 	= NULL;
 	int alg_nid 	= PKI_ALGOR_UNKNOWN;
 
-	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ID_UNKNOWN)
-	{
-		PKI_log_debug( "ERROR, Algorithm ID unknown (%d)", algor );
-		return ( PKI_ALGOR_UNKNOWN );
+	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ID_UNKNOWN) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Algorithm ID unknown (%d)", algor);
+		return NULL;
 	}
 
 	// Check if the OID found corresponds to one of the supported algorithms 
@@ -290,19 +295,24 @@ PKI_ALGOR *PKI_ALGOR_get ( PKI_ALGOR_ID algor )
 			break;
 	}
 
-	if (alg_nid != PKI_ALGOR_UNKNOWN)
-	{
+	// If the Algorithm ID is known, let's generate the
+	// PKIX algorithm data structure
+	if (alg_nid != PKI_ALGOR_UNKNOWN) {
+
+		// Allocates the Memory
 		ret = (PKI_ALGOR *) X509_ALGOR_new();
 		if( !ret ) goto err;
 
+		// Generates the parameter
 		if((ret->parameter = ASN1_TYPE_new()) == NULL ) goto err;
 
+		// Sets the Algorithm OID and Parameter Type
 		ret->algorithm=OBJ_nid2obj(alg_nid);
 		ret->parameter->type = V_ASN1_NULL;
 	}
 	else
 	{
-		PKI_log_debug("PKI_ALGOR_get() -> Unknown algor %d", algor );
+		PKI_DEBUG("Unknown algorithm [ Algor ID: %d ]", algor);
 		ret = PKI_ALGOR_NULL;
 	}
 
@@ -329,19 +339,16 @@ PKI_ALGOR_ID PKI_ALGOR_get_id(const PKI_ALGOR *algor )
 {
 	PKI_ALGOR_ID ret = PKI_ALGOR_UNKNOWN;
 
-	if( (!algor) || (!algor->algorithm)) {
-		PKI_log_debug( "PKI_ALGOR_get_id()-> null algor provided");
-		return (PKI_ALGOR_UNKNOWN);
-	}
+	// Input Checks
+	if (!algor || !algor->algorithm) return PKI_ALGOR_UNKNOWN;
 
-	ret = OBJ_obj2nid(algor->algorithm);
-	if(ret == PKI_ALGOR_UNKNOWN ) {
+	// Gets the Algorithm Id
+	if ((ret = OBJ_obj2nid(algor->algorithm)) == PKI_ALGOR_UNKNOWN) {
 		/* Error, non recognized algor */
-		PKI_log_debug( "PKI_ALGOR_get_id()-> PKI_ID_UNKNOWN returned");
-		return ( PKI_ALGOR_UNKNOWN );
+		PKI_ERROR( PKI_ALGOR_UNKNOWN, "PKI_ID_UNKNOWN returned (%p)", algor);
 	}
 
-	return ( ret );
+	return ret;
 }
 
 /*! \brief Get the Digest Algorithm from the passed PKI_ALGOR
@@ -463,12 +470,10 @@ PKI_SCHEME_ID PKI_ALGOR_get_scheme (const PKI_ALGOR *algor) {
 	PKI_ALGOR_ID id;
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 
-	if ( ! algor ) return ( PKI_SCHEME_UNKNOWN );
+	if (!algor) return PKI_SCHEME_UNKNOWN;
 
-	if((id = PKI_ALGOR_get_id ( algor )) == PKI_ID_UNKNOWN ) {
-		PKI_log_debug("PKI_ALGOR_get_scheme() -> id is uknown!");
+	if ((id = PKI_ALGOR_get_id ( algor )) == PKI_ID_UNKNOWN)
 		return ( PKI_SCHEME_UNKNOWN );
-	}
 
 	switch ( id ) {
 		case PKI_ALGOR_DSA_SHA1:
@@ -607,11 +612,11 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 			break;
 		default:
 			digest = NULL;
-	};
+	}
 
-	PKI_log_debug("PKI_DIGEST_ALG_get_by_key()::Return Value is %p", digest );
+	PKI_DEBUG("Return Value is %p", digest );
 
-	return ( digest );
+	return digest;
 }
 
 /*! \brief Returns the PKI_DIGEST_ALG * associated with the alg id.
@@ -691,29 +696,29 @@ PKI_ALGOR_ID *PKI_ALGOR_list ( PKI_SCHEME_ID scheme ) {
 	PKI_ALGOR_ID *ret = NULL;
 
 	switch ( scheme ) {
-		case PKI_SCHEME_RSA:
-			PKI_log_debug("PKI_ALGOR_list() -> RSA LIST! (%d)",
-					sizeof( PKI_ALGOR_LIST_RSA ) );
+		case PKI_SCHEME_RSA: {
+			PKI_DEBUG("RSA LIST! (%d)", sizeof(PKI_ALGOR_LIST_RSA));
 			ret = PKI_ALGOR_LIST_RSA;
-			break;
-		case PKI_SCHEME_DSA:
-			PKI_log_debug("PKI_ALGOR_list() -> DSA LIST! (%d)",
-					sizeof( PKI_ALGOR_LIST_RSA ) );
+		} break;
+
+		case PKI_SCHEME_DSA: {
+			PKI_DEBUG("DSA LIST! (%d)", sizeof(PKI_ALGOR_LIST_RSA));
 			ret = PKI_ALGOR_LIST_DSA;
-			break;
+		} break;
+
 #ifdef ENABLE_ECDSA
-		case PKI_SCHEME_ECDSA:
-			PKI_log_debug("PKI_ALGOR_list() -> ECDSA LIST! (%d)",
-					sizeof( PKI_ALGOR_LIST_ECDSA ));
+		case PKI_SCHEME_ECDSA: {
+			PKI_log_debug("ECDSA LIST! (%d)", sizeof( PKI_ALGOR_LIST_ECDSA ));
 			ret = PKI_ALGOR_LIST_ECDSA;
-			break;
+		} break;
 #endif
+
 		default:
-			PKI_log_debug("PKI_ALGOR_list() -> UNKNOWN LIST!");
+			PKI_DEBUG("UNKNOWN LIST!");
 			ret = NULL;
 	}
 
-	return ( ret );
+	return ret;
 }
 
 PKI_ALGOR_ID *PKI_DIGEST_ALG_list( void ) {

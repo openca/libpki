@@ -289,10 +289,10 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cVal = (PKI_X509_CERT_VALUE *) x->value;
 				// cVal->cert_info->enc.modified = 1;
-# if OPENSSL_VERSION_NUMBER > 0x1010000fL
+# if OPENSSL_VERSION_NUMBER > 0x10100000L
 				if (cVal) {
-					PKI_X509_CINF_FULL *cFull = NULL;
-					cFull = (PKI_X509_CINF_FULL *) &(cVal->cert_info);
+					LIBPKI_X509_CINF *cFull = NULL;
+					cFull = (LIBPKI_X509_CINF *) &(cVal->cert_info);
 					cFull->enc.modified = 1;
 				}
 # else

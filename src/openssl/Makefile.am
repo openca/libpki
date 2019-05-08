@@ -23,7 +23,6 @@ OPENSSL_SRCS = \
 	pki_id.c \
 	pki_oid.c \
 	pki_algor.c \
-	pki_algorithm.c \
 	pki_digest.c \
 	pki_hmac.c \
 	pki_string.c \
@@ -45,6 +44,8 @@ OPENSSL_SRCS = \
 	pki_ocsp_req.c \
 	pki_ocsp_resp.c \
 	pki_x509_attribute.c
+
+# pki_algorithm.c
 
 noinst_LTLIBRARIES = libpki-openssl.la
 

@@ -3,6 +3,8 @@
 #include <libpki/pki.h>
 #include <sys/utsname.h>
 
+#include "internal/x509_data_st.h"
+
 PKI_X509_CRL_REASON_CODE PKI_X509_CRL_REASON_DESCR[] = {
   { PKI_CRL_REASON_UNSPECIFIED,       "unspecified",    "No specified reason" },
   { PKI_CRL_REASON_KEY_COMPROMISE,     "keyCompromise",  "Subject's Key Compromised" },
@@ -845,7 +847,7 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL * x,
                                    PKI_X509_DATA        type ) {
 
   const void *ret = NULL;
-  PKI_X509_CRL_VALUE *tmp_x = NULL;
+  LIBPKI_X509_CRL *tmp_x = NULL;
 
   if (!x || !x->value) return NULL;
 
@@ -899,7 +901,7 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL * x,
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
       // X509_CRL_get0_signature((X509_CRL *)tmp_x, 
       //             NULL, (const X509_ALGOR **)&ret);
-      ret = &(((PKI_X509_CRL_FULL *)tmp_x)->crl.sig_alg);
+      ret = &((tmp_x)->crl.sig_alg);
 #else
       if (tmp_x->crl) ret = tmp_x->crl->sig_alg;
 #endif

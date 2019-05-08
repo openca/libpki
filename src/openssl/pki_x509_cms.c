@@ -1387,7 +1387,7 @@ int PKI_X509_CMS_VALUE_print_bio ( PKI_IO *bio,
 		BIO_printf( bio, "        Signed Attributes:\r\n");
 		if ( si->auth_attr ) {
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
-			PKI_X509_ATTRIBUTE_FULL *a = NULL;
+			LIBPKI_X509_ATTRIBUTE_FULL *a = NULL;
 #else
 			X509_ATTRIBUTE *a = NULL;
 #endif

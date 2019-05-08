@@ -1,148 +1,85 @@
 /* X509_data_st.h */
 
+#include <openssl/opensslv.h>
+#include <openssl/x509.h>
+
 #ifndef LIBPKI_X509_INT_H
 #define LIBPKI_X509_INT_H
 
-#include <openssl/x509.h>
+#  if OPENSSL_VERSION_NUMBER > 0x1000000fL
 
-# if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+// PKIX Generic Structures Forward References
+typedef struct x509_cinf_st       LIBPKI_X509_CINF;
+typedef struct x509_st            LIBPKI_X509_CERT;
+typedef struct X509_req_info_st   LIBPKI_X509_REQ_INFO;
+typedef struct X509_req_st        LIBPKI_X509_REQ;
+typedef struct X509_crl_info_st   LIBPKI_X509_CRL_INFO;
+typedef struct X509_crl_st        LIBPKI_X509_CRL;
+typedef struct X509_algor_st      LIBPKI_X509_ALGOR;
+typedef struct X509_extension_st  LIBPKI_X509_EXTENSION;
+typedef struct x509_attributes_st LIBPKI_X509_ATTRIBUTE_FULL;
 
-// =================
-// X509 Certificates
-// =================
+// OCSP Structures Forward references
+typedef struct ocsp_cert_id_st        LIBPKI_X509_OCSP_CERTID;
+typedef struct ocsp_req_info_st       LIBPKI_X509_OCSP_REQ_INFO;
+typedef struct ocsp_signature_st      LIBPKI_X509_OCSP_SIGNATURE;
+typedef struct ocsp_request_st        LIBPKI_X509_OCSP_REQ;
+typedef struct ocsp_responder_id_st   LIBPKI_X509_OCSP_RESPID;
+typedef struct ocsp_response_data_st  LIBPKI_X509_OCSP_RESPDATA;
+typedef struct ocsp_basic_response_st LIBPKI_X509_OCSP_BASICRESP;
+typedef struct ocsp_resp_bytes_st     LIBPKI_X509_OCSP_RESPBYTES;
+typedef struct ocsp_response_st       LIBPKI_X509_OCSP_RESPONSE;
 
-typedef struct x509_cinf_st {
-    ASN1_INTEGER *version;      /* [ 0 ] default of v1 */
-    ASN1_INTEGER serialNumber;
-    X509_ALGOR signature;
-    X509_NAME *issuer;
-    X509_VAL validity;
-    X509_NAME *subject;
-    X509_PUBKEY *key;
-    ASN1_BIT_STRING *issuerUID; /* [ 1 ] optional in v2 */
-    ASN1_BIT_STRING *subjectUID; /* [ 2 ] optional in v2 */
-    STACK_OF(X509_EXTENSION) *extensions; /* [ 3 ] optional in v3 */
-    ASN1_ENCODING enc;
-} LIBPKI_X509_CINF /* X509_CINF */ ;
+// CMS Structures Forward references
+typedef struct CMS_IssuerAndSerialNumber_st LIBPKI_CMS_ISSUER_AND_SERIAL_NUMBER;
+typedef struct CMS_EncapsulatedContentInfo_st LIBPKI_CMS_CI_ENCAPSULATED;
+typedef struct CMS_SignerIdentifier_st LIBPKI_CMS_SIGNER_IDENTIFIER;
+typedef struct CMS_SignedData_st LIBPKI_CMS_SIGNED_DATA;
+typedef struct CMS_OtherRevocationInfoFormat_st LIBPKI_CMS_OTHER_REVOCATION_INFO_FORMAT;
+typedef struct CMS_OriginatorInfo_st LIBPKI_CMS_ORIGINATOR_INFO;
+typedef struct CMS_EncryptedContentInfo_st LIBPKI_CMS_CI_ENCRYPTED;
+typedef struct CMS_EnvelopedData_st LIBPKI_CMS_DATA_ENVELOPED;
+typedef struct CMS_DigestedData_st LIBPKI_CMS_DATA_DIGESTED;
+typedef struct CMS_EncryptedData_st LIBPKI_CMS_DATA_ENCRYPTED;
+typedef struct CMS_AuthenticatedData_st LIBPKI_CMS_DATA_AUTH;
+typedef struct CMS_CompressedData_st LIBPKI_CMS_DATA_COMPRESSED;
+typedef struct CMS_OtherCertificateFormat_st LIBPKI_CMS_OTHER_CERTIFICATE_FORMAT;
+typedef struct CMS_KeyTransRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_KTRANS;
+typedef struct CMS_OriginatorPublicKey_st LIBPKI_CMS_ORIGINATOR_PUBLIC_KEY;
+typedef struct CMS_OriginatorIdentifierOrKey_st LIBPKI_CMS_ORIGINATOR_IDENTIFIER_OR_KEY;
+typedef struct CMS_KeyAgreeRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_KAGREE;
+typedef struct CMS_RecipientKeyIdentifier_st LIBPKI_CMS_RECIPIENT_KEY_IDENTIFIER;
+typedef struct CMS_KeyAgreeRecipientIdentifier_st
+    LIBPKI_CMS_KAGREE_RECIPIENT_IDENTIFIER;
+typedef struct CMS_KEKIdentifier_st LIBPKI_CMS_KEK_IDENTIFIER;
+typedef struct CMS_KEKRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_KEK;
+typedef struct CMS_PasswordRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_PASSWORD;
+typedef struct CMS_OtherRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_OTHER;
+typedef struct CMS_ReceiptsFrom_st LIBPKI_CMS_RECEIPTS_FROM;
 
-typedef struct x509_st {
-    LIBPKI_X509_CINF cert_info;
-    X509_ALGOR sig_alg;
-    ASN1_BIT_STRING signature;
-    int references;
-    CRYPTO_EX_DATA ex_data;
-    /* These contain copies of various extension values */
-    long ex_pathlen;
-    long ex_pcpathlen;
-    uint32_t ex_flags;
-    uint32_t ex_kusage;
-    uint32_t ex_xkusage;
-    uint32_t ex_nscert;
-    ASN1_OCTET_STRING *skid;
-    AUTHORITY_KEYID *akid;
-    X509_POLICY_CACHE *policy_cache;
-    STACK_OF(DIST_POINT) *crldp;
-    STACK_OF(GENERAL_NAME) *altname;
-    NAME_CONSTRAINTS *nc;
-#ifndef OPENSSL_NO_RFC3779
-    STACK_OF(IPAddressFamily) *rfc3779_addr;
-    struct ASIdentifiers_st *rfc3779_asid;
-# endif
-    unsigned char sha1_hash[SHA_DIGEST_LENGTH];
-    X509_CERT_AUX *aux;
-    CRYPTO_RWLOCK *lock;
-} LIBPKI_X509_CERT /* X509 */ ;
+// Definition for OSSL v1.1.1+
+typedef int CRYPTO_REF_COUNT;
 
-// =============
-// X509 Requests
-// =============
-
-typedef struct X509_req_info_st {
-    ASN1_ENCODING enc;          /* cached encoding of signed part */
-    ASN1_INTEGER *version;      /* version, defaults to v1(0) so can be NULL */
-    X509_NAME *subject;         /* certificate request DN */
-    X509_PUBKEY *pubkey;        /* public key of request */
-    /*
-     * Zero or more attributes.
-     * NB: although attributes is a mandatory field some broken
-     * encodings omit it so this may be NULL in that case.
-     */
-    STACK_OF(X509_ATTRIBUTE) *attributes;
-} LIBPKI_X509_REQ_INFO /* X509_REQ_INFO */ ;
-
-typedef struct X509_req_st {
-    LIBPKI_X509_REQ_INFO req_info;     /* signed certificate request data */
-    X509_ALGOR sig_alg;         /* signature algorithm */
-    ASN1_BIT_STRING *signature; /* signature */
-    int references;
-    CRYPTO_RWLOCK *lock;
-} LIBPKI_X509_REQ /* X509_REQ */;
-
-
-// =========
-// X509 CRLs
-// =========
-
-typedef struct X509_crl_info_st {
-    ASN1_INTEGER *version;      /* version: defaults to v1(0) so may be NULL */
-    X509_ALGOR sig_alg;         /* signature algorithm */
-    X509_NAME *issuer;          /* CRL issuer name */
-    ASN1_TIME *lastUpdate;      /* lastUpdate field */
-    ASN1_TIME *nextUpdate;      /* nextUpdate field: optional */
-    STACK_OF(X509_REVOKED) *revoked;        /* revoked entries: optional */
-    STACK_OF(X509_EXTENSION) *extensions;   /* extensions: optional */
-    ASN1_ENCODING enc;                      /* encoding of signed portion of CRL */
-} LIBPKI_CRL_INFO /* CRL_INFO */ ;
-
-// ==========
-// X509 ALGOR
-// ==========
-
-typedef struct _libpki_X509_algor_st {
-    ASN1_OBJECT *algorithm;
-    ASN1_TYPE *parameter;
-} LIBPKI_X509_ALGOR /* X509_ALGOR */ ;
-
-// ==============
-// X509 EXTENSION
-// ==============
-
-typedef struct X509_extension_st {
-    ASN1_OBJECT *object;
-    ASN1_BOOLEAN critical;
-    ASN1_OCTET_STRING value;
-} LIBPKI_X509_EXTENSION /* X509_EXTENSION */ ;
-
-
-# else /* OPENSSL_VERSION */
-
-typedef X509		LIBPKI_X509_CERT;
-typedef X509_CINF	LIBPKI_X509_CINF;
-
-typedef X509_REQ	LIBPKI_X509_REQ;
-typedef X509_REQ_INFO	LIBPKI_X509_REQ_INFO;
-
-typedef X509_CRL	LIBPKI_X509_CRL;
-typedef X509_CRL_INFO	LIBPKI_X509_CRL_INFO;
-
-typedef X509_ALGOR	LIBPKI_X509_ALGOR;
-
-typedef X509_EXTENSION	LIBPKI_X509_EXTENSION;
-
-# endif /* OPENSSL_VERSION */
-
-/* ---------------- CMS ------------------- */
-
-# if OPENSSL_VERSION_NUMBER <= 0x1000ffffL
-#  include "cms_lcl_ossl_1_0_x.h"
-# else /* OpenSSL 1.0.x */
-
-#  if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-#    include "cms_lcl_ossl_1_1_x.h"
-#  else /* OpenSSL 1.1.x */
-#    pragma ERROR
-#  endif /* OpenSSL 1.1.x */
-
-# endif /* OpenSSL 1.0.x */
+// ----- Includes specific for OpenSSL v1.0.x ----- //
+#    if OPENSSL_VERSION_NUMBER <= 0x1000fffL
+#      include "ossl_1_0_x/cms_lcl.h"
+#    else
+// ----- Includes specific for OpenSSL v1.1.0+ ----- //
+#      if OPENSSL_VERSION_NUMBER <= 0x101000fL
+#        include "ossl_1_1_0/x509_lcl.h"
+#        include "ossl_1_1_0/x509_int.h"
+#        include "ossl_1_1_0/ocsp_lcl.h"
+#        include "ossl_1_1_0/cms_lcl.h"
+#      else
+// ----- Includes specific for OpenSSL v1.1.1+ ----- //
+#        if OPENSSL_VERSION_NUMBER > 0x1010000L
+#          include "ossl_1_1_1/x509_lcl.h"
+#          include "ossl_1_1_1/x509_int.h"
+#          include "ossl_1_1_1/ocsp_lcl.h"
+#          include "ossl_1_1_1/cms_lcl.h"
+#        endif
+#      endif
+#    endif
+#  endif
 
 #endif

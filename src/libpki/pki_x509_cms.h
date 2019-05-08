@@ -4,6 +4,10 @@
 #include <openssl/cms.h>
 #endif
 
+#ifndef _LIBPKI_HEADER_DATA_ST_H
+#include <libpki/openssl/data_st.h>
+#endif
+
 #ifndef _LIBPKI_X509_CMS_H
 #define _LIBPKI_X509_CMS_H
 
