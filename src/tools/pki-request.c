@@ -46,7 +46,7 @@ void usage ( void ) {
 	printf( BLUE "    -uri " RED "<URI>" NORM "...........:"
 			" URI of the request service\n");
 	printf( BLUE "    -proto " RED "<PROTO>" NORM ".......:"
-			" Protocol to use (SCEP, CMC, XKMS)\n");
+			" Protocol to use (SCEP, EST, CMP)\n");
 	printf( BLUE "    -nosend " NORM ".............:"
 			" Don't send out the request to any server\n");
 	printf( BLUE "    -reqout " NORM ".............:"

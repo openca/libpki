@@ -19,7 +19,7 @@ else
 TOOLS_AND_TESTS = tools tests
 endif
 
-SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cmc prqp lirt . $(TOOLS_AND_TESTS)
+SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cmc prqp . $(TOOLS_AND_TESTS)
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \

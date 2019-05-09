@@ -412,12 +412,10 @@ typedef enum {
 #endif /* END of __LIB_BUILD__ */
 
 /* SCEP Interface */
-// #include <libpki/scep/scep_asn1.h>
-// #include <libpki/scep/scep_bio.h>
 #include <libpki/scep/scep.h>
-// #include <libpki/scep/scep_msg.h>
-// #include <libpki/scep/scep_pk7.h>
-// #include <libpki/scep/scep_sigattr.h>
+
+/* EST Interface */
+#include <libpki/est/est.h>
 
 /* CMC Interface */
 #include <libpki/cmc.h>
