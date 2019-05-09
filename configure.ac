@@ -1574,10 +1574,10 @@ AC_CONFIG_FILES(
 	src/openssl/Makefile
 	src/io/Makefile
 	src/net/Makefile
+	src/est/Makefile
 	src/scep/Makefile
 	src/cmc/Makefile
 	src/prqp/Makefile
-	src/lirt/Makefile
 	src/tools/Makefile
 	src/scripts/libpki-config
 	src/tests/Makefile

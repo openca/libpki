@@ -567,9 +567,6 @@ typedef enum {
 #define PKI_X509_PRQP_RESP_VALUE PKI_PRQP_RESP
 #define PKI_X509_PRQP_RESP       PKI_X509
 
-#define PKI_X509_LIRT_VALUE      PKI_LIRT
-#define PKI_X509_LIRT            PKI_X509
-
 #include <libpki/hsm_st.h>
 #include <libpki/token_st.h>
 

@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src/scep
+subdir = src/est
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -104,21 +104,20 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libpki_scep_la_LIBADD =
-am__objects_1 = libpki_scep_la-pki_x509_scep_attr.lo \
-	libpki_scep_la-pki_x509_scep_data.lo \
-	libpki_scep_la-pki_x509_scep_asn1.lo \
-	libpki_scep_la-pki_x509_scep_msg.lo
-am_libpki_scep_la_OBJECTS = $(am__objects_1)
-libpki_scep_la_OBJECTS = $(am_libpki_scep_la_OBJECTS)
+libpki_est_la_LIBADD =
+am__objects_1 = libpki_est_la-pki_x509_est_attr.lo \
+	libpki_est_la-pki_x509_est_data.lo \
+	libpki_est_la-pki_x509_est_asn1.lo \
+	libpki_est_la-pki_x509_est_msg.lo
+am_libpki_est_la_OBJECTS = $(am__objects_1)
+libpki_est_la_OBJECTS = $(am_libpki_est_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_scep_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(libpki_scep_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
-	$@
+libpki_est_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_est_la_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -153,8 +152,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_scep_la_SOURCES)
-DIST_SOURCES = $(libpki_scep_la_SOURCES)
+SOURCES = $(libpki_est_la_SOURCES)
+DIST_SOURCES = $(libpki_est_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -408,25 +407,20 @@ xml2_ldflags = @xml2_ldflags@
 xml2_prefix = @xml2_prefix@
 TOP = ..
 BASE_DEFS = 
-MYSCEP = \
-	pki_x509_scep_attr.c \
-	pki_x509_scep_data.c \
-	pki_x509_scep_asn1.c \
-	pki_x509_scep_msg.c
+MYEST = \
+	pki_x509_est_attr.c \
+	pki_x509_est_data.c \
+	pki_x509_est_asn1.c \
+	pki_x509_est_msg.c
 
 AM_CPPFLAGS = -I$(TOP) \
 	$(openssl_cflags) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-
-# bin_PROGRAMS = scep
-# scep_SOURCES = $(MYSCEP) scep.c
-# scep_LDADD   = $(OPENSSL_LIBS)
-# scep_CFLAGS  = $(BUILD_LIBPKI_CFLAGS)
-noinst_LTLIBRARIES = libpki-scep.la
-libpki_scep_la_SOURCES = $(MYSCEP)
-libpki_scep_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+noinst_LTLIBRARIES = libpki-est.la
+libpki_est_la_SOURCES = $(MYEST)
+libpki_est_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -440,9 +434,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/scep/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/est/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/scep/Makefile
+	  $(AUTOMAKE) --gnu src/est/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -472,8 +466,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki-scep.la: $(libpki_scep_la_OBJECTS) $(libpki_scep_la_DEPENDENCIES) $(EXTRA_libpki_scep_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_scep_la_LINK)  $(libpki_scep_la_OBJECTS) $(libpki_scep_la_LIBADD) $(LIBS)
+libpki-est.la: $(libpki_est_la_OBJECTS) $(libpki_est_la_DEPENDENCIES) $(EXTRA_libpki_est_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_est_la_LINK)  $(libpki_est_la_OBJECTS) $(libpki_est_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -481,10 +475,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_scep_la-pki_x509_scep_asn1.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_scep_la-pki_x509_scep_attr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_scep_la-pki_x509_scep_data.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_scep_la-pki_x509_scep_msg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_est_la-pki_x509_est_asn1.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_est_la-pki_x509_est_attr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_est_la-pki_x509_est_data.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_est_la-pki_x509_est_msg.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -510,33 +504,33 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libpki_scep_la-pki_x509_scep_attr.lo: pki_x509_scep_attr.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -MT libpki_scep_la-pki_x509_scep_attr.lo -MD -MP -MF $(DEPDIR)/libpki_scep_la-pki_x509_scep_attr.Tpo -c -o libpki_scep_la-pki_x509_scep_attr.lo `test -f 'pki_x509_scep_attr.c' || echo '$(srcdir)/'`pki_x509_scep_attr.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_scep_la-pki_x509_scep_attr.Tpo $(DEPDIR)/libpki_scep_la-pki_x509_scep_attr.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_scep_attr.c' object='libpki_scep_la-pki_x509_scep_attr.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_est_la-pki_x509_est_attr.lo: pki_x509_est_attr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -MT libpki_est_la-pki_x509_est_attr.lo -MD -MP -MF $(DEPDIR)/libpki_est_la-pki_x509_est_attr.Tpo -c -o libpki_est_la-pki_x509_est_attr.lo `test -f 'pki_x509_est_attr.c' || echo '$(srcdir)/'`pki_x509_est_attr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_est_la-pki_x509_est_attr.Tpo $(DEPDIR)/libpki_est_la-pki_x509_est_attr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_est_attr.c' object='libpki_est_la-pki_x509_est_attr.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -c -o libpki_scep_la-pki_x509_scep_attr.lo `test -f 'pki_x509_scep_attr.c' || echo '$(srcdir)/'`pki_x509_scep_attr.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -c -o libpki_est_la-pki_x509_est_attr.lo `test -f 'pki_x509_est_attr.c' || echo '$(srcdir)/'`pki_x509_est_attr.c
 
-libpki_scep_la-pki_x509_scep_data.lo: pki_x509_scep_data.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -MT libpki_scep_la-pki_x509_scep_data.lo -MD -MP -MF $(DEPDIR)/libpki_scep_la-pki_x509_scep_data.Tpo -c -o libpki_scep_la-pki_x509_scep_data.lo `test -f 'pki_x509_scep_data.c' || echo '$(srcdir)/'`pki_x509_scep_data.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_scep_la-pki_x509_scep_data.Tpo $(DEPDIR)/libpki_scep_la-pki_x509_scep_data.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_scep_data.c' object='libpki_scep_la-pki_x509_scep_data.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_est_la-pki_x509_est_data.lo: pki_x509_est_data.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -MT libpki_est_la-pki_x509_est_data.lo -MD -MP -MF $(DEPDIR)/libpki_est_la-pki_x509_est_data.Tpo -c -o libpki_est_la-pki_x509_est_data.lo `test -f 'pki_x509_est_data.c' || echo '$(srcdir)/'`pki_x509_est_data.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_est_la-pki_x509_est_data.Tpo $(DEPDIR)/libpki_est_la-pki_x509_est_data.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_est_data.c' object='libpki_est_la-pki_x509_est_data.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -c -o libpki_scep_la-pki_x509_scep_data.lo `test -f 'pki_x509_scep_data.c' || echo '$(srcdir)/'`pki_x509_scep_data.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -c -o libpki_est_la-pki_x509_est_data.lo `test -f 'pki_x509_est_data.c' || echo '$(srcdir)/'`pki_x509_est_data.c
 
-libpki_scep_la-pki_x509_scep_asn1.lo: pki_x509_scep_asn1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -MT libpki_scep_la-pki_x509_scep_asn1.lo -MD -MP -MF $(DEPDIR)/libpki_scep_la-pki_x509_scep_asn1.Tpo -c -o libpki_scep_la-pki_x509_scep_asn1.lo `test -f 'pki_x509_scep_asn1.c' || echo '$(srcdir)/'`pki_x509_scep_asn1.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_scep_la-pki_x509_scep_asn1.Tpo $(DEPDIR)/libpki_scep_la-pki_x509_scep_asn1.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_scep_asn1.c' object='libpki_scep_la-pki_x509_scep_asn1.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_est_la-pki_x509_est_asn1.lo: pki_x509_est_asn1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -MT libpki_est_la-pki_x509_est_asn1.lo -MD -MP -MF $(DEPDIR)/libpki_est_la-pki_x509_est_asn1.Tpo -c -o libpki_est_la-pki_x509_est_asn1.lo `test -f 'pki_x509_est_asn1.c' || echo '$(srcdir)/'`pki_x509_est_asn1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_est_la-pki_x509_est_asn1.Tpo $(DEPDIR)/libpki_est_la-pki_x509_est_asn1.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_est_asn1.c' object='libpki_est_la-pki_x509_est_asn1.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -c -o libpki_scep_la-pki_x509_scep_asn1.lo `test -f 'pki_x509_scep_asn1.c' || echo '$(srcdir)/'`pki_x509_scep_asn1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -c -o libpki_est_la-pki_x509_est_asn1.lo `test -f 'pki_x509_est_asn1.c' || echo '$(srcdir)/'`pki_x509_est_asn1.c
 
-libpki_scep_la-pki_x509_scep_msg.lo: pki_x509_scep_msg.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -MT libpki_scep_la-pki_x509_scep_msg.lo -MD -MP -MF $(DEPDIR)/libpki_scep_la-pki_x509_scep_msg.Tpo -c -o libpki_scep_la-pki_x509_scep_msg.lo `test -f 'pki_x509_scep_msg.c' || echo '$(srcdir)/'`pki_x509_scep_msg.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_scep_la-pki_x509_scep_msg.Tpo $(DEPDIR)/libpki_scep_la-pki_x509_scep_msg.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_scep_msg.c' object='libpki_scep_la-pki_x509_scep_msg.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_est_la-pki_x509_est_msg.lo: pki_x509_est_msg.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -MT libpki_est_la-pki_x509_est_msg.lo -MD -MP -MF $(DEPDIR)/libpki_est_la-pki_x509_est_msg.Tpo -c -o libpki_est_la-pki_x509_est_msg.lo `test -f 'pki_x509_est_msg.c' || echo '$(srcdir)/'`pki_x509_est_msg.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_est_la-pki_x509_est_msg.Tpo $(DEPDIR)/libpki_est_la-pki_x509_est_msg.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_est_msg.c' object='libpki_est_la-pki_x509_est_msg.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_scep_la_CFLAGS) $(CFLAGS) -c -o libpki_scep_la-pki_x509_scep_msg.lo `test -f 'pki_x509_scep_msg.c' || echo '$(srcdir)/'`pki_x509_scep_msg.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_est_la_CFLAGS) $(CFLAGS) -c -o libpki_est_la-pki_x509_est_msg.lo `test -f 'pki_x509_est_msg.c' || echo '$(srcdir)/'`pki_x509_est_msg.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -411,11 +411,11 @@ typedef enum {
 #include <libpki/net/pkcs11.h>
 #endif /* END of __LIB_BUILD__ */
 
-/* SCEP Interface */
-#include <libpki/scep/scep.h>
-
 /* EST Interface */
 #include <libpki/est/est.h>
+
+/* SCEP Interface */
+#include <libpki/scep/scep.h>
 
 /* CMC Interface */
 #include <libpki/cmc.h>
@@ -431,9 +431,6 @@ typedef enum {
 /* crossCertificatePair support */
 #include <libpki/pki_x509_xpair_asn1.h>
 #include <libpki/pki_x509_xpair.h>
-
-/* LIRT Support */
-#include <libpki/lirt/lirt.h>
 
 /* I/O operations for PKIX objects */
 #include <libpki/pki_io.h>

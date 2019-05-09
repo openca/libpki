@@ -339,33 +339,6 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_PRQP_RESP_CALLBACKS = {
 };
 
 
-const PKI_X509_CALLBACKS PKI_OPENSSL_X509_PKI_LIRT_CALLBACKS = {
-	// Memory Management
-	(void *) PKI_LIRT_new,
-	(void *) PKI_LIRT_free,
-	(void *) NULL,
-
-	// Data Retrieval
-	(void *) NULL, // PKI_X509_LIRT_get_parsed,
-	(void *) NULL, // PKI_X509_LIRT_get_data,
-	(void *) NULL, // PKI_X509_LIRT_print_parsed;
-
-	// Data Conversion (write of the ->value data )
-	(void *) PEM_write_bio_PKI_LIRT,	// PEM format
-        NULL,                           // PEM EX (encrypted) format
-	(void *) i2d_PKI_LIRT_bio,	// DER format
-	(void *) NULL,			// TXT format
-	(void *) NULL,			// B64 format
-	(void *) NULL,			// XML format
-
-	// Data Conversion (read the ->value)
-	(void *) PEM_read_bio_PKI_LIRT, // PEM format
-	(void *) d2i_PKI_LIRT_bio, 	// DER format
-	(void *) NULL,			// TXT format
-	(void *) NULL,  		// B64 format
-	(void *) NULL			// XML format
-};
-
 const PKI_X509_CALLBACKS_FULL PKI_OPENSSL_X509_CALLBACKS_FULL = {
 	// X509_KEYPAIR
 	&PKI_OPENSSL_X509_KEYPAIR_CALLBACKS,
@@ -394,9 +367,7 @@ const PKI_X509_CALLBACKS_FULL PKI_OPENSSL_X509_CALLBACKS_FULL = {
 	// PRQP_REQ
 	&PKI_OPENSSL_X509_PRQP_REQ_CALLBACKS,
 	// PRQP_RESP
-	&PKI_OPENSSL_X509_PRQP_RESP_CALLBACKS,
-	// LIRT
-	&PKI_OPENSSL_X509_PKI_LIRT_CALLBACKS
+	&PKI_OPENSSL_X509_PRQP_RESP_CALLBACKS
 };
 
 const PKI_X509_CALLBACKS *HSM_OPENSSL_X509_get_cb ( PKI_DATATYPE type ) {
@@ -438,6 +409,10 @@ const PKI_X509_CALLBACKS *HSM_OPENSSL_X509_get_cb ( PKI_DATATYPE type ) {
 			// TODO: Provide support for CMS
 			// ret = &PKI_OPENSSL_X509_CMS;
 			break;
+		case PKI_DATATYPE_EST_MSG :
+			// TODO: Provide support for EST
+			// ret = &PKI_OPENSSL_X509_CMS_CALLBACKS;
+			break;
 		case PKI_DATATYPE_SCEP_MSG :
 			ret = &PKI_OPENSSL_X509_PKCS7_CALLBACKS;
 			break;
@@ -446,9 +421,6 @@ const PKI_X509_CALLBACKS *HSM_OPENSSL_X509_get_cb ( PKI_DATATYPE type ) {
 			break;
 		case PKI_DATATYPE_X509_PRQP_RESP :
 			ret = &PKI_OPENSSL_X509_PRQP_RESP_CALLBACKS;
-			break;
-		case PKI_DATATYPE_X509_LIRT:
-			ret = &PKI_OPENSSL_X509_PKI_LIRT_CALLBACKS;
 			break;
 		default:
 			return NULL;

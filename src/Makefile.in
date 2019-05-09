@@ -138,8 +138,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libpki_la_DEPENDENCIES = $(CRYPTO_SRC_PREFIX)/libpki-openssl.la \
 	drivers/libpki-token.la io/libpki-io.la net/libpki-net.la \
-	cmc/libpki-cmc.la scep/libpki-scep.la prqp/libpki-prqp.la \
-	lirt/libpki-lirt.la
+	cmc/libpki-cmc.la est/libpki-est.la scep/libpki-scep.la \
+	prqp/libpki-prqp.la
 am__objects_1 = libpki_la-pki_init.lo libpki_la-stack.lo \
 	libpki_la-pki_mem.lo libpki_la-pki_cred.lo \
 	libpki_la-pki_err.lo libpki_la-pki_log.lo \
@@ -237,7 +237,7 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = drivers openssl io net scep cmc prqp lirt . tools tests
+DIST_SUBDIRS = drivers openssl io net est scep cmc prqp . tools tests
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/global-vars.in \
 	$(top_srcdir)/build/depcomp $(top_srcdir)/build/mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -500,7 +500,7 @@ EXTRA_DIST = \
 DRIVERS = drivers
 @LIBPKI_ENABLE_IPHONE_FALSE@TOOLS_AND_TESTS = tools tests
 @LIBPKI_ENABLE_IPHONE_TRUE@TOOLS_AND_TESTS = 
-SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net scep cmc prqp lirt . $(TOOLS_AND_TESTS)
+SUBDIRS = $(DRIVERS) $(CRYPTO_SRC_PREFIX) io net est scep cmc prqp . $(TOOLS_AND_TESTS)
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	$(COND_INCLUDES)
@@ -509,9 +509,9 @@ nobase_include_HEADERS = \
 	libpki/*.h \
 	libpki/net/*.h \
 	libpki/io/*.h \
+	libpki/est/*.h \
 	libpki/scep/*.h \
 	libpki/prqp/*.h \
-	libpki/lirt/*.h \
 	libpki/cmc/*.h \
 	libpki/openssl/*.h \
 	libpki/drivers/*.h \
@@ -557,9 +557,9 @@ libpki_la_LIBADD = \
 			io/libpki-io.la \
 			net/libpki-net.la \
 			cmc/libpki-cmc.la \
+			est/libpki-est.la \
 			scep/libpki-scep.la \
 			prqp/libpki-prqp.la \
-			lirt/libpki-lirt.la \
 			$(BUILD_LIBPKI_LDADD)
 
 bin_SCRIPTS = scripts/libpki-config
