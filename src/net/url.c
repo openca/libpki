@@ -278,7 +278,8 @@ PKI_MEM_STACK *URL_get_data_url(const URL * url,
 	PKI_MEM_STACK * ret = NULL;
 
 	if( !url ) {
-		return ( NULL );
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing URL parameter");
+		return NULL;
 	}
 
 	switch( url->proto ) {
@@ -325,6 +326,10 @@ PKI_MEM_STACK *URL_get_data_url(const URL * url,
 			PKI_ERROR(PKI_ERR_URI_UNSUPPORTED, NULL);
 			break;
 	}
+
+	// Report the Error, if any.
+	if (!ret) PKI_ERROR(PKI_ERR_URI_GENERAL, 
+		"Can not retrieve data from (%s)", url->url_s);
 
 	return ( ret );
 }
@@ -651,7 +656,6 @@ URL *URL_new(const char * url_s ) {
 	char *tmp_s2 = NULL;
 	char *tmp_s3 = NULL;
 	char *tmp_s4 = NULL;
-	char *is_alloc = NULL;
 
 	size_t len = 0;
 
@@ -667,17 +671,20 @@ URL *URL_new(const char * url_s ) {
 	if (url_s == NULL)	{
 
 		// If no URL is passed, let's use stdin as the source
-		is_alloc = strdup("stdin");
-		url_s = (const char *) is_alloc;
-
-		// Gets the data from the env variable
-		if ((ret->url_s = get_env_string(url_s)) == NULL)
-			goto err;
+		url_s = strdup("stdin");
 
 	} else {
-		
+
+		size_t len = strlen(url_s);
+		  // Size of the URL string
+
+		// Allocates the memory for copying the URL
+		if ((ret->url_s = (char *) PKI_Malloc(len + 1)) == NULL)
+			goto err;
+
 		// Copy the name in the URL itself
-		ret->url_s = strdup(url_s);
+		memcpy(ret->url_s, url_s, len);
+
 	}
 
 	if (strncmp_nocase(ret->url_s, "stdin", 5) == 0)
@@ -1523,14 +1530,11 @@ URL *URL_new(const char * url_s ) {
 		}
 	}
 
-	if (is_alloc) PKI_Free(is_alloc);
-
 	return ret;
 
 err:
 
 	if (ret) URL_free(ret);
-	if (is_alloc) PKI_Free(is_alloc);
 
 	return NULL;
 }

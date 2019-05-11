@@ -29,17 +29,17 @@ typedef enum {
 
 /* --------------------- Internal Mem Functions ------------------------- */
 
-CMS_ContentInfo * CMS_new(void);
+PKI_X509_CMS_VALUE * CMS_new(void);
 
-CMS_ContentInfo * CMS_dup(CMS_ContentInfo *cms);
+PKI_X509_CMS_VALUE * CMS_dup(PKI_X509_CMS_VALUE *cms);
 
-void CMS_free(CMS_ContentInfo *cms);
+void CMS_free(PKI_X509_CMS_VALUE *cms);
 
 /* ------------------------ PEM I/O Functions --------------------------- */
 
-CMS_ContentInfo *PEM_read_bio_CMS( BIO *bp );
+PKI_X509_CMS_VALUE *PEM_read_bio_CMS( BIO *bp );
 
-int PEM_write_bio_CMS( BIO *bp, CMS_ContentInfo *o );
+int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o );
 
 /* ---------------------------- Functions ------------------------------- */
 
@@ -50,6 +50,27 @@ void PKI_X509_CMS_free_void(void *cms);
 PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type);
 
 PKI_X509_CMS_TYPE PKI_X509_CMS_get_type(const PKI_X509_CMS * const cms);
+
+
+// Operations
+
+/*
+CMS_add_data();
+CMS_get_data();
+CMS_reset();
+
+CMS_sign();
+CMS_verify();
+
+CMS_envelope();
+CMS_deEnvelope();
+
+CMS_compress();
+CMS_decompress();
+
+CMS_symEncrypt();
+CMS_symDecrypt();
+*/
 
 // CRL
 int PKI_X509_CMS_add_crl(PKI_X509_CMS       * cms,

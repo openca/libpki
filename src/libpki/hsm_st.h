@@ -254,7 +254,7 @@ typedef struct callbacks_st {
 
   /* Retrieve (get) stack of objects */
   PKI_X509_STACK * (*x509_sk_get_url)( PKI_DATATYPE, URL *, 
-            PKI_CRED *, struct hsm_st *);
+            PKI_DATA_FORMAT, PKI_CRED *, struct hsm_st *);
   /* Import (add) stack of objects */
   int (*x509_sk_add_url)(PKI_X509_STACK *, URL *, 
             PKI_CRED *, struct hsm_st *);

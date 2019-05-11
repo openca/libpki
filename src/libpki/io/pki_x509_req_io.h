@@ -4,15 +4,19 @@
 #define _LIBPKI_X509_REQ_IO_H
 
 /* ------------------- X509_REQ get Operations --------------------------- */
-PKI_X509_REQ *PKI_X509_REQ_get ( char *url_s, PKI_CRED *cred, HSM *hsm );
-PKI_X509_REQ *PKI_X509_REQ_get_url ( URL *url, PKI_CRED *cred, HSM *hsm );
-PKI_X509_REQ *PKI_X509_REQ_get_mem ( PKI_MEM *mem, PKI_CRED *cred );
+PKI_X509_REQ *PKI_X509_REQ_get ( char *url_s, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm );
+PKI_X509_REQ *PKI_X509_REQ_get_url ( URL *url, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm );
+PKI_X509_REQ *PKI_X509_REQ_get_mem ( PKI_MEM *mem, PKI_DATA_FORMAT format,
+					PKI_CRED *cred );
 
 PKI_X509_REQ_STACK *PKI_X509_REQ_STACK_get ( char *url_s, 
-					PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 PKI_X509_REQ_STACK *PKI_X509_REQ_STACK_get_url ( URL *url, 
-					PKI_CRED *cred, HSM *hsm );
-PKI_X509_REQ_STACK *PKI_X509_REQ_STACK_get_mem(PKI_MEM *mem, PKI_CRED *cred);
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
+PKI_X509_REQ_STACK *PKI_X509_REQ_STACK_get_mem(PKI_MEM *mem,
+					PKI_DATA_FORMAT format, PKI_CRED *cred);
 
 /* ------------------- X509_REQ put Operations --------------------------- */
 int PKI_X509_REQ_put (PKI_X509_REQ *req, PKI_DATA_FORMAT format, char *url_s,

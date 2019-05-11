@@ -42,6 +42,7 @@ nobase_include_HEADERS = \
 	libpki/drivers/kmf/*.h
 
 SRCS = \
+	banners.c\
 	pki_init.c \
 	stack.c \
 	pki_mem.c \

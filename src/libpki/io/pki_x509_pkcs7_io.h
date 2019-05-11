@@ -20,15 +20,18 @@
 
 /* ---------------------------- PKCS7 get operations ------------------ */
 
-PKI_X509_PKCS7 *PKI_X509_PKCS7_get ( char *url_s, PKI_CRED *cred, HSM *hsm );
-PKI_X509_PKCS7 *PKI_X509_PKCS7_get_url ( URL *url, PKI_CRED *cred, HSM *hsm );
-PKI_X509_PKCS7 *PKI_X509_PKCS7_get_mem ( PKI_MEM *mem, PKI_CRED *cred);
+PKI_X509_PKCS7 *PKI_X509_PKCS7_get ( char *url_s, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm );
+PKI_X509_PKCS7 *PKI_X509_PKCS7_get_url ( URL *url, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm );
+PKI_X509_PKCS7 *PKI_X509_PKCS7_get_mem ( PKI_MEM *mem, PKI_DATA_FORMAT format,
+					PKI_CRED *cred);
 PKI_X509_PKCS7_STACK *PKI_X509_PKCS7_STACK_get (char *url_s, 
-						PKI_CRED *cred, HSM *hsm);
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm);
 PKI_X509_PKCS7_STACK *PKI_X509_PKCS7_STACK_get_url ( URL *url, 
-						PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 PKI_X509_PKCS7_STACK *PKI_X509_PKCS7_STACK_get_mem ( PKI_MEM *mem, 
-						PKI_CRED *cred);
+					PKI_DATA_FORMAT format, PKI_CRED *cred);
 
 /* ---------------------------- PKCS7 put operations ------------------ */
 

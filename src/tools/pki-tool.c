@@ -1146,7 +1146,7 @@ int main (int argc, char *argv[] ) {
 
 
 			if((sk = PKI_X509_CERT_STACK_get ( infile, 
-						tk->cred, NULL )) == NULL ) {
+						PKI_DATA_FORMAT_UNKNOWN, tk->cred, NULL )) == NULL ) {
 				printf("ERROR, can not load cert (%s)!\n\n",
 						infile );
 				return ( 1 );
@@ -1172,7 +1172,7 @@ int main (int argc, char *argv[] ) {
 			}
 
 			if((x = PKI_X509_KEYPAIR_get ( infile, 
-						tk->cred, NULL)) == NULL ) {
+						PKI_DATA_FORMAT_UNKNOWN, tk->cred, NULL)) == NULL ) {
 				printf("ERROR, can not load keyfile (%s)\n\n",
 					infile);
 				return ( 1 );
@@ -1199,7 +1199,7 @@ int main (int argc, char *argv[] ) {
 
 
 			if((sk = PKI_X509_CERT_STACK_get ( infile, 
-						tk->cred, NULL )) == NULL ) {
+						PKI_DATA_FORMAT_UNKNOWN, tk->cred, NULL )) == NULL ) {
 				printf("ERROR, can not load cert (%s)!\n\n",
 						infile );
 				return ( 1 );
@@ -1225,8 +1225,8 @@ int main (int argc, char *argv[] ) {
 			}
 
 
-			if((sk = PKI_X509_CERT_STACK_get ( infile, tk->cred, 
-							NULL )) == NULL ) {
+			if((sk = PKI_X509_CERT_STACK_get ( infile, PKI_DATA_FORMAT_UNKNOWN,
+							tk->cred, NULL )) == NULL ) {
 				printf("ERROR, can not load cert (%s)!\n\n",
 						infile );
 				return ( 1 );
@@ -1252,8 +1252,8 @@ int main (int argc, char *argv[] ) {
 			}
 
 
-			if((sk = PKI_X509_CERT_STACK_get ( infile, tk->cred, 
-							NULL )) == NULL ) {
+			if((sk = PKI_X509_CERT_STACK_get ( infile, PKI_DATA_FORMAT_UNKNOWN,
+							tk->cred, NULL )) == NULL ) {
 				printf("ERROR, can not load cert (%s)!\n\n",
 						infile );
 				return ( 1 );

@@ -160,6 +160,7 @@ typedef enum {
 #define PKI_CONFIG_ELEMENT  			xmlNode
 
 /* Misc Define */
+/*
 #define PKI_X509_CERT_BEGIN_ARMOUR	"-----BEGIN CERTIFICATE-----"
 #define PKI_X509_CERT_END_ARMOUR	"-----END CERTIFICATE-----"
 
@@ -183,6 +184,7 @@ typedef enum {
 
 #define PKI_X509_OCSP_RESP_BEGIN_ARMOUR	"-----BEGIN OCSP RESPONSE-----"
 #define PKI_X509_OCSP_RESP_END_ARMOUR	"-----END OCSP RESPONSE-----"
+*/
 
 typedef enum {
 	PKI_MUTEX_READ		= 0,
@@ -290,6 +292,9 @@ typedef enum {
 #include <libpki/pki_threads_vars.h>
 #include <libpki/pki_threads.h>
 #include <libpki/openssl/pthread_init.h>
+
+/* Generic */
+#include <libpki/banners.h>
 
 /* Credentials */
 #include <libpki/pki_err.h>

@@ -549,7 +549,7 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
  	 * of the SCEP message */
 	msg->recipients = NULL;
 
-	p7 = PKI_X509_PKCS7_get_mem( mem, NULL);
+	p7 = PKI_X509_PKCS7_get_mem( mem, PKI_DATA_FORMAT_UNKNOWN, NULL);
 	if (!p7)
 	{
 		PKI_log_debug("Can not load response (P7 with CA/RA "
@@ -642,8 +642,8 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 	{
 		PKI_X509_PKCS7 *p7 = NULL;
 
-		if ((p7 = PKI_X509_PKCS7_get_mem ( resp_mem, NULL )) == NULL)
-		{
+		if ((p7 = PKI_X509_PKCS7_get_mem ( resp_mem, 
+							PKI_DATA_FORMAT_UNKNOWN, NULL )) == NULL) {
 			PKI_log_debug("ERROR::Can not read response P7!");
 			PKI_MEM_free ( resp_mem );
 			return NULL;

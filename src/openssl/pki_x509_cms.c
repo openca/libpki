@@ -214,21 +214,21 @@ const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
 
 /* --------------------- Internal Mem Functions ----------------------- */
 
-CMS_ContentInfo * CMS_new(void) {
+PKI_X509_CMS_VALUE * CMS_new(void) {
 	return M_ASN1_new_of(CMS_ContentInfo);
 }
 
-CMS_ContentInfo * CMS_dup(CMS_ContentInfo *cms) {
+PKI_X509_CMS_VALUE * CMS_dup(PKI_X509_CMS_VALUE *cms) {
 	return ASN1_item_dup((const ASN1_ITEM *)cms, NULL);
 }
 
-void CMS_free(CMS_ContentInfo *cms) {
+void CMS_free(PKI_X509_CMS_VALUE *cms) {
 	M_ASN1_free_of(cms, CMS_ContentInfo);
 }
 
 /* ----------------------- PEM I/O Functions ------------------------- */
 
-CMS_ContentInfo *PEM_read_bio_CMS( PKI_IO *bp ) {
+PKI_X509_CMS_VALUE *PEM_read_bio_CMS( PKI_IO *bp ) {
 #if OPENSSL_VERSION_NUMBER < 0x0090800fL
 	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (char *(*)()) d2i_CMS_ContentInfo, 
 				PEM_STRING_CMS, bp, NULL, NULL, NULL);
@@ -238,7 +238,7 @@ CMS_ContentInfo *PEM_read_bio_CMS( PKI_IO *bp ) {
 #endif
 }
 
-int PEM_write_bio_CMS( BIO *bp, CMS_ContentInfo *o ) {
+int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o ) {
 	return PEM_ASN1_write_bio ( (int (*)())i2d_CMS_ContentInfo, 
 			PEM_STRING_CMS, bp, (char *) o, NULL, 
 				NULL, 0, NULL, NULL );

@@ -304,7 +304,7 @@ int main (int argc, char *argv[] ) {
 		if( verbose ) {
 			fprintf( stderr, "    * Loading PRQP request ..... " );
 		}
-		p = PKI_X509_PRQP_REQ_get_url( in_url, NULL, NULL );
+		p = PKI_X509_PRQP_REQ_get_url( in_url, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL );
 		if( !p ) {
 			if ( verbose ) fprintf( stderr, RED "ERROR!" NORM "\n");
 			fprintf( stderr, "%s", banner );

@@ -24,8 +24,6 @@ int PKI_MSG_RESP_put ( PKI_MSG_RESP *msg, PKI_DATA_FORMAT format,
 		}
 	}
 
-	PKI_log_debug("PKI_MSG_RESP_put()::Start");
-
 	switch ( msg->proto ) {
 		case PKI_MSG_PROTO_SCEP:
 			mem = PKI_X509_PKCS7_put_mem ( 
@@ -59,8 +57,6 @@ PKI_MEM *PKI_MSG_RESP_put_mem ( PKI_MSG_RESP *msg, PKI_DATA_FORMAT format,
 			return ( NULL );
 		}
 	}
-
-	PKI_log_debug("PKI_MSG_RESP_put_mem()::Start");
 
 	switch ( msg->proto ) {
 		case PKI_MSG_PROTO_SCEP:

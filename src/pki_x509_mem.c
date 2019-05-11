@@ -6,23 +6,18 @@
 
 static void * __get_data_callback (PKI_MEM *io, const PKI_X509_CALLBACKS *cb,
 				PKI_DATA_FORMAT format, PKI_CRED *cred);
-/*
-static PKI_MEM *__keypair_put_mem_value (EVP_PKEY *x, PKI_DATATYPE type,
-                        PKI_MEM **pki_mem, PKI_DATA_FORMAT format,
-                                PKI_CRED *cred, HSM *hsm);
-*/
 
 /* -------------------------- X509 mem Operations -------------------- */
 
 /*! \brief Reads a PKI_X509 object from a PKI_MEM */
 
 PKI_X509 *PKI_X509_get_mem ( PKI_MEM *mem, PKI_DATATYPE type, 
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_X509_STACK *sk = NULL;
 	PKI_X509 *ret = NULL;
 
-	if((sk = PKI_X509_STACK_get_mem ( mem, type, cred, hsm )) == NULL ) {
+	if((sk = PKI_X509_STACK_get_mem ( mem, type, format, cred, hsm )) == NULL ) {
 		return NULL;
 	}
 
@@ -33,11 +28,11 @@ PKI_X509 *PKI_X509_get_mem ( PKI_MEM *mem, PKI_DATATYPE type,
 }
 
 void * PKI_X509_get_mem_value ( PKI_MEM *mem, PKI_DATATYPE type,
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 	PKI_X509 *tmp = NULL;
 	void *ret = NULL;
 
-	if(( tmp = PKI_X509_get_mem ( mem, type, cred, hsm )) == NULL ) {
+	if(( tmp = PKI_X509_get_mem ( mem, type, format, cred, hsm )) == NULL ) {
 		return NULL;
 	}
 
@@ -61,7 +56,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 	char *pwd = NULL;
 
 	// Checks the input
-	if (!mem || !cb) {
+	if (!mem || !mem->data || !mem->size || !cb) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
@@ -75,49 +70,53 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		return NULL;
 	}
 
+	PKI_DEBUG("[ DataFormat: %d, Data Size: %d, Data: %p ]", format, mem->size, mem->data);
+
+	// URL_put_data("debug-cert.pem", mem, NULL, NULL, 0, 0, NULL);
+
 	// Use the different callbacks depending on the data format
 	switch ( format )
 	{
-		case PKI_DATA_FORMAT_PEM :
+		case PKI_DATA_FORMAT_PEM: {
 			if( cb->read_pem ) {
 				// Read PEM formatted data
 				ret = cb->read_pem(ro, NULL, NULL, pwd);
 			} else {
 				// No support for data decoding
-				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+				PKI_DEBUG("No Callback for PEM decoding");
 			}
-			break;
+		} break;
 
-		case PKI_DATA_FORMAT_ASN1 :
+		case PKI_DATA_FORMAT_ASN1: {
 			if( cb->read_der ) {
 				// Read DER formatted data
 				ret = cb->read_der(ro, NULL );
 			} else {
 				// No support for data decoding
-				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+				PKI_DEBUG("No Callback for DER decoding");
 			}
-			break;
+		} break;
 
-		case PKI_DATA_FORMAT_TXT :
+		case PKI_DATA_FORMAT_TXT: {
 			if ( cb->read_txt ) {
 				// Reat TXT formatted data
 				ret = cb->read_txt(ro, NULL );
 			} else {
 				// No support for data decoding
-				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+				PKI_DEBUG("No Callback for TXT decoding");
 			}
-			break;
+		} break;
 
-		case PKI_DATA_FORMAT_B64 :
+		case PKI_DATA_FORMAT_B64: {
+			
 			if (cb->read_b64) {
-
 				// Read B64 formatted data
 				ret = cb->read_b64(ro, NULL);
 
 			} else if (cb->read_der) {
 
+				// Temporary Duplicate Memory
 				PKI_MEM * dup_mem = NULL;
-					// Temporary Duplicate Memory
 
 				// We need to duplicate the buffer as PKI_MEM_decode()
 				// alter the contents of the buffer
@@ -164,28 +163,29 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 
 			} else {
 				// No support for data decoding
-				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+				PKI_DEBUG("No Callback for B64 decoding");
 			}
-			break;
+		} break;
 
-		case PKI_DATA_FORMAT_XML :
+		case PKI_DATA_FORMAT_XML: {
+
 			if ( cb->read_xml ) {
 				// Read XML formatted data
 				ret = cb->read_xml(ro, NULL );
 			} else {
 				// No support for data decoding
-				PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
+				PKI_DEBUG("No Callback for XML decoding");
 			}
-			break;
+		} break;
 
-		case PKI_DATA_FORMAT_URL :
+		case PKI_DATA_FORMAT_URL: {
 			// No support for data decoding
-			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL);
-			break;
+			PKI_DEBUG("No Callback for URL decoding");
+		} break;
 
-		default:
+		default: {
 			PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
-			break;
+		} break;
 	}
 
 	// Free the Read-Only I/O
@@ -197,12 +197,12 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 
 /*! \brief Returns a stack of objects read from the passed PKI_MEM */
 
-PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem, 
-			PKI_DATATYPE type, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem, PKI_DATATYPE type,
+			PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
-	PKI_X509_STACK *sk = NULL;
-	PKI_X509 * x_obj = NULL;
-	int i = 0;
+	PKI_X509        * x_obj = NULL;
+	PKI_X509_STACK  * sk    = NULL;
+	PKI_DATA_FORMAT   i     = PKI_DATA_FORMAT_PEM;
 
 	const PKI_X509_CALLBACKS *cb = NULL;
 
@@ -242,11 +242,14 @@ PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem,
 	//
 	// NOTE: we start from 1 as this is the first valid one after the
 	//       unknown datatype (PKI_DATATYPE_UNKNOW)
-	for (i = 1; i < PKI_DATA_FORMAT_SIZE; i++)
-	{
-		if ((x_obj->value = __get_data_callback(mem, cb, 
-					(PKI_DATA_FORMAT)i, cred)) != NULL)
-		{
+	for (i = PKI_DATA_FORMAT_START; i < PKI_DATA_FORMAT_END; i++) {
+
+		// A Format was selected, so we skip the others
+		if (format != PKI_DATA_FORMAT_UNKNOWN && format != i)
+			continue;
+
+		if ((x_obj->value = __get_data_callback(mem, cb, i, cred)) != NULL) {
+
 			// Let's add the right properties to the object
 			x_obj->cred = PKI_CRED_dup(cred);
 			x_obj->type = type;

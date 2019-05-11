@@ -56,7 +56,7 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_CERT_CALLBACKS = {
 	NULL,                        // XML format
 
 	/* Data Conversion */
-	(void *) PEM_read_bio_X509,  // PEM format
+	(void *) PEM_read_bio_X509_AUX,  // PEM format
 	(void *) d2i_X509_bio,       // DER format
 	NULL,                        // TXT format
 	NULL,                        // B64 format

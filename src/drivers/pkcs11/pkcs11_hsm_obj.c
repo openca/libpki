@@ -33,48 +33,12 @@ int _get_der ( void *data, int objType, int type, unsigned char **ret ) {
 	}
 
 	return len;
-
-	/*
-	int	(*func )()   = NULL;
-	void     *func_var = NULL;
-	void     *field = NULL;
-	
-	if( objType == PKI_DATATYPE_X509_CERT ) {
-		func_var = ((X509 *)data)->cert_info;
-	} else {
-		return 0;
-	}
-
-	switch( type ) {
-		case PKI_X509_DATA_SUBJECT:
-			func = i2d_X509_NAME;
-			field = ((X509_CINF *)func_var)->subject;
-			break;
-		case PKI_X509_DATA_ISSUER:
-			func = i2d_X509_NAME;
-			field = ((X509_CINF *)func_var)->issuer;
-			break;
-		case PKI_X509_DATA_SERIAL:
-			func = i2d_ASN1_INTEGER;
-			field = ((X509_CINF *)func_var)->serialNumber;
-			break;
-		default:
-			return ( 0 );
-	}
-
-	len = func( field, ret );
-	PKI_log_debug("%s:%d::DEBUG::DER LEN 2=>%d (%p)", 
-					__FILE__, __LINE__, len, *ret );
-
-	return ( len );
-
-	*/
 }
 
 /* ------------------ PKCS11 HSM Keypair get/put -------------------------- */
 
-PKI_STACK * HSM_PKCS11_OBJSK_get_url ( PKI_DATATYPE type, URL *url, 
-						PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_STACK * HSM_PKCS11_OBJSK_get_url ( PKI_DATATYPE type, URL *url, 
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	void * ret = NULL;
 
@@ -83,35 +47,15 @@ PKI_STACK * HSM_PKCS11_OBJSK_get_url ( PKI_DATATYPE type, URL *url,
 	switch ( type ) {
 		case PKI_DATATYPE_X509_KEYPAIR:
 			ret = (void *) HSM_PKCS11_KEYPAIR_get_url ( url,
-						cred, hsm );
+						format, cred, hsm );
 			break;
 		default:
 			ret = (void *) HSM_PKCS11_STACK_get_url ( type, url,
-						cred, hsm );
+						format, cred, hsm );
 	}
 
 	return ( ret );
 }
-
-/*
-PKI_MEM_STACK * HSM_PKCS11_OBJSK_wrap_url ( PKI_DATATYPE type, URL *url, 
-						PKI_CRED *cred, HSM *hsm) {
-	void * ret = NULL;
-
-	if( !url ) return ( NULL );
-
-	switch ( type ) {
-		case PKI_DATATYPE_KEYPAIR:
-			ret = (void *) HSM_PKCS11_KEYPAIR_wrap_url ( url, 
-								cred, hsm);
-			break;
-		default:
-			return ( NULL );
-	}
-
-	return ( ret );
-}
-*/
 
 int HSM_PKCS11_OBJSK_add_url ( PKI_X509_STACK *sk,
 					URL *url, PKI_CRED *cred, HSM *hsm ) {
@@ -142,16 +86,10 @@ int HSM_PKCS11_OBJSK_add_url ( PKI_X509_STACK *sk,
 int HSM_PKCS11_OBJSK_del_url ( PKI_DATATYPE type, 
 					URL *url, PKI_CRED *cred, HSM *hsm){
 
-	// PKI_X509_STACK *ret_sk = NULL;
-	// PKI_X509_STACK *sk = NULL;
-
-	// CK_ATTRIBUTE templ[32];
-	// CK_ULONG idx = 0;
 	CK_ULONG objClass = CKO_DATA;
 	CK_RV rv;
 
 	PKCS11_HANDLER 		*lib = NULL;
-	// CK_SESSION_HANDLE 	*session = NULL;
 
 	CK_OBJECT_HANDLE 	hObject;
 	CK_ULONG	 	ulObjectCount;
@@ -191,75 +129,6 @@ int HSM_PKCS11_OBJSK_del_url ( PKI_DATATYPE type,
 		return ( PKI_ERR );
 	}
 
-	/* Build the template in order to search for the object
-	   we need */
-
-	/*
-	memset(myLabel, 0x0, sizeof(myLabel));
-	strncpy(myLabel, url->addr, sizeof( myLabel ));
-	switch ( type ) {
-		case PKI_DATATYPE_X509_CERT:
-			objClass = CKO_CERTIFICATE;
-			ret_sk = PKI_STACK_X509_CERT_new();
-			break;
-		case PKI_DATATYPE_X509_CRL:
-			objClass = CKO_DATA;
-			strncat(myLabel, "'s CRL", sizeof( myLabel ));
-			ret_sk = PKI_STACK_X509_CRL_new();
-			break;
-		case PKI_DATATYPE_X509_REQ:
-			objClass = CKO_DATA;
-			strncat(myLabel, "'s Request", sizeof( myLabel ));
-			ret_sk = PKI_STACK_X509_REQ_new();
-			break;
-		case PKI_DATATYPE_X509_CA:
-			objClass = CKO_CERTIFICATE;
-			strncat(myLabel, "'s CA", sizeof( myLabel ));
-			ret_sk = PKI_STACK_X509_CERT_new();
-			break;
-		case PKI_DATATYPE_X509_TRUSTED:
-			objClass = CKO_CERTIFICATE;
-			strncat(myLabel, "'s TA Cert", sizeof( myLabel ));
-			ret_sk = PKI_STACK_X509_CERT_new();
-			break;
-		case PKI_DATATYPE_X509_OTHER:
-			objClass = CKO_CERTIFICATE;
-			strncat(myLabel, "'s Other Cert", sizeof( myLabel ));
-			ret_sk = PKI_STACK_X509_CERT_new();
-			break;
-		case PKI_DATATYPE_PRIVKEY:
-			objClass = CKO_SECRET_KEY;
-			ret_sk = PKI_STACK_MEM_new();
-			break;
-		case PKI_DATATYPE_PUBKEY:
-			objClass = CKO_PUBLIC_KEY;
-			ret_sk = PKI_STACK_MEM_new();
-			break;
-		case PKI_DATATYPE_X509_PKCS7:
-			ret_sk = PKI_STACK_X509_new();
-			objClass = CKO_DATA;
-			break;
-		case PKI_DATATYPE_X509_PKCS12:
-			ret_sk = PKI_STACK_X509_new();
-			objClass = CKO_DATA;
-			break;
-		case PKI_DATATYPE_CRED:
-		default:
-			ret_sk = PKI_STACK_new_null();
-			objClass = CKO_DATA;
-			break;
-	}
-
-	idx = 0;
-	HSM_PKCS11_set_attr_int(CKA_CLASS, (int) objClass, &templ[idx++]);	
-	HSM_PKCS11_set_attr_sn(CKA_LABEL, myLabel, strlen(myLabel), 
-							&templ[idx++]);	
-	if ( url->path != NULL ) {
-		HSM_PKCS11_set_attr_sn(CKA_ID, url->path, strlen( url->path ),
-							&templ[idx++]);	
-	}
-	*/
-
 	rc = pthread_mutex_lock( &lib->pkcs11_mutex );
 	if (rc != 0)
 	{
@@ -267,8 +136,6 @@ int HSM_PKCS11_OBJSK_del_url ( PKI_DATATYPE type,
 		return PKI_ERR;
 	}
 
-	// while(( rv = lib->callbacks->C_FindObjectsInit(*session,
-	// 		templ, idx)) == CKR_OPERATION_ACTIVE ) {
 	while ((rv = lib->callbacks->C_FindObjectsInit(lib->session,
 				NULL, 0)) == CKR_OPERATION_ACTIVE)
 	{
@@ -368,6 +235,7 @@ int HSM_PKCS11_OBJSK_del_url ( PKI_DATATYPE type,
 					break;
 				case PKI_DATATYPE_X509_CRL:
 				case PKI_DATATYPE_X509_REQ:
+				case PKI_DATATYPE_X509_CMS:
 				case PKI_DATATYPE_X509_PKCS7:
 				case PKI_DATATYPE_X509_PKCS12:
 				default:
@@ -412,10 +280,10 @@ int HSM_PKCS11_OBJSK_del_url ( PKI_DATATYPE type,
 /* ------------------------ Internal Functions -------------------------- */
 
 PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
-					PKI_CRED *cred, HSM *hsm ) {
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
-        PKI_X509_KEYPAIR *ret = NULL;
-        PKI_X509_KEYPAIR_VALUE *val = NULL;
+    PKI_X509_KEYPAIR *ret = NULL;
+    PKI_X509_KEYPAIR_VALUE *val = NULL;
 	PKI_X509_KEYPAIR_STACK *ret_sk = NULL;
 
 	CK_ATTRIBUTE templ[32];
@@ -429,20 +297,17 @@ PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
 
 	PKI_RSA_KEY *rsa = NULL;
 
-	PKI_log_debug("HSM_PKCS11_KEYPAIR_get_url()::Start");
-
 	/* Check the Input */
 	if( !url || !url->addr ) return ( NULL );
 
 	/* We need a valid driver */
 	if( !hsm ) {
-		PKI_log_debug ( "HSM_PKCS11_KEYPAIR_get_url()::ERROR, no "
-			"hsm driver provided!");
+		PKI_ERROR(PKI_ERR_HSM_POINTER_NULL, NULL);
 		return ( NULL );
 	}
 
 	if ((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
-		PKI_log_debug ("HSM_PKCS11_KEYPAIR_get_url()::No handler");
+		PKI_ERROR(PKI_ERR_HSM_PKCS11_LIB_POINTER_NULL, NULL);
 		return NULL;
 	}
 
@@ -707,96 +572,10 @@ PKI_X509_STACK *HSM_PKCS11_KEYPAIR_get_url( URL *url,
         return ( ret_sk );
 }
 
-/*
-PKI_STACK * HSM_PKCS11_KEYPAIR_wrap_url ( URL *url, PKI_CRED *cred, 
-							HSM *hsm ) {
-
-	PKI_KEYPAIR_STACK *key_sk = NULL;
-
-	if( !url ) return ( NULL );
-
-	if(( key_sk = HSM_PKCS11_KEYPAIR_get_url( url, cred, driver )) == NULL){
-		return ( NULL );
-	}
-
-	return ( HSM_PKCS11_KEYPAIR_STACK_wrap ( key_sk, cred, driver ) );
-}
-
-PKI_STACK * HSM_PKCS11_KEYPAIR_STACK_wrap ( PKI_KEYPAIR_STACK *sk, 
-						PKI_CRED *cred, HSM *hsm ) {
-
-	PKI_log_debug("HSM_PKCS11_KEYPAIR_wrap()::Code to be implemented!");
-
-	return ( NULL );
-};
-
-int HSM_PKCS11_KEYPAIR_export_url( PKI_KEYPAIR *key, int format, 
-				URL *url, PKI_CRED *cred, HSM *hsm ) {
-
-	if( !url ) return ( PKI_ERR );
-
-	switch ( url->proto ) {
-		case URI_PROTO_FILE:
-			return PKI_PKCS11_KEYPAIR_export_file(key, 
-							format, url, cred );
-			break;
-		default:
-			return ( PKI_ERR );
-	}
-}
-
-
-int PKI_PKCS11_KEYPAIR_export_file( PKI_KEYPAIR *key, int format, 
-				URL *url, PKI_CRED *cred ) {
-
-	BIO *out = NULL;
-	int ret = 1;
-
-	if( !key || !url ) return 0;
-
-	switch( format ) {
-		case PKI_FORMAT_PEM:
-		case PKI_FORMAT_ASN1:
-			break;
-		default:
-			PKI_log_debug( "%s:%d format not recognized (%d)\n",
-					__FILE__, __LINE__, format );
-			return(PKI_ERR);
-	}
-
-	if((out = BIO_new(BIO_s_file())) == NULL ) {
-		PKI_log_debug("%s:%d error\n", __FILE__, __LINE__ );
-		return (PKI_ERR);
-	}
-
-	if( strncmp_nocase( url->addr, "-", 1) == 0 ) {
-		 BIO_set_fp(out,stdout,BIO_NOCLOSE);
-	} else {
-		ret = (int ) BIO_write_filename( out, url->addr);
-	}
-
-	switch( format ) {
-		case PKI_FORMAT_PEM:
-			ret = PEM_write_bio_PrivateKey( out, (EVP_PKEY *) key,
-					NULL, NULL, 0, NULL, NULL );
-			break;
-		case PKI_FORMAT_ASN1:
-			ret = i2d_PrivateKey_bio( out, (EVP_PKEY *) key);
-			break;
-		default:
-			PKI_log_debug("%s:%d error\n", __FILE__, __LINE__ );
-	}
-
-	if( out ) BIO_free_all (out);
-
-	return(ret);
-}
-*/
-
 /* --------------------------- General STACK get/put ----------------------- */
 
 PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url, 
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_STACK *ret_sk = NULL;
 
@@ -816,7 +595,7 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 
 	if((type == PKI_DATATYPE_X509_KEYPAIR) ||
 				(type == PKI_DATATYPE_SECRET_KEY )) {
-		return HSM_PKCS11_KEYPAIR_get_url( url, cred, hsm );
+		return HSM_PKCS11_KEYPAIR_get_url( url, format, cred, hsm );
 	}
 
 	/* Check the Input */
@@ -824,13 +603,12 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 
 	/* We need a valid driver */
 	if( !hsm ) {
-		PKI_log_debug ( "HSM_PKCS11_STACK_get_url()::ERROR, no "
-			"hsm driver provided!");
-		return ( NULL );
+		PKI_ERROR(PKI_ERR_HSM_POINTER_NULL, NULL);
+		return NULL;
 	}
 
 	if ((lib = _hsm_get_pkcs11_handler ( hsm )) == NULL ) {
-		PKI_log_debug ("HSM_PKCS11_KEYPAIR_get_url()::No handler");
+		PKI_ERROR(PKI_ERR_HSM_PKCS11_LIB_POINTER_NULL, NULL);
 		return NULL;
 	}
 
@@ -977,10 +755,11 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 			case PKI_DATATYPE_X509_REQ:
 			// 	tmp_sk = PKI_X509_REQ_STACK_get_mem(mem, cred);
 			// 	break;
+			case PKI_DATATYPE_X509_CMS:
 			case PKI_DATATYPE_X509_PKCS7:
 			case PKI_DATATYPE_X509_PKCS12:
-				tmp_sk = PKI_X509_STACK_get_mem ( mem, 
-							type, cred, hsm );
+				tmp_sk = PKI_X509_STACK_get_mem(mem, type,
+					format, cred, hsm );
 				break;
 			case PKI_DATATYPE_CRED:
 			default:

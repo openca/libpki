@@ -826,7 +826,7 @@ err:
 /*! \brief Gets a stack of X509 objects from the URL in the HSM */
 
 PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url, 	
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_STACK *ret = NULL;
 
@@ -837,7 +837,7 @@ PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url,
 	if( !hsm ) hsm = (HSM * ) HSM_get_default();
 
 	if( hsm  && hsm->callbacks && hsm->callbacks->x509_sk_get_url ) { 
-		ret = hsm->callbacks->x509_sk_get_url( type, url, cred, hsm );
+		ret = hsm->callbacks->x509_sk_get_url( type, url, format, cred, hsm );
 	};
 
         return ( ret );
@@ -888,7 +888,7 @@ int HSM_MEM_STACK_put_url ( PKI_MEM_STACK *sk, URL *url, PKI_DATATYPE type,
 
 		/* Gets the objects (multiple, possibly) from each PKI_MEM */
 		if((mem_obj_sk = PKI_X509_STACK_get_mem ( mem, type, 
-						cred, hsm )) == NULL ) {
+						PKI_DATA_FORMAT_UNKNOWN, cred, hsm )) == NULL ) {
 			continue;
 		}
 

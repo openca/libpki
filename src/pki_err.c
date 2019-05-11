@@ -60,6 +60,8 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_HSM_KEYPAIR_EXPORT, "Can not export Key from HSM" },
 	{ PKI_ERR_HSM_KEYPAIR_GENERATE, "Can create new key material in HSM" },
 	{ PKI_ERR_HSM_SCHEME_UNSUPPORTED, "Unsupported crypto algorithm" },
+	{ PKI_ERR_HSM_POINTER_NULL, "Missing (null) HSM Pointer" },
+	{ PKI_ERR_HSM_PKCS11_LIB_POINTER_NULL, "Missing (null) PKCS#11 Library Pointer" },
 	{ PKI_ERR_HSM_, "" },
 	/* Configuration Related */
 	{ PKI_ERR_CONFIG_MISSING, "Can not find Configuration file" },
@@ -97,8 +99,8 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_CERT_CREATE_ISSUER, "Can not set certificate Issuer field" },
 	{ PKI_ERR_X509_CERT_CREATE_SERIAL, "Can not set certificate Serial field" },
 	{ PKI_ERR_X509_CERT_CREATE_EXT, "Can not create certificate extension" },
+	{ PKI_ERR_X509_CERT_VERIFY_, "Cannot verify the certificate" },
 	{ PKI_ERR_X509_CERT_, "" },
-	{ PKI_ERR_X509_CERT_VERIFY_, "" },
 	/* Request Operations */
 	{ PKI_ERR_X509_REQ_CREATE, "Can not create a request object" },
 	{ PKI_ERR_X509_REQ_CREATE_SUBJECT, "Can not create a suitable request Subject" },
@@ -109,19 +111,23 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_REQ_CREATE_ALGORITHM, "Can not set request Algorithm" },
 	{ PKI_ERR_X509_REQ_, "" },
 	/* CRL Errors */
-	{ PKI_ERR_X509_CRL, "" },
+	{ PKI_ERR_X509_CRL_EXTENSION, "Can not set the requested extension in CRL." },
+	{ PKI_ERR_X509_CRL_, "" },
 	// PKI X509 PKCS7 ERRORS
 	{ PKI_ERR_X509_PKCS7_TYPE_UNKNOWN, "Unknown PKCS#7 Type" },
 	{ PKI_ERR_X509_PKCS7_SIGNER_INFO_NULL, "Missing SignerInfo Structure" },
 	{ PKI_ERR_X509_PKCS7_CIPHER, "Cipher not supported" },
+	{ PKI_ERR_X509_PKCS7_, "" },
 	// PKI X509 CMS ERRORS
 	{ PKI_ERR_X509_CMS_TYPE_UNKNOWN, "Unknown CMS Type" },
 	{ PKI_ERR_X509_CMS_SIGNER_INFO_NULL, "Missign SignerInfo Structure" },
 	{ PKI_ERR_X509_CMS_CIPHER, "Cipher not supported" },
 	{ PKI_ERR_X509_CMS_RECIPIENT_INFO_NULL, "Missing RecipientInfo Structure"},
+	{ PKI_ERR_X509_CMS_, "" },
 	// Generic PKI_X509_AUX_DATA Errors
 	{ PKI_ERR_X509_AUX_DATA_MEMORY_FREE_CB_NULL, "Missing AUX Data free callback function" },
 	{ PKI_ERR_X509_AUX_DATA_MEMORY_DUP_CB_NULL, "Missing AUX Data duplicate callback function" },
+	{ PKI_ERR_X509_AUX_DATA_, "" },
 	/* OCSP Ops */
 	{ PKI_ERR_OCSP_RESP_ENCODE, "Can not encode OCSP response" },
 	{ PKI_ERR_OCSP_RESP_DECODE, "Can not decode OCSP response" },
@@ -157,9 +163,15 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_NET_SSL_CONNECT , "Can not connect via SSL/TLS protocol" },
 	{ PKI_ERR_NET_SSL_PEER_CERTIFICATE , "Can not process peer certificate" },
 	{ PKI_ERR_NET_SSL_ , "" },
+		// SCEP Related Errors
+	{ PKI_ERR_EST_ATTRIBUTE_UNKNOWN , "Unknown Attribute Type for EST" },
+	{ PKI_ERR_EST_ , "" },
 	// SCEP Related Errors
-	{ PKI_ERR_SCEP_ATTRIBUTE_UNKNOWN , "Unknown Attribute Type" },
+	{ PKI_ERR_SCEP_ATTRIBUTE_UNKNOWN , "Unknown Attribute Type for SCEP" },
 	{ PKI_ERR_SCEP_ , "" },
+	// CMP Related Errors
+	{ PKI_ERR_CMP_ATTRIBUTE_UNKNOWN , "Unknown Attribute Type for CMP" },
+	{ PKI_ERR_CMP_ , "" },
 	/* List Boundary */
 	{ 0, 0 }
 };
@@ -191,13 +203,11 @@ int __pki_error ( const char *file, int line, int err, const char *info, ... ) {
 			found = i;
 			if ( !curr->descr ) break;
 
-			if ( info == NULL )
-			{
-				PKI_log_err_simple( "[%s:%d] %s", file, line, curr->descr );
-			} 
-			else 
-			{
-				snprintf(fmt, sizeof(fmt), "[%s:%d] %s => %s", file, line, curr->descr, info );
+			if ( info == NULL ) {
+				snprintf(fmt, sizeof(fmt), "[%s:%d] %s (%d):", file, line, curr->descr, curr->code);
+				PKI_log_err_simple(fmt, NULL);
+			} else {
+				snprintf(fmt, sizeof(fmt), "[%s:%d] %s (%d): %s", file, line, curr->descr, curr->code, info );
 				PKI_log_err_simple( fmt, ap);
 			}
 

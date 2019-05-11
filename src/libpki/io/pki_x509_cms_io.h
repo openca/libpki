@@ -20,15 +20,18 @@
 
 /* ---------------------------- CMS get operations ------------------ */
 
-PKI_X509_CMS *PKI_X509_CMS_get ( char *url_s, PKI_CRED *cred, HSM *hsm );
-PKI_X509_CMS *PKI_X509_CMS_get_url ( URL *url, PKI_CRED *cred, HSM *hsm );
-PKI_X509_CMS *PKI_X509_CMS_get_mem ( PKI_MEM *mem, PKI_CRED *cred);
-PKI_X509_CMS_STACK *PKI_X509_CMS_STACK_get (char *url_s, 
-						PKI_CRED *cred, HSM *hsm);
-PKI_X509_CMS_STACK *PKI_X509_CMS_STACK_get_url ( URL *url, 
+PKI_X509_CMS *PKI_X509_CMS_get ( char *url_s, PKI_DATA_FORMAT format,
 						PKI_CRED *cred, HSM *hsm );
-PKI_X509_CMS_STACK *PKI_X509_CMS_STACK_get_mem ( PKI_MEM *mem, 
+PKI_X509_CMS *PKI_X509_CMS_get_url ( URL *url, PKI_DATA_FORMAT format,
+						PKI_CRED *cred, HSM *hsm );
+PKI_X509_CMS *PKI_X509_CMS_get_mem ( PKI_MEM *mem, PKI_DATA_FORMAT format,
 						PKI_CRED *cred);
+PKI_X509_CMS_STACK *PKI_X509_CMS_STACK_get (char *url_s, 
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm);
+PKI_X509_CMS_STACK *PKI_X509_CMS_STACK_get_url ( URL *url, 
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
+PKI_X509_CMS_STACK *PKI_X509_CMS_STACK_get_mem ( PKI_MEM *mem, 
+						PKI_DATA_FORMAT format, PKI_CRED *cred);
 
 /* ---------------------------- CMS put operations ------------------ */
 

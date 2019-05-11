@@ -97,7 +97,7 @@ let "iface_age=$iface_current - $iface_oldest"
 lib_major=`echo $PACKAGE_VERSION | sed -e "s|\..*||"`
 lib_minor=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.||" | sed -e "s|\..*||g"`
 lib_micro=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.[[0-9]]*\.||"`
-lib_revision=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.[[0-9]]*\.[[0-9]]*\.*||"`
+# lib_revision=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.[[0-9]]*\.[[0-9]]*\.*||"`
 
 # Basic Library Config
 shlib_version="$lib_major.$lib_minor"
@@ -115,9 +115,19 @@ if [[ $lib_micro -lt 10 ]] ; then
        	lib_micro="0"$lib_micro
 fi
 
-if [[ "x$lib_revision" = "x" ]] ; then
+lib_revision=$(printf "%02d" $((RC-1)))
+if [[ $lib_revision -le 0 ]] ; then
+
 	lib_revision=00
-else 
+	txt_revision=
+
+else
+
+    base_value=$(printf "%d" \'a)
+    letter_value=$((base_value+lib_revision-1))
+    
+	txt_revision=$(printf "%b" $(printf '\\%03o' $letter_value));
+
 	if [[ $lib_revision -lt 10 ]] ; then
 		lib_revision = "0"$lib_revision
 	fi
@@ -132,9 +142,33 @@ AC_SUBST(lib_major)
 AC_SUBST(lib_minor)
 AC_SUBST(lib_micro)
 AC_SUBST(lib_revision)
+AC_SUBST(txt_revision)
 
 AC_SUBST(shlib_version)
 AC_SUBST(shlib_history)
+
+# Build Date Information
+yr=`TZ=GMT date +%Y`
+mon=`TZ=GMT date +%m`
+day=`TZ=GMT date +%d`
+hr=`TZ=GMT date +%H`
+min=`TZ=GMT date +%M`
+sec=`TZ=GMT date +%S`
+
+BUILD_DATE=`date +%Y-%m-%d`
+BUILD_DATE_FULL=`TZ=GMT date`
+BUILD_DATE_PRETTY=`TZ=GMT date +"%d %h %Y"`
+
+AC_SUBST(yr)
+AC_SUBST(mon)
+AC_SUBST(day)
+AC_SUBST(hr)
+AC_SUBST(min)
+AC_SUBST(sec)
+
+AC_SUBST(BUILD_DATE)
+AC_SUBST(BUILD_DATE_FULL)
+AC_SUBST(BUILD_DATE_PRETTY)
 
 # Checks for header files.
 

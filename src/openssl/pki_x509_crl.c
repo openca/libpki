@@ -495,13 +495,13 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial,
         if (!X509_REVOKED_add1_ext_i2d(entry,
                                        NID_hold_instruction_code,
                                        PKI_OID_get("holdInstructionReject"), 0, 0)) {
-	  PKI_ERROR(PKI_ERR_X509_CRL, "Can not add holdInstructionReject");
+          PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Can not add holdInstructionReject");
           goto err;
         }
 
         if (revDate && !X509_REVOKED_add1_ext_i2d(entry,
             NID_invalidity_date, (PKI_TIME *)revDate, 0, 0)) {
-	    PKI_ERROR(PKI_ERR_X509_CRL, "Can not add invalidity date");
+          PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Can not add invalidity date");
           goto err;
         }
 

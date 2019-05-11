@@ -233,7 +233,7 @@ PKI_TOKEN *PKI_TOKEN_new_p12 ( char *url, char *config_dir, PKI_CRED *cred ) {
 	}
 
 	/* Let's get the PKCS12 */
-	if ((p12 = PKI_X509_PKCS12_get ( url, cred, NULL )) == NULL ) {
+	if ((p12 = PKI_X509_PKCS12_get ( url, PKI_DATA_FORMAT_UNKNOWN, cred, NULL )) == NULL ) {
 		if ( tk ) PKI_TOKEN_free ( tk );
 		return ( NULL );
 	}
@@ -686,8 +686,8 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/cert")) != NULL)
 	{
-		if ((tk->cert = PKI_X509_CERT_get(tmp_s, tk->cred, tk->hsm)) == NULL)
-		{
+		if ((tk->cert = PKI_X509_CERT_get(tmp_s, PKI_DATA_FORMAT_UNKNOWN, 
+													tk->cred, tk->hsm)) == NULL) {
 			PKI_Free(tmp_s);
 			PKI_ERROR(PKI_ERR_TOKEN_CERT_LOAD, NULL);
 			goto end;
@@ -708,8 +708,8 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	if ((tmp_s = PKI_CONFIG_get_value ( tk->config, "/tokenConfig/cacert")) != NULL)
 	{
-		if((tk->cacert = PKI_X509_CERT_get(tmp_s, tk->cred, tk->hsm )) == NULL)
-		{
+		if((tk->cacert = PKI_X509_CERT_get(tmp_s, PKI_DATA_FORMAT_UNKNOWN,
+													tk->cred, tk->hsm )) == NULL) {
 			PKI_ERROR(PKI_ERR_TOKEN_CACERT_LOAD, NULL);
 		}
 		else
@@ -721,16 +721,23 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/otherCerts")) != NULL)
 	{
-		tk->otherCerts = PKI_X509_CERT_STACK_get(tmp_s, tk->cred, tk->hsm );
-		if (tk->otherCerts == NULL) PKI_ERROR(PKI_ERR_TOKEN_OTHERCERTS_LOAD, tmp_s);
+		tk->otherCerts = PKI_X509_CERT_STACK_get(tmp_s, 
+												 PKI_DATA_FORMAT_UNKNOWN, tk->cred, tk->hsm );
+
+		if (tk->otherCerts == NULL)
+			PKI_ERROR(PKI_ERR_TOKEN_OTHERCERTS_LOAD, tmp_s);
 
 		PKI_Free ( tmp_s );
 	}
 
 	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/trustedCerts")) != NULL)
 	{
-		tk->trustedCerts = PKI_X509_CERT_STACK_get(tmp_s, tk->cred, tk->hsm);
-		if (!tk->trustedCerts) PKI_ERROR(PKI_ERR_TOKEN_TRUSTEDCERTS_LOAD, tmp_s);
+		tk->trustedCerts = PKI_X509_CERT_STACK_get(tmp_s, 
+												   PKI_DATA_FORMAT_UNKNOWN, tk->cred, tk->hsm);
+
+		if (!tk->trustedCerts) 
+			PKI_ERROR(PKI_ERR_TOKEN_TRUSTEDCERTS_LOAD, tmp_s);
+
 		PKI_Free ( tmp_s );
 	}
 
@@ -1537,8 +1544,8 @@ int PKI_TOKEN_load_cacert(PKI_TOKEN *tk, char *url_string)
 
 	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
-	if ((tk->cacert = PKI_X509_CERT_get(url_string, tk->cred, tk->hsm)) == NULL)
-	{
+	if ((tk->cacert = PKI_X509_CERT_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
+												tk->cred, tk->hsm)) == NULL) {
 		/* Can not load the certificate from the given URL */
 		return PKI_ERROR(PKI_ERR_TOKEN_CACERT_LOAD, url_string);
 	}
@@ -1564,8 +1571,8 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 
 	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
-	if((tk->cert = PKI_X509_CERT_get(url_string, tk->cred, tk->hsm)) == NULL)
-	{
+	if((tk->cert = PKI_X509_CERT_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
+												tk->cred, tk->hsm)) == NULL) {
 		/* Can not load the certificate from the given URL */
 		return PKI_ERR;
 	}
@@ -1609,8 +1616,8 @@ int PKI_TOKEN_load_trustedCerts( PKI_TOKEN *tk, char *url_string )
 
 	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
 
-	if((cert = PKI_X509_CERT_STACK_get(url_string, tk->cred, tk->hsm)) == NULL)
-	{
+	if((cert = PKI_X509_CERT_STACK_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
+												tk->cred, tk->hsm)) == NULL) {
 		/* Can not load the certificate from the given URL */
 		return PKI_ERROR(PKI_ERR_URI_GENERAL, url_string);
 	}
@@ -1643,8 +1650,8 @@ int PKI_TOKEN_load_otherCerts(PKI_TOKEN *tk, char *url_string)
 
 	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
 
-	if((cert = PKI_X509_CERT_STACK_get(url_string, tk->cred, tk->hsm)) == NULL)
-	{
+	if((cert = PKI_X509_CERT_STACK_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
+												tk->cred, tk->hsm)) == NULL) {
 		/* Can not load the certificate from the given URL */
 		return PKI_ERROR(PKI_ERR_URI_GENERAL, url_string);
 	}
@@ -1676,8 +1683,8 @@ int PKI_TOKEN_load_crls ( PKI_TOKEN *tk, char *url_string)
 
 	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
-	if ((crl_sk = PKI_X509_CRL_STACK_get( url_string, tk->cred, tk->hsm )) == NULL)
-	{
+	if ((crl_sk = PKI_X509_CRL_STACK_get( url_string, PKI_DATA_FORMAT_UNKNOWN,
+												tk->cred, tk->hsm )) == NULL) {
 		/* Can not load the certificate from the given URL */
 		return PKI_ERROR(PKI_ERR_URI_GENERAL, url_string);
 	}
@@ -1713,8 +1720,8 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 
 	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
 
-	if ((pkey = PKI_X509_KEYPAIR_get_url( url, tk->cred, tk->hsm )) == NULL)
-	{
+	if ((pkey = PKI_X509_KEYPAIR_get_url( url, PKI_DATA_FORMAT_UNKNOWN,
+											tk->cred, tk->hsm )) == NULL) {
 		/* Can not load the keypair from the given URL */
 		if (url) URL_free( url );
 		PKI_log_debug("PKI_TOKEN_load_keypair()::Can not load key (%s)", url->url_s);
@@ -1765,8 +1772,8 @@ int PKI_TOKEN_load_req ( PKI_TOKEN *tk, char *url_string ) {
 
 	if( !tk || !url_string ) return PKI_ERR;
 
-	if((tk->req = PKI_X509_REQ_get( url_string, tk->cred, 
-							tk->hsm )) == NULL ) {
+	if((tk->req = PKI_X509_REQ_get( url_string, PKI_DATA_FORMAT_UNKNOWN,
+											tk->cred, tk->hsm )) == NULL ) {
 		/* Can not load the certificate from the given URL */
 		URL_free( url );
 		return PKI_ERR;
