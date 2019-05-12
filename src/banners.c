@@ -13,4 +13,4 @@ const char * prog_banner =
 	"\n   " BOLD "%s " NORM "(%s)\n"
 	"   (c) %d by " BOLD "%s" NORM "\n"
 	"       [ Built with " LIBPKI_VERSION_TEXT " " LIBPKI_BUILD_DATE_TEXT_PRETTY " from " BOLD BLUE "Open" RED "CA" NORM " Labs ]\n"
-	"       [ Built with " OPENSSL_VERSION_TEXT " from " NORM BOLD "Open" RED "SSL" NORM " ]\n\n";
+	"       [ Built with " OPENSSL_VERSION_TEXT " from " BOLD BLACK "Open" RED "SSL" NORM " ]\n\n";

@@ -14,18 +14,35 @@
 /* ---------------------- Stack and Data Types -------------------------- */
 
 typedef enum {
-        PKI_X509_CMS_TYPE_UNKNOWN                 = NID_undef,
-        PKI_X509_CMS_TYPE_EMPTY                   = 1,
-        PKI_X509_CMS_TYPE_SIGNED                  = NID_pkcs7_signed,
-        PKI_X509_CMS_TYPE_ENVELOPED               = NID_pkcs7_enveloped,
-        PKI_X509_CMS_TYPE_SIGNEDANDENCRYPTED      = NID_pkcs7_signedAndEnveloped,
-        PKI_X509_CMS_TYPE_DATA                    = NID_pkcs7_data,
-        PKI_X509_CMS_TYPE_DIGEST                  = NID_pkcs7_digest,
-        PKI_X509_CMS_TYPE_SMIME_COMPRESSED        = NID_id_smime_ct_compressedData,
-        PKI_X509_CMS_TYPE_ENCRYPTED               = NID_pkcs7_encrypted
-
+    PKI_X509_CMS_TYPE_UNKNOWN                 = NID_undef,
+    PKI_X509_CMS_TYPE_SIGNED                  = NID_pkcs7_signed,
+    PKI_X509_CMS_TYPE_ENVELOPED               = NID_pkcs7_enveloped,
+    PKI_X509_CMS_TYPE_DATA                    = NID_pkcs7_data,
+    PKI_X509_CMS_TYPE_DIGEST                  = NID_pkcs7_digest,
+    PKI_X509_CMS_TYPE_SMIME_COMPRESSED        = NID_id_smime_ct_compressedData,
+    PKI_X509_CMS_TYPE_SYM_ENCRYPTED           = NID_pkcs7_encrypted
 } PKI_X509_CMS_TYPE;
 
+typedef enum {
+    PKI_X509_CMS_FLAGS_BINARY                 = CMS_BINARY,
+    PKI_X509_CMS_FLAGS_PARTIAL                = CMS_PARTIAL,
+    PKI_X509_CMS_FLAGS_DETACHED               = CMS_DETACHED,
+    PKI_X509_CMS_FLAGS_NOSMIMECAP             = CMS_NOSMIMECAP,
+    PKI_X509_CMS_FLAGS_NOCERTS                = CMS_NOCERTS,
+    PKI_X509_CMS_FLAGS_NOATTR                 = CMS_NOATTR,
+    PKI_X509_CMS_FLAGS_NOOLDMIMETYPE          = CMS_NOOLDMIMETYPE,
+    PKI_X509_CMS_FLAGS_STREAM                 = CMS_STREAM,
+    PKI_X509_CMS_FLAGS_NOCRL                  = CMS_NOCRL,
+    PKI_X509_CMS_FLAGS_USE_KEYID              = CMS_USE_KEYID,
+    PKI_X509_CMS_FLAGS_REUSE_DIGEST           = CMS_REUSE_DIGEST
+} PKI_X509_CMS_FLAGS;
+
+#define PKI_X509_CMS_FLAGS_INIT_DEFAULT \
+  PKI_X509_CMS_FLAGS_BINARY | PKI_X509_CMS_FLAGS_PARTIAL | \
+  PKI_X509_CMS_FLAGS_NOSMIMECAP | PKI_X509_CMS_FLAGS_STREAM
+
+#define PKI_X509_CMS_FLAGS_INIT_SMIME \
+  PKI_X509_CMS_FLAGS_PARTIAL | PKI_X509_CMS_FLAGS_STREAM
 
 /* --------------------- Internal Mem Functions ------------------------- */
 
@@ -47,30 +64,41 @@ void PKI_X509_CMS_free(PKI_X509_CMS *cms);
 
 void PKI_X509_CMS_free_void(void *cms);
 
-PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type);
+PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type,
+                               int               is_detached,
+                               int               flags);
+
+PKI_X509_CMS *PKI_X509_CMS_new_value(PKI_X509_CMS_VALUE * value);
 
 PKI_X509_CMS_TYPE PKI_X509_CMS_get_type(const PKI_X509_CMS * const cms);
 
+int PKI_X509_CMS_data_set_mem(PKI_X509_CMS  * cms,
+                              PKI_MEM       * mem,
+                              PKI_MEM      ** out_mem,
+                              int             flags);
 
-// Operations
+int PKI_X509_CMS_data_set(PKI_X509_CMS   * cms, 
+                          unsigned char  * data,
+                          size_t           size,
+                          PKI_MEM       ** out_mem,
+                          int              flags);
 
-/*
-CMS_add_data();
-CMS_get_data();
-CMS_reset();
+PKI_IO * PKI_X509_CMS_stream_init(PKI_X509_CMS * cms);
 
-CMS_sign();
-CMS_verify();
+int PKI_X509_CMS_stream_write_mem(PKI_IO        * cms_io,
+                                  const PKI_MEM * mem);
 
-CMS_envelope();
-CMS_deEnvelope();
+int PKI_X509_CMS_stream_write(PKI_IO              * cms_io,
+                              const unsigned char * data,
+                              size_t                size);
 
-CMS_compress();
-CMS_decompress();
+int PKI_X509_CMS_stream_final(PKI_X509_CMS * cms,
+                              PKI_IO       * cms_io);
 
-CMS_symEncrypt();
-CMS_symDecrypt();
-*/
+PKI_X509_CMS * PKI_X509_CMS_wrap(PKI_X509_CMS      ** cms,
+                                 PKI_X509_CMS_TYPE    type);
+
+PKI_X509_CMS * PKI_X509_CMS_unwrap(PKI_X509_CMS ** cms);
 
 // CRL
 int PKI_X509_CMS_add_crl(PKI_X509_CMS       * cms,
@@ -104,11 +132,13 @@ int PKI_X509_CMS_has_signers(const PKI_X509_CMS * const cms );
 int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * cms,
                             const PKI_X509_CERT    * const signer,
                             const PKI_X509_KEYPAIR * const k,
-                            const PKI_DIGEST_ALG   * md );
+                            const PKI_DIGEST_ALG   * md,
+                            const int                flags );
 
 int PKI_X509_CMS_add_signer_tk(PKI_X509_CMS         * cms,
                                const PKI_TOKEN      * const tk,
-                               const PKI_DIGEST_ALG * const md);
+                               const PKI_DIGEST_ALG * const md,
+                               const int              flags);
 
 const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
                             const PKI_X509_CMS * const cms,

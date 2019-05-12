@@ -328,8 +328,7 @@ PKI_MEM_STACK *URL_get_data_url(const URL * url,
 	}
 
 	// Report the Error, if any.
-	if (!ret) PKI_ERROR(PKI_ERR_URI_GENERAL, 
-		"Can not retrieve data from (%s)", url->url_s);
+	if (!ret) PKI_DEBUG("Cannot retrieve data from (%s)", url->url_s);
 
 	return ( ret );
 }

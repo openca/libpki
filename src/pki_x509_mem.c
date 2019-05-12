@@ -70,10 +70,6 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 		return NULL;
 	}
 
-	PKI_DEBUG("[ DataFormat: %d, Data Size: %d, Data: %p ]", format, mem->size, mem->data);
-
-	// URL_put_data("debug-cert.pem", mem, NULL, NULL, 0, 0, NULL);
-
 	// Use the different callbacks depending on the data format
 	switch ( format )
 	{

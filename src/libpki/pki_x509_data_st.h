@@ -9,7 +9,11 @@
 #ifndef _LIBPKI_PKI_X509_DATA_ST_H
 #define _LIBPKI_PKI_X509_DATA_ST_H
 
-#define PKI_IO				BIO
+#define PKI_IO			BIO
+#define PKI_IO_new		BIO_new
+#define PKI_IO_write		BIO_write
+#define PKI_IO_read		BIO_write
+#define PKI_IO_free		BIO_free_all
 
 typedef struct pki_x509_callbacks_st {
 
