@@ -474,7 +474,7 @@ int PKI_X509_CMS_data_set(PKI_X509_CMS  * cms,
 		if ((data_size = PKI_IO_read(out_io, buf, data_size)) > 0) {
 
 			// Let's Add the Data to the output buffer
-			if (PKI_MEM_add(x_out, buf, data_size) != PKI_OK) {
+			if (PKI_MEM_add(x_out, (char *)buf, data_size) != PKI_OK) {
 
 				// Free Memory
 				if (cms_io) PKI_IO_free(cms_io);
