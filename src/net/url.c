@@ -670,7 +670,10 @@ URL *URL_new(const char * url_s ) {
 	if (url_s == NULL)	{
 
 		// If no URL is passed, let's use stdin as the source
-		url_s = strdup("stdin");
+		if ((ret->url_s = strdup("stdin")) == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return NULL;
+		}
 
 	} else {
 

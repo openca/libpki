@@ -181,7 +181,7 @@ int main (int argc, char *argv[] ) {
 	printf("* Retrieving Certificate(s) from test URLs:\n");
 	printf("  o LDAP [ %s ] ... ", cert_url[0] );
 	if((cert_data = PKI_X509_CERT_STACK_get( cert_url[0], 
-						NULL, NULL )) != NULL ) {
+						-1, NULL, NULL )) != NULL ) {
 		printf("Ok (got %d objects)\n", 
 				PKI_STACK_X509_CERT_elements( cert_data ));
 		print_cert_stack_contents( cert_data );
@@ -193,7 +193,7 @@ int main (int argc, char *argv[] ) {
 
 	printf("  o MYSQL [ %s ] ... ", cert_url[1] );
 	if((cert_data = PKI_X509_CERT_STACK_get( cert_url[1],
-						NULL, NULL )) != NULL ) {
+						-1, NULL, NULL )) != NULL ) {
 		printf("Ok (got %d objects)\n", 
 				PKI_STACK_X509_CERT_elements( cert_data ));
 		print_cert_stack_contents( cert_data );
@@ -205,7 +205,7 @@ int main (int argc, char *argv[] ) {
 
 	printf("  o PKCS11 [ %s ] ... ", cert_url[2] );
 	if((cert_data = PKI_X509_CERT_STACK_get( cert_url[2],
-						NULL, NULL )) != NULL ) {
+						-1, NULL, NULL )) != NULL ) {
 		printf("Ok (got %d objects)\n", 
 				PKI_STACK_X509_CERT_elements( cert_data ));
 		print_cert_stack_contents( cert_data );
@@ -258,7 +258,7 @@ int main (int argc, char *argv[] ) {
 	printf("* Retrieving CRL(s) from test URLs:\n");
 	printf("  o LDAP [ %s ] ... ", crl_url[0] );
 	if((crl_data = PKI_X509_CRL_STACK_get( crl_url[0],
-						NULL, NULL )) != NULL ) {
+						-1, NULL, NULL )) != NULL ) {
 		printf("Ok (got %d objects)\n", 
 				PKI_STACK_X509_CRL_elements( crl_data ));
 		print_crl_stack_contents( crl_data );
