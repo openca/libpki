@@ -5,13 +5,13 @@
 
 /* --------------------------- PKI_MEM get ------------------------------- */
 PKI_X509 *PKI_X509_get_mem ( PKI_MEM *mem, PKI_DATATYPE type, 
-					PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 
 void *PKI_X509_get_mem_value ( PKI_MEM *mem, PKI_DATATYPE type, 
-					PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 
 PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem, PKI_DATATYPE type,
-					PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 
 /* --------------------------- PKI_MEM put ------------------------------- */
 PKI_MEM *PKI_X509_put_mem ( PKI_X509 *x, PKI_DATA_FORMAT format, 

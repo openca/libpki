@@ -3,8 +3,8 @@
 #include <libpki/pki.h>
 
 PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_get ( char *url_s, 
-					PKI_CRED *cred, HSM *hsm ) {
-	return PKI_X509_get ( url_s, PKI_DATATYPE_X509_OCSP_REQ, cred, hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
+	return PKI_X509_get ( url_s, PKI_DATATYPE_X509_OCSP_REQ, format, cred, hsm );
 
 /*
 	PKI_X509_OCSP_REQ_STACK *r_sk = NULL;
@@ -30,9 +30,9 @@ PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_get ( char *url_s,
 }
 
 PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_get_url ( URL *url, 
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
-	return PKI_X509_get_url ( url, PKI_DATATYPE_X509_OCSP_REQ, cred, hsm );
+	return PKI_X509_get_url ( url, PKI_DATATYPE_X509_OCSP_REQ, format, cred, hsm );
 /*
 	PKI_X509_OCSP_REQ_STACK *r_sk = NULL;
 	PKI_X509_OCSP_REQ *tmp_r = NULL;
@@ -56,15 +56,16 @@ PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_get_url ( URL *url,
 */
 }
 
-PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_get_mem ( PKI_MEM *mem, PKI_CRED *cred ) {
-	return PKI_X509_get_mem ( mem, PKI_DATATYPE_X509_OCSP_REQ, cred, NULL);
+PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_get_mem ( PKI_MEM *mem, 
+						PKI_DATA_FORMAT format, PKI_CRED *cred ) {
+	return PKI_X509_get_mem ( mem, PKI_DATATYPE_X509_OCSP_REQ, format, cred, NULL);
 }
 
 
 PKI_X509_OCSP_REQ_STACK *PKI_X509_OCSP_REQ_STACK_get (char *url_s, 
-						PKI_CRED *cred, HSM *hsm) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm) {
 
-	return PKI_X509_STACK_get (url_s, PKI_DATATYPE_X509_OCSP_REQ, cred,hsm);
+	return PKI_X509_STACK_get (url_s, PKI_DATATYPE_X509_OCSP_REQ, format, cred, hsm);
 /*
 	URL *url = NULL;
 	PKI_X509_OCSP_REQ_STACK *ret_sk = NULL;
@@ -84,10 +85,10 @@ PKI_X509_OCSP_REQ_STACK *PKI_X509_OCSP_REQ_STACK_get (char *url_s,
 }
 
 PKI_X509_OCSP_REQ_STACK *PKI_X509_OCSP_REQ_STACK_get_url ( URL *url, 
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	return PKI_X509_STACK_get_url (url, PKI_DATATYPE_X509_OCSP_REQ,
-							cred, hsm );
+							format, cred, hsm );
 /*
 	PKI_X509_OCSP_REQ_STACK *ret = NULL;
 	PKI_X509_OCSP_REQ_STACK *tmp_x_sk = NULL;
@@ -143,10 +144,10 @@ PKI_X509_OCSP_REQ_STACK *PKI_X509_OCSP_REQ_STACK_get_url ( URL *url,
 }
 
 PKI_X509_OCSP_REQ_STACK *PKI_X509_OCSP_REQ_STACK_get_mem( PKI_MEM *mem, 
-							PKI_CRED *cred) {
+							PKI_DATA_FORMAT format, PKI_CRED *cred) {
 
 	return PKI_X509_STACK_get_mem (mem, PKI_DATATYPE_X509_OCSP_REQ, 
-							cred, NULL );
+							format, cred, NULL );
 /*
 	PKI_X509_OCSP_REQ * x = NULL;
 	PKI_X509_OCSP_REQ_VALUE *x_val = NULL;

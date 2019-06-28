@@ -160,6 +160,7 @@ typedef enum {
 #define PKI_CONFIG_ELEMENT  			xmlNode
 
 /* Misc Define */
+/*
 #define PKI_X509_CERT_BEGIN_ARMOUR	"-----BEGIN CERTIFICATE-----"
 #define PKI_X509_CERT_END_ARMOUR	"-----END CERTIFICATE-----"
 
@@ -183,6 +184,7 @@ typedef enum {
 
 #define PKI_X509_OCSP_RESP_BEGIN_ARMOUR	"-----BEGIN OCSP RESPONSE-----"
 #define PKI_X509_OCSP_RESP_END_ARMOUR	"-----END OCSP RESPONSE-----"
+*/
 
 typedef enum {
 	PKI_MUTEX_READ		= 0,
@@ -291,7 +293,11 @@ typedef enum {
 #include <libpki/pki_threads.h>
 #include <libpki/openssl/pthread_init.h>
 
+/* Generic */
+#include <libpki/banners.h>
+
 /* Credentials */
+#include <libpki/pki_err.h>
 #include <libpki/pki_cred.h>
 #include <libpki/errors.h>
 #include <libpki/support.h>
@@ -324,7 +330,7 @@ typedef enum {
 #include <libpki/pki_string.h>
 #include <libpki/pki_init.h>
 #include <libpki/pki_algor.h>
-#include <libpki/pki_algorithm.h>
+// #include <libpki/pki_algorithm.h>
 #include <libpki/pki_id.h>
 #include <libpki/pki_oid.h>
 #include <libpki/pki_digest.h>
@@ -340,13 +346,14 @@ typedef enum {
 #include <libpki/pki_x509_crl.h>
 #include <libpki/pki_x509_pkcs7.h>
 #include <libpki/pki_x509_p12.h>
+#include <libpki/pki_x509_cms.h>
 
 /* OCSP support */
 
 typedef enum {
 	PKI_OCSP_CERTSTATUS_GOOD 	= V_OCSP_CERTSTATUS_GOOD,
 	PKI_OCSP_CERTSTATUS_REVOKED	= V_OCSP_CERTSTATUS_REVOKED,
-	PKI_OCSP_CERTSTATUS_UNKNOWN	= V_OCSP_CERTSTATUS_UNKNOWN,
+	PKI_OCSP_CERTSTATUS_UNKNOWN	= V_OCSP_CERTSTATUS_UNKNOWN
 } PKI_OCSP_CERTSTATUS;
 
 typedef enum {
@@ -409,16 +416,14 @@ typedef enum {
 #include <libpki/net/pkcs11.h>
 #endif /* END of __LIB_BUILD__ */
 
-/* SCEP Interface */
-// #include <libpki/scep/scep_asn1.h>
-// #include <libpki/scep/scep_bio.h>
-#include <libpki/scep/scep.h>
-// #include <libpki/scep/scep_msg.h>
-// #include <libpki/scep/scep_pk7.h>
-// #include <libpki/scep/scep_sigattr.h>
+/* EST Interface */
+#include <libpki/est/est.h>
 
-/* CMS Interface */
-#include <libpki/cms.h>
+/* SCEP Interface */
+#include <libpki/scep/scep.h>
+
+/* CMC Interface */
+#include <libpki/cmc.h>
 
 /* General PKI Messaging System */
 #include <libpki/pki_msg.h>
@@ -431,9 +436,6 @@ typedef enum {
 /* crossCertificatePair support */
 #include <libpki/pki_x509_xpair_asn1.h>
 #include <libpki/pki_x509_xpair.h>
-
-/* LIRT Support */
-#include <libpki/lirt/lirt.h>
 
 /* I/O operations for PKIX objects */
 #include <libpki/pki_io.h>

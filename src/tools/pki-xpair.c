@@ -130,8 +130,8 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if( forward_s ) {
-			if((x1 = PKI_X509_CERT_get ( forward_s, NULL, NULL ))
-								== NULL ) {
+			if((x1 = PKI_X509_CERT_get ( forward_s, 
+						PKI_DATA_FORMAT_UNKNOWN, NULL, NULL )) == NULL ) {
 				PKI_log_err("Can not load forward "
 					"certificate [%s]", forward_s );
 				exit(1);
@@ -140,8 +140,8 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if( reverse_s ) {
-			if((x2 = PKI_X509_CERT_get ( reverse_s, NULL, NULL ))
-								== NULL ) {
+			if((x2 = PKI_X509_CERT_get ( reverse_s, 
+						PKI_DATA_FORMAT_UNKNOWN, NULL, NULL )) == NULL ) {
 				PKI_log_err("Can not load reverse "
 					"certificate [%s]", reverse_s );
 				exit(1);
@@ -154,8 +154,8 @@ int main (int argc, char *argv[] ) {
 		PKI_STACK_X509_XPAIR_push( xp_sk, xp );
 
 	} else {
-		if((xp_sk = PKI_X509_XPAIR_STACK_get ( inurl_s, NULL, NULL )) 
-								== NULL ) {
+		if((xp_sk = PKI_X509_XPAIR_STACK_get ( inurl_s, 
+						PKI_DATA_FORMAT_UNKNOWN, NULL, NULL )) == NULL ) {
 			PKI_log_err("Can not load XPAIR from %s!", inurl_s );
 			exit(1);
 		}

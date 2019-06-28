@@ -4,40 +4,43 @@
 
 /* ----------------------------- REQ get functions ------------------------------- */
 
-PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get ( char *url_s, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get ( char *url_s, PKI_DATA_FORMAT format, 
+					PKI_CRED *cred, HSM *hsm ) {
 
-	return PKI_X509_get ( url_s, PKI_DATATYPE_X509_PRQP_REQ, cred, hsm );
-
-}
-
-PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get_url ( URL *url, PKI_CRED *cred, HSM *hsm ) {
-
-	return PKI_X509_get_url ( url, PKI_DATATYPE_X509_PRQP_REQ, cred, hsm );
+	return PKI_X509_get ( url_s, PKI_DATATYPE_X509_PRQP_REQ, format, cred, hsm );
 
 }
 
-PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get_mem ( PKI_MEM *mem, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get_url ( URL *url, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm ) {
 
-	return PKI_X509_get_mem ( mem, PKI_DATATYPE_X509_PRQP_REQ, cred, hsm );
+	return PKI_X509_get_url ( url, PKI_DATATYPE_X509_PRQP_REQ, format, cred, hsm );
+
+}
+
+PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get_mem ( PKI_MEM *mem, PKI_DATA_FORMAT format, 
+					PKI_CRED *cred, HSM *hsm ) {
+
+	return PKI_X509_get_mem ( mem, PKI_DATATYPE_X509_PRQP_REQ, format, cred, hsm );
 }
 
 PKI_X509_PRQP_REQ_STACK *PKI_X509_PRQP_REQ_STACK_get (char *url_s, 
-						PKI_CRED *cred, HSM *hsm) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm) {
 
-	return PKI_X509_STACK_get ( url_s, PKI_DATATYPE_X509_PRQP_REQ, cred, hsm );
+	return PKI_X509_STACK_get ( url_s, PKI_DATATYPE_X509_PRQP_REQ, format, cred, hsm );
 }
 
 PKI_X509_PRQP_REQ_STACK *PKI_X509_PRQP_REQ_STACK_get_url ( URL *url, 
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
-	return PKI_X509_STACK_get_url ( url, PKI_DATATYPE_X509_PRQP_REQ, cred, hsm );
+	return PKI_X509_STACK_get_url ( url, PKI_DATATYPE_X509_PRQP_REQ, format, cred, hsm );
 }
 
 PKI_X509_PRQP_REQ_STACK *PKI_X509_PRQP_REQ_STACK_get_mem(PKI_MEM *mem, 
-						PKI_CRED *cred, HSM *hsm) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm) {
 
 	return PKI_X509_STACK_get_mem ( mem, PKI_DATATYPE_X509_PRQP_REQ,
-						cred, hsm );
+						format, cred, hsm );
 }
 
 /* ---------------------------- REQ put operations ------------------ */

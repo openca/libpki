@@ -23,8 +23,7 @@ bin_PROGRAMS   = \
 	pki-cert \
 	pki-crl \
 	pki-derenc \
-	pki-siginfo \
-	pki-lirt
+	pki-siginfo
 
 PKI_TOOL = pki-tool.c
 pki_tool_SOURCES = $(PKI_TOOL)
@@ -79,16 +78,4 @@ pki_siginfo_SOURCES = $(PKI_SIGINFO)
 pki_siginfo_CPPFLAGS = $(LIBPKI_MYCFLAGS)
 pki_siginfo_LDADD = $(MYLDADD)
 pki_siginfo_LDFLAGS = $(LIBPKI_MYLDFLAGS)
-
-PKI_LIRT = pki-lirt.c
-pki_lirt_SOURCES = $(PKI_LIRT)
-pki_lirt_CPPFLAGS = $(LIBPKI_MYCFLAGS)
-pki_lirt_LDADD = $(MYLDADD)
-pki_lirt_LDFLAGS = $(LIBPKI_MYLDFLAGS)
-
-# SCEP_TOOL = scep.c
-# scep_SOURCES = $(SCEP_TOOL)
-# scep_CPPFLAGS = $(LIBPKI_MYCFLAGS)
-# scep_LDADD = -L../.libs -lpki
-# scep_LDFLAGS = $(LIBPKI_LIBS)
 

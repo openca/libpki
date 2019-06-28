@@ -1,8 +1,13 @@
 /* PKI_X509 object management */
 
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+
 #include <libpki/pki.h>
 #include <sys/utsname.h>
+
 #include "internal/x509_data_st.h"
+#include <libpki/openssl/data_st.h>
 
 PKI_X509_REQ * PKI_X509_REQ_new_null ( void ) {
 	return (PKI_X509_REQ *) PKI_X509_new ( PKI_DATATYPE_X509_REQ, NULL );
@@ -48,8 +53,6 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 		return (NULL);
 	}
 	kVal = (EVP_PKEY *) k->value;
-
-	PKI_log_debug( "Digest Algorithm: %s", PKI_DIGEST_ALG_get_parsed ( digest ));
 
 	/* Let's set the digest for the right signature scheme */
 	if( !digest ) {
@@ -343,8 +346,8 @@ int PKI_X509_REQ_get_keysize(const PKI_X509_REQ *x) {
 
 /*! \brief Returns an attribute of the Certificate Request */
 
-const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req, 
-				   PKI_X509_DATA type ) {
+const void * PKI_X509_REQ_get_data(const PKI_X509_REQ * req, 
+				   PKI_X509_DATA        type ) {
 	
 	void *ret = NULL;
 	LIBPKI_X509_REQ *tmp_x = NULL;
@@ -355,11 +358,11 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ *req,
 
 	switch( type ) {
 		case PKI_X509_DATA_SUBJECT:
-			ret = (void *) X509_REQ_get_subject_name ( tmp_x );
+			ret = (void *) X509_REQ_get_subject_name((X509_REQ *)tmp_x);
 			break;
 		case PKI_X509_DATA_PUBKEY:
 		case PKI_X509_DATA_KEYPAIR_VALUE:
-			ret = (void *)X509_REQ_get_pubkey( tmp_x );
+			ret = (void *)X509_REQ_get_pubkey((X509_REQ *)tmp_x);
 			break;
 		case PKI_X509_DATA_SIGNATURE:
 			ret = (void *) tmp_x->signature;

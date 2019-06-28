@@ -76,14 +76,14 @@ int main(int argc, char *argv[])
 	PKI_init_all();
 
 	// Loads the Signer's Object
-	obj = PKI_X509_get( kName, PKI_DATATYPE_ANY, NULL, NULL);
+	obj = PKI_X509_get( kName, PKI_DATATYPE_ANY, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL);
 	if( obj == NULL) {
 		fprintf(stderr, "ERROR, can not load key source: %s\n\n", kName);
 		exit(1);
 	}
 
 	// Loads the Signed Object
-	sigObj = PKI_X509_get( sigName, PKI_DATATYPE_ANY, NULL, NULL);
+	sigObj = PKI_X509_get( sigName, PKI_DATATYPE_ANY, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL);
 	if( sigObj == NULL) {
 		fprintf(stderr, "ERROR, can not load signed Object: %s\n\n", kName);
 		exit(1);

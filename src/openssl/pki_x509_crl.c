@@ -3,6 +3,8 @@
 #include <libpki/pki.h>
 #include <sys/utsname.h>
 
+#include "internal/x509_data_st.h"
+
 PKI_X509_CRL_REASON_CODE PKI_X509_CRL_REASON_DESCR[] = {
   { PKI_CRL_REASON_UNSPECIFIED,       "unspecified",    "No specified reason" },
   { PKI_CRL_REASON_KEY_COMPROMISE,     "keyCompromise",  "Subject's Key Compromised" },
@@ -493,13 +495,13 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial,
         if (!X509_REVOKED_add1_ext_i2d(entry,
                                        NID_hold_instruction_code,
                                        PKI_OID_get("holdInstructionReject"), 0, 0)) {
-	  PKI_ERROR(PKI_ERR_X509_CRL, "Can not add holdInstructionReject");
+          PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Can not add holdInstructionReject");
           goto err;
         }
 
         if (revDate && !X509_REVOKED_add1_ext_i2d(entry,
             NID_invalidity_date, (PKI_TIME *)revDate, 0, 0)) {
-	    PKI_ERROR(PKI_ERR_X509_CRL, "Can not add invalidity date");
+          PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Can not add invalidity date");
           goto err;
         }
 
@@ -845,7 +847,7 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL * x,
                                    PKI_X509_DATA        type ) {
 
   const void *ret = NULL;
-  PKI_X509_CRL_VALUE *tmp_x = NULL;
+  LIBPKI_X509_CRL *tmp_x = NULL;
 
   if (!x || !x->value) return NULL;
 
@@ -899,7 +901,7 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL * x,
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
       // X509_CRL_get0_signature((X509_CRL *)tmp_x, 
       //             NULL, (const X509_ALGOR **)&ret);
-      ret = &(((PKI_X509_CRL_FULL *)tmp_x)->crl.sig_alg);
+      ret = &((tmp_x)->crl.sig_alg);
 #else
       if (tmp_x->crl) ret = tmp_x->crl->sig_alg;
 #endif

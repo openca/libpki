@@ -59,7 +59,8 @@ PKI_MEM *PKI_X509_SCEP_MSG_decode ( PKI_X509_SCEP_MSG *msg,
  */
 
 PKI_X509 *PKI_X509_SCEP_MSG_get_x509_obj ( PKI_X509_SCEP_MSG *msg,
-		PKI_DATATYPE type, PKI_X509_KEYPAIR *key, PKI_X509_CERT *x ) {
+		PKI_DATATYPE type, PKI_DATA_FORMAT format,
+		PKI_X509_KEYPAIR *key, PKI_X509_CERT *x ) {
 
 	PKI_MEM *mem = NULL;
 	PKI_X509 *ret = NULL;
@@ -69,7 +70,7 @@ PKI_X509 *PKI_X509_SCEP_MSG_get_x509_obj ( PKI_X509_SCEP_MSG *msg,
 		return NULL;
 	};
 
-	if((ret = PKI_X509_get_mem( mem, type, NULL, NULL )) == NULL ) {
+	if((ret = PKI_X509_get_mem( mem, type, format, NULL, NULL )) == NULL ) {
 		PKI_log_debug("Can not get X509 object (%d) from raw data.", type);
 	};
 

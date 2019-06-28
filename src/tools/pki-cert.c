@@ -48,6 +48,7 @@ void usage ( void ) {
 }
 
 int main (int argc, char *argv[] ) {
+
 	PKI_X509_CERT *cert = NULL;
 	PKI_X509_CERT *caCert = NULL;
 	// PKI_TOKEN *tk = NULL;
@@ -62,11 +63,13 @@ int main (int argc, char *argv[] ) {
 	int log_level = PKI_LOG_ERR;
 
 	PKI_DATA_FORMAT outform = PKI_DATA_FORMAT_UNKNOWN;
+	PKI_DATA_FORMAT inform  = PKI_DATA_FORMAT_UNKNOWN;
 
 	// char *token = NULL;
 	char *infile = NULL;
 	char *outfile = "stdout";
 	char *outform_s = NULL;
+	char *inform_s = NULL;
 	char *cacert_s = NULL;
 
 	int verify = 0;
@@ -76,7 +79,14 @@ int main (int argc, char *argv[] ) {
 
 	error = 0;
 	for(i=1; i < argc; i++ ) {
-		if( strncmp_nocase( argv[i], "-in", 3 ) == 0 ) {
+
+		if(strncmp_nocase( argv[i], "-inform", 7) == 0 ) {
+			if( argv[i+1] == NULL ) {
+				error = 1;
+				break;
+			}
+			inform_s=(argv[++i]);
+		} else if( strncmp_nocase( argv[i], "-in", 3 ) == 0 ) {
 			if( argv[i+1] == NULL ) {
 				error=1;
 				break;
@@ -90,12 +100,12 @@ int main (int argc, char *argv[] ) {
 		// 	}
 		// 	token=(argv[++i]);
 
-		} else if(strncmp_nocase( argv[i], "-outform", 8) == 0 ) {
+		} else if(strncmp_nocase( argv[i], "-inform", 7) == 0 ) {
 			if( argv[i+1] == NULL ) {
 				error = 1;
 				break;
 			}
-			outform_s=(argv[++i]);
+			inform_s=(argv[++i]);
 		} else if ( strncmp_nocase ( argv[i], "-out", 4 ) == 0) {
 			if( argv[i+1] == NULL ) {
 				error=1;
@@ -157,12 +167,12 @@ int main (int argc, char *argv[] ) {
 			outform = PKI_DATA_FORMAT_ASN1;
 		} else if (strncmp_nocase(outform_s, "TXT", 3) == 0 ) {
 			outform = PKI_DATA_FORMAT_TXT;
-		} else if (strncmp_nocase(outform_s, "XML", 3) == 0 ) {
-			outform = PKI_DATA_FORMAT_XML;
 		} else if (strncmp_nocase(outform_s, "B64", 3) == 0 ) {
 			outform = PKI_DATA_FORMAT_B64;
 		} else if (strncmp_nocase(outform_s, "URL", 3) == 0 ) {
 			outform = PKI_DATA_FORMAT_URL;
+		} else if (strncmp_nocase(outform_s, "XML", 3) == 0 ) {
+			outform = PKI_DATA_FORMAT_XML;
 		} else {
 			fprintf(stderr, "%s", banner );
 			fprintf(stderr, BOLD RED "\n    ERROR: " 
@@ -172,6 +182,28 @@ int main (int argc, char *argv[] ) {
 		};	
 	};
 
+	if(inform_s) {
+		if(strncmp_nocase(inform_s, "PEM", 3) == 0 ) {
+			inform = PKI_DATA_FORMAT_PEM;
+		} else if (strncmp_nocase(inform_s, "DER", 3) == 0 ) {
+			inform = PKI_DATA_FORMAT_ASN1;
+		} else if (strncmp_nocase(inform_s, "TXT", 3) == 0 ) {
+			inform = PKI_DATA_FORMAT_TXT;
+		} else if (strncmp_nocase(inform_s, "B64", 3) == 0 ) {
+			inform = PKI_DATA_FORMAT_B64;
+		} else if (strncmp_nocase(inform_s, "URL", 3) == 0 ) {
+			inform = PKI_DATA_FORMAT_URL;
+		} else if (strncmp_nocase(inform_s, "XML", 3) == 0 ) {
+			inform = PKI_DATA_FORMAT_XML;
+		} else {
+			fprintf(stderr, "%s", banner );
+			fprintf(stderr, BOLD RED "\n    ERROR: " 
+				NORM "input format \"" BLUE "%s" NORM 
+				"\" is not valid (use one of PEM, DER, TXT, B64, URL, or XML)!\n\n", outform_s );
+			exit(1);
+		}
+	}
+
 	if( verify ) {
 		if ( !cacert_s ) {
 			fprintf( stderr, BOLD RED "\n    ERROR," NORM " -CACert <URI> required"
@@ -179,7 +211,7 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		};
 
-		if(( caCert = PKI_X509_CERT_get ( cacert_s, NULL, NULL)) == NULL ) {
+		if(( caCert = PKI_X509_CERT_get ( cacert_s, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL)) == NULL ) {
 			fprintf( stderr, BOLD RED "    ERROR, can not load CACert from %s\n\n",
 				cacert_s );
 			exit ( 1 );
@@ -210,19 +242,19 @@ int main (int argc, char *argv[] ) {
 			"    * Loading Certificate ...." );
 	}
 
-	if((cert = PKI_X509_CERT_get_url( inUrl, NULL, NULL )) == NULL) {
+	if((cert = PKI_X509_CERT_get_url( inUrl, inform, NULL, NULL )) == NULL) {
 		if(!verbose) fprintf(stderr,"\n");
 		fprintf( stderr, BOLD RED "    ERROR: " 
 				NORM "Can not open certificate URL " BLUE "(%s)\n\n" NORM,
 					inUrl->url_s );
 		exit(1);
-	};
+	}
 
 	if( verbose ) {
 		fprintf( stderr, GREEN " Ok" NORM "\n");
 		fprintf( stderr, 
 			"    * Saving Certificate ....." );
-	};
+	}
 
 	if( outform == PKI_DATA_FORMAT_UNKNOWN ) {
 		if( PKI_X509_CERT_put(cert, PKI_DATA_FORMAT_TXT, outfile, 
@@ -233,7 +265,7 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		}
 		outform = PKI_DATA_FORMAT_PEM;
-	};
+	}
 
 	if ( verify ) {
 		fprintf( stderr, "    Signature Verification: ");

@@ -9,7 +9,11 @@
 #ifndef _LIBPKI_PKI_X509_DATA_ST_H
 #define _LIBPKI_PKI_X509_DATA_ST_H
 
-#define PKI_IO				BIO
+#define PKI_IO			BIO
+#define PKI_IO_new		BIO_new
+#define PKI_IO_write		BIO_write
+#define PKI_IO_read		BIO_write
+#define PKI_IO_free		BIO_free_all
 
 typedef struct pki_x509_callbacks_st {
 
@@ -49,11 +53,12 @@ typedef struct pki_x509_all_callbacks_st {
 	const PKI_X509_CALLBACKS * x509_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_crl_cb_set;
 	const PKI_X509_CALLBACKS * x509_pkcs7_cb_set;
+	const PKI_X509_CALLBACKS * x509_cms_cb_set;
 	const PKI_X509_CALLBACKS * x509_pkcs12_cb_set;
 	const PKI_X509_CALLBACKS * x509_ocsp_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_ocsp_resp_cb_set;
 	const PKI_X509_CALLBACKS * x509_xpair_cb_set;
-	const PKI_X509_CALLBACKS * x509_cms_cb_set;
+	const PKI_X509_CALLBACKS * x509_cmc_cb_set;
 	const PKI_X509_CALLBACKS * x509_scep_cb_set;
 	const PKI_X509_CALLBACKS * x509_prqp_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_prqp_resp_cb_set;
@@ -83,6 +88,15 @@ typedef struct pki_x509_st {
 
 	/* Template Reference */
 	const ASN1_ITEM * it;
+
+	/* Auxillary Data */
+	void * aux_data;
+
+	/* Callback to free auxillary data */
+	void (*free_aux_data)(void *);
+
+	/* Callback to duplicate auxillary data */
+	void * (*dup_aux_data)(void *);
 
 } PKI_X509;
 

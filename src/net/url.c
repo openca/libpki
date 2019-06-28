@@ -278,7 +278,8 @@ PKI_MEM_STACK *URL_get_data_url(const URL * url,
 	PKI_MEM_STACK * ret = NULL;
 
 	if( !url ) {
-		return ( NULL );
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing URL parameter");
+		return NULL;
 	}
 
 	switch( url->proto ) {
@@ -325,6 +326,9 @@ PKI_MEM_STACK *URL_get_data_url(const URL * url,
 			PKI_ERROR(PKI_ERR_URI_UNSUPPORTED, NULL);
 			break;
 	}
+
+	// Report the Error, if any.
+	if (!ret) PKI_DEBUG("Cannot retrieve data from (%s)", url->url_s);
 
 	return ( ret );
 }
@@ -651,16 +655,8 @@ URL *URL_new(const char * url_s ) {
 	char *tmp_s2 = NULL;
 	char *tmp_s3 = NULL;
 	char *tmp_s4 = NULL;
-	char *is_alloc = NULL;
 
 	size_t len = 0;
-
-	// If no URL is passed, we assume stdin was meant
-	if (url_s == NULL)	{
-		is_alloc = strdup("stdin");
-		url_s = (const char *) is_alloc;
-	}
-
 
 	ret = (URL *) PKI_Malloc ( sizeof( URL ));
 	if(ret == 0) 
@@ -670,19 +666,27 @@ URL *URL_new(const char * url_s ) {
 	}
 	memset( ret, 0, sizeof(URL) );
 
-	if ((ret->url_s = get_env_string(url_s)) == NULL)
-	{
-		// if( ret ) URL_free ( ret );
-		// return ( NULL );
-		goto err;
-	}
+	// If no URL is passed, we assume stdin was meant
+	if (url_s == NULL)	{
 
-	if (!ret->url_s)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		// if( ret ) URL_free ( ret );
-		// return ( NULL );
-		goto err;
+		// If no URL is passed, let's use stdin as the source
+		if ((ret->url_s = strdup("stdin")) == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return NULL;
+		}
+
+	} else {
+
+		size_t len = strlen(url_s);
+		  // Size of the URL string
+
+		// Allocates the memory for copying the URL
+		if ((ret->url_s = (char *) PKI_Malloc(len + 1)) == NULL)
+			goto err;
+
+		// Copy the name in the URL itself
+		memcpy(ret->url_s, url_s, len);
+
 	}
 
 	if (strncmp_nocase(ret->url_s, "stdin", 5) == 0)
@@ -1506,60 +1510,33 @@ URL *URL_new(const char * url_s ) {
 	}
 	else
 	{
-		/* No protocol specified, we assume file:// or sock:// */
-		tmp_s = ret->url_s;
+		// No protocol specified, we assume file:// or sock://
+		size_t len = 0;
 
-		if (strchr( tmp_s, ':'))
+		ret->port = -1;
+		ret->proto = URI_PROTO_FILE;
+
+		if (ret->url_s)
 		{
-			/* Shall we be more liberal ??? */
-			PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
-			goto err;
+			len = strlen(ret->url_s);
 
-			tmp_s2 = strchr(tmp_s,':');
-
-			len = (size_t) ( tmp_s2 - tmp_s );
-			ret->addr = (char *) malloc (len+1);
-			memset( ret->addr, 0, len+1 );
-
-			strncpy( ret->addr, tmp_s, len);
-			ret->addr[len] = '\x0';
-
-			tmp_s = tmp_s2+1;
-			ret->port = atoi( tmp_s );
-			ret->proto = URI_PROTO_SOCK;
+			ret->addr = (char *) PKI_Malloc( len+1 );
+			memcpy(ret->addr, ret->url_s, len);
 		}
 		else
 		{
-			size_t len = 0;
+			PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
 
-			ret->port = -1;
-			ret->proto = URI_PROTO_FILE;
-
-			if (ret->url_s)
-			{
-				len = strlen(ret->url_s);
-
-				ret->addr = (char *) PKI_Malloc( len+1 );
-				memcpy(ret->addr, ret->url_s, len);
-			}
-			else
-			{
-				PKI_ERROR(PKI_ERR_URI_PARSE, NULL);
-
-				// return NULL;
-				goto err;
-			}
+			// return NULL;
+			goto err;
 		}
 	}
-
-	if (is_alloc) PKI_Free(is_alloc);
 
 	return ret;
 
 err:
 
 	if (ret) URL_free(ret);
-	if (is_alloc) PKI_Free(is_alloc);
 
 	return NULL;
 }

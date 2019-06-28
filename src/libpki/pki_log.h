@@ -61,10 +61,20 @@ typedef struct PKIlog_st {
 
 } PKI_LOG;
 
+// --------------------- Function Prototypes ------------------------- //
+
 int PKI_log_init ( PKI_LOG_TYPE type, PKI_LOG_LEVEL level, char *resource,
 				PKI_LOG_FLAGS flags, PKI_TOKEN *tk );
 
 void PKI_log( int level, const char *fmt, ... );
+
+void PKI_log_debug_simple( const char *fmt, ... );
+
+void PKI_log_err_simple( const char *fmt, ... );
+
+int PKI_log_end( void );
+
+// ------------------------- Useful Macros ---------==---------------- //
 
 /* Macro To Automatically add [__FILE__:__LINE__] to the message */
 #define PKI_log_line(a, b, args...) \
@@ -72,25 +82,19 @@ void PKI_log( int level, const char *fmt, ... );
 
 /* Macro To Automatically add [__FILE__:__LINE__]::DEBUG:: to the message */
 #define PKI_log_debug(a, args...) \
-	PKI_log_debug_simple((const char *)"[%s:%d] [DEBUG] " a, \
-			     __FILE__, __LINE__, ## args)
-
-#define PKI_DEBUG(a, args...) \
-	PKI_log_debug_simple((const char *)"[%s:%d] [DEBUG] " a, \
-			     __FILE__, __LINE__, ## args)
-
-
-void PKI_log_debug_simple( const char *fmt, ... );
+	PKI_log_debug_simple((const char *)"[%s:%d] [%s()] [DEBUG] " a, \
+			     __FILE__, __LINE__, __func__, ## args)
 
 #define PKI_log_err(a, args...) \
-	PKI_log_err_simple((const char *) "[%s:%d] [ERROR] " a, __FILE__, __LINE__, ## args)
+	PKI_log_err_simple((const char *) "[%s:%d] [%s()] [ERROR] " a, \
+		__FILE__, __LINE__, __func__, ## args)
 
 #define PKI_log_crypto_err(a) \
-	PKI_log_err_simple("[%s:%d] [HSM ERROR:%d:%s] ", __FILE__, __LINE__, \
-			HSM_get_errno(a), HSM_get_errdesc(HSM_get_errno(a), a))
+	PKI_log_err_simple("[%s:%d] [%s()] [ERROR] %d:%s", __FILE__, __LINE__, \
+			__func__, HSM_get_errno(a), HSM_get_errdesc(HSM_get_errno(a), a))
 
-void PKI_log_err_simple( const char *fmt, ... );
-
-int PKI_log_end( void );
+#define PKI_DEBUG(a, args...) \
+	PKI_log_debug_simple((const char *)"[%s:%d] [%s()] [DEBUG]: " a, \
+			     __FILE__, __LINE__, __func__, ## args)
 
 #endif

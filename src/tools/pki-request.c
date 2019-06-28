@@ -46,7 +46,7 @@ void usage ( void ) {
 	printf( BLUE "    -uri " RED "<URI>" NORM "...........:"
 			" URI of the request service\n");
 	printf( BLUE "    -proto " RED "<PROTO>" NORM ".......:"
-			" Protocol to use (SCEP, CMC, XKMS)\n");
+			" Protocol to use (SCEP, EST, CMP)\n");
 	printf( BLUE "    -nosend " NORM ".............:"
 			" Don't send out the request to any server\n");
 	printf( BLUE "    -reqout " NORM ".............:"
@@ -304,7 +304,7 @@ int main (int argc, char *argv[] ) {
 		if( verbose ) {
 			fprintf( stderr, "    * Loading PRQP request ..... " );
 		}
-		p = PKI_X509_PRQP_REQ_get_url( in_url, NULL, NULL );
+		p = PKI_X509_PRQP_REQ_get_url( in_url, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL );
 		if( !p ) {
 			if ( verbose ) fprintf( stderr, RED "ERROR!" NORM "\n");
 			fprintf( stderr, "%s", banner );

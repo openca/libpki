@@ -39,4 +39,15 @@ int PKI_X509_print_parsed (const PKI_X509 *x, PKI_X509_DATA type, int fd );
 
 int PKI_X509_delete ( PKI_X509 *x );
 
+int PKI_X509_aux_data_set (PKI_X509 * x,
+	                         void     * data, 
+	                         void       (*data_free_func)(void *),
+	                         void     * (*data_dup_func )(void *));
+
+void * PKI_X509_aux_data_get(PKI_X509 * x);
+
+void * PKI_X509_aux_data_dup(PKI_X509 * x);
+
+int PKI_X509_aux_data_del(PKI_X509 * x);
+
 #endif

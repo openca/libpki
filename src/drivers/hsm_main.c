@@ -2,43 +2,77 @@
 
 #include <libpki/pki.h>
 
+// Small Hack - taps into OpenSSL internals.. needed for setting the right
+// algorithm for signing
+
+#ifdef EVP_MD_FLAG_PKEY_METHOD_SIGNATURE
+# define ENABLE_AMETH	1
+#endif
+
+#ifdef ENABLE_AMETH
+typedef struct my_meth_st {
+  int pkey_id;
+  int pkey_base_id;
+  unsigned long pkey_flags;
+  char *pem_str;
+  char *info;
+} LIBPKI_METH;
+#endif
+
 /* --------------------------- Static function(s) ------------------------- */
 
-/*
-static int __set_algorithm (PKI_ALGOR *alg, ASN1_OBJECT *obj, int ptype) {
+static int __set_algIdentifier (PKI_ALGOR              * alg, 
+	                            const PKI_DIGEST_ALG   * digest,
+	                            const PKI_X509_KEYPAIR * key) {
 
-	if (!alg) return PKI_ERR;
+	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
+	  // KeyPair Pointer
 
-	if (ptype != V_ASN1_UNDEF) {
-		if (alg->parameter == NULL) {
-			if((alg->parameter = ASN1_TYPE_new()) == NULL ) {
-				return PKI_ERR;
-			};
-		};
-	};
+	int pkey_type = 0;
+	int param_type = V_ASN1_UNDEF;
+	  // Parameter Type for Signature
 
-	if (alg->algorithm) {
-		ASN1_OBJECT_free(alg->algorithm);
-	}
-	alg->algorithm = obj;
+	// Input Checks
+	if (!key || !key->value || !digest || !alg ) 
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if (ptype == 0) {
-		return PKI_OK;
-	}
+	// Gets the KeyPair Pointer from the X509 structure
+	pkey = key->value;
 
-	if (ptype == V_ASN1_UNDEF) {
-		if (alg->parameter) {
-			ASN1_TYPE_free(alg->parameter);
-			alg->parameter = NULL;
-		}
-	} else {
-		ASN1_TYPE_set(alg->parameter, ptype, NULL);
-	}
+	// Gets the Signature Algorithm
+	pkey_type = EVP_MD_pkey_type(digest);
 
+#ifdef ENABLE_AMETH
+
+	struct my_meth_st *ameth     = NULL;
+	  // Pointer to the aMeth structure
+
+	// Gets the Reference to the Key's Method
+	if ((ameth = (struct my_meth_st *) pkey->ameth) == NULL)
+		return PKI_ERROR(PKI_ERR_POINTER_NULL, "Missing aMeth pointer.");
+
+	// Gets the right parameter
+	if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) param_type = V_ASN1_NULL;
+	else param_type = V_ASN1_UNDEF;
+
+#else // Else for aMeth
+
+	// Special Case for RFC 2459 (Omit Parameters)
+	if (pkey_type == PKI_ALGOR_DSA_SHA1) param_type = V_ASN1_NULL;
+	else param_type = V_ASN1_UNDEF;
+
+	if (alg->parameter) ASN1_TYPE_free(alg->parameter);
+	alg->parameter = NULL;
+
+#endif // End of aMeth
+
+	// Sets the Algorithms details
+	if (!X509_ALGOR_set0(alg, OBJ_nid2obj(pkey_type), param_type, NULL))
+		return PKI_ERROR(PKI_ERR_ALGOR_SET, "Cannot set the algorithm");
+
+	// All Done
 	return PKI_OK;
 }
-
-*/
 
 /*! \brief Returns the errno from the crypto layer */
 
@@ -389,169 +423,74 @@ int HSM_set_sign_algor ( PKI_ALGOR *alg, HSM *hsm ) {
 
 /* ------------------------ General PKI Signing ---------------------------- */
 
-// Small Hack - taps into OpenSSL internals.. needed for setting the right
-// algorithm for signing
-
-#ifdef EVP_MD_FLAG_PKEY_METHOD_SIGNATURE
-#define ENABLE_AMETH	1
-#endif
-
-#ifdef ENABLE_AMETH
-typedef struct my_meth_st {
-    	int pkey_id;
-    	int pkey_base_id;
-    	unsigned long pkey_flags;
-} LIBPKI_METH;
-#endif
-
 /*! \brief Signs a PKI_X509 object */
 
-int PKI_X509_sign(PKI_X509               * x, 
+int PKI_X509_sign(PKI_X509           * x, 
 		          const PKI_DIGEST_ALG   * digest,
 		          const PKI_X509_KEYPAIR * key) {
 
 	PKI_MEM *der = NULL;
 	PKI_MEM *sig = NULL;
+	  // Data structure for the signature
 
-	PKI_ALGOR *algs[] = {
-		NULL,
-		NULL,
-		NULL
-	};
+	PKI_ALGOR *a_pnt = NULL;
+	  // Pointer to the Algorithm Structure
 
-	PKI_STRING *signature = NULL;
+	PKI_STRING * sigPtr = NULL;
+	  // Pointer for the Signature in the PKIX data
 
-#ifdef ENABLE_AMETH
-	int signid = 0;
-	struct my_meth_st *ameth = NULL;
-	int paramtype = V_ASN1_UNDEF;
-	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
-#endif
-
-	int i;
-
+	// Input Checks
 	if (!x || !x->value || !key || !key->value ) 
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
+	// Sets the default Algorithm if none is provided
 	if (!digest) digest = PKI_DIGEST_ALG_DEFAULT;
 
-	algs[0] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1);
-	algs[1] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2);
-
-	// Check we got at least one
-	if (!algs[0] && !algs[1]) {
-		PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve the signing algorithm!");
-		return PKI_ERR;
+	// Gets the Internal (if any) Algorithm Identifier and sets the details
+	if ((a_pnt = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1)) != NULL) {
+		// Set the algorithm and parameter
+		if (PKI_OK != __set_algIdentifier(a_pnt, digest, key))
+			return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not set the Internal Algorithm.");
 	}
 
-	// DEBUGGING for Signatures
-	if (algs[0]) PKI_DEBUG("ALG0 => %s", PKI_ALGOR_get_parsed(algs[0]));
-	if (algs[1]) PKI_DEBUG("ALG1 => %s", PKI_ALGOR_get_parsed(algs[1]));
-
-#ifdef ENABLE_AMETH
-	pkey = key->value;
-	ameth = (struct my_meth_st *) pkey->ameth;
-
-# if OPENSSL_VERSION_NUMBER < 0x1010000fL
-	if (digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE) {
-		if (!ameth || !OBJ_find_sigid_by_algs(&signid, EVP_MD_nid(digest), 
-									ameth->pkey_id)) {
-			// ASN1_R_DIGEST_AND_KEY_TYPE_NOT_SUPPORTED
-			PKI_ERROR(PKI_ERR_GENERAL, "Digest and Key Type not supported");
-			return PKI_ERR;
-		}
-	} else {
-		signid = digest->pkey_type;
+	// Set the algorithm and parameter
+	if ((a_pnt = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2)) != NULL) {
+		// Sets the Algorithm's details
+		if (PKI_OK != __set_algIdentifier(a_pnt, digest, key))
+			return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not set the External Algorithm.");
 	}
-# else
-	signid = EVP_MD_pkey_type(digest);
-# endif
 
-	if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) paramtype = V_ASN1_NULL;
-	else paramtype = V_ASN1_UNDEF;
-
-	for (i = 0; i < 2; i++)
-	{
-		if (algs[i]) X509_ALGOR_set0(algs[i], OBJ_nid2obj(signid), paramtype, NULL);
-	}
-#else
-	// Get the pointers to the internal algor data - very OpenSSL related
-	for ( i = 0; i < 2; i ++ ) {
-
-		int p_type = 0;
-
-		PKI_ALGOR *a = NULL;
-
-		a = algs[i];
-
-		if (a == NULL) continue;
-
-		// Gets the Signature Algorithm
-		p_type = EVP_MD_pkey_type(digest);
-
-		if ((p_type == PKI_ALGOR_DSA_SHA1)
-#ifdef ENABLE_ECDSA
-			|| (p_type == PKI_ALGOR_ECDSA_SHA1 )    ||
-			   ( p_type == PKI_ALGOR_ECDSA_SHA256 ) ||
-			   ( p_type == PKI_ALGOR_ECDSA_SHA384 ) ||
-			   ( p_type == PKI_ALGOR_ECDSA_SHA512 )
-#endif
-				) {
-			if(a->parameter) ASN1_TYPE_free(a->parameter);
-			a->parameter = NULL;
-
-		} else if ((a->parameter == NULL) ||
-				(a->parameter->type != V_ASN1_NULL)) {
-
-			if(a->parameter) ASN1_TYPE_free(a->parameter);
-			if ((a->parameter=ASN1_TYPE_new()) == NULL) {
-				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-			}
-
-			a->parameter->type=V_ASN1_NULL;
-		}
-
-		a->algorithm = OBJ_nid2obj(p_type );
-
-		if (a->algorithm == NULL)
-			return PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Algorithm type is unknown");
-
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-		if (a->algorithm->length == 0)
-			return PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Algorithm type is unknown");
-#endif
-
-	}
-#endif
-
-	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL)
-	// if ((der = PKI_X509_get_der_tbs(x)) == NULL) 
-	// if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL)
-	{
-		// Puts the DER representation in a PKI_MEM structure
-		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, NULL, NULL )) == NULL)
-		{
+	// Retrieves the DER representation of the data to be signed
+	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
+		// Logs the issue
+		PKI_DEBUG("Can not get the DER representation of the PKIX data via tbs func");
+		// Builds the DER representation in a PKI_MEM structure
+		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, 
+		                                           NULL, NULL )) == NULL) {
+			// Logs the issue
+			PKI_DEBUG("Can not get the DER representation directly, aborting.");
 			// Can not encode into DER
 			return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
 		}
 	}
 
 	// Generates the Signature
-	if ((sig = PKI_sign(der, digest, key)) == NULL)
-	{
-		PKI_MEM_free(der);
+	if ((sig = PKI_sign(der, digest, key)) == NULL) {
+		// Error while creating the signature, aborting
+		if (der) PKI_MEM_free(der);
+		// Report the issue
 		return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 	}
 
 	// der work is finished, let's free the memory
-	PKI_MEM_free(der);
+	if (der) PKI_MEM_free(der);
+	der = NULL;
 
 	// Gets the reference to the X509 signature field
-	if ((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE)) == NULL) {
-
-		// Free the generated signature
+	if ((sigPtr = PKI_X509_get_data(x,
+		                              PKI_X509_DATA_SIGNATURE)) == NULL) {
+		// Error: Can not retrieve the generated signature, aborting
 		PKI_MEM_free (sig);
-
 		// Return the error
 		return PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get signature data");
 	}
@@ -561,12 +500,12 @@ int PKI_X509_sign(PKI_X509               * x,
 
 	// Transfer the ownership of the generated signature data (sig)
 	// to the signature field in the X509 structure (signature)
-	signature->data   = sig->data;
-	signature->length = (int) sig->size;
+	sigPtr->data   = sig->data;
+	sigPtr->length = (int) sig->size;
 
 	// Sets the flags into the signature field
-	signature->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT|0x07);
-	signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
+	sigPtr->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT|0x07);
+	sigPtr->flags |= ASN1_STRING_FLAG_BITS_LEFT;
 
 	// We can not free the data in the sig PKI_MEM because that is
 	// actually owned by the signature now, so let's change the
@@ -580,166 +519,12 @@ int PKI_X509_sign(PKI_X509               * x,
 	return PKI_OK;
 
 }
-
-/*
-int PKI_X509_sign(PKI_X509               * x,
-		  const PKI_DIGEST_ALG   * digest,
-		  const PKI_X509_KEYPAIR * key) {
-
-	PKI_MEM *der = NULL;
-	PKI_MEM *sig = NULL;
-
-	PKI_ALGOR *algs[] = {
-		NULL,
-		NULL,
-		NULL
-	};
-
-	PKI_STRING *signature = NULL;
-
-#ifdef ENABLE_AMETH
-	int signid = 0;
-	struct my_meth_st *ameth = NULL;
-	int paramtype = V_ASN1_UNDEF;
-	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
-#endif
-
-	int i;
-
-	if (!x || !x->value || !key || !key->value ) 
-		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-
-	if (!digest) digest = PKI_DIGEST_ALG_DEFAULT;
-
-	algs[0] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1);
-	algs[1] = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2);
-
-	// Check we got at least one
-	if( !algs[0] && !algs[1] )
-	{
-		PKI_log_debug("Can not retrieve sign algorithm!");
-		return PKI_ERR;
-	}
-
-
-#ifdef ENABLE_AMETH
-	pkey = key->value;
-	ameth = (struct my_meth_st *) pkey->ameth;
-
-	if (digest->flags & EVP_MD_FLAG_PKEY_METHOD_SIGNATURE)
-	{
-		if (!ameth || !OBJ_find_sigid_by_algs(&signid, EVP_MD_nid(digest), 
-			ameth->pkey_id))
-		{
-			// ASN1_R_DIGEST_AND_KEY_TYPE_NOT_SUPPORTED
-			return PKI_ERR;
-		}
-	}
-	else signid = digest->pkey_type;
-
-    if (ameth->pkey_flags & ASN1_PKEY_SIGPARAM_NULL) paramtype = V_ASN1_NULL;
-    else paramtype = V_ASN1_UNDEF;
-
-	for (i = 0; i < 2; i++)
-	{
-		if (algs[i]) X509_ALGOR_set0(algs[i], OBJ_nid2obj(signid), paramtype, NULL);
-	}
-#else
-	// Get the pointers to the internal algor data - very OpenSSL related
-	for ( i = 0; i < 2; i ++ ) {
-		PKI_ALGOR *a = NULL;
-
-		a = algs[i];
-
-		if ( a == NULL ) continue;
-
-		if ( (digest->pkey_type == PKI_ALGOR_DSA_SHA1)
-#ifdef ENABLE_ECDSA
-			|| ( digest->pkey_type == PKI_ALGOR_ECDSA_SHA1 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA256 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA384 ) ||
-			( digest->pkey_type == PKI_ALGOR_ECDSA_SHA512 )
-#endif
-				) {
-			if(a->parameter) ASN1_TYPE_free(a->parameter);
-			a->parameter = NULL;
-		} else if ((a->parameter == NULL) ||
-				(a->parameter->type != V_ASN1_NULL)) {
-
-			if(a->parameter) ASN1_TYPE_free(a->parameter);
-			if ((a->parameter=ASN1_TYPE_new()) == NULL) {
-				PKI_log_err ("Memory Error");
-				return PKI_ERR;
-			};
-			a->parameter->type=V_ASN1_NULL;
-		}
-
-		a->algorithm = OBJ_nid2obj( digest->pkey_type );
-
-		if (a->algorithm == NULL) {
-			PKI_log_err ("Unknown Object Type");
-			return PKI_ERR;
-		};
-
-`		if (a->algorithm->length == 0) {
-			PKI_log_err ("Object Identifier not valid or unknown!");
-			return PKI_ERR;
-		}
-	}
-#endif
-
-	if ((der = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
-		PKI_log_err("Can not get the DER representation for signing");
-		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, NULL, NULL )) == NULL)
-		{
-			PKI_log_debug("Can not convert object to ASN1");
-			return PKI_ERR;
-		}
-	}
-
-	if ((sig = PKI_sign(der, digest, key)) == NULL)
-	{
-		PKI_MEM_free ( der );
-		return PKI_ERR;
-	}
-
-	// der work is finished, let's free the memory
-	PKI_MEM_free ( der );
-
-	if ((signature = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE))==NULL)
-	{
-		PKI_MEM_free (sig);
-		PKI_log_debug("Can't get signature data");
-		return PKI_ERR;
-	}
-
-	if ( signature->data ) PKI_Free ( signature->data );
-
-	signature->data   = sig->data;
-	signature->length = (int) sig->size;
-
-	signature->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT|0x07);
-	signature->flags |=ASN1_STRING_FLAG_BITS_LEFT;
-
-	// We can not free the data in the sig PKI_MEM because that is
-	// actually owned by the signature now, so let's change the
-	// data pointer and then free the PKI_MEM data structure
-	sig->data = NULL;
-	sig->size = 0;
-
-	// Now we can free the signature mem
-	PKI_MEM_free(sig);
-
-	return PKI_OK;
-
-}
-*/
 
 /*! \brief General signature function on data */
 
 PKI_MEM *PKI_sign(const PKI_MEM          * der,
-		  const PKI_DIGEST_ALG   * alg,
-		  const PKI_X509_KEYPAIR * key ) {
+		              const PKI_DIGEST_ALG   * alg,
+		              const PKI_X509_KEYPAIR * key ) {
 
 	PKI_MEM *sig = NULL;
 	const HSM *hsm = NULL;
@@ -761,14 +546,14 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
 	if (hsm && hsm->callbacks && hsm->callbacks->sign) {
 
 		// Generates the signature by using the HSM callback
-		sig = hsm->callbacks->sign(
+		if ((sig = hsm->callbacks->sign(
 			           (PKI_MEM *)der, 
 			           (PKI_DIGEST_ALG *)alg, 
-			           (PKI_X509_KEYPAIR *)key);
+			           (PKI_X509_KEYPAIR *)key)) == NULL) {
 
-		// 	Provides some usefuly debugging info 
-		if (sig) PKI_log_debug("Signature Size (%d bytes)",
-			sig->size);
+			// Error: Signature was not generated
+			PKI_DEBUG("Can not generate signature (returned from sign cb)");
+		}
 
 	} else {
 
@@ -1041,7 +826,7 @@ err:
 /*! \brief Gets a stack of X509 objects from the URL in the HSM */
 
 PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url, 	
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_STACK *ret = NULL;
 
@@ -1052,7 +837,7 @@ PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url,
 	if( !hsm ) hsm = (HSM * ) HSM_get_default();
 
 	if( hsm  && hsm->callbacks && hsm->callbacks->x509_sk_get_url ) { 
-		ret = hsm->callbacks->x509_sk_get_url( type, url, cred, hsm );
+		ret = hsm->callbacks->x509_sk_get_url( type, url, format, cred, hsm );
 	};
 
         return ( ret );
@@ -1103,7 +888,7 @@ int HSM_MEM_STACK_put_url ( PKI_MEM_STACK *sk, URL *url, PKI_DATATYPE type,
 
 		/* Gets the objects (multiple, possibly) from each PKI_MEM */
 		if((mem_obj_sk = PKI_X509_STACK_get_mem ( mem, type, 
-						cred, hsm )) == NULL ) {
+						PKI_DATA_FORMAT_UNKNOWN, cred, hsm )) == NULL ) {
 			continue;
 		}
 

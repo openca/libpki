@@ -1180,6 +1180,7 @@ int HSM_PKCS11_rsa_sign ( int type, const unsigned char *m, unsigned int m_len,
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 	if (sig_pnt) X509_SIG_free(sig_pnt);
+	sig_pnt = NULL;
 #endif
 
 	// Returns Success (1 is success in OpenSSL)
@@ -1192,6 +1193,7 @@ err:
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
 	if (sig_pnt) X509_SIG_free(sig_pnt);
+	sig_pnt = NULL;
 #endif
 
 

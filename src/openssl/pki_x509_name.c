@@ -119,11 +119,11 @@ PKI_X509_NAME *PKI_X509_NAME_new (const char *name) {
 				val = PKI_Malloc ( len );
 				sscanf(token, "%[^=]=%[^\\]", key, val);
 
-				PKI_log_debug("ADDING KEY (mrdn=%d) -> %s", mrdn, key);
-
 				if (!X509_NAME_add_entry_by_txt(
 						(X509_NAME *) ret, key, (int) ctype, 
 							(const unsigned char *) val, -1, -1, mrdn)) {
+
+					PKI_ERROR(PKI_ERR_GENERAL, "Cannot Add Key (mrdn=%d) -> %s", mrdn, key);
 
 					err = PKI_ERROR_crypto_get_errdesc();
 					PKI_ERROR(PKI_ERR_GENERAL, err);

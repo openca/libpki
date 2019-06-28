@@ -23,6 +23,8 @@
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
 
+#include <openssl/cms.h>
+
 #ifdef ENABLE_ECDSA
 #include <openssl/ec.h>
 #endif
@@ -56,9 +58,9 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define  PKI_ID_UNKNOWN		NID_undef
 
 #define  PKI_DIGEST_ALG		EVP_MD
-#define	 PKI_ALGOR 		    X509_ALGOR
+#define	 PKI_ALGOR              X509_ALGOR
 #define	 PKI_ALGORITHM		X509_ALGOR
-#define  PKI_CIPHER		    EVP_CIPHER
+#define  PKI_CIPHER             EVP_CIPHER
 
 #define PKI_X509_NAME		X509_NAME
 
@@ -432,7 +434,7 @@ typedef enum {
 	PKI_X509_NAME_TYPE_UID	=	102 ,
 #endif
 	PKI_X509_NAME_TYPE_SN	=	NID_serialNumber ,
-	/* Strange Types - do not use them... :D */
+	// Strange Types - do not use them... :D
 	PKI_X509_NAME_TYPE_S	=	NID_surname ,
 	PKI_X509_NAME_TYPE_G	=	NID_givenName ,
 	PKI_X509_NAME_TYPE_I	=	NID_initials ,
@@ -441,16 +443,17 @@ typedef enum {
 	PKI_X509_NAME_TYPE_name	=	NID_name ,
 	PKI_X509_NAME_TYPE_dnQualifier	=	NID_dnQualifier ,
 	PKI_X509_NAME_TYPE_DATA	=	NID_data ,
+	PKI_X509_NAME_TYPE_SERIALNUMBER	=	NID_serialNumber ,
 } PKI_X509_NAME_TYPE;
 
-/* PKI_X509_NAME_RDN - useful when getting specific parts of a DN only */
+// PKI_X509_NAME_RDN - useful when getting specific parts of a DN only
 
 typedef struct pki_x509_name_rdn {
 	PKI_X509_NAME_TYPE type;
 	char * value;
 } PKI_X509_NAME_RDN;
 
-/* PKI_X509_EXTENSION */
+// PKI_X509_EXTENSION
 
 typedef struct pki_x509_extension_st {
 	PKI_OID *oid;
@@ -477,7 +480,6 @@ typedef enum {
 
 #define PKI_EC_KEY_ASN1_DEFAULT			PKI_EC_KEY_ASN1_NAMED_CURVE
 
-
 typedef struct pki_keyparams_st {
 	int bits;
 	PKI_SCHEME_ID scheme;
@@ -499,149 +501,6 @@ typedef struct pki_keyparams_st {
 
 } PKI_KEYPARAMS;
 
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-
-typedef struct pki_x509_cinf_full {
-        ASN1_INTEGER *version;          /* [ 0 ] default of v1 */
-        ASN1_INTEGER *serialNumber;
-        X509_ALGOR *signature;
-        X509_NAME *issuer;
-        X509_VAL *validity;
-        X509_NAME *subject;
-        X509_PUBKEY *key;
-        ASN1_BIT_STRING *issuerUID;             /* [ 1 ] optional in v2 */
-        ASN1_BIT_STRING *subjectUID;            /* [ 2 ] optional in v2 */
-        STACK_OF(X509_EXTENSION) *extensions;   /* [ 3 ] optional in v3 */
-	ASN1_ENCODING enc;
-} PKI_X509_CINF_FULL;
-
-#endif
-
-
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-
-typedef struct X509_crl_info_full {
-    ASN1_INTEGER *version;      /* version: defaults to v1(0) so may be NULL */
-    X509_ALGOR sig_alg;         /* signature algorithm */
-    X509_NAME *issuer;          /* CRL issuer name */
-    ASN1_TIME *lastUpdate;      /* lastUpdate field */
-    ASN1_TIME *nextUpdate;      /* nextUpdate field: optional */
-    STACK_OF(X509_REVOKED) *revoked;        /* revoked entries: optional */
-    STACK_OF(X509_EXTENSION) *extensions;   /* extensions: optional */
-    ASN1_ENCODING enc;                      /* encoding of signed portion of CRL */
-} PKI_X509_CRL_INFO;
-
-#endif
-
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-
-/* a sequence of these are used */
-typedef struct x509_attributes_st {
-    ASN1_OBJECT *object;
-    int single;                 /* 0 for a set, 1 for a single item (which is
-                                 * wrong) */
-    union {
-        char *ptr;
-        /*
-         * 0
-         */ STACK_OF(ASN1_TYPE) *set;
-        /*
-         * 1
-         */ ASN1_TYPE *single;
-    } value;
-} PKI_X509_ATTRIBUTE_FULL;
-
-#endif
-
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-
-typedef struct X509_crl_st {
-    PKI_X509_CRL_INFO crl;          /* signed CRL data */
-    X509_ALGOR sig_alg;         /* CRL signature algorithm */
-    ASN1_BIT_STRING signature;  /* CRL signature */
-    // The rest of the structure is still blinded
-} PKI_X509_CRL_FULL;
-
-#endif
-
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-
-// OCSP Generic
-
-typedef struct ocsp_cert_id_st {
-    X509_ALGOR hashAlgorithm;
-    ASN1_OCTET_STRING issuerNameHash;
-    ASN1_OCTET_STRING issuerKeyHash;
-    ASN1_INTEGER serialNumber;
-} OSSL_OCSP_CERTID;
-
-// OCSP Request
-typedef struct ocsp_req_info_st {
-    ASN1_INTEGER *version;
-    GENERAL_NAME *requestorName;
-    STACK_OF(OCSP_ONEREQ) *requestList;
-    STACK_OF(X509_EXTENSION) *requestExtensions;
-} OSSL_OCSP_REQ_INFO;
-
-typedef struct ocsp_signature_st {
-    X509_ALGOR signatureAlgorithm;
-    ASN1_BIT_STRING *signature;
-    STACK_OF(X509) *certs;
-} OSSL_OCSP_SIGNATURE;
-
-typedef struct ocsp_request_st {
-    OCSP_REQINFO tbsRequest;
-    OCSP_SIGNATURE *optionalSignature; /* OPTIONAL */
-} OSSL_OCSP_REQUEST;
-
-// OCSP Responses
-
-typedef struct ocsp_single_response_st {
-    OSSL_OCSP_CERTID *certId;
-    OCSP_CERTSTATUS *certStatus;
-    ASN1_GENERALIZEDTIME *thisUpdate;
-    ASN1_GENERALIZEDTIME *nextUpdate;
-    STACK_OF(X509_EXTENSION) *singleExtensions;
-} OSSL_OCSP_SINGLERESP;
-
-typedef struct ocsp_responder_id_st {
-    int type;
-    union {
-        X509_NAME *byName;
-        ASN1_OCTET_STRING *byKey;
-    } value;
-} OSSL_OCSP_RESPID;
-
-typedef struct ocsp_response_data_st {
-    ASN1_INTEGER *version;
-    OCSP_RESPID responderId;
-    ASN1_GENERALIZEDTIME *producedAt;
-    STACK_OF(OSSL_OCSP_SINGLERESP) *responses;
-    STACK_OF(X509_EXTENSION) *responseExtensions;
-} OSSL_OCSP_RESPDATA;
-
-typedef struct ocsp_basic_response_st {
-    OSSL_OCSP_RESPDATA tbsResponseData;
-    X509_ALGOR signatureAlgorithm;
-    ASN1_BIT_STRING *signature;
-    STACK_OF(X509) *certs;
-} OSSL_OCSP_BASICRESP;
-
-typedef struct ocsp_resp_bytes_st {
-    ASN1_OBJECT *responseType;
-    ASN1_OCTET_STRING *response;
-} OSS_OCSP_RESPBYTES;
-
-typedef struct ocsp_response_st {
-    ASN1_ENUMERATED *responseStatus;
-    OCSP_RESPBYTES *responseBytes;
-} OSSL_OCSP_RESPONSE;
-
-#else
-
-
-#endif
-
 typedef X509_REVOKED	PKI_X509_CRL_ENTRY;
 
 typedef struct pki_digest_data {
@@ -654,41 +513,40 @@ typedef struct pki_store_st {
         void	*store_ptr;
 } PKI_STORE;
 
-// #define PKI_IO			BIO
+#define PKI_X509_KEYPAIR_VALUE  EVP_PKEY
+#define PKI_X509_KEYPAIR        PKI_X509
 
-#define PKI_X509_KEYPAIR_VALUE		EVP_PKEY
-#define PKI_X509_KEYPAIR		PKI_X509
+#define PKI_X509_CERT_VALUE     X509 	
+#define PKI_X509_CERT           PKI_X509 	
 
-#define PKI_X509_CERT_VALUE 		X509 	
-#define PKI_X509_CERT 			PKI_X509 	
+#define PKI_X509_REQ_VALUE      X509_REQ
+#define PKI_X509_REQ            PKI_X509 	
 
-#define PKI_X509_REQ_VALUE 		X509_REQ
-#define PKI_X509_REQ 			PKI_X509 	
+#define PKI_X509_CRL_VALUE      X509_CRL 
+#define PKI_X509_CRL            PKI_X509 
 
-#define PKI_X509_CRL_VALUE		X509_CRL 
-#define PKI_X509_CRL			PKI_X509 
+#define PKI_X509_PKCS7_VALUE    PKCS7
+#define PKI_X509_PKCS7          PKI_X509
 
-#define PKI_X509_PKCS7_VALUE		PKCS7
-#define PKI_X509_PKCS7			PKI_X509
+#define PKI_X509_CMS_VALUE      CMS_ContentInfo
+#define PKI_X509_CMS            PKI_X509
 
-#define PKI_X509_PKCS12_VALUE		PKCS12
-#define PKI_X509_PKCS12_DATA		STACK_OF(PKCS7)
-#define PKI_X509_PKCS12			PKI_X509
+#define PKI_X509_CMS_SIGNER_INFO CMS_SignerInfo
+#define PKI_X509_CMS_RECIPIENT_INFO CMS_RecipientInfo
 
-#define PKI_OCSP_REQ_SINGLE		OCSP_ONEREQ
-#define PKI_OCSP_CERTID			OCSP_CERTID
+#define PKI_X509_PKCS12_VALUE   PKCS12
+#define PKI_X509_PKCS12_DATA    STACK_OF(PKCS7)
+#define PKI_X509_PKCS12         PKI_X509
 
-#define PKI_X509_OCSP_REQ_VALUE		OCSP_REQUEST
-#define PKI_X509_OCSP_REQ		PKI_X509
+#define PKI_OCSP_REQ_SINGLE     OCSP_ONEREQ
+#define PKI_OCSP_CERTID         OCSP_CERTID
+
+#define PKI_X509_OCSP_REQ_VALUE OCSP_REQUEST
+#define PKI_X509_OCSP_REQ       PKI_X509
 
 typedef struct pki_ocsp_resp_st {
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-	OSSL_OCSP_RESPONSE * resp;
-	OSSL_OCSP_BASICRESP * bs;
-#else
 	OCSP_RESPONSE * resp;
 	OCSP_BASICRESP *bs;
-#endif
 } PKI_OCSP_RESP;
 
 typedef enum {
@@ -697,20 +555,17 @@ typedef enum {
 	PKI_X509_OCSP_RESPID_TYPE_BY_KEYID =  1
 } PKI_X509_OCSP_RESPID_TYPE;
 
-#define PKI_X509_OCSP_RESP_VALUE	OCSP_RESPONSE
-#define PKI_X509_OCSP_RESP		PKI_X509
+#define PKI_X509_OCSP_RESP_VALUE OCSP_RESPONSE
+#define PKI_X509_OCSP_RESP       PKI_X509
 
-#define PKI_X509_XPAIR_VALUE		PKI_XPAIR
-#define PKI_X509_XPAIR			PKI_X509
+#define PKI_X509_XPAIR_VALUE     PKI_XPAIR
+#define PKI_X509_XPAIR           PKI_X509
 
-#define PKI_X509_PRQP_REQ_VALUE		PKI_PRQP_REQ
-#define PKI_X509_PRQP_REQ		PKI_X509
+#define PKI_X509_PRQP_REQ_VALUE  PKI_PRQP_REQ
+#define PKI_X509_PRQP_REQ        PKI_X509
 
-#define PKI_X509_PRQP_RESP_VALUE	PKI_PRQP_RESP
-#define PKI_X509_PRQP_RESP		PKI_X509
-
-#define PKI_X509_LIRT_VALUE		PKI_LIRT
-#define PKI_X509_LIRT			PKI_X509
+#define PKI_X509_PRQP_RESP_VALUE PKI_PRQP_RESP
+#define PKI_X509_PRQP_RESP       PKI_X509
 
 #include <libpki/hsm_st.h>
 #include <libpki/token_st.h>

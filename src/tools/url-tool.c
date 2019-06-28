@@ -127,7 +127,8 @@ int main (int argc, char *argv[]) {
 
 		PKI_X509_CERT_STACK *sk = NULL;
 
-		if ((sk = PKI_X509_CERT_STACK_get(trusted_certs, NULL, NULL)) == 0) {
+		if ((sk = PKI_X509_CERT_STACK_get(trusted_certs, PKI_DATA_FORMAT_UNKNOWN,
+																NULL, NULL)) == 0) {
 			fprintf(stderr, "Can't load Trusted Certs from %s", trusted_certs);
 			return 1;
 		}		

@@ -1,6 +1,7 @@
 /* PKI_X509_OCSP_RESP object management */
 
 #include <libpki/pki.h>
+#include "internal/x509_data_st.h"
 
 /* ---------------------------- Memory Management ----------------------- */
 
@@ -10,8 +11,8 @@ PKI_OCSP_RESP *PKI_OCSP_RESP_new ( void )
 {
 	// Crypto Provider's specific data structures
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
-	OSSL_OCSP_RESPONSE  * r = NULL;
-	OSSL_OCSP_BASICRESP * bs = NULL;
+	LIBPKI_X509_OCSP_RESPONSE  * r = NULL;
+	LIBPKI_X509_OCSP_BASICRESP * bs = NULL;
 #else
 	PKI_X509_OCSP_RESP_VALUE * r = NULL;
 	OCSP_BASICRESP           * bs = NULL;

@@ -526,38 +526,20 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT    * ca_cert,
   }
 
   // No Digest Here ? We failed...
-  if (digest == NULL)
-  {
-    PKI_log_err("PKI_X509_CERT_new()::Can not get the digest!");
-    return( NULL );
+  if (digest == NULL) {
+    PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
+    return NULL;
   }
 
   // Sign the data
-  if (PKI_X509_sign(ret, digest, kPair) == PKI_ERR)
-  {
-    PKI_log_err ("Can not sign certificate [%s]",
+  if (PKI_X509_sign(ret, digest, kPair) == PKI_ERR) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not sign certificate [%s]",
       ERR_error_string(ERR_get_error(), NULL ));
     PKI_X509_CERT_free ( ret );
     return NULL;
   }
 
-#if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
-
-# if OPENSSL_VERSION_NUMBER < 0x1010000fL
-  PKI_X509_CERT_VALUE *cVal = (PKI_X509_CERT_VALUE *) ret->value;
-
-  if (cVal && cVal->cert_info)
-  {
-    PKI_log_debug("Signature = %s", 
-      PKI_ALGOR_get_parsed(cVal->cert_info->signature));
-  }
-# endif
-
-  //  PKI_X509_CINF_FULL *cFull = NULL;
-  //  cFull = (PKI_X509_CINF_FULL *) cVal->cert_info;
-  //  cFull->enc.modified = 1;
-#endif
-
+  // All Done
   return ret;
 
 err:
@@ -578,31 +560,27 @@ int PKI_X509_CERT_sign(PKI_X509_CERT *cert, PKI_X509_KEYPAIR *kp,
 
   const PKI_ALGOR *alg = NULL;
 
-  if( !cert || !cert->value || !kp || !kp->value ) {
-    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-    return PKI_ERR;
+  // Input Checks
+  if (!cert || !cert->value || !kp || !kp->value)
+    return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+  // Gets the digest (if none provided)
+  if (!digest && ((alg = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_ALGORITHM)) != NULL)) {
+    digest = PKI_ALGOR_get_digest ( alg );
   }
 
-  if(!digest) {
-    if((alg = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_ALGORITHM))!=NULL) {
-      digest = PKI_ALGOR_get_digest ( alg );
-    }
+  // Gets the digest (2nd method)
+  if(!digest && ((digest = PKI_DIGEST_ALG_get_by_key(kp)) == NULL)) {
+    return PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
   }
 
-  if(!digest) {
-    if((digest = PKI_DIGEST_ALG_get_by_key(kp)) == NULL) {
-      PKI_log_err("PKI_X509_CERT_new()::Can not get digest algor "
-          "from key");
-      return PKI_ERR;
-    }
-  }
-
-  if( PKI_X509_sign(cert, digest, kp) == PKI_ERR) {
-    PKI_log_err ("PKI_X509_CERT_new()::Can not sign certificate [%s]",
+  // Signs the Certificate
+  if (PKI_X509_sign(cert, digest, kp) == PKI_ERR) {
+    return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not sign certificate [%s]",
       ERR_error_string(ERR_get_error(), NULL ));
-    return PKI_ERR;
   }
 
+  // All Done
   return PKI_OK;
 };
 
@@ -615,21 +593,20 @@ int PKI_X509_CERT_sign_tk ( PKI_X509_CERT *cert, PKI_TOKEN *tk,
 
   PKI_X509_KEYPAIR *kp = NULL;
 
-  if( !cert || !cert->value || !tk ) {
-    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-    return PKI_ERR;
-  };
+  // Input Checks
+  if (!cert || !cert->value || !tk)
+    return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-  if( PKI_TOKEN_login( tk ) == PKI_ERR ) {
-    PKI_ERROR(PKI_ERR_HSM_LOGIN, NULL);
-    return PKI_ERR;
-  };
+  // Makes sure we are logged into the token
+  if (PKI_TOKEN_login(tk) == PKI_ERR)
+    return PKI_ERROR(PKI_ERR_HSM_LOGIN, NULL);
 
-  if((kp = PKI_TOKEN_get_keypair( tk )) == NULL ) {
+  // Retrieves the reference to the KeyPair
+  if ((kp = PKI_TOKEN_get_keypair(tk)) == NULL)
     return PKI_ERR;
-  };
 
-  return PKI_X509_CERT_sign ( cert, kp, digest );
+  // Signs the Certificate
+  return PKI_X509_CERT_sign(cert, kp, digest);
 };
 
 
@@ -776,7 +753,7 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
       ret = (tmp_x)->signature;
 #else
-      ret = &(tmp_x)->signature;
+      ret = &(tmp_x->signature);
 #endif
       break;
 
@@ -787,7 +764,7 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
       if (tmp_x->cert_info && tmp_x->cert_info->signature)
         ret = tmp_x->cert_info->signature;
 #else
-	ret = X509_get0_tbs_sigalg((const X509 *)x->value);
+      ret = X509_get0_tbs_sigalg((const X509 *)x->value);
 #endif
       break;
 
@@ -1049,6 +1026,8 @@ char * PKI_X509_CERT_get_parsed(const PKI_X509_CERT *x,
       break;
 
     case PKI_X509_DATA_ALGORITHM:
+    case PKI_X509_DATA_SIGNATURE_ALG1:
+    case PKI_X509_DATA_SIGNATURE_ALG2:
       ret = (char *) PKI_ALGOR_get_parsed((PKI_ALGOR *) 
 		      			  PKI_X509_CERT_get_data(x,type));
       break;

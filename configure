@@ -839,8 +839,18 @@ build_cpu
 build
 extra_checks
 sdkver
+BUILD_DATE_PRETTY
+BUILD_DATE_FULL
+BUILD_DATE
+sec
+min
+hr
+day
+mon
+yr
 shlib_history
 shlib_version
+txt_revision
 lib_revision
 lib_micro
 lib_minor
@@ -2607,7 +2617,7 @@ let "iface_age=$iface_current - $iface_oldest"
 lib_major=`echo $PACKAGE_VERSION | sed -e "s|\..*||"`
 lib_minor=`echo $PACKAGE_VERSION | sed -e "s|[0-9]*\.||" | sed -e "s|\..*||g"`
 lib_micro=`echo $PACKAGE_VERSION | sed -e "s|[0-9]*\.[0-9]*\.||"`
-lib_revision=`echo $PACKAGE_VERSION | sed -e "s|[0-9]*\.[0-9]*\.[0-9]*\.*||"`
+# lib_revision=`echo $PACKAGE_VERSION | sed -e "s|[[0-9]]*\.[[0-9]]*\.[[0-9]]*\.*||"`
 
 # Basic Library Config
 shlib_version="$lib_major.$lib_minor"
@@ -2625,15 +2635,49 @@ if [ $lib_micro -lt 10 ] ; then
        	lib_micro="0"$lib_micro
 fi
 
-if [ "x$lib_revision" = "x" ] ; then
+lib_revision=$(printf "%02d" $((RC-1)))
+if [ $lib_revision -le 0 ] ; then
+
 	lib_revision=00
+	txt_revision=
+
 else
+
+    base_value=$(printf "%d" \'a)
+    letter_value=$((base_value+lib_revision-1))
+
+	txt_revision=$(printf "%b" $(printf '\\%03o' $letter_value));
+
 	if [ $lib_revision -lt 10 ] ; then
 		lib_revision = "0"$lib_revision
 	fi
 fi
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Build Date Information
+yr=`TZ=GMT date +%Y`
+mon=`TZ=GMT date +%m`
+day=`TZ=GMT date +%d`
+hr=`TZ=GMT date +%H`
+min=`TZ=GMT date +%M`
+sec=`TZ=GMT date +%S`
+
+BUILD_DATE=`date +%Y-%m-%d`
+BUILD_DATE_FULL=`TZ=GMT date`
+BUILD_DATE_PRETTY=`TZ=GMT date +"%d %h %Y"`
 
 
 
@@ -17532,7 +17576,7 @@ etc_dir=${prefix}/etc
 
 
 
-ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/scep/Makefile src/cms/Makefile src/prqp/Makefile src/lirt/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
+ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
 
 
 cat >confcache <<\_ACEOF
@@ -18617,10 +18661,10 @@ do
     "src/openssl/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/Makefile" ;;
     "src/io/Makefile") CONFIG_FILES="$CONFIG_FILES src/io/Makefile" ;;
     "src/net/Makefile") CONFIG_FILES="$CONFIG_FILES src/net/Makefile" ;;
+    "src/est/Makefile") CONFIG_FILES="$CONFIG_FILES src/est/Makefile" ;;
     "src/scep/Makefile") CONFIG_FILES="$CONFIG_FILES src/scep/Makefile" ;;
-    "src/cms/Makefile") CONFIG_FILES="$CONFIG_FILES src/cms/Makefile" ;;
+    "src/cmc/Makefile") CONFIG_FILES="$CONFIG_FILES src/cmc/Makefile" ;;
     "src/prqp/Makefile") CONFIG_FILES="$CONFIG_FILES src/prqp/Makefile" ;;
-    "src/lirt/Makefile") CONFIG_FILES="$CONFIG_FILES src/lirt/Makefile" ;;
     "src/tools/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/Makefile" ;;
     "src/scripts/libpki-config") CONFIG_FILES="$CONFIG_FILES src/scripts/libpki-config" ;;
     "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;

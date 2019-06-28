@@ -688,14 +688,14 @@ PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_new_url( char * ca_cert_s, char *ca_issuer_
 	PKI_X509_CERT *issuedCert = NULL;
 
 	if( ca_cert_s &&
-		((caCert = PKI_X509_CERT_get( ca_cert_s, NULL, NULL )) == NULL)) {
+		((caCert = PKI_X509_CERT_get( ca_cert_s, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL )) == NULL)) {
 		PKI_log_err ("Can not get CA Certificate from %s", ca_cert_s );
 		return( NULL );
 	}
 
 	if( ca_issuer_cert_s &&
 		( ( caIssuerCert = PKI_X509_CERT_get (
-			(char *)ca_issuer_cert_s, NULL, NULL ))== NULL)){
+			(char *)ca_issuer_cert_s, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL ))== NULL)){
 		if( caCert ) PKI_X509_CERT_free ( caCert );
 		PKI_log_err ("Can not get Issuer Certificate from %s", 
 							ca_issuer_cert_s );
@@ -704,7 +704,7 @@ PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_new_url( char * ca_cert_s, char *ca_issuer_
 
 	if( issued_cert_s &&
 		(( issuedCert = PKI_X509_CERT_get ( 
-			(char *) issued_cert_s, NULL, NULL ) )== NULL) ){
+			(char *) issued_cert_s, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL ) )== NULL) ){
 		if( caIssuerCert ) PKI_X509_CERT_free ( caIssuerCert );
 		if( caCert ) PKI_X509_CERT_free ( caCert );
 		PKI_log_err ("Can not get Issued Certificate from %s", 

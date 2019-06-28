@@ -8,14 +8,17 @@
 #define PEM_STRING_X509_XPAIR "CROSS CERTIFICATE PAIR"
 
 /* --------------------- X509 CERT get (load) functions ------------------- */
-PKI_X509_XPAIR *PKI_X509_XPAIR_get ( char *url_s, PKI_CRED *cred, HSM *hsm );
-PKI_X509_XPAIR *PKI_X509_XPAIR_get_url ( URL *url, PKI_CRED *cred, HSM *hsm );
-PKI_X509_XPAIR *PKI_X509_XPAIR_get_mem( PKI_MEM *mem, PKI_CRED *cred, HSM *hsm);
+PKI_X509_XPAIR *PKI_X509_XPAIR_get ( char *url_s, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm );
+PKI_X509_XPAIR *PKI_X509_XPAIR_get_url ( URL *url, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm );
+PKI_X509_XPAIR *PKI_X509_XPAIR_get_mem( PKI_MEM *mem, PKI_DATA_FORMAT format,
+					PKI_CRED *cred, HSM *hsm);
 
-PKI_X509_XPAIR_STACK *PKI_X509_XPAIR_STACK_get ( char *url_s, PKI_CRED *cred,
-								HSM *hsm );
-PKI_X509_XPAIR_STACK *PKI_X509_XPAIR_STACK_get_url ( URL *url , PKI_CRED *cred,
-								HSM *hsm);
+PKI_X509_XPAIR_STACK *PKI_X509_XPAIR_STACK_get ( char *url_s,
+					PKI_DATA_FORMAT format, PKI_CRED *cred,	HSM *hsm );
+PKI_X509_XPAIR_STACK *PKI_X509_XPAIR_STACK_get_url ( URL *url,
+					PKI_DATA_FORMAT format, PKI_CRED *cred,	HSM *hsm);
 
 /* -------------------- X509 CERT put (write) functions ------------------- */
 int PKI_X509_XPAIR_put ( PKI_X509_XPAIR *x, PKI_DATA_FORMAT format, 
@@ -32,8 +35,8 @@ int PKI_X509_XPAIR_STACK_put_url (PKI_X509_XPAIR_STACK *sk,
 
 /* ---------------------- X509_XPAIR mem Operations ------------------------ */
 
-PKI_X509_XPAIR_STACK *PKI_X509_XPAIR_STACK_get_mem ( PKI_MEM *mem, 
-							PKI_CRED *cred);
+PKI_X509_XPAIR_STACK *PKI_X509_XPAIR_STACK_get_mem(PKI_MEM *mem, 
+					PKI_DATA_FORMAT format, PKI_CRED *cred);
 
 PKI_MEM * PKI_X509_XPAIR_STACK_put_mem ( PKI_X509_XPAIR_STACK *sk, 
 	PKI_DATA_FORMAT format, PKI_MEM **pki_mem, PKI_CRED *cred, HSM *hsm );

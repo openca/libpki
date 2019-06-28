@@ -16,10 +16,10 @@ AM_CPPFLAGS = -I$(TOP) \
 
 SRCS = \
 	asn1.c \
-	cms_cert_req.c \
-	cms_simple.c
+	cmc_cert_req.c \
+	cmc_simple.c
 
-noinst_LTLIBRARIES = libpki-cms.la
-libpki_cms_la_SOURCES = $(SRCS)
-libpki_cms_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+noinst_LTLIBRARIES = libpki-cmc.la
+libpki_cmc_la_SOURCES = $(SRCS)
+libpki_cmc_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 

@@ -409,7 +409,7 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		};
 	} else {
-		if((crl = PKI_X509_CRL_get_url( inUrl, NULL, NULL )) == NULL) {
+		if((crl = PKI_X509_CRL_get_url( inUrl, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL )) == NULL) {
 			if(!verbose) fprintf(stderr,"\n");
 			fprintf( stderr, BOLD RED "    ERROR: " 
 					NORM "Can not open certificate URL " BLUE "(%s)\n\n" NORM,

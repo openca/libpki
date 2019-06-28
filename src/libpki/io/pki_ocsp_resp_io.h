@@ -8,18 +8,18 @@
 
 /* ------------------- OCSP_REQ get Operations --------------------------- */
 PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_get ( char *url_s, 
-						PKI_CRED *cred, HSM *hsm );
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_get_url ( URL *url, 
-						PKI_CRED *cred, HSM *hsm );
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_get_mem ( PKI_MEM *url, 
-						PKI_CRED *cred );
+						PKI_DATA_FORMAT format, PKI_CRED *cred );
 
 PKI_X509_OCSP_RESP_STACK *PKI_X509_OCSP_RESP_STACK_get ( char *url_s, 
-					PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 PKI_X509_OCSP_RESP_STACK *PKI_X509_OCSP_RESP_STACK_get_url ( URL *url, 
-					PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 PKI_X509_OCSP_RESP_STACK *PKI_X509_OCSP_RESP_STACK_get_mem ( PKI_MEM *url, 
-					PKI_CRED *cred );
+					PKI_DATA_FORMAT format, PKI_CRED *cred );
 
 /* ------------------- OCSP_REQ put Operations --------------------------- */
 int PKI_X509_OCSP_RESP_put (PKI_X509_OCSP_RESP *r, PKI_DATA_FORMAT format, 

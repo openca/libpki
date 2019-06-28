@@ -66,15 +66,15 @@ int PKI_verify_signature(const PKI_MEM *data,
 /* ------------------- PKI Object Retrieval ( Get ) ----------------------- */
 
 PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url,
-                                                PKI_CRED *cred, HSM *hsm );
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
 
 /* --------------------- PKI Object Import ( Put ) ------------------------ */
 
 int HSM_X509_STACK_put_url ( PKI_X509_STACK *sk, URL *url,
-                                                PKI_CRED *cred, HSM *hsm );
+                    PKI_CRED *cred, HSM *hsm );
 
 int HSM_MEM_STACK_put_url ( PKI_MEM_STACK *sk, URL *url, PKI_DATATYPE type,
-                                                PKI_CRED *cred, HSM *hsm );
+                    PKI_CRED *cred, HSM *hsm );
 
 /* --------------------- PKI Object Delete ( Del ) ------------------------ */
 

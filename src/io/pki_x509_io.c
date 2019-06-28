@@ -4,7 +4,7 @@
 
 /*! \brief Returns the PKI_X509_XXX_VALUE * from the passed URL */
 
-void *PKI_get_value ( char *url_s, PKI_DATATYPE type, 
+void *PKI_get_value ( char *url_s, PKI_DATATYPE type, PKI_DATA_FORMAT format,
 					PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_X509 *x_obj = NULL;
@@ -12,7 +12,7 @@ void *PKI_get_value ( char *url_s, PKI_DATATYPE type,
 
 	if( !url_s ) return NULL;
 
-	if((x_obj = PKI_X509_get ( url_s, type, cred, hsm )) == NULL ) {
+	if((x_obj = PKI_X509_get ( url_s, type, format, cred, hsm )) == NULL ) {
 		return NULL;
 	}
 
@@ -35,7 +35,7 @@ void *PKI_get_value ( char *url_s, PKI_DATATYPE type,
  */
 
 PKI_X509 *PKI_X509_get ( char *url_s, PKI_DATATYPE type, 
-					PKI_CRED *cred, HSM *hsm ) {
+					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	PKI_X509 * ret = NULL;
 	URL *url = NULL;
@@ -46,7 +46,7 @@ PKI_X509 *PKI_X509_get ( char *url_s, PKI_DATATYPE type,
 		return (NULL);
 	}
 
-	ret = PKI_X509_get_url ( url, type, cred, hsm );
+	ret = PKI_X509_get_url ( url, type, format, cred, hsm );
 
 	if( url ) URL_free ( url );
 	return( ret );
@@ -64,10 +64,11 @@ PKI_X509 *PKI_X509_get ( char *url_s, PKI_DATATYPE type,
  *
  */
 
-PKI_X509 *PKI_X509_get_url(URL          * url,
-			   PKI_DATATYPE   type, 
-			   PKI_CRED     * cred,
-			   HSM          * hsm ) {
+PKI_X509 *PKI_X509_get_url(URL * url,
+			   PKI_DATATYPE    type,
+			   PKI_DATA_FORMAT format, 
+			   PKI_CRED        * cred,
+			   HSM             * hsm ) {
 
 	PKI_X509_STACK *sk = NULL;
 	PKI_X509 * ret = NULL;
@@ -79,7 +80,7 @@ PKI_X509 *PKI_X509_get_url(URL          * url,
 	}
 
 	// Gets the stack of PKI_X509 from the provided URL
-	if ((sk = PKI_X509_STACK_get_url(url, type, cred, hsm)) == NULL) {
+	if ((sk = PKI_X509_STACK_get_url(url, type, format, cred, hsm)) == NULL) {
 		return (NULL);
 	}
 
@@ -115,7 +116,7 @@ PKI_X509 *PKI_X509_get_url(URL          * url,
  */
 
 PKI_X509_STACK *PKI_X509_STACK_get ( char *url_s, PKI_DATATYPE type, 
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 
 	URL *url = NULL;
 	PKI_X509_STACK *ret = NULL;
@@ -126,7 +127,7 @@ PKI_X509_STACK *PKI_X509_STACK_get ( char *url_s, PKI_DATATYPE type,
 		return(NULL);
 	}
 
-	ret = PKI_X509_STACK_get_url ( url, type, cred, hsm );
+	ret = PKI_X509_STACK_get_url ( url, type, format, cred, hsm );
 
 	if( url ) URL_free ( url );
 	return ( ret );
@@ -146,7 +147,7 @@ PKI_X509_STACK *PKI_X509_STACK_get ( char *url_s, PKI_DATATYPE type,
  */
 
 PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
-						PKI_CRED *cred, HSM *hsm ) {
+						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
 	
 	PKI_X509_STACK *ret = NULL;
 		// Return Stack of X509
@@ -171,6 +172,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		PKI_DATATYPE_X509_CERT,
 		PKI_DATATYPE_X509_CRL,
 		PKI_DATATYPE_X509_PKCS7,
+		PKI_DATATYPE_X509_CMS,
 		PKI_DATATYPE_X509_PKCS12,
 		PKI_DATATYPE_X509_OCSP_REQ,
 		PKI_DATATYPE_X509_OCSP_RESP,
@@ -196,7 +198,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		}
 
 		// Returns the stack of returned items (ID Protocol)
-		return ( HSM_X509_STACK_get_url ( type, url, cred, hsm ));
+		return ( HSM_X509_STACK_get_url ( type, url, format, cred, hsm ));
 	}
 
 	// If Credentials are to be used
@@ -224,7 +226,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 
 		// Reports the Error
 		PKI_ERROR(PKI_ERR_POINTER_NULL, 
-			"No data returned from URL [%s]", url->url_s);
+			"No data returned from URL");
 
 		// Nothing more to do
 		return NULL;
@@ -256,8 +258,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 		if ((mem_data = PKI_STACK_MEM_get_num(mem_sk, i)) == NULL) {
 
 			// Reports the Error
-			PKI_ERROR(PKI_ERR_POINTER_NULL, 
-				"Can not retrieve object from PKI_MEM stack [%d of %d]",
+			PKI_DEBUG("Can not retrieve object from PKI_MEM stack [%d of %d]",
 				i, PKI_STACK_MEM_elements(mem_sk));
 
 			// Go to the next item
@@ -279,7 +280,8 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 
 				// Retrieves the Stack of PKI_MEM structure from the stack
 				if ((tmp_x_sk = PKI_X509_STACK_get_mem(mem_data,
-								       curr_type, 
+								       curr_type,
+								       format,
 								       cred,
 								       hsm)) != NULL) {
 
@@ -320,7 +322,8 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 			// Here we have a specific datatype we are looking for so we
 			// do not have to cycle through all the supported datatypes
 			if ((tmp_x_sk = PKI_X509_STACK_get_mem(mem_data,
-							       type, 
+							       type,
+							       format,
 							       cred,
 							       hsm)) != NULL) {
 
@@ -358,8 +361,7 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 			}
 		}
 	}
-
-
+	
 	// Checks if we have memory to free
 	if (mem_sk) {
 
@@ -480,9 +482,8 @@ int PKI_X509_STACK_put (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 
 	if (!sk || !url_string) return PKI_ERR;
 
-	if ((url = URL_new(url_string)) == NULL) {
-		return PKI_ERR;
-	}
+	if ((url = URL_new(url_string)) == NULL)
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not parse URL (%s)", url_string);
 
 	ret = PKI_X509_STACK_put_url(sk, format, url, mime, cred, hsm);
 
@@ -504,38 +505,34 @@ int PKI_X509_STACK_put_url (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 	int idx = 0;
 	int ret = 0;
 
-	if( !sk || !url ) {
-		return ( PKI_ERR );
-	}
+	// Input Checks
+	if( !sk || !url )
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if((idx = PKI_STACK_X509_elements (sk)) < 1 ) {
-		return ( PKI_ERR );
-	}
+	// Checks we have at least one element in the stack
+	if((idx = PKI_STACK_X509_elements (sk)) < 1 )
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, "No Elements in passed Stack");
 
-	if( url->proto == URI_PROTO_ID && hsm ) {
+	// Checks we are not using an HSM
+	if( url->proto == URI_PROTO_ID && hsm )
 		return ( HSM_X509_STACK_put_url ( sk, url, cred, hsm ));
-	};
 
-	/* Now that we know the HSM is off the hook, we save it into a
-	   PKI_MEM structure and then we 'put' it via the general function */
-	/*
-	if((mem = PKI_MEM_new_null()) == NULL ) {
-		return (PKI_ERR);
-	}
-	*/
-
-	if(PKI_X509_STACK_put_mem( sk, format, &mem, cred, hsm ) == NULL ) {
-		if( mem ) PKI_MEM_free ( mem );
-		return ( PKI_ERR );
+	// Put the content of the stack into the destination URL
+	if(PKI_X509_STACK_put_mem(sk, format, &mem, cred, hsm) == NULL) {
+		// Free the Memory
+		if (mem) PKI_MEM_free(mem);
+		// Returns and reports the error
+		return PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
 	}
 
-	/* Lets get the type of X509 objects we have on the stack */
+	// Lets get the type of X509 objects we have on the stack
 	if((x_obj = PKI_STACK_X509_get_num ( sk, 0 )) != NULL ) {
-		mime = PKI_X509_get_mimetype ( x_obj->type );
+		mime = PKI_X509_get_mimetype(x_obj->type);
 	} else {
-		mime = PKI_X509_get_mimetype ( PKI_DATATYPE_UNKNOWN );
+		mime = PKI_X509_get_mimetype(PKI_DATATYPE_UNKNOWN);
 	}
 
+	// Let's copy the credentials, if any were provided
 	if ( cred ) {
 		ssl = (PKI_SSL *) cred->ssl;
 		if ( !url->usr && cred->username ) {
@@ -547,7 +544,7 @@ int PKI_X509_STACK_put_url (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 		}
 	}
 
-	ret = URL_put_data_url ( url, mem, (char *) mime, NULL, 60, 0, ssl );
+	ret = URL_put_data_url(url, mem, (char *) mime, NULL, 60, 0, ssl);
 
 	if ( mem ) PKI_MEM_free ( mem );
 

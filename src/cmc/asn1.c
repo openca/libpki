@@ -11,7 +11,6 @@
 #include <openssl/asn1t.h>
 
 #include <libpki/pki.h>
-#include <libpki/cms.h>
 
 /*
    PEND_INFO ::= SEQUENCE {
