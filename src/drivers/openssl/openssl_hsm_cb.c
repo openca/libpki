@@ -150,9 +150,9 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_PKCS7_CALLBACKS = {
 const PKI_X509_CALLBACKS PKI_OPENSSL_X509_CMS_CALLBACKS = {
 
 	/* Memory Management */
-	(void *) CMS_new,
-	(void *) CMS_free,
-	(void *) CMS_dup,
+	(void *) PKI_X509_CMS_VALUE_new,
+	(void *) PKI_X509_CMS_VALUE_free,
+	(void *) PKI_X509_CMS_VALUE_dup,
 
 	/* Data Retrieval */
 	(void *) NULL, // PKI_X509_PKCS7_get_parsed;

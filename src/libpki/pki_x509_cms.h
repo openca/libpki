@@ -24,9 +24,11 @@ typedef enum {
 } PKI_X509_CMS_TYPE;
 
 typedef enum {
+    // Format Flags
     PKI_X509_CMS_FLAGS_BINARY                 = CMS_BINARY,
     PKI_X509_CMS_FLAGS_PARTIAL                = CMS_PARTIAL,
     PKI_X509_CMS_FLAGS_DETACHED               = CMS_DETACHED,
+    // Features Flags
     PKI_X509_CMS_FLAGS_NOSMIMECAP             = CMS_NOSMIMECAP,
     PKI_X509_CMS_FLAGS_NOCERTS                = CMS_NOCERTS,
     PKI_X509_CMS_FLAGS_NOATTR                 = CMS_NOATTR,
@@ -34,23 +36,32 @@ typedef enum {
     PKI_X509_CMS_FLAGS_STREAM                 = CMS_STREAM,
     PKI_X509_CMS_FLAGS_NOCRL                  = CMS_NOCRL,
     PKI_X509_CMS_FLAGS_USE_KEYID              = CMS_USE_KEYID,
-    PKI_X509_CMS_FLAGS_REUSE_DIGEST           = CMS_REUSE_DIGEST
+    // Operational Flags
+    PKI_X509_CMS_FLAGS_REUSE_DIGEST           = CMS_REUSE_DIGEST,
+    PKI_X509_CMS_FLAGS_OP_DEBUG_DECRYPT       = CMS_DEBUG_DECRYPT,
+    PKI_X509_CMS_FLAGS_OP_ASCIICRLF           = CMS_ASCIICRLF,
+    PKI_X509_CMS_FLAGS_OP_NOINTERN            = CMS_NOINTERN,
+    PKI_X509_CMS_FLAGS_OP_NOSIGS              = CMS_NOSIGS,
+    PKI_X509_CMS_FLAGS_OP_NO_SIGNER_VERIFY    = CMS_NO_SIGNER_CERT_VERIFY,
+    PKI_X509_CMS_FLAGS_NO_CONTENT_VERIFY      = CMS_NO_CONTENT_VERIFY,
+    PKI_X509_CMS_FLAGS_NO_ATTRIBUTES_VERIFY   = CMS_NO_ATTR_VERIFY
 } PKI_X509_CMS_FLAGS;
 
 #define PKI_X509_CMS_FLAGS_INIT_DEFAULT \
   PKI_X509_CMS_FLAGS_BINARY | PKI_X509_CMS_FLAGS_PARTIAL | \
-  PKI_X509_CMS_FLAGS_NOSMIMECAP | PKI_X509_CMS_FLAGS_STREAM
+  PKI_X509_CMS_FLAGS_NOSMIMECAP | PKI_X509_CMS_FLAGS_STREAM | \
+  PKI_X509_CMS_FLAGS_NOOLDMIMETYPE
 
 #define PKI_X509_CMS_FLAGS_INIT_SMIME \
   PKI_X509_CMS_FLAGS_PARTIAL | PKI_X509_CMS_FLAGS_STREAM
 
 /* --------------------- Internal Mem Functions ------------------------- */
 
-PKI_X509_CMS_VALUE * CMS_new(void);
+PKI_X509_CMS_VALUE * PKI_X509_CMS_VALUE_new(void);
 
-PKI_X509_CMS_VALUE * CMS_dup(PKI_X509_CMS_VALUE *cms);
+PKI_X509_CMS_VALUE * PKI_X509_CMS_VALUE_dup(const PKI_X509_CMS_VALUE * const cms);
 
-void CMS_free(PKI_X509_CMS_VALUE *cms);
+void PKI_X509_CMS_VALUE_free(PKI_X509_CMS_VALUE *cms);
 
 /* ------------------------ PEM I/O Functions --------------------------- */
 
@@ -65,7 +76,6 @@ void PKI_X509_CMS_free(PKI_X509_CMS *cms);
 void PKI_X509_CMS_free_void(void *cms);
 
 PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type,
-                               int               is_detached,
                                int               flags);
 
 PKI_X509_CMS *PKI_X509_CMS_new_value(PKI_X509_CMS_VALUE * value);
@@ -129,7 +139,7 @@ int PKI_X509_CMS_clear_certs(const PKI_X509_CMS * cms);
 // Signer
 int PKI_X509_CMS_has_signers(const PKI_X509_CMS * const cms );
 
-int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * cms,
+int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * const cms,
                             const PKI_X509_CERT    * const signer,
                             const PKI_X509_KEYPAIR * const k,
                             const PKI_DIGEST_ALG   * md,
@@ -145,7 +155,7 @@ const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
                             int                  idx);
 
 // Cipher
-int PKI_X509_CMS_set_cipher(const PKI_X509_CMS * cms,
+int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
                             const PKI_CIPHER   * const cipher);
 
 const PKI_ALGOR * PKI_X509_CMS_get_encode_alg(
@@ -166,7 +176,14 @@ int PKI_X509_CMS_set_recipients(const PKI_X509_CMS        * cms,
                                 const PKI_X509_CERT_STACK * const x_sk);
 
 int PKI_X509_CMS_add_recipient(const PKI_X509_CMS  * cms,
-                               const PKI_X509_CERT * x);
+                               const PKI_X509_CERT * const x,
+                               const PKI_CIPHER    * const cipher,
+                               const int             flags);
+
+int PKI_X509_CMS_add_recipient_tk(const PKI_X509_CMS * cms,
+                                  const PKI_TOKEN    * const tk,
+                                  const PKI_CIPHER   * const cipher,
+                                  const int            flags);
 
 int PKI_X509_CMS_get_recipients_num(const PKI_X509_CMS * const cms);
 

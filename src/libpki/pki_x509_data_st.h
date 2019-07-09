@@ -89,6 +89,9 @@ typedef struct pki_x509_st {
 	/* Template Reference */
 	const ASN1_ITEM * it;
 
+	/* Internal Status */
+	int status;
+
 	/* Auxillary Data */
 	void * aux_data;
 

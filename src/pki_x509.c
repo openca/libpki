@@ -178,6 +178,9 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	// Auxillary Data
 	ret->aux_data = NULL;
 
+	// Internal Status
+	ret->status = -1;
+
 	// All Done
 	return ret;
 }
@@ -660,15 +663,36 @@ void * PKI_X509_aux_data_dup(PKI_X509 * x) {
 int PKI_X509_aux_data_del(PKI_X509 * x) {
 
 	// Input Check
-	if (!x || !x->aux_data) return 1;
+	if (!x || !x->aux_data) return PKI_ERR;
 
   // Error Condition: Missing the 'free' callback
-	if (!x->free_aux_data) return 0;
+	if (!x->free_aux_data) 
+		return PKI_ERROR(PKI_ERR_X509_AUX_DATA_MEMORY_FREE_CB_NULL, NULL);
 
 	// Free the memory
 	x->free_aux_data(x->aux_data);
 
 	// All Done
-	return 1;
+	return PKI_OK;
 }
 
+int PKI_X509_set_status(PKI_X509 *x, int status) {
+
+	// Input Check
+	if (!x) return PKI_ERR;
+
+	// Sets the Status field of X509
+	x->status = status;
+
+	// All done
+	return PKI_OK;
+}
+
+int PKI_X509_get_status(PKI_X509 *x) {
+
+	// Input Check
+	if (!x) return -1;
+
+	// Returns the internal status
+	return x->status;
+}

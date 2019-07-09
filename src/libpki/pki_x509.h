@@ -50,4 +50,8 @@ void * PKI_X509_aux_data_dup(PKI_X509 * x);
 
 int PKI_X509_aux_data_del(PKI_X509 * x);
 
+int PKI_X509_set_status(PKI_X509 *x, int status);
+
+int PKI_X509_get_status(PKI_X509 *x);
+
 #endif

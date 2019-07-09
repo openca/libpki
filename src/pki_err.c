@@ -132,6 +132,7 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_CMS_SIGNER_GET, "Cannot retrieve the signer from the CMS." },
 	{ PKI_ERR_X509_CMS_RECIPIENT_ADD, "Cannot add the recipient to the CMS." },
 	{ PKI_ERR_X509_CMS_RECIPIENT_GET, "Cannot retrieve the recipient from the CMS." },
+	{ PKI_ERR_X509_CMS_SET_DETACHED, "Cannot set the detached status for the CMS."},
 	{ PKI_ERR_X509_CMS_, "" },
 	// Generic PKI_X509_AUX_DATA Errors
 	{ PKI_ERR_X509_AUX_DATA_MEMORY_FREE_CB_NULL, "Missing AUX Data free callback function" },

@@ -29,8 +29,8 @@ extern "C" {
 #define BG_GREEN "\x1B[32;47m"
 #define BG_BLUE  "\x1B[34;47m"
 
-const char * libpki_banner;
-const char * prog_banner;
+extern const char * libpki_banner;
+extern const char * prog_banner;
 
 #define LIBPKI_BANNER_PRINT(a) \
 	fprintf(a, libpki_banner)
