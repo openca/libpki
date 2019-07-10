@@ -41,16 +41,16 @@ PKI_X509_CERT *PKI_X509_CERT_dup(const PKI_X509_CERT *x) {
 
 /*! \brief Generates a new certificate */
 
-PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT    * ca_cert, 
-                                   const PKI_X509_KEYPAIR * kPair,
-                                   const PKI_X509_REQ     * req,
-                                   const char             * subj_s, 
-                                   const char             * serial_s,
-                                   uint64_t                 validity,
-                                   const PKI_X509_PROFILE * conf,
-                                   const PKI_ALGOR        * algor,
-                                   const PKI_CONFIG       * oids,
-                                   HSM *hsm ) {
+PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert, 
+                                   const PKI_X509_KEYPAIR     * kPair,
+                                   const PKI_X509_REQ         * req,
+                                   const char                 * subj_s, 
+                                   const char                 * serial_s,
+                                   uint64_t                     validity,
+                                   const PKI_X509_PROFILE     * conf,
+                                   const PKI_X509_ALGOR_VALUE * algor,
+                                   const PKI_CONFIG           * oids,
+                                   HSM                        * hsm ) {
   PKI_X509_CERT *ret = NULL;
   PKI_X509_CERT_VALUE *val = NULL;
   PKI_X509_NAME *subj = NULL;
@@ -364,38 +364,38 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT    * ca_cert,
     if(( tmp_s = PKI_X509_PROFILE_get_value( conf, 
         "/profile/keyParams/algorithm")) != NULL )
     {
-      PKI_ALGOR *myAlg = NULL;
+      PKI_X509_ALGOR_VALUE *myAlg = NULL;
       PKI_DIGEST_ALG *dgst = NULL;
 
-      if((myAlg = PKI_ALGOR_get_by_name( tmp_s )) != NULL )
-      {
+      if((myAlg = PKI_X509_ALGOR_VALUE_get_by_name( tmp_s ))
+                                                      != NULL) {
+
         if(!algor) algor = myAlg;
 
-        if((dgst = PKI_ALGOR_get_digest( myAlg )) != NULL )
-        {
+        if((dgst = PKI_X509_ALGOR_VALUE_get_digest( myAlg )) != NULL ) {
+
           PKI_DEBUG("Got Signing Algorithm: %s, %s",
-            PKI_DIGEST_ALG_get_parsed(dgst), PKI_ALGOR_get_parsed(myAlg));
+                    PKI_DIGEST_ALG_get_parsed(dgst), 
+                    PKI_X509_ALGOR_VALUE_get_parsed(myAlg));
           digest = dgst;
-        }
-        else
-        {
+
+        } else {
           PKI_DEBUG("Can not parse digest algorithm from %s", tmp_s);
         }
-      }
-      else
-      {
+      } else {
         PKI_DEBUG("Can not parse key algorithm from %s", tmp_s);
       }
+
       PKI_Free ( tmp_s );
     }
   }
 
-  if (conf)
-  {
+  if (conf) {
+
     PKI_KEYPARAMS *kParams = NULL;
     PKI_SCHEME_ID scheme;
 
-    scheme = PKI_ALGOR_get_scheme( algor );
+    scheme = PKI_X509_ALGOR_VALUE_get_scheme( algor );
 
     kParams = PKI_KEYPARAMS_new(scheme, conf);
     if (kParams)
@@ -509,7 +509,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT    * ca_cert,
     // get the digest from the signing key
     if (algor)
     {
-      if((digest = PKI_ALGOR_get_digest(algor)) == NULL )
+      if((digest = PKI_X509_ALGOR_VALUE_get_digest(algor)) == NULL )
       {
         PKI_log_err("Can not get digest from algor");
       }
@@ -558,15 +558,16 @@ err:
 int PKI_X509_CERT_sign(PKI_X509_CERT *cert, PKI_X509_KEYPAIR *kp,
     PKI_DIGEST_ALG *digest) {
 
-  const PKI_ALGOR *alg = NULL;
+  const PKI_X509_ALGOR_VALUE *alg = NULL;
 
   // Input Checks
   if (!cert || !cert->value || !kp || !kp->value)
     return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
   // Gets the digest (if none provided)
-  if (!digest && ((alg = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_ALGORITHM)) != NULL)) {
-    digest = PKI_ALGOR_get_digest ( alg );
+  if (!digest && ((alg = PKI_X509_CERT_get_data(cert, 
+                          PKI_X509_DATA_ALGORITHM)) != NULL)) {
+    digest = PKI_X509_ALGOR_VALUE_get_digest ( alg );
   }
 
   // Gets the digest (2nd method)
@@ -1028,7 +1029,7 @@ char * PKI_X509_CERT_get_parsed(const PKI_X509_CERT *x,
     case PKI_X509_DATA_ALGORITHM:
     case PKI_X509_DATA_SIGNATURE_ALG1:
     case PKI_X509_DATA_SIGNATURE_ALG2:
-      ret = (char *) PKI_ALGOR_get_parsed((PKI_ALGOR *) 
+      ret = (char *) PKI_X509_ALGOR_VALUE_get_parsed((PKI_X509_ALGOR_VALUE *) 
 		      			  PKI_X509_CERT_get_data(x,type));
       break;
 

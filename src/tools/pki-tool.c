@@ -230,7 +230,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 	// Checks for the supported schemes
 	if (algor_opt) {
-		if ((scheme = PKI_ALGOR_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
+		if ((scheme = PKI_X509_ALGOR_VALUE_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
 			fprintf(stderr, "\nERROR: Scheme not supported for key generation (%s)\n\n",
 				algor_opt);
 			exit(1);
@@ -862,14 +862,14 @@ int main (int argc, char *argv[] ) {
 		if ( algor_opt ) 
 		{
 			int algor_id;
-			PKI_ALGOR *algor = NULL;
+			PKI_X509_ALGOR_VALUE *algor = NULL;
 
-			if((algor = PKI_ALGOR_get_by_name ( algor_opt )) == NULL ) {
+			if((algor = PKI_X509_ALGOR_VALUE_get_by_name ( algor_opt )) == NULL ) {
 				PKI_log_err ("Can not set algor to %s", algor_opt);
 				return(1);
 			}
 
-			algor_id = PKI_ALGOR_get_id (algor);
+			algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
 			if( PKI_TOKEN_set_algor ( tk, algor_id ) == PKI_ERR ) {
 				PKI_log_err( "Can not set algor in Token (%d)", algor_id);
 				return(1);
@@ -885,7 +885,7 @@ int main (int argc, char *argv[] ) {
 			fprintf(stderr, "  - Subject ........: %s\n", subject ? 
 				subject : "n/a" );
 			fprintf(stderr, "  - Algorithm ......: %s\n", 
-						PKI_ALGOR_get_parsed( tk->algor ));
+						PKI_X509_ALGOR_VALUE_get_parsed( tk->algor ));
 			fprintf(stderr, "  - key size .......: %d\n",
 				PKI_X509_KEYPAIR_get_size ( tk->keypair ));
 			// fprintf(stderr, "  - key URI ........: %s\n", 
@@ -1000,14 +1000,14 @@ int main (int argc, char *argv[] ) {
 		if ( algor_opt ) 
 		{
 			int algor_id;
-			PKI_ALGOR *algor = NULL;
+			PKI_X509_ALGOR_VALUE *algor = NULL;
 
-			if((algor = PKI_ALGOR_get_by_name ( algor_opt )) == NULL ) {
+			if((algor = PKI_X509_ALGOR_VALUE_get_by_name ( algor_opt )) == NULL ) {
 				PKI_log_err ("Can not set algor to %s", algor_opt);
 				return(1);
 			}
 
-			algor_id = PKI_ALGOR_get_id (algor);
+			algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
 			if( PKI_TOKEN_set_algor ( tk, algor_id ) == PKI_ERR ) {
 				PKI_log_err( "Can not set algor in Token (%d)", algor_id);
 				return(1);

@@ -51,7 +51,7 @@ int gen_X509_Req(int scheme, int bits, char *file ) {
 	int i;
 	size_t list_size = 0;
 
-	PKI_ALGOR_ID *algs = NULL;
+	const PKI_ALGOR_ID * algs = NULL;
 
 	switch (scheme) {
 		case PKI_SCHEME_RSA:
@@ -72,7 +72,7 @@ int gen_X509_Req(int scheme, int bits, char *file ) {
 	}
 	printf("  * %d bits ... ", bits);
 
-	if((algs = PKI_ALGOR_list( scheme )) == NULL ) {
+	if ((algs = PKI_ALGOR_ID_list((scheme))) == NULL) {
 		/* No supported Digests for this alg ??? */
 		printf("No supported Digests for this scheme!\n");
 		return(1);
@@ -89,22 +89,22 @@ int gen_X509_Req(int scheme, int bits, char *file ) {
 
 	PKI_X509_KEYPAIR_put( p, PKI_DATA_FORMAT_PEM, buf,  NULL, NULL );
 
-	list_size = PKI_ALGOR_list_size ( algs );
+	list_size = PKI_ALGOR_ID_list_size(algs);
 
 	for( i=0; i < list_size ; i++ ) {
 
 		PKI_DIGEST_ALG *dgst = NULL;
-		PKI_ALGOR * algor = NULL;
+		PKI_X509_ALGOR_VALUE * algor = NULL;
 
 		printf("    - Generating REQ (%s) ... " ,
 					PKI_ALGOR_ID_txt (algs[i]));
 
-		if ((algor = PKI_ALGOR_get(algs[i])) == NULL) {
+		if ((algor = PKI_X509_ALGOR_VALUE_get(algs[i])) == NULL) {
 			printf("ERROR, can not get the algorithm pointer!\n");
 			return 0;
 		}
 
-		if ((dgst = PKI_ALGOR_get_digest(algor)) == NULL) {
+		if ((dgst = PKI_X509_ALGOR_VALUE_get_digest(algor)) == NULL) {
 			printf("ERROR, can not get the digest from the algorithm!\n");
 			return 0;
 		}

@@ -3,87 +3,176 @@
 #include <libpki/pki.h>
 
 /* List of supported digest algorithms grouped by scheme */
-PKI_ALGOR_ID PKI_ALGOR_LIST_RSA[] = {
+const PKI_ALGOR_ID PKI_ALGOR_ID_LIST_RSA[] = {
 //	PKI_ALGOR_RSA_MD2,
 #ifndef OPENSSL_FIPS
-	PKI_ALGOR_RSA_MD4,
-	PKI_ALGOR_RSA_MD5,
+	PKI_ALGOR_ID_RSA_MD4,
+	PKI_ALGOR_ID_RSA_MD5,
 #endif
-	PKI_ALGOR_RSA_SHA1,
-	PKI_ALGOR_RSA_SHA224,
-	PKI_ALGOR_RSA_SHA256,
-	PKI_ALGOR_RSA_SHA384,
-	PKI_ALGOR_RSA_SHA512,
+	PKI_ALGOR_ID_RSA_SHA1,
+	PKI_ALGOR_ID_RSA_SHA224,
+	PKI_ALGOR_ID_RSA_SHA256,
+	PKI_ALGOR_ID_RSA_SHA384,
+	PKI_ALGOR_ID_RSA_SHA512,
 #ifdef ENABLE_RSA_RIPEMD128
-	PKI_ALGOR_RSA_RIPEMD128,
+	PKI_ALGOR_ID_RSA_RIPEMD128,
 #endif
 #ifdef ENABLE_RSA_RIPEMD160
-	PKI_ALGOR_RSA_RIPEMD160,
+	PKI_ALGOR_ID_RSA_RIPEMD160,
 #endif
-	PKI_ALGOR_UNKNOWN
+	PKI_ALGOR_ID_UNKNOWN
 };
 
-PKI_ALGOR_ID PKI_ALGOR_LIST_DSA[] = {
-#ifdef PKI_ALGOR_DSA_SHA1
-	PKI_ALGOR_DSA_SHA1,
+const PKI_ALGOR_ID PKI_ALGOR_ID_LIST_DSA[] = {
+#ifdef PKI_ALGOR_ID_DSA_SHA1
+	PKI_ALGOR_ID_DSA_SHA1,
 #endif
-#ifdef PKI_ALGOR_DSA_SHA224
-	PKI_ALGOR_DSA_SHA224,
+#ifdef PKI_ALGOR_ID_DSA_SHA224
+	PKI_ALGOR_ID_DSA_SHA224,
 #endif
-#ifdef PKI_ALGOR_DSA_SHA256
-	PKI_ALGOR_DSA_SHA256,
+#ifdef PKI_ALGOR_ID_DSA_SHA256
+	PKI_ALGOR_ID_DSA_SHA256,
 #endif
-#ifdef PKI_ALGOR_DSA_SHA384
-	PKI_ALGOR_DSA_SHA384,
+#ifdef PKI_ALGOR_ID_DSA_SHA384
+	PKI_ALGOR_ID_DSA_SHA384,
 #endif
-#ifdef PKI_ALGOR_DSA_SHA512
-	PKI_ALGOR_DSA_SHA512,
+#ifdef PKI_ALGOR_ID_DSA_SHA512
+	PKI_ALGOR_ID_DSA_SHA512,
 #endif
-	PKI_ALGOR_UNKNOWN
+	PKI_ALGOR_ID_UNKNOWN
 };
 
 #ifdef ENABLE_ECDSA
-PKI_ALGOR_ID PKI_ALGOR_LIST_ECDSA[] = {
+PKI_ALGOR_ID PKI_ALGOR_ID_LIST_ECDSA[] = {
 # ifdef PKI_ALGOR_ECDSA_SHA1
-	PKI_ALGOR_ECDSA_SHA1,
+	PKI_ALGOR_ID_ECDSA_SHA1,
 # endif
-# ifdef PKI_ALGOR_ECDSA_SHA224
-	PKI_ALGOR_ECDSA_SHA224,
+# ifdef PKI_ALGORID__ECDSA_SHA224
+	PKI_ALGOR_ID_ECDSA_SHA224,
 # endif
-# ifdef PKI_ALGOR_ECDSA_SHA256
-	PKI_ALGOR_ECDSA_SHA256,
+# ifdef PKI_ALGOR_ID_ECDSA_SHA256
+	PKI_ALGOR_ID_ECDSA_SHA256,
 # endif
-# ifdef PKI_ALGOR_ECDSA_SHA384
-	PKI_ALGOR_ECDSA_SHA384,
+# ifdef PKI_ALGOR_ID_ECDSA_SHA384
+	PKI_ALGOR_ID_ECDSA_SHA384,
 # endif
-# ifdef PKI_ALGOR_ECDSA_SHA512
-	PKI_ALGOR_ECDSA_SHA512,
+# ifdef PKI_ALGOR_ID_ECDSA_SHA512
+	PKI_ALGOR_ID_ECDSA_SHA512,
 # endif
-	PKI_ALGOR_UNKNOWN
+	PKI_ALGOR_ID_UNKNOWN
 };
 #else
-PKI_ALGOR_ID PKI_ALGOR_LIST_ECDSA[] = {
-	PKI_ALGOR_UNKNOWN
+PKI_ALGOR_ID PKI_ALGOR_ID_LIST_ECDSA[] = {
+	PKI_ALGOR_ID_UNKNOWN
 };
 #endif
 
 /* List of supported digest algorithms */
-PKI_ALGOR_ID PKI_DIGEST_ALG_LIST[] = {
+PKI_ALGOR_ID PKI_DIGEST_ALG_ID_LIST[] = {
 //	PKI_ALGOR_MD2,
 #ifndef OPENSSL_FIPS
-	PKI_ALGOR_MD4,
-	PKI_ALGOR_MD5,
-	PKI_ALGOR_DSS1,
+	PKI_ALGOR_ID_MD4,
+	PKI_ALGOR_ID_MD5,
+	PKI_ALGOR_ID_DSS1,
 #endif
-	PKI_ALGOR_SHA1,
-	PKI_ALGOR_SHA224,
-	PKI_ALGOR_SHA256,
-	PKI_ALGOR_SHA384,
-	PKI_ALGOR_SHA512,
-	PKI_ALGOR_RIPEMD128,
-	PKI_ALGOR_RIPEMD160,
-	PKI_ALGOR_UNKNOWN
+	PKI_ALGOR_ID_SHA1,
+	PKI_ALGOR_ID_SHA224,
+	PKI_ALGOR_ID_SHA256,
+	PKI_ALGOR_ID_SHA384,
+	PKI_ALGOR_ID_SHA512,
+	PKI_ALGOR_ID_RIPEMD128,
+	PKI_ALGOR_ID_RIPEMD160,
+	PKI_ALGOR_ID_UNKNOWN
 };
+
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new () {
+
+	PKI_X509_ALGOR_VALUE *ret = NULL;
+		// Return value
+
+	if((ret = X509_ALGOR_new()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	return ret;
+}
+
+
+void PKI_X509_ALGOR_VALUE_free ( PKI_X509_ALGOR_VALUE *a ) {
+	if ( !a ) return;
+
+	X509_ALGOR_free ( a );
+
+	return;
+}
+
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type ) {
+
+	PKI_X509_ALGOR_VALUE *ret = NULL;
+	  // Return Value
+
+	if (( ret = X509_ALGOR_new()) == NULL ) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	if (!(ret->algorithm=OBJ_nid2obj(type))) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
+	}
+
+	// Generates the parameter
+	if((ret->parameter = ASN1_TYPE_new()) == NULL ) goto err;
+
+	// Sets the Algorithm OID and Parameter Type
+	ret->algorithm=OBJ_nid2obj(type);
+	ret->parameter->type = V_ASN1_NULL;
+
+	return ret;
+
+err:
+
+	if ( ret ) PKI_X509_ALGOR_VALUE_free ( ret );
+
+	return NULL;
+}
+
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
+
+	PKI_X509_ALGOR_VALUE *ret = NULL;
+	PKI_ID id = PKI_ID_UNKNOWN;
+
+	if ( !alg ) return NULL;
+
+	if((id = EVP_MD_type( alg )) == NID_undef) {
+		return NULL;
+	};
+
+	if (( ret = X509_ALGOR_new()) == NULL ) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	};
+
+	if (!(ret->algorithm=OBJ_nid2obj(id))) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
+	}
+
+    if ((ret->parameter=ASN1_TYPE_new()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
+	}
+
+    ret->parameter->type=V_ASN1_NULL;
+
+	return ret;
+
+err:
+	if (ret) X509_ALGOR_free ( ret );
+
+	return NULL;
+}
+
 
 /*! \brief Build a PKI_ALGOR structure from its name (char *)
  *
@@ -91,13 +180,13 @@ PKI_ALGOR_ID PKI_DIGEST_ALG_LIST[] = {
  * name. Names are in the form of "RSA-SHA1", "RSA-SHA512", or "DSA-SHA1".
  */
 
-PKI_ALGOR *PKI_ALGOR_get_by_name ( const char *alg_s ) {
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_by_name ( const char *alg_s ) {
 
 	char *pnt, *data, *tk;
 	char buf[1024];
 	int i;
 
-	PKI_ALGOR_ID alg_nid = PKI_ALGOR_UNKNOWN;
+	PKI_ALGOR_ID alg_nid = PKI_ALGOR_ID_UNKNOWN;
 
 	/* Check the argument */
 	if (!alg_s) return (NULL);
@@ -133,20 +222,25 @@ PKI_ALGOR *PKI_ALGOR_get_by_name ( const char *alg_s ) {
 			"-%s", tk );
 	}
 
-	/* Check if the object is a valid OID */
-	if((alg_nid = OBJ_sn2nid( buf )) == PKI_ALGOR_UNKNOWN ) {;
-		if((alg_nid == OBJ_ln2nid( buf )) == PKI_ALGOR_UNKNOWN ) {
-			return ( PKI_ALGOR_NULL );
+	// Check if the object is a valid OID
+	if((alg_nid = OBJ_sn2nid( buf )) == PKI_ALGOR_ID_UNKNOWN ) {
+
+		// Checks the long name database for the OID
+		if((alg_nid = OBJ_ln2nid( buf )) == PKI_ALGOR_ID_UNKNOWN ) {
+
+			// The text does not correspond to any known OID strings
+			// return a NULL pointer
+			return PKI_ALGOR_NULL;
 		}
 	}
 
-	return PKI_ALGOR_get(alg_nid);
-
+	// Returns the pointer to the PKI_X509_ALGOR_VALUE structure
+	return PKI_X509_ALGOR_VALUE_get(alg_nid);
 }
 
 /*! \brief Returns a text string with the algorithm identifier */
 
-char *PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor ) {
+char * PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor ) {
 	ASN1_OBJECT *a = NULL;
 
 	if(( a = OBJ_nid2obj( algor )) == NULL ) {
@@ -160,7 +254,7 @@ char *PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor ) {
 
 /*! \brief Returns a text representation of the algorithm identifier */
 
-const char * PKI_ALGOR_get_parsed (const PKI_ALGOR * algor ) {
+const char * PKI_X509_ALGOR_VALUE_get_parsed (const PKI_X509_ALGOR_VALUE * algor ) {
 
 	int id;
 
@@ -171,7 +265,7 @@ const char * PKI_ALGOR_get_parsed (const PKI_ALGOR * algor ) {
 	}
 
 	// Gets the NID from the object
-	if ((id = OBJ_obj2nid(algor->algorithm)) == PKI_ID_UNKNOWN) {
+	if ((id = OBJ_obj2nid(algor->algorithm)) == PKI_ALGOR_ID_UNKNOWN) {
 		// Returns Nothing
 		return ( NULL );
 	}
@@ -211,7 +305,7 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
  * \brief Returns the PKI_SCHEME_ID from the passed string
  */
 
-PKI_SCHEME_ID PKI_ALGOR_get_scheme_by_txt(const char * data) {
+PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 
 	if (data) {
 
@@ -232,19 +326,22 @@ PKI_SCHEME_ID PKI_ALGOR_get_scheme_by_txt(const char * data) {
  * \brief Build a PKI_ALGOR structure from its ID
  */
 
-PKI_ALGOR * PKI_ALGOR_get( PKI_ALGOR_ID algor ) {
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 
-	PKI_ALGOR *ret 	= NULL;
-	int alg_nid 	= PKI_ALGOR_UNKNOWN;
+	PKI_X509_ALGOR_VALUE *ret 	= NULL;
+	  // Return Value
 
-	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ID_UNKNOWN) {
+	int alg_nid 	              = PKI_ALGOR_ID_UNKNOWN;
+	  // Algorithm Identifier
+
+	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ALGOR_ID_UNKNOWN) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Algorithm ID unknown (%d)", algor);
 		return NULL;
 	}
 
 	// Check if the OID found corresponds to one of the supported algorithms 
-	switch (alg_nid)
-	{
+	switch (alg_nid) {
+
 		// RSA Scheme
 #ifdef ENABLE_MD4
 		case PKI_ALGOR_RSA_MD4:
@@ -268,6 +365,7 @@ PKI_ALGOR * PKI_ALGOR_get( PKI_ALGOR_ID algor ) {
 		case PKI_ALGOR_RSA_SHA512:
 #endif
 #ifdef ENABLE_RIPEMD
+		case PKI_ALGOR_RSA_RIPEMD128:
 		case PKI_ALGOR_RSA_RIPEMD160:
 #endif
 
@@ -291,70 +389,54 @@ PKI_ALGOR * PKI_ALGOR_get( PKI_ALGOR_ID algor ) {
 			break;
 
 		default:
-			alg_nid = PKI_ALGOR_UNKNOWN;
+			alg_nid = PKI_ALGOR_ID_UNKNOWN;
 			break;
 	}
 
 	// If the Algorithm ID is known, let's generate the
 	// PKIX algorithm data structure
-	if (alg_nid != PKI_ALGOR_UNKNOWN) {
-
-		// Allocates the Memory
-		ret = (PKI_ALGOR *) X509_ALGOR_new();
-		if( !ret ) goto err;
-
-		// Generates the parameter
-		if((ret->parameter = ASN1_TYPE_new()) == NULL ) goto err;
-
-		// Sets the Algorithm OID and Parameter Type
-		ret->algorithm=OBJ_nid2obj(alg_nid);
-		ret->parameter->type = V_ASN1_NULL;
-	}
-	else
-	{
+	if (alg_nid == PKI_ALGOR_ID_UNKNOWN) {
+		// Unknown or unsupported Algorithm
 		PKI_DEBUG("Unknown algorithm [ Algor ID: %d ]", algor);
 		ret = PKI_ALGOR_NULL;
 	}
 
-	/* Let's return the PKEY infrastructure */
-	return ret;
+	// Let's return the PKIX X509 Algorithm Data structure
+	return PKI_X509_ALGOR_VALUE_new_type(alg_nid);
 
 err:
-	if (ret) X509_ALGOR_free (ret);
+
+  // Free Allocated Memory  
+	if (ret) PKI_X509_ALGOR_VALUE_free(ret);
+
+	// Returns NULL
 	return (PKI_ALGOR_NULL);
-}
-
-/* ! \brief Frees memory associated with the passed PKI_ALGOR (retrieved via PKI_ALGOR_get()) */
-
-void PKI_ALGOR_free( PKI_ALGOR *algor)
-{
-	if (algor) X509_ALGOR_free(algor);
-
-	return;
 }
 
 /* ! \brief Get a PKI_ALGOR from an PKI_ALGOR object */
 
-PKI_ALGOR_ID PKI_ALGOR_get_id(const PKI_ALGOR *algor )
-{
-	PKI_ALGOR_ID ret = PKI_ALGOR_UNKNOWN;
+PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
+
+	PKI_ALGOR_ID ret = PKI_ALGOR_ID_UNKNOWN;
+	  // Return Value
 
 	// Input Checks
-	if (!algor || !algor->algorithm) return PKI_ALGOR_UNKNOWN;
+	if (!algor || !algor->algorithm) return PKI_ALGOR_ID_UNKNOWN;
 
 	// Gets the Algorithm Id
-	if ((ret = OBJ_obj2nid(algor->algorithm)) == PKI_ALGOR_UNKNOWN) {
-		/* Error, non recognized algor */
-		PKI_ERROR( PKI_ALGOR_UNKNOWN, "PKI_ID_UNKNOWN returned (%p)", algor);
+	if ((ret = OBJ_obj2nid(algor->algorithm)) == PKI_ALGOR_ID_UNKNOWN) {
+		// ERROR: Unknown or unsupported algorithm
+		PKI_ERROR( PKI_ERR_ALGOR_UNKNOWN, "PKI_ID_UNKNOWN returned (%p)", algor);
 	}
 
+  // All Done
 	return ret;
 }
 
 /*! \brief Get the Digest Algorithm from the passed PKI_ALGOR
  */
 
-PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
+PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor ) {
 
 	PKI_ALGOR_ID id;
 	PKI_DIGEST_ALG *ret = PKI_DIGEST_ALG_UNKNOWN;
@@ -364,78 +446,79 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 		return ( PKI_DIGEST_ALG_UNKNOWN );
 	}
 
-	if((id = PKI_ALGOR_get_id ( algor )) == PKI_ALGOR_UNKNOWN ) {
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Can not get algorithm by id");
+	if((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) == PKI_ALGOR_ID_UNKNOWN ) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 		return ( PKI_DIGEST_ALG_UNKNOWN );
 	}
 
 	switch ( id ) {
-		case PKI_ALGOR_DSA_SHA1:
+
+		case PKI_ALGOR_ID_DSA_SHA1:
 			// ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_DSS1 );
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
 			break;
 
 # ifdef ENABLE_DSA_SHA_2
-		case PKI_ALGOR_DSA_SHA224:
+		case PKI_ALGOR_ID_DSA_SHA224:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
 			break;
 
-		case PKI_ALGOR_DSA_SHA256:
+		case PKI_ALGOR_ID_DSA_SHA256:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
 			break;
 # endif
-		case PKI_ALGOR_RSA_SHA1:
+		case PKI_ALGOR_ID_RSA_SHA1:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
 			break;
 
 #ifdef ENABLE_MD4
-		case PKI_ALGOR_RSA_MD4:
+		case PKI_ALGOR_ID_RSA_MD4:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_MD4 );
 			break;
 #endif
 #ifdef ENABLE_MD5
-		case PKI_ALGOR_RSA_MD5:
+		case PKI_ALGOR_ID_RSA_MD5:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_MD5 );
 			break;
 #endif
 #ifdef ENABLE_SHA224
-		case PKI_ALGOR_RSA_SHA224:
+		case PKI_ALGOR_ID_RSA_SHA224:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
 			break;
 #endif
 #ifdef ENABLE_SHA256
-		case PKI_ALGOR_RSA_SHA256:
+		case PKI_ALGOR_ID_RSA_SHA256:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
 			break;
 #endif
 #ifdef ENABLE_RSA_SHA_2
-		case PKI_ALGOR_RSA_SHA384:
+		case PKI_ALGOR_ID_RSA_SHA384:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA384 );
 			break;
 
-		case PKI_ALGOR_RSA_SHA512:
+		case PKI_ALGOR_ID_RSA_SHA512:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA512 );
 			break;
 #endif
 #ifdef ENABLE_ECDSA
-		case PKI_ALGOR_ECDSA_SHA1:
+		case PKI_ALGOR_ID_ECDSA_SHA1:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
 			break;
 #endif
 #ifdef ENABLE_ECDSA_SHA_2
-		case PKI_ALGOR_ECDSA_SHA224:
+		case PKI_ALGOR_ID_ECDSA_SHA224:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
 			break;
 
-		case PKI_ALGOR_ECDSA_SHA256:
+		case PKI_ALGOR_ID_ECDSA_SHA256:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
 			break;
 
-		case PKI_ALGOR_ECDSA_SHA384:
+		case PKI_ALGOR_ID_ECDSA_SHA384:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA384 );
 			break;
 
-		case PKI_ALGOR_ECDSA_SHA512:
+		case PKI_ALGOR_ID_ECDSA_SHA512:
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA512 );
 			break;
 #endif
@@ -448,67 +531,68 @@ PKI_DIGEST_ALG *PKI_ALGOR_get_digest(const PKI_ALGOR *algor ) {
 
 /*! \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR */
 
-PKI_ALGOR_ID PKI_ALGOR_get_digest_id (const PKI_ALGOR *algor ) {
+PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *algor ) {
 
 	int i = -1;
 	const EVP_MD *md = NULL;
 
-	if ( !algor || !algor->algorithm ) return PKI_ALGOR_UNKNOWN;
+	if ( !algor || !algor->algorithm ) return PKI_ALGOR_ID_UNKNOWN;
 
 	i=OBJ_obj2nid(algor->algorithm);
         if(( md = EVP_get_digestbyname(OBJ_nid2sn(i))) != NULL ) {
 		return EVP_MD_nid( md );
 	}
 
-	return PKI_ALGOR_UNKNOWN;
+	return PKI_ALGOR_ID_UNKNOWN;
 }
 
 /*! \brief Returns the PKI_SCHEME_ID (signature scheme ID) of the algorithm */
 
-PKI_SCHEME_ID PKI_ALGOR_get_scheme (const PKI_ALGOR *algor) {
+PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor) {
 
 	PKI_ALGOR_ID id;
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 
 	if (!algor) return PKI_SCHEME_UNKNOWN;
 
-	if ((id = PKI_ALGOR_get_id ( algor )) == PKI_ID_UNKNOWN)
+	if ((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) == PKI_ALGOR_ID_UNKNOWN)
 		return ( PKI_SCHEME_UNKNOWN );
 
 	switch ( id ) {
-		case PKI_ALGOR_DSA_SHA1:
+
+		case PKI_ALGOR_ID_DSA_SHA1:
 #ifdef ENABLE_DSA_SHA_2
-		case PKI_ALGOR_DSA_SHA224:
-		case PKI_ALGOR_DSA_SHA256:
+		case PKI_ALGOR_ID_DSA_SHA224:
+		case PKI_ALGOR_ID_DSA_SHA256:
 #endif
 			ret = PKI_SCHEME_DSA;
 			break;
 //		case PKI_ALGOR_RSA_MD2:
-		case PKI_ALGOR_RSA_MD4:
-		case PKI_ALGOR_RSA_MD5:
-		case PKI_ALGOR_RSA_SHA1:
+		case PKI_ALGOR_ID_RSA_MD4:
+		case PKI_ALGOR_ID_RSA_MD5:
+		case PKI_ALGOR_ID_RSA_SHA1:
 #ifdef ENABLE_SHA224
-		case PKI_ALGOR_RSA_SHA224:
+		case PKI_ALGOR_ID_RSA_SHA224:
 #endif
 #ifdef ENABLE_SHA256
-		case PKI_ALGOR_RSA_SHA256:
+		case PKI_ALGOR_ID_RSA_SHA256:
 #endif
 #ifdef ENABLE_SHA384
-		case PKI_ALGOR_RSA_SHA384:
+		case PKI_ALGOR_ID_RSA_SHA384:
 #endif
 #ifdef ENABLE_SHA512
-		case PKI_ALGOR_RSA_SHA512:
+		case PKI_ALGOR_ID_RSA_SHA512:
 			ret = PKI_SCHEME_RSA;
 			break;
 #endif
 #ifdef ENABLE_ECDSA
-		case PKI_ALGOR_ECDSA_SHA1:
+		case PKI_ALGOR_ID_ECDSA_SHA1:
 #endif
 #ifdef ENABLE_ECDSA_SHA_2
-		case PKI_ALGOR_ECDSA_SHA224:
-		case PKI_ALGOR_ECDSA_SHA256:
-		case PKI_ALGOR_ECDSA_SHA384:
-		case PKI_ALGOR_ECDSA_SHA512:
+		case PKI_ALGOR_ID_ECDSA_SHA224:
+		case PKI_ALGOR_ID_ECDSA_SHA256:
+		case PKI_ALGOR_ID_ECDSA_SHA384:
+		case PKI_ALGOR_ID_ECDSA_SHA512:
 			ret = PKI_SCHEME_ECDSA;
 			break;
 #endif
@@ -527,25 +611,26 @@ PKI_SCHEME_ID PKI_ALGOR_get_scheme (const PKI_ALGOR *algor) {
 
 PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name ) {
 
-	int alg_id = PKI_ALGOR_UNKNOWN;
+	int alg_id = PKI_ALGOR_ID_UNKNOWN;
+	  // Algorithm Identifier  
 
-	/* Check the argument */
-	if (!name)
-	{
+	// Input Check
+	if (!name) {
 		/* For ease of use, let's fall back to the default one */
 		return( PKI_DIGEST_ALG_DEFAULT );
 	}
 
-	/* Check if the object is a valid OID */
-	if((alg_id = OBJ_sn2nid(name)) == PKI_ALGOR_UNKNOWN )
-	{
-		if((alg_id == OBJ_ln2nid( name )) == PKI_ALGOR_UNKNOWN )
-		{
+	// Check if the object is a valid OID
+	if((alg_id = OBJ_sn2nid(name)) == PKI_ALGOR_ID_UNKNOWN ) {
+		// Checks for the long name/description
+		if((alg_id = OBJ_ln2nid( name )) == PKI_ALGOR_ID_UNKNOWN ) {
+			// No matching OID found for the algorithm 'name'
 			return ( PKI_DIGEST_ALG_UNKNOWN );
 		}
 	}
 
-	return PKI_DIGEST_ALG_get ( alg_id );
+	// Returns the algorithm
+	return PKI_DIGEST_ALG_get(alg_id);
 }
 
 /*! \brief Returns the string representation of a digest algorithm */
@@ -691,48 +776,45 @@ PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 }
 
 
-PKI_ALGOR_ID *PKI_ALGOR_list ( PKI_SCHEME_ID scheme ) {
+const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 
-	PKI_ALGOR_ID *ret = NULL;
+	const PKI_ALGOR_ID *ret = NULL;
 
 	switch ( scheme ) {
 		case PKI_SCHEME_RSA: {
-			PKI_DEBUG("RSA LIST! (%d)", sizeof(PKI_ALGOR_LIST_RSA));
-			ret = PKI_ALGOR_LIST_RSA;
+			ret = PKI_ALGOR_ID_LIST_RSA;
 		} break;
 
 		case PKI_SCHEME_DSA: {
-			PKI_DEBUG("DSA LIST! (%d)", sizeof(PKI_ALGOR_LIST_RSA));
-			ret = PKI_ALGOR_LIST_DSA;
+			ret = PKI_ALGOR_ID_LIST_DSA;
 		} break;
 
 #ifdef ENABLE_ECDSA
 		case PKI_SCHEME_ECDSA: {
-			PKI_log_debug("ECDSA LIST! (%d)", sizeof( PKI_ALGOR_LIST_ECDSA ));
-			ret = PKI_ALGOR_LIST_ECDSA;
+			ret = PKI_ALGOR_ID_LIST_ECDSA;
 		} break;
 #endif
 
 		default:
-			PKI_DEBUG("UNKNOWN LIST!");
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 			ret = NULL;
 	}
 
 	return ret;
 }
 
-PKI_ALGOR_ID *PKI_DIGEST_ALG_list( void ) {
+const PKI_ALGOR_ID *PKI_DIGEST_ALG_ID_list( void ) {
 
-	return PKI_DIGEST_ALG_LIST;
+	return PKI_DIGEST_ALG_ID_LIST;
 }
 
-size_t PKI_ALGOR_list_size( PKI_ALGOR_ID * list ) {
+size_t PKI_ALGOR_ID_list_size( const PKI_ALGOR_ID * const list ) {
 
 	size_t i = 0;
 
 	if( !list ) return ( 0 );
 
-	while ( list[i] != PKI_ALGOR_UNKNOWN ) i++;
+	while ( list[i] != PKI_ALGOR_ID_UNKNOWN ) i++;
 
 	return( i );
 }

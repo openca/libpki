@@ -22,7 +22,7 @@ PKI_OID *PKI_TOKEN_OID_new ( PKI_TOKEN *tk, char *oid_s );
 int PKI_TOKEN_check ( PKI_TOKEN *tk );
 
 /* Configuration options */
-PKI_ALGOR *PKI_TOKEN_get_algor( PKI_TOKEN *tk );
+PKI_X509_ALGOR_VALUE *PKI_TOKEN_get_algor( PKI_TOKEN *tk );
 int PKI_TOKEN_get_algor_id( PKI_TOKEN *tk );
 int PKI_TOKEN_set_algor( PKI_TOKEN *tk, PKI_ALGOR_ID algor );
 int PKI_TOKEN_set_algor_by_name( PKI_TOKEN *tk, const char *algName );

@@ -23,22 +23,28 @@ void PKI_X509_OCSP_RESP_free( PKI_X509_OCSP_RESP *x );
 /* ---------------------------- Response Manipulation ------------------- */
 
 int PKI_X509_OCSP_RESP_set_status ( PKI_X509_OCSP_RESP *x, 
-					PKI_X509_OCSP_RESP_STATUS status );
+																		PKI_X509_OCSP_RESP_STATUS status );
+
 int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *r, 
-			OCSP_CERTID *cid, PKI_OCSP_CERTSTATUS status,
-			const PKI_TIME *revokeTime, 
-			const PKI_TIME *thisUpdate,
-			const PKI_TIME *nextUpdate, 
-			PKI_X509_CRL_REASON reason,
-			PKI_X509_EXTENSION *invalidityDate );
+														PKI_OCSP_CERTID *cid, PKI_OCSP_CERTSTATUS status,
+														const PKI_TIME *revokeTime, 
+														const PKI_TIME *thisUpdate,
+														const PKI_TIME *nextUpdate, 
+														PKI_X509_CRL_REASON reason,
+														PKI_X509_EXTENSION *invalidityDate );
+
 int PKI_X509_OCSP_RESP_copy_nonce (PKI_X509_OCSP_RESP *r, 
 						PKI_X509_OCSP_REQ *req);
+
 int PKI_X509_OCSP_RESP_set_extendedRevoke(PKI_X509_OCSP_RESP * resp);
+
+int PKI_X509_OCSP_resp_bytes_encode ( PKI_X509_OCSP_RESP * resp);
 
 /* ------------------------------ Signature ----------------------------- */
 
 int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *r, PKI_X509_KEYPAIR *pkey,
 					PKI_DIGEST_ALG *md );
+
 int PKI_X509_OCSP_RESP_sign ( PKI_X509_OCSP_RESP *r, PKI_X509_KEYPAIR *keypair,
 		PKI_X509_CERT *cert, PKI_X509_CERT *issuer, 
 		PKI_X509_CERT_STACK * otherCerts, PKI_DIGEST_ALG *digest,

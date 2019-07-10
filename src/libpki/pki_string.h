@@ -8,7 +8,7 @@
 
 /* Basic Definitions */
 #define PKI_STRING 			ASN1_STRING
-#define PKI_BIT_STRING 			ASN1_BIT_STRING
+#define PKI_BIT_STRING 	ASN1_BIT_STRING
 
 typedef enum {
 	/* Unknown */

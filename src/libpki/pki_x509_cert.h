@@ -15,7 +15,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT *ca_cert,
 				   const char *serial,
 				   uint64_t validity, 
 				   const PKI_X509_PROFILE *conf, 
-				   const PKI_ALGOR * algor,
+				   const PKI_X509_ALGOR_VALUE * algor,
 				   const PKI_CONFIG *oids,
 				   HSM *hsm );
 

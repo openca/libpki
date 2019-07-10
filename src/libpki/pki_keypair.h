@@ -10,6 +10,7 @@ typedef struct pw_cb_data {
 
 #define PKI_X509_KEYPAIR_new_RSA(a,l,c,h) \
 		PKI_X509_KEYPAIR_new( PKI_SCHEME_RSA,a,l,c,h );
+		
 #define PKI_X509_KEYPAIR_new_DSA(a,l,c,h) \
 		PKI_X509_KEYPAIR_new( PKI_SCHEME_DSA,a,l,c,h );
 
@@ -21,34 +22,58 @@ typedef struct pw_cb_data {
 /* ------------------------ Memory Management ----------------------- */
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_null ();
+
 void PKI_X509_KEYPAIR_free( PKI_X509_KEYPAIR *key );
+
 void PKI_X509_KEYPAIR_free_void ( void *key );
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( PKI_SCHEME_ID type, int bits, 
-				char *label, PKI_CRED *cred, HSM *hsm );
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_kp( PKI_KEYPARAMS *kp,
-				char *label, PKI_CRED *cred, HSM *hsm );
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( PKI_SCHEME_ID type, int bits, 
-				URL *url, PKI_CRED *cred, HSM *hsm );
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url_kp( PKI_KEYPARAMS *kp,
-				URL *url, PKI_CRED *cred, HSM *hsm );
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new(PKI_SCHEME_ID   type,
+	                                     int             bits, 
+                                       char          * label,
+                                       PKI_CRED      * cred,
+                                       HSM           * hsm);
+
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_kp(PKI_KEYPARAMS * kp,
+                                          char          * label,
+                                          PKI_CRED      * cred,
+                                          HSM           * hsm);
+
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url(PKI_SCHEME_ID   type,
+	                                         int             bits, 
+                                           URL           * url,
+                                           PKI_CRED      * cred,
+                                           HSM           * hsm);
+
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url_kp(PKI_KEYPARAMS * kp,
+                                              URL           * url,
+                                              PKI_CRED      * cred,
+                                              HSM           * hsm);
 
 /* ------------------------ General Functions ----------------------- */
 
 char *PKI_X509_KEYPAIR_get_parsed(const PKI_X509_KEYPAIR *pkey );
+
 PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme(const PKI_X509_KEYPAIR *k);
-PKI_ALGOR * PKI_X509_KEYPAIR_get_algor(const PKI_X509_KEYPAIR *k);
+
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_get_algor(const PKI_X509_KEYPAIR *k);
+
 int PKI_X509_KEYPAIR_get_size(const PKI_X509_KEYPAIR *k);
+
 PKI_MEM *PKI_X509_KEYPAIR_get_pubkey(const PKI_X509_KEYPAIR *kp);
+
 PKI_MEM *PKI_X509_KEYPAIR_get_privkey(const PKI_X509_KEYPAIR *kp);
-PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest(const PKI_X509_KEYPAIR_VALUE *pkey,
-			const PKI_DIGEST_ALG *md );
+
+PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest(const PKI_X509_KEYPAIR_VALUE * pkey,
+                                              const PKI_DIGEST_ALG         * md );
 
 PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pVal);
-PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor (const  PKI_X509_KEYPAIR_VALUE *pVal );
+
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const  PKI_X509_KEYPAIR_VALUE *pVal );
+
 int PKI_X509_KEYPAIR_VALUE_get_size (const  PKI_X509_KEYPAIR_VALUE *pKey );
-PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest (const  PKI_X509_KEYPAIR *pkey, 
-			const PKI_DIGEST_ALG *md);
+
+PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest (const PKI_X509_KEYPAIR * pkey, 
+                                         const PKI_DIGEST_ALG   * md);
 
 /* ------------------------ EC Specific ------------------------------ */
 

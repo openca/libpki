@@ -40,7 +40,7 @@ int HSM_is_fips_mode(const HSM *hsm);
 
 int HSM_login ( HSM *hsm, PKI_CRED *cred );
 int HSM_logout ( HSM *hsm );
-int HSM_set_sign_algor (PKI_ALGOR *alg, HSM *hsm );
+int HSM_set_sign_algor (PKI_X509_ALGOR_VALUE *alg, HSM *hsm );
 
 /* ------------------ Signing Functions Prototypes ------------------- */
 
@@ -60,7 +60,7 @@ int PKI_X509_verify_cert(const PKI_X509 *x,
 
 int PKI_verify_signature(const PKI_MEM *data,
 			 const PKI_MEM *sig,
-			 const PKI_ALGOR *alg,
+			 const PKI_X509_ALGOR_VALUE *alg,
 			 const PKI_X509_KEYPAIR *key );
 
 /* ------------------- PKI Object Retrieval ( Get ) ----------------------- */

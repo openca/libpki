@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	PKI_X509_KEYPAIR *kp = NULL;
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
 	// PKI_X509_SIGNATURE *sig = NULL;
-	PKI_ALGOR *algor = NULL;
+	PKI_X509_ALGOR_VALUE *algor = NULL;
 
 	PKI_OID *oid = NULL;
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 	algor = PKI_X509_get_data ( sigObj, PKI_X509_DATA_ALGORITHM );
 	if ( algor ) {
 		printf("        Algorithm:\n            %s\n", 
-			PKI_ALGOR_get_parsed ( algor ));
+			PKI_X509_ALGOR_VALUE_get_parsed ( algor ));
 	};
 
 	printf("\n    Signer's Key Info:\n");

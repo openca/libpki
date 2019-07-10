@@ -608,7 +608,7 @@ int PKI_X509_OCSP_RESP_sign_tk(PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk,
 	if( !r || !tk ) return ( PKI_ERR );
 
 	// Gets the Digest algorithm from the Token algor
-	if (!digest) digest = PKI_ALGOR_get_digest(tk->algor);
+	if (!digest) digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor);
 
 	if (PKI_TOKEN_login(tk) != PKI_OK)
 	{
@@ -746,7 +746,7 @@ char * PKI_X509_OCSP_RESP_get_parsed ( PKI_X509_OCSP_RESP *r,
 			break;
 
 		case PKI_X509_DATA_ALGORITHM:
-			ret = (char *) PKI_ALGOR_get_parsed ( (PKI_ALGOR *)
+			ret = (char *) PKI_X509_ALGOR_VALUE_get_parsed ( (PKI_X509_ALGOR_VALUE *)
 				PKI_X509_OCSP_RESP_get_data ( r, type ));
 			break;
 
@@ -851,6 +851,56 @@ PKI_OCSP_RESP *PEM_read_bio_PKI_OCSP_RESP( PKI_IO *bp, void *a,
 	ret->bs = OCSP_response_get1_basic(ret->resp);
 
 	return ret;
+}
+
+int PKI_X509_OCSP_resp_bytes_encode (PKI_X509_OCSP_RESP * resp) {
+
+	PKI_OCSP_RESP * r = NULL;
+		// OCSP Value
+
+  OCSP_BASICRESP *bsrp = NULL;
+    // OCSP Basic Response Value
+
+	PKI_X509_OCSP_RESP_VALUE *resp_val = NULL;
+	  // OCSP Response Value
+
+	// Input Check
+	if (!resp || !resp->value) return PKI_ERR;
+
+	// Shortcut for the value
+	r = resp->value;
+
+  // Now we need to re-encode the basicresp
+  resp_val = r->resp;
+  bsrp = r->bs;
+
+  // If an already encoded value exists, remove it
+  if (resp_val->responseBytes)
+  	OCSP_RESPBYTES_free(resp_val->responseBytes);
+
+  // Allocates the memory
+  if (!(resp_val->responseBytes = OCSP_RESPBYTES_new()))
+    return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+
+  // Sets the OCSP basic bit
+  resp_val->responseBytes->responseType = 
+  	OBJ_nid2obj(NID_id_pkix_OCSP_basic);
+
+  // Encodes the basic response
+  if (bsrp) {
+
+	  // Now add the encoded data to the request bytes
+	  if (!ASN1_item_pack(bsrp,
+	  	                  ASN1_ITEM_rptr(OCSP_BASICRESP),
+	  	                  &resp_val->responseBytes->response)) {
+
+	  	// Error while encoding the basic response
+	    return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, NULL);
+	  }
+  }
+
+  // Success
+  return PKI_OK;
 }
 
 int PEM_write_bio_PKI_OCSP_RESP( PKI_IO *bp, PKI_OCSP_RESP *o ) {

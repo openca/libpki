@@ -237,6 +237,45 @@ PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid ( PKI_X509_OCSP_REQ *req, int num) {
 	return OCSP_onereq_get0_id( single );
 }
 
+PKI_STRING * PKI_OCSP_CERTID_get_issuerNameHash(PKI_OCSP_CERTID * c_id) {
+
+	PKI_STRING * ret = NULL;
+		// Return Value
+
+	// Input checks
+	if (!c_id) return NULL;
+
+  // Gets the pointer to the issuerNameHas
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	ret = &(c_id->issuerNameHash);
+#else
+	ret = c_id->issuerNameHash;
+#endif
+
+	// Returns the pointer to the OCTET string
+  return ret;
+
+}
+
+PKI_STRING * PKI_OCSP_CERTID_get_issuerKeyHash(PKI_OCSP_CERTID * c_id) {
+
+	PKI_STRING * ret = NULL;
+		// Return Value
+
+	// Input checks
+	if (!c_id) return NULL;
+
+  // Gets the pointer to the issuerNameHas
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+	ret = &(c_id->issuerKeyHash);
+#else
+	ret = c_id->issuerKeyHash;
+#endif
+
+  // Returns the pointer to the OCTET string
+  return ret;
+}
+
 /*! \brief Returns the serial of the requested certificate from the n-th
  *         single request */
 
@@ -399,7 +438,7 @@ int PKI_X509_OCSP_REQ_sign_tk ( PKI_X509_OCSP_REQ *req, PKI_TOKEN *tk ) {
 
 	if( !req || !tk ) return ( PKI_ERR );
 
-	digest = PKI_ALGOR_get_digest ( tk->algor );
+	digest = PKI_X509_ALGOR_VALUE_get_digest ( tk->algor );
 
 	if (PKI_TOKEN_login(tk) != PKI_OK)
 	{
@@ -508,7 +547,7 @@ char * PKI_X509_OCSP_REQ_get_parsed ( PKI_X509_OCSP_REQ *req,
 				PKI_X509_OCSP_REQ_get_data ( req, type ));
 			break;
 		case PKI_X509_DATA_ALGORITHM:
-			ret = (char *) PKI_ALGOR_get_parsed ( (PKI_ALGOR *)
+			ret = (char *) PKI_X509_ALGOR_VALUE_get_parsed ( (PKI_X509_ALGOR_VALUE *)
 				PKI_X509_OCSP_REQ_get_data ( req, type ));
 			break;
 		case PKI_X509_DATA_SIGNATURE:

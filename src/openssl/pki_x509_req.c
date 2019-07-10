@@ -115,12 +115,12 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 
 		if(( tmp_s = PKI_X509_PROFILE_get_value( req_cnf, 
 				"/profile/keyParams/algorithm")) != NULL ) {
-			PKI_ALGOR *myAlg = NULL;
+			PKI_X509_ALGOR_VALUE *myAlg = NULL;
 			PKI_DIGEST_ALG *dgst = NULL;
 
-			if((myAlg = PKI_ALGOR_get_by_name( tmp_s )) != NULL ) {
-				scheme = PKI_ALGOR_get_scheme ( myAlg );
-				if((dgst = PKI_ALGOR_get_digest( myAlg )) != NULL ) {
+			if((myAlg = PKI_X509_ALGOR_VALUE_get_by_name( tmp_s )) != NULL ) {
+				scheme = PKI_X509_ALGOR_VALUE_get_scheme ( myAlg );
+				if((dgst = PKI_X509_ALGOR_VALUE_get_digest( myAlg )) != NULL ) {
 					digest = dgst;
 				};
 			};
@@ -427,8 +427,8 @@ const char * PKI_X509_REQ_get_parsed(const PKI_X509_REQ *req,
 				PKI_X509_REQ_get_data ( req, type ));
 			break;
 		case PKI_X509_DATA_ALGORITHM:
-			ret = PKI_ALGOR_get_parsed ( (PKI_ALGOR *)
-				PKI_X509_REQ_get_data ( req, type ));
+			ret = PKI_X509_ALGOR_VALUE_get_parsed((PKI_X509_ALGOR_VALUE *)
+				PKI_X509_REQ_get_data(req, type));
 			break;
 		case PKI_X509_DATA_PUBKEY:
 		case PKI_X509_DATA_KEYPAIR_VALUE:

@@ -70,7 +70,7 @@ const PKCS7_SIGNER_INFO * PKI_X509_PKCS7_get_signer_info(
 int PKI_X509_PKCS7_set_cipher(const PKI_X509_PKCS7 * p7,
 			      const PKI_CIPHER     * const cipher);
 
-const PKI_ALGOR * PKI_X509_PKCS7_get_encode_alg(
+const PKI_X509_ALGOR_VALUE * PKI_X509_PKCS7_get_encode_alg(
                               const PKI_X509_PKCS7 * const p7);
 
 int PKI_X509_PKCS7_encode(const PKI_X509_PKCS7 * const p7,

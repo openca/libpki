@@ -54,7 +54,7 @@ int HSM_PKCS11_login ( HSM *driver, PKI_CRED *cred );
 int HSM_PKCS11_logout ( HSM *driver );
 
 int HSM_PKCS11_init ( HSM *driver, PKI_CONFIG *conf );
-int HSM_PKCS11_sign_algor_set (HSM *hsm, PKI_ALGOR *algor);
+int HSM_PKCS11_sign_algor_set (HSM *hsm, PKI_X509_ALGOR_VALUE *algor);
 
 int HSM_PKCS11_set_fips_mode ( const HSM *driver, int k);
 int HSM_PKCS11_is_fips_mode( const HSM *driver );

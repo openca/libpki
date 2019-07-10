@@ -129,10 +129,10 @@ const PKI_X509_CERT * PKI_X509_CMS_get_recipient_cert(
 
 /*! \brief Returns the encryption algorithm */
 
-const PKI_ALGOR * PKI_X509_CMS_get_encode_alg(
+const PKI_X509_ALGOR_VALUE * PKI_X509_CMS_get_encode_alg(
 				const PKI_X509_CMS * const cms) {
 
-	PKI_ALGOR *ret = NULL;
+	PKI_X509_ALGOR_VALUE *ret = NULL;
 	PKI_X509_CMS_VALUE *val = NULL;
 
 	// Input Check

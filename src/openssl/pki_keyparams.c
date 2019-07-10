@@ -19,7 +19,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 	if (prof)
 	{
-		PKI_ALGOR *alg = NULL;
+		PKI_X509_ALGOR_VALUE *alg = NULL;
 		char *tmp_s = NULL;
 
 		// Get the Profile value of Bits
@@ -35,11 +35,14 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		if( scheme <= 0 ) {
 			if(( tmp_s = PKI_CONFIG_get_value(prof, 
 						"/profile/keyParams/algorithm" )) != NULL ) {
-				if((alg = PKI_ALGOR_get_by_name(tmp_s)) != NULL ) {
+				if((alg = PKI_X509_ALGOR_VALUE_get_by_name(tmp_s)) != NULL ) {
 					// algorID = PKI_ALGOR_get_id(alg);
-					kp->scheme = PKI_ALGOR_get_scheme ( alg );
-				};
-				PKI_log_debug("PKI_KEYPARAMS_new(): ALGOR is %s\n", tmp_s );
+					kp->scheme = PKI_X509_ALGOR_VALUE_get_scheme ( alg );
+				}
+
+				// TODO: Remove this debug statement
+				PKI_DEBUG("Selected ALGOR is %s\n", tmp_s );
+
 				PKI_Free ( tmp_s );
 			} else {
 				kp->scheme = PKI_SCHEME_UNKNOWN;

@@ -21,9 +21,9 @@ typedef struct my_meth_st {
 
 /* --------------------------- Static function(s) ------------------------- */
 
-static int __set_algIdentifier (PKI_ALGOR              * alg, 
-	                            const PKI_DIGEST_ALG   * digest,
-	                            const PKI_X509_KEYPAIR * key) {
+static int __set_algIdentifier (PKI_X509_ALGOR_VALUE * alg, 
+	                              const PKI_DIGEST_ALG   * digest,
+	                              const PKI_X509_KEYPAIR * key) {
 
 	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
 	  // KeyPair Pointer
@@ -402,7 +402,7 @@ int HSM_is_fips_mode(const HSM *hsm)
 
 /* -------------------------- General Crypto HSM ----------------------- */
 
-int HSM_set_sign_algor ( PKI_ALGOR *alg, HSM *hsm ) {
+int HSM_set_sign_algor ( PKI_X509_ALGOR_VALUE *alg, HSM *hsm ) {
 
 	int ret = PKI_OK;
 
@@ -433,7 +433,7 @@ int PKI_X509_sign(PKI_X509           * x,
 	PKI_MEM *sig = NULL;
 	  // Data structure for the signature
 
-	PKI_ALGOR *a_pnt = NULL;
+	PKI_X509_ALGOR_VALUE *a_pnt = NULL;
 	  // Pointer to the Algorithm Structure
 
 	PKI_STRING * sigPtr = NULL;
@@ -627,7 +627,7 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 	PKI_MEM *sig = NULL;
 
 	PKI_STRING *sig_value = NULL;
-	PKI_ALGOR *alg = NULL;
+	PKI_X509_ALGOR_VALUE *alg = NULL;
 
 	// Make sure the library is initialized
 	PKI_init_all();
@@ -724,10 +724,10 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 
 /*! \brief Verifies a signature */
 
-int PKI_verify_signature(const PKI_MEM *data, 
-			 const PKI_MEM *sig,
-			 const PKI_ALGOR *alg,
-			 const PKI_X509_KEYPAIR *key ) {
+int PKI_verify_signature(const PKI_MEM              * data,
+                         const PKI_MEM              * sig,
+                         const PKI_X509_ALGOR_VALUE * alg,
+                         const PKI_X509_KEYPAIR     * key ) {
 	int v_code = 0;
 	EVP_MD_CTX *ctx = NULL;
 	PKI_DIGEST_ALG *dgst = NULL;
@@ -741,7 +741,7 @@ int PKI_verify_signature(const PKI_MEM *data,
 	}
 
 	// Gets the Digest Algorithm to verify with
-	if ((dgst = PKI_ALGOR_get_digest(alg)) == PKI_ID_UNKNOWN) {
+	if ((dgst = PKI_X509_ALGOR_VALUE_get_digest(alg)) == PKI_ID_UNKNOWN) {
 
 		// Reports the error
 		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,  NULL);

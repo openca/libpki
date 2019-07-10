@@ -43,21 +43,25 @@ int gen_X509_tk(int scheme, int bits, char *file ) {
 	PKI_TOKEN *tk = NULL;
 	// PKI_X509_KEYPAIR *p = NULL;
 	// PKI_X509_CERT *r = NULL;
-	PKI_ALGOR_ID algor = PKI_ALGOR_UNKNOWN;
+	PKI_ALGOR_ID algor = PKI_ALGOR_ID_UNKNOWN;
 
 	switch (scheme) {
+
 		case PKI_SCHEME_RSA:
 			printf("  * Generating RSA Key and Certificate:\n");
-			algor = PKI_ALGOR_RSA_SHA1;
+			algor = PKI_ALGOR_ID_RSA_SHA256;
 			break;
+
 		case PKI_SCHEME_DSA:
 			printf("  * Generating DSA Key and Certificate:\n");
-			algor = PKI_ALGOR_DSA_SHA1;
+			algor = PKI_ALGOR_ID_DSA_SHA1;
 			break;
+
 		case PKI_SCHEME_ECDSA:
 			printf("  * Generating ECDSA Key and Certificate: \n");
-			algor = PKI_ALGOR_ECDSA_SHA1;
+			algor = PKI_ALGOR_ID_ECDSA_SHA256;
 			break;
+			
 		default:
 			printf("Unrecognized format!\n");
 			return (0);

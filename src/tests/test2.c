@@ -15,7 +15,7 @@ char *sc_list[] = {
 
 int main (int argc, char *argv[] ) {
 
-	PKI_ALGOR_ID *algs = NULL;
+	const PKI_ALGOR_ID *algs = NULL;
 	size_t list_size = 0;
 	int i = 0;
 
@@ -31,9 +31,9 @@ int main (int argc, char *argv[] ) {
 	}
 
 	printf("Available DIGEST algorithms:\n");
-	algs=PKI_DIGEST_ALG_list();
-	list_size = PKI_ALGOR_list_size( algs );
-	for( i = 0; i < PKI_ALGOR_list_size( algs ); i++ ) {
+	algs=PKI_DIGEST_ALG_ID_list();
+	list_size = PKI_ALGOR_ID_list_size( algs );
+	for( i = 0; i < PKI_ALGOR_ID_list_size( algs ); i++ ) {
 		printf("    - %s (%d)\n" , PKI_ALGOR_ID_txt (algs[i]),
 						algs[i]);
 	}
@@ -54,7 +54,7 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 	PKI_X509_KEYPAIR *p = NULL;
 	PKI_X509_CERT *r = NULL;
 	// PKI_ALGOR * alg = PKI_ALGOR_DEFAULT;
-	PKI_ALGOR_ID *algs = NULL;
+	const PKI_ALGOR_ID *algs = NULL;
 	size_t list_size = 0;
 	int i = 0;
 
@@ -97,14 +97,13 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 
 	printf(" Ok.\n");
 
-
-	if((algs = PKI_ALGOR_list( scheme )) == NULL ) {
+	if ((algs = PKI_ALGOR_ID_list(scheme)) == NULL) {
 		/* No supported Digests for this alg ??? */
 		printf("No supported Digests for this scheme!\n");
 		return(1);
 	}
 
-	list_size = PKI_ALGOR_list_size ( algs );
+	list_size = PKI_ALGOR_ID_list_size ( algs );
 	for( i=0; i < list_size ; i++ ) {
 
 		printf("    - Generating CERT (%s) ... " ,
@@ -112,7 +111,7 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 
 		r = PKI_X509_CERT_new ( NULL, p, NULL, NULL, NULL, 
 				PKI_VALIDITY_ONE_HOUR, 
-				NULL, PKI_ALGOR_get(algs[i]), NULL, NULL );
+				NULL, PKI_X509_ALGOR_VALUE_get(algs[i]), NULL, NULL );
 
 		if( !r ) {
 			if (p) PKI_X509_KEYPAIR_free( p );

@@ -41,6 +41,11 @@ int PKI_X509_OCSP_REQ_has_nonce ( PKI_X509_OCSP_REQ *req );
 int PKI_X509_OCSP_REQ_elements ( PKI_X509_OCSP_REQ *req );
 
 PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid ( PKI_X509_OCSP_REQ *req, int num);
+
+PKI_STRING * PKI_OCSP_CERTID_get_issuerNameHash(PKI_OCSP_CERTID * c_id);
+
+PKI_STRING * PKI_OCSP_CERTID_get_issuerKeyHash(PKI_OCSP_CERTID * c_id);
+
 PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial ( PKI_X509_OCSP_REQ *req, int num);
 
 void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req, PKI_X509_DATA type );

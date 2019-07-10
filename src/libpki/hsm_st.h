@@ -218,7 +218,7 @@ typedef struct callbacks_st {
   int (*logout)(struct hsm_st *driver);
 
   /* HSM set algor function */
-  int (*sign_algor) (struct hsm_st *driver, PKI_ALGOR *algor);
+  int (*sign_algor) (struct hsm_st *driver, PKI_X509_ALGOR_VALUE *algor);
 
   /* HSM set fips mode */
   int (*set_fips_mode) (const struct hsm_st *driver, int k);
@@ -231,7 +231,7 @@ typedef struct callbacks_st {
   PKI_MEM * (*sign) (PKI_MEM *, PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
 
   /* General Verify Function */
-  int    (*verify)(PKI_MEM *, PKI_MEM *, PKI_ALGOR *,
+  int    (*verify)(PKI_MEM *, PKI_MEM *, PKI_X509_ALGOR_VALUE *,
               PKI_X509_KEYPAIR * );
 
   /* ------------- Key Management functions --------------- */

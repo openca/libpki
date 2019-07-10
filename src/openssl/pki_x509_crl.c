@@ -927,7 +927,7 @@ const void * PKI_X509_CRL_get_data(const PKI_X509_CRL * x,
 char * PKI_X509_CRL_get_parsed(const PKI_X509_CRL *x, PKI_X509_DATA type ) {
 
   char *ret = NULL;
-  const PKI_ALGOR *al = NULL;
+  const PKI_X509_ALGOR_VALUE *al = NULL;
 
   if (!x || !x->value) return NULL;
 

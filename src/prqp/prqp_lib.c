@@ -495,7 +495,7 @@ CERT_IDENTIFIER *PKI_PRQP_CERTID_new(
 		const PKI_STRING     * issKeyId,
 		const PKI_DIGEST_ALG * dgst) {
 	int nid;
-	PKI_ALGOR *alg;
+	PKI_X509_ALGOR_VALUE *alg;
 	CERT_IDENTIFIER *ca_id = NULL;
 
 	/* To build the Basic Cert Info we need these informations! */

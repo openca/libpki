@@ -191,10 +191,10 @@ const PKI_X509_CERT * PKI_X509_PKCS7_get_recipient_cert(
 
 /*! \brief Returns the encryption algorithm */
 
-const PKI_ALGOR * PKI_X509_PKCS7_get_encode_alg(
+const PKI_X509_ALGOR_VALUE * PKI_X509_PKCS7_get_encode_alg(
 				const PKI_X509_PKCS7 * const p7) {
 
-	PKI_ALGOR *ret = NULL;
+	PKI_X509_ALGOR_VALUE *ret = NULL;
 	PKI_X509_PKCS7_VALUE *val = NULL;
 
 	if( !p7 || !p7->value ) return NULL;
@@ -1199,7 +1199,7 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 					PKI_X509_PKCS7_TYPE_SIGNEDANDENCRYPTED){
 			BIO_printf( bio, "        Encrypted=yes\r\n");
 			BIO_printf( bio, "        Algorithm=%s\r\n",
-				PKI_ALGOR_get_parsed (
+				PKI_X509_ALGOR_VALUE_get_parsed (
 					PKI_X509_PKCS7_get_encode_alg ( msg )));
 		} else {
 			BIO_printf( bio, "        Encrypted=no\r\n");
@@ -1241,12 +1241,12 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 		if ( si->digest_enc_alg ) {
 			BIO_printf( bio, "            "
 					"Encryption Algoritm=%s\r\n",
-				PKI_ALGOR_get_parsed ( si->digest_enc_alg ));
+				PKI_X509_ALGOR_VALUE_get_parsed ( si->digest_enc_alg ));
 		}
 
 		if ( si->digest_alg ) {
 			BIO_printf( bio, "            Digest Algorithm=%s\r\n",
-				PKI_ALGOR_get_parsed ( si->digest_alg ));
+				PKI_X509_ALGOR_VALUE_get_parsed ( si->digest_alg ));
 		}
 
 		BIO_printf( bio, "        Signed Attributes:\r\n");
@@ -1363,7 +1363,7 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 
 					BIO_printf( bio, "            "
 						"Key Encoding Algorithm=%s\r\n",
-						PKI_ALGOR_get_parsed (
+						PKI_X509_ALGOR_VALUE_get_parsed (
 							ri->key_enc_algor ));
 				}
 

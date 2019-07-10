@@ -177,7 +177,7 @@ const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
 int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
                             const PKI_CIPHER   * const cipher);
 
-const PKI_ALGOR * PKI_X509_CMS_get_encode_alg(
+const PKI_X509_ALGOR_VALUE * PKI_X509_CMS_get_encode_alg(
                             const PKI_X509_CMS * const cms);
 
 int PKI_X509_CMS_encode(const PKI_X509_CMS * const cms,

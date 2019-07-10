@@ -171,9 +171,9 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *p
  * \brief Returns the default signing algorithm from a keypair
  */
 
-PKI_ALGOR * PKI_X509_KEYPAIR_get_algor (const PKI_X509_KEYPAIR *k ) {
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_get_algor (const PKI_X509_KEYPAIR *k ) {
 
-	PKI_ALGOR *ret = NULL;
+	PKI_X509_ALGOR_VALUE *ret = NULL;
 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
 
 	if ( !k ) {
@@ -191,9 +191,9 @@ PKI_ALGOR * PKI_X509_KEYPAIR_get_algor (const PKI_X509_KEYPAIR *k ) {
  * \brief Returns the default signing algorithm from a keypair value
  */
 
-PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE *pVal )
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE *pVal )
 {
-	PKI_ALGOR *ret = NULL;
+	PKI_X509_ALGOR_VALUE *ret = NULL;
 	int p_type = 0;
 
 	int size = -1;
@@ -236,7 +236,7 @@ PKI_ALGOR * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE *pVal
 			return ret;
 	};
 
-	if( algId > 0 ) ret = PKI_ALGOR_get ( algId );
+	if( algId > 0 ) ret = PKI_X509_ALGOR_VALUE_get ( algId );
 
 	return ret;
 };

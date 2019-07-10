@@ -523,7 +523,7 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	int ret = PKI_ERR;
 
-	const PKI_ALGOR * alg = NULL;
+	const PKI_X509_ALGOR_VALUE * alg = NULL;
 
 	/* Check input */
 	if(!tk || !tk_name)
@@ -695,11 +695,11 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 		// The init function already assigned and algorithm to the token, we
 		// might want to free it before re-assigning the algorithm
-		if (tk->algor) PKI_ALGOR_free(tk->algor);
+		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 
 		// Assign the algorithm from the certificate
 		alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
-		if (alg) PKI_TOKEN_set_algor(tk, PKI_ALGOR_get_id(alg));
+		if (alg) PKI_TOKEN_set_algor(tk, PKI_X509_ALGOR_VALUE_get_id(alg));
 
 		// Assign the name
 		tk->cert_id = strdup( tmp_s );
@@ -914,20 +914,20 @@ PKI_OID *PKI_TOKEN_OID_new ( PKI_TOKEN *tk, char *oid_s )
 
 int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 {
-	PKI_ALGOR *al = NULL;
+	PKI_X509_ALGOR_VALUE *al = NULL;
 
 	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
 
 	if(algId <= 0) algId = PKI_ALGOR_DEFAULT;
 
 	// Now let's get the algor
-	if ((al = PKI_ALGOR_get(algId)) == NULL) {
+	if ((al = PKI_X509_ALGOR_VALUE_get(algId)) == NULL) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 		return PKI_ERR;
 	}
 
 	// If already set, let's free the memory first
-	if (tk->algor) PKI_ALGOR_free(tk->algor);
+	if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 	
 	// Now we can safely assign the algoritm to the token
 	tk->algor = al;
@@ -960,17 +960,18 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
  *   RSA-RIPEMD160
  */
 
-int PKI_TOKEN_set_algor_by_name( PKI_TOKEN *tk, const char *alg_name)
-{
-	PKI_ALGOR *al = NULL;
+int PKI_TOKEN_set_algor_by_name(PKI_TOKEN  * tk,
+	                              const char * alg_name) {
+
+	PKI_X509_ALGOR_VALUE *al = NULL;
 
 	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if ((al = PKI_ALGOR_get_by_name(alg_name)) == NULL)
+	if ((al = PKI_X509_ALGOR_VALUE_get_by_name(alg_name)) == NULL)
 		return PKI_ERROR(PKI_ERR_TOKEN_SET_ALGOR, alg_name);
 
 	// Check and assign the new algorithm
-	if (tk->algor) PKI_ALGOR_free(tk->algor);
+	if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 	tk->algor = al;
 
 	/* Check that the HSM capabilities */
@@ -993,7 +994,7 @@ int PKI_TOKEN_get_algor_id( PKI_TOKEN *tk )
 		return PKI_ALGOR_ID_UNKNOWN;
 	}
 
-	if (tk->algor) ret = PKI_ALGOR_get_id(tk->algor);
+	if (tk->algor) ret = PKI_X509_ALGOR_VALUE_get_id(tk->algor);
 
 	return ret;
 };
@@ -1002,7 +1003,7 @@ int PKI_TOKEN_get_algor_id( PKI_TOKEN *tk )
  * \brief Returns the PKI_ALGORITHM pointer set for the token
  */
 
-PKI_ALGOR *PKI_TOKEN_get_algor( PKI_TOKEN *tk )
+PKI_X509_ALGOR_VALUE * PKI_TOKEN_get_algor( PKI_TOKEN *tk )
 {
 	if (!tk)
 	{
@@ -1026,9 +1027,11 @@ PKI_ALGOR *PKI_TOKEN_get_algor( PKI_TOKEN *tk )
  * The label (a url string) is needed by some HSM(s).
  */
 
-int PKI_TOKEN_new_keypair_ex ( PKI_TOKEN *tk, PKI_KEYPARAMS *kp, 
-		char *label, char *profile_s )
-{
+int PKI_TOKEN_new_keypair_ex(PKI_TOKEN     * tk,
+	                           PKI_KEYPARAMS * kp, 
+                             char          * label,
+                             char          * profile_s) {
+
 	URL *url = NULL;
 	int ret = PKI_OK;
 
@@ -1083,11 +1086,12 @@ int PKI_TOKEN_new_keypair ( PKI_TOKEN *tk, int bits, char *label )
 
 	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if (tk->algor)
-	{
-		if ((alg = PKI_ALGOR_get_scheme(tk->algor)) == PKI_SCHEME_UNKNOWN) return PKI_ERR;
+	if (tk->algor) {
+		if ((alg = PKI_X509_ALGOR_VALUE_get_scheme(tk->algor))
+															== PKI_SCHEME_UNKNOWN) return PKI_ERR;
+	} else {
+		alg = PKI_SCHEME_DEFAULT;
 	}
-	else alg = PKI_SCHEME_DEFAULT;
 
 	if ((kp = PKI_KEYPARAMS_new(alg, NULL)) == NULL)
 		return PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL);
@@ -1099,7 +1103,7 @@ int PKI_TOKEN_new_keypair ( PKI_TOKEN *tk, int bits, char *label )
 	if (kp) PKI_KEYPARAMS_free(kp);
 
 	return ret;
-};
+}
 
 /*!
  * \brief Generates a PKI_X509_KEYPAIR and store it in a PKI_TOKEN.
@@ -1182,7 +1186,7 @@ int PKI_TOKEN_new_keypair_url(PKI_TOKEN *tk, int bits, URL *label)
 
 	if (tk->algor)
 	{
-		if ((scheme = PKI_ALGOR_get_scheme(tk->algor)) == PKI_SCHEME_UNKNOWN)
+		if ((scheme = PKI_X509_ALGOR_VALUE_get_scheme(tk->algor)) == PKI_SCHEME_UNKNOWN)
 			return PKI_ERR;
 	}
 	else scheme = PKI_SCHEME_DEFAULT;
@@ -1504,7 +1508,7 @@ PKI_CRED * PKI_TOKEN_get_cred ( PKI_TOKEN *tk )
 
 int PKI_TOKEN_set_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *pkey )
 {
-	PKI_ALGOR *pKeyAlgor = NULL;
+	PKI_X509_ALGOR_VALUE *pKeyAlgor = NULL;
 
 	if (!tk || !pkey || !pkey->value)
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -1519,7 +1523,7 @@ int PKI_TOKEN_set_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *pkey )
 
 	if (( pKeyAlgor = PKI_X509_KEYPAIR_get_algor(tk->keypair)) != NULL)
 	{
-		if (tk->algor) X509_ALGOR_free(tk->algor);
+		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 		tk->algor = pKeyAlgor;
 	}
 	else PKI_log_debug("WARNING: can not get default algorithm from Key!");
@@ -2242,7 +2246,7 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 	};
 
 	if( tk->algor ) {
-		if((digest = PKI_ALGOR_get_digest(tk->algor)) == PKI_DIGEST_ALG_UNKNOWN) {
+		if((digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor)) == PKI_DIGEST_ALG_UNKNOWN) {
 			/* Error, digest algorithm not supported or recognized! */
 			return ( PKI_ERR );
 		}
