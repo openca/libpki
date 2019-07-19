@@ -6,6 +6,10 @@
 extern "C" {
 #endif
 
+// Shared Lib Major Version
+# define LIBPKI_SHLIB_VERSION_HISTORY "@shlib_history@"
+# define LIBPKI_SHLIB_VERSION_NUMBER  "@shlib_version@"
+
 // Breakdown of version numbers
 # define LIBPKI_VERSION_MAJOR          0x@lib_major@
 # define LIBPKI_VERSION_MINOR          0x@lib_minor@
@@ -18,15 +22,15 @@ extern "C" {
 // Useful for debugging/info purposes
 # define LIBPKI_VERSION_TEXT           "LibPKI v@PACKAGE_VERSION@@txt_revision@"
 
-// Basic shared library variables
-# define LIBPKI_SHLIB_VERSION_HISTORY  "@shlib_history@"
-# define LIBPKI_SHLIB_VERSION_NUMBER   "@shlib_version@"
-
 // Build date
 # define LIBPKI_BUILD_DATE_TEXT        "@BUILD_DATE@"
 # define LIBPKI_BUILD_DATE_TEXT_PRETTY "@BUILD_DATE_PRETTY@"
 # define LIBPKI_BUILD_DATE_TEXT_FULL   "@BUILD_DATE_FULL@"
 # define LIBPKI_BUILD_DATE_NUMBER      0x@yr@@mon@@day@@hr@@min@@sec@
+
+// Build Support Libraries Versions
+# define LIBPKI_BUILD_OPENSSL_VERSION_TEXT    OPENSSL_VERSION_TEXT
+# define LIBPKI_BUILD_OPENSSL_VERSION_NUMBER	OPENSSL_VERSION_NUMBER
 
 // Useful Build Dates
 # define LIBPKI_BUILD_DATE_YEAR        @yr@

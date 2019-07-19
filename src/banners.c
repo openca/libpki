@@ -1,4 +1,4 @@
-// file: libpki/banners.h
+// file: banners.c
 
 #ifndef LIBPKI_HEADER_BANNERS_H
 # include <libpki/banners.h>

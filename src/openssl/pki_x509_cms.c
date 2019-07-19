@@ -85,9 +85,9 @@ int PKI_X509_CMS_get_signers_num(const PKI_X509_CMS * const cms) {
 	return (r_sk == NULL ? 0 : sk_CMS_SignerInfo_num(r_sk));
 }
 
-const PKI_X509_CMS_RECIPIENT_INFO * PKI_X509_CMS_get_recipient_info(
-					const PKI_X509_CMS * const cms,
-					int                    idx ) {
+PKI_X509_CMS_RECIPIENT_INFO * PKI_X509_CMS_get_recipient_info(
+					                            PKI_X509_CMS         * const cms,
+					                            int                    idx ) {
 
 	STACK_OF(CMS_RecipientInfo) *r_sk = NULL;
 	PKI_X509_CMS_RECIPIENT_INFO * ri = NULL;
@@ -110,21 +110,31 @@ const PKI_X509_CMS_RECIPIENT_INFO * PKI_X509_CMS_get_recipient_info(
 	return ri;
 }
 
-/*! \brief Returns a copy of the n-th recipient certificate */
+/*! \brief Returns the Recipient Info position for the passed cert */
 
-const PKI_X509_CERT * PKI_X509_CMS_get_recipient_cert(
-			    const PKI_X509_CMS * const cms,
-				int                    idx ) {
+int PKI_X509_CMS_recipient_num(const PKI_X509_CMS  * const cms,
+                               const PKI_X509_CERT * const x ) {
 
-	const PKI_X509_CMS_RECIPIENT_INFO *r_info = NULL;
+	PKI_X509_CMS_RECIPIENT_INFO *r_info = NULL;
+	  // Temp Pointer
 
-	if ((r_info = PKI_X509_CMS_get_recipient_info(cms, idx)) == NULL)
-		return NULL;
+	int idx = 0;
+	int res = 0;
+	  // Index and intermediate result for loop cycle
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+	while ((r_info = PKI_X509_CMS_get_recipient_info(cms, idx)) != NULL) {
 
-	return NULL;
+		// Checks if this r_info is the one for the passed certificates
+		if ((res = CMS_RecipientInfo_kari_orig_id_cmp(r_info, x->value)) == 0) {
+			return idx;
+		}
+
+		// Increase the counter
+		idx++;
+	}
+
+	// If here, we did not find it
+	return -1;
 }
 
 /*! \brief Returns the encryption algorithm */
