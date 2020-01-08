@@ -86,7 +86,7 @@ int PKI_X509_CMS_get_signers_num(const PKI_X509_CMS * const cms) {
 }
 
 PKI_X509_CMS_RECIPIENT_INFO * PKI_X509_CMS_get_recipient_info(
-					                            PKI_X509_CMS         * const cms,
+					                            const PKI_X509_CMS         * const cms,
 					                            int                    idx ) {
 
 	STACK_OF(CMS_RecipientInfo) *r_sk = NULL;
@@ -94,7 +94,7 @@ PKI_X509_CMS_RECIPIENT_INFO * PKI_X509_CMS_get_recipient_info(
 	PKI_X509_CMS_VALUE * val = NULL;
 
 	// Checks we have an internal value
-	if (!cms || !(val = PKI_X509_get_value(cms)))
+	if (!cms || !(val = (PKI_X509_CMS_VALUE *)PKI_X509_get_value(cms)))
 		return NULL;
 
 	// Gets a reference to the recipient Infos
