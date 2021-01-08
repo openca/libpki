@@ -14640,20 +14640,15 @@ fi
 
 
 pthread_opts=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Detecting pthread cflags ... " >&5
-$as_echo "Detecting pthread cflags ... " >&6; }
+
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <sys/types.h>
 #include <pthread.h>
-int
-main ()
-{
- pthread_rwlock_t rwlock=PTHREAD_RWLOCK_INITIALIZER;
- return (0);
-  ;
-  return 0;
+pthread_rwlock_t rwlock=PTHREAD_RWLOCK_INITIALIZER;
+int main() {
+return (0);
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :

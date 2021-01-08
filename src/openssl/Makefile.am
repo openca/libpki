@@ -15,10 +15,12 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(COND_INCLUDES)
 
 OPENSSL_INTERNAL_SRCS = \
-        internal/x509_data_st.h \
+        internal/x509_data_st.h
+
+nobase_include_HEADERS = \
 	internal/ossl_1_0_x/*.h \
 	internal/ossl_1_1_0/*.h \
-	internal/ossl_1_0_1/*.h
+	internal/ossl_1_1_1/*.h
 
 OPENSSL_SRCS = \
         $(OPENSSL_INTERNAL_SRCS) \

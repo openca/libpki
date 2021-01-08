@@ -483,12 +483,23 @@ AC_CHECK_LIB(pthread, pthread_create,
 )
 
 pthread_opts=""
-AC_MSG_RESULT([Detecting pthread cflags ... ])
-AC_TRY_COMPILE( [
+dnl AC_MSG_RESULT([Detecting pthread cflags ... ])
+dnl AC_TRY_COMPILE( [
+dnl #include <sys/types.h>
+dnl #include <pthread.h>],
+dnl [ pthread_rwlock_t rwlock=PTHREAD_RWLOCK_INITIALIZER;]
+dnl [ return (0); ],
+dnl [ pthread_rw=yes ] , 
+dnl [ pthread_rw=no ] )
+
+dnl AC_TRY_COMPILE( [
+AC_COMPILE_IFELSE( AC_LANG_SOURCE([[
 #include <sys/types.h>
-#include <pthread.h>],
-[ pthread_rwlock_t rwlock=PTHREAD_RWLOCK_INITIALIZER;]
-[ return (0); ],
+#include <pthread.h>
+pthread_rwlock_t rwlock=PTHREAD_RWLOCK_INITIALIZER;
+int main() {
+return (0);
+} ]]),
 [ pthread_rw=yes ] , 
 [ pthread_rw=no ] )
 
