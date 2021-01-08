@@ -10,19 +10,21 @@ mailing lists for new ideas or to comment on these ideas.
 Project's Next Steps:
 =====================
 
-- Provide support for OpenSSL v1.1+ (currently supported OpenSSL v0.9.x-v1.0.x
+- [DONE] Provide support for OpenSSL v1.1+ (currently supported
+  OpenSSL v0.9.x-v1.0.x)
 
-- Provide support for SSLv3-disabled OpenSSL versions
+- [DONE] Provide support for SSLv3-disabled OpenSSL versions
 
-- Update the includes structure to avoid the inclusion of non-essentials
-  headers in each file to speedup the compilation of the library
+- [DONE] Update the includes structure to avoid the inclusion of
+  non-essentials headers in each file to speedup the compilation of
+  the library
 
 - Provide better documentation. In particular, we want to move all the
   documentation in the headers files to make it available to developers where
   it matter most. In our experience that should help a lot with the usability
   of the library in general (also man pages would really be useful)
 
-- Update the support for CMS format. When the first interface to CMS was
+- [DONE] Update the support for CMS format. When the first interface to CMS was
   introduced in LibPKI, OpenSSL did not support it. Now that OpenSSL has its
   own implementation, we need to wrap it and provide similar interface to the
   PKCS#7 one. This will enable support for CMC (and EST - see next point)
