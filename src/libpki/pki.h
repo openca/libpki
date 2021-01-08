@@ -246,8 +246,8 @@ typedef enum {
 /* Pthread lib include */
   #include <pthread.h>
 
-#ifndef HAVE_PTHREAD_RWLOCK
 #ifdef __LIB_BUILD__
+# ifndef HAVE_PTHREAD_RWLOCK
   typedef struct pthread_rwlock_t
   {
     pthread_cond_t cond_var;
@@ -258,9 +258,11 @@ typedef enum {
     uint64_t n_writers;
     uint64_t n_writers_waiting;
   } PKI_RWLOCK;
+# else
+  typedef pthread_rwlock_t PKI_RWLOCK;
+# endif
 #else
   typedef pthread_rwlock_t PKI_RWLOCK;
-#endif
 #endif
 
   typedef pthread_mutex_t PKI_MUTEX;

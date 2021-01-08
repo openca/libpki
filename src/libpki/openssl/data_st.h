@@ -547,7 +547,10 @@ typedef struct pki_keyparams_st {
 		int exponent;
 	} rsa;
 	// DSA scheme parameters
+
+#ifdef OPENSSL_NO_DSA
 	struct {} dsa;
+#endif
 
 #ifdef ENABLE_ECDSA
 	// EC scheme parameters
