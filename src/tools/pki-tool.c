@@ -247,12 +247,14 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		exit(1);
 	}
 
+	fprintf(stderr, "OK, KEYPARAMS object created (scheme %d - oqs.algId %d)!\n\n", scheme, kp->oqs.algId);
+
 	// Checks that the bits value is not negative (at least!)
-	if( bits > 0 ) kp->bits = bits;
+	PKI_KEYPARAMS_set_bits(kp, bits);
 
 	// Checks for Paramters for Key Generation
-	if( param_s )
-	{
+	if (param_s != NULL) {
+
 		switch ( kp->scheme )
 		{
 			case PKI_SCHEME_RSA:
@@ -260,10 +262,23 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				// Nothing to do Here - no params support
 				break;
 
+			// Post Quantum Switches
+			case PKI_SCHEME_FALCON:
+			case PKI_SCHEME_PICNIC:
+			case PKI_SCHEME_SPHINCS:
+				// Needs to check for each algorithm
+				break;
+
+			case PKI_SCHEME_DILITHIUM: {
+				if (strncmp_nocase( param_s, "AES", 3) == 0 ) {
+					PKI_KEYPARAMS_set_oqs(kp, PKI_ALGOR_OQS_PARAM_DILITHIUM_AES);
+				}
+			} break;
+
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
 				// ECDSA Scheme - allow for curve:<name> param
-				if( strncmp_nocase( param_s, "curve:", 6) == 0 ) {
+				if (strncmp_nocase( param_s, "curve:", 6) == 0 ) {
 					char *curveName;
 					PKI_OID *oid = NULL;
 
@@ -284,6 +299,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				}
 				break;
 #endif
+
 			case PKI_SCHEME_DH:
 			case PKI_SCHEME_UNKNOWN:
 				fprintf(stderr, "ERROR: Scheme not supported!\n\n");
@@ -291,6 +307,8 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		}
 
 	}
+
+	PKI_DEBUG("KeyPair OQS algId = %d", kp->oqs.algId);
 
 	if (!batch)
 	{
@@ -301,7 +319,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 					PKI_SCHEME_ID_get_parsed( kp->scheme ));
 		fprintf(stderr, "  - Bits ...........: %d\n", kp->bits );
 #ifdef ENABLE_ECDSA
-		fprintf(stderr, "  - Point Type......: %d\n", kp->ec.form );
+		if (kp->scheme == PKI_SCHEME_ECDSA) {
+			fprintf(stderr, "  - Point Type......: %d\n", kp->ec.form );
+		}
 #endif
 		fprintf(stderr, "  - Output .........: %s\n", keyurl->url_s );
 
@@ -318,7 +338,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			fflush(stderr);
 		}
 
-		if((PKI_TOKEN_new_keypair_url_ex ( tk, kp, keyurl, profile_s )) == PKI_ERR)
+		if((PKI_TOKEN_new_keypair_url_ex (tk, kp, keyurl, profile_s)) == PKI_ERR)
 		{
 			if(verbose) fprintf(stderr, "Error.\n");
 			return (PKI_ERR);
@@ -814,8 +834,12 @@ int main (int argc, char *argv[] ) {
 			algor_opt = "EC";
 		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
 			algor_opt = "DSA";
+		} else {
+			// This should be a catch all for new algos
+			fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);
 		}
-	        /*else {
+	    /*
+	      else {
 			printf("\nERROR, algorithm (%s) not supported (use RSA, ECDSA, or DSA)!\n\n",
 				algor_opt);
 			exit(1);

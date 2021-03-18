@@ -320,6 +320,54 @@ void * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
 #endif
 
+#ifdef ENABLE_OQS
+
+EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
+
+    const EVP_PKEY_ASN1_METHOD *ameth;
+
+    ENGINE *tmpeng = NULL;
+    EVP_PKEY_CTX *ctx = NULL;
+
+    int pkey_id = -1;
+
+    // ameth = EVP_PKEY_asn1_find_str(&tmpeng, algname, -1);
+    ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
+
+    if (!ameth) {
+        const PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
+        PKI_log_err("Algorithm %s not found (%d)", 
+            PKI_OID_get_descr(obj), kp->oqs.algId);
+        return NULL;
+    }
+
+    ERR_clear_error();
+
+    EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
+
+#ifndef OPENSSL_NO_ENGINE
+    ENGINE_finish(tmpeng);
+#endif
+
+    if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL)
+        goto err;
+
+    if (EVP_PKEY_keygen_init(ctx) <= 0) {
+        goto err;
+    }
+
+    return ctx;
+
+ err:
+ 
+    PKI_log_err("Error initializing context for [scheme: %d, algId: %d]\n", 
+        kp->scheme, kp->oqs.algId);
+
+    if (ctx) EVP_PKEY_CTX_free(ctx);
+    return NULL;
+}
+
+#endif
 
 PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp, 
         URL *url, PKI_CRED *cred, HSM *driver ) {
@@ -327,8 +375,13 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     PKI_X509_KEYPAIR *ret = NULL;
     PKI_RSA_KEY *rsa = NULL;
     PKI_DSA_KEY *dsa = NULL;
+
 #ifdef ENABLE_ECDSA
     PKI_EC_KEY *ec = NULL;
+#endif
+
+#ifdef ENABLE_OQS
+    EVP_PKEY_CTX * ctx = NULL;
 #endif
 
     int type = PKI_SCHEME_DEFAULT;
@@ -384,6 +437,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             break;
 
 #ifdef ENABLE_ECDSA
+
         case PKI_SCHEME_ECDSA:
             if((ec = _pki_ecdsakey_new( kp )) == NULL ) {
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
@@ -397,13 +451,34 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             }
             ec=NULL;
             break;
-#endif
+
+#endif // ENABLE_ECDSA
+
+#ifdef ENABLE_OQS
+
+        default:
+            if ((ctx = _pki_openquantumsafe_ctx(kp)) == NULL) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+                return NULL;
+            }
+
+            if (EVP_PKEY_keygen(ctx, (EVP_PKEY **)&(ret->value)) <= 0) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+                if (ctx) EVP_PKEY_CTX_free(ctx);
+                return NULL;
+            }
+            break;
+
+#else
 
         default:
             /* No recognized scheme */
             PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "%d", type );
             if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
             return NULL;
+
+#endif // ENABLE_OQS
+
     }
 
     /* Let's return the PKEY infrastructure */
@@ -436,11 +511,8 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
 
     switch(EVP_PKEY_type(EVP_PKEY_id(x)))
     {
-        case EVP_PKEY_DSA:
-        case EVP_PKEY_RSA: {
-            ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
-                (char *) kstr, klen, cb, u);
-            } break;
+
+/*
 #ifdef ENABLE_ECDSA
         case EVP_PKEY_EC: {
 # if OPENSSL_VERSION_NUMBER < 0x1010000fL
@@ -452,8 +524,12 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
 # endif
             } break;
 #endif
+*/
         default: {
-            ret = 0;
+            ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
+                (char *) kstr, klen, cb, u);
+            
+            if (!ret) PKI_DEBUG("Key Type NOT supported (%d)", EVP_PKEY_type(EVP_PKEY_id(x)));
         }
     }
 

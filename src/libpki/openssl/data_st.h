@@ -389,6 +389,291 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 /* End - NID_ecdsa_with_SHA512 */
 
+// ======================= //
+// Post Quantum Algorithms //
+// ======================= //
+
+/* Begin - NID_falcon512 - open-quantum-safe */
+#ifdef NID_falcon512
+#define PKI_ALGOR_FALCON512      NID_falcon512
+#define PKI_ALGOR_ID_FALCON512   NID_falcon512
+#else
+#define PKI_ALGOR_FALCON512      NID_undef
+#define PKI_ALGOR_ID_FALCON512   NID_undef
+#endif
+/* End - NID_falcon512 - open-quantum-safe */
+
+/* Begin - NID_falcon512 - open-quantum-safe */
+#ifdef NID_falcon1024
+#define PKI_ALGOR_FALCON1024     NID_falcon1024
+#define PKI_ALGOR_ID_FALCON1024  NID_falcon1024
+#else
+#define PKI_ALGOR_FALCON1024     NID_undef
+#define PKI_ALGOR_ID_FALCON1024  NID_undef
+#endif
+/* End - NID_falcon512 - open-quantum-safe */
+
+/* Begin - NID_dilithium2 - open-quantum-safe */
+#ifdef NID_dilithium2
+#define PKI_ALGOR_DILITHIUM2     NID_dilithium2
+#define PKI_ALGOR_ID_DILITHIUM2  NID_dilithium2
+#else
+#define PKI_ALGOR_DILITHIUM2     NID_undef
+#define PKI_ALGOR_ID_DILITHIUM2  NID_undef
+#endif
+/* End - NID_dilithium2 - open-quantum-safe */
+
+/* Begin - NID_dilithium3 - open-quantum-safe */
+#ifdef NID_dilithium3
+#define PKI_ALGOR_DILITHIUM3     NID_dilithium3
+#define PKI_ALGOR_ID_DILITHIUM3  NID_dilithium3
+#else
+#define PKI_ALGOR_DILITHIUM3     NID_undef
+#define PKI_ALGOR_ID_DILITHIUM3  NID_undef
+#endif
+/* End - NID_dilithium3 - open-quantum-safe */
+
+/* Begin - NID_dilithium5_aes - open-quantum-safe */
+#ifdef NID_dilithium5
+#define PKI_ALGOR_DILITHIUM5     NID_dilithium5
+#define PKI_ALGOR_ID_DILITHIUM5  NID_dilithium5
+#else
+#define PKI_ALGOR_DILITHIUM5     NID_undef
+#define PKI_ALGOR_ID_DILITHIUM5  NID_undef
+#endif
+/* End - NID_dilithium5 - open-quantum-safe */
+
+/* Begin - NID_dilithium2_aes - open-quantum-safe */
+#ifdef NID_dilithium2_aes
+#define PKI_ALGOR_DILITHIUM2_AES     NID_dilithium2_aes
+#define PKI_ALGOR_ID_DILITHIUM2_AES  NID_dilithium2_aes
+#else
+#define PKI_ALGOR_DILITHIUM2_AES     NID_undef
+#define PKI_ALGOR_ID_DILITHIUM2_AES  NID_undef
+#endif
+/* End - NID_dilithium2_aes - open-quantum-safe */
+
+/* Begin - NID_dilithium3_aes - open-quantum-safe */
+#ifdef NID_dilithium3_aes
+#define PKI_ALGOR_DILITHIUM3_AES     NID_dilithium3_aes
+#define PKI_ALGOR_ID_DILITHIUM3_AES  NID_dilithium3_aes
+#else
+#define PKI_ALGOR_DILITHIUM3_AES     NID_undef
+#define PKI_ALGOR_ID_DILITHIUM3_AES  NID_undef
+#endif
+/* End - NID_dilithium3_aes - open-quantum-safe */
+
+/* Begin - NID_dilithium5_aes - open-quantum-safe */
+#ifdef NID_dilithium5_aes
+#define PKI_ALGOR_DILITHIUM5_AES     NID_dilithium5_aes
+#define PKI_ALGOR_ID_DILITHIUM5_AES  NID_dilithium5_aes
+#else
+#define PKI_ALGOR_DILITHIUM5_AES     NID_undef
+#define PKI_ALGOR_ID_DILITHIUM5_AES  NID_undef
+#endif
+/* End - NID_dilithium5_aes - open-quantum-safe */
+
+/* Begin - NID_sphincssha256128frobust - open-quantum-safe */
+#ifdef NID_sphincssha256128frobust
+#define PKI_ALGOR_SPHINCS_SHA256_128_R     NID_sphincssha256128frobust
+#define PKI_ALGOR_ID_SPHINCS_SHA256_128_R  NID_sphincssha256128frobust
+#else
+#define PKI_ALGOR_SPHINCS_SHA256_128_R     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA256_128_R  NID_undef
+#endif
+/* End - NID_sphincssha256128frobust - open-quantum-safe */
+
+/* Begin - NID_sphincssha256192frobust - open-quantum-safe */
+#ifdef NID_sphincssha256192frobust
+#define PKI_ALGOR_SPHINCS_SHA256_192_R     NID_sphincssha256192frobust
+#define PKI_ALGOR_ID_SPHINCS_SHA256_192_R  NID_sphincssha256192frobust
+#else
+#define PKI_ALGOR_SPHINCS_SHA256_192_R     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA256_192_R  NID_undef
+#endif
+/* End - NID_sphincssha256192frobust - open-quantum-safe */
+
+/* Begin - NID_sphincssha256192frobust - open-quantum-safe */
+#ifdef NID_sphincssha256256frobust
+#define PKI_ALGOR_SPHINCS_SHA256_256_R     NID_sphincssha256256frobust
+#define PKI_ALGOR_ID_SPHINCS_SHA256_256_R  NID_sphincssha256256frobust
+#else
+#define PKI_ALGOR_SPHINCS_SHA256_256_R     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA256_256_R  NID_undef
+#endif
+/* End - NID_sphincssha256192frobust - open-quantum-safe */
+
+/* Begin - NID_sphincsshake256128frobust - open-quantum-safe */
+#ifdef NID_sphincsshake256128frobust
+#define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_sphincsshake256128frobust
+#define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_sphincsshake256128frobust
+#else
+#define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_undef
+#endif
+/* End - NID_sphincsshake256128frobust - open-quantum-safe */
+
+/* Begin - NID_sphincsshake256192frobust - open-quantum-safe */
+// NOT IMPLEMENTED
+/*
+#ifdef NID_sphincsshake256192frobust
+#define PKI_ALGOR_SPHINCS_SHAKE256_192_R     NID_sphincsshake256192frobust
+#define PKI_ALGOR_ID_SPHINCS_SHAKE256_192_R  NID_sphincsshake256192frobust
+#else
+#define PKI_ALGOR_SPHINCS_SHAKE256_192_R     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHAKE25_192_R   NID_undef
+#endif
+*/
+/* End - NID_sphincsshake256192frobust - open-quantum-safe */
+
+/* Begin - NID_sphincsshake256256frobust - open-quantum-safe */
+// NOT IMPLEMENTED
+/*
+#ifdef NID_sphincsshake256256frobust
+#define PKI_ALGOR_SPHINCS_SHAKE256_256_R     NID_sphincsshake256256frobust
+#define PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R  NID_sphincsshake256256frobust
+#else
+#define PKI_ALGOR_SPHINCS_SHAKE256_256_R     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R  NID_undef
+#endif
+*/
+/* End - NID_sphincsshake256256frobust - open-quantum-safe */
+
+
+// ============================================ //
+// Composite Crypto and Post Quantum Algorithms //
+// ============================================ //
+
+/* Begin - NID_rsa3072_falcon512 - open-quantum-safe */
+#ifdef NID_rsa3072_falcon512
+#define PKI_ALGOR_COMPOSITE_RSA_FALCON512      NID_rsa3072_falcon512
+#define PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512   NID_rsa3072_falcon512
+#else
+#define PKI_ALGOR_COMPOSITE_RSA_FALCON_512     NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_RSA_FALCON_512  NID_undef
+#endif
+/* End - NID_rsa3072_falcon512 - open-quantum-safe */
+
+/* Begin - NID_p256_falcon512 - open-quantum-safe */
+#ifdef NID_p256_falcon512
+#define PKI_ALGOR_COMPOSITE_ECDSA_FALCON512      NID_p256_falcon512
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512   NID_p256_falcon512
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_FALCON_512     NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON_512  NID_undef
+#endif
+/* End - NID_p256_falcon512 - open-quantum-safe */
+
+/* Begin - NID_p521_falcon1024 - open-quantum-safe */
+#ifdef NID_p521_falcon1024
+#define PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024     NID_p521_falcon1024
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024  NID_p521_falcon1024
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024     NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024  NID_undef
+#endif
+/* End - NID_p521_falcon1024 - open-quantum-safe */
+
+/* Begin - NID_rsa3072_dilithium2 - open-quantum-safe */
+#ifdef NID_rsa3072_dilithium2
+#define PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2      NID_rsa3072_dilithium2
+#define PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2   NID_rsa3072_dilithium2
+#else
+#define PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2   NID_undef
+#endif
+/* End - NID_rsa3072_dilithium2 - open-quantum-safe */
+
+/* Begin - NID_rsa3072_dilithium2_aes - open-quantum-safe */
+#ifdef NID_rsa3072_dilithium2_aes
+#define PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2_AES      NID_rsa3072_dilithium2_aes
+#define PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2_AES   NID_rsa3072_dilithium2_aes
+#else
+#define PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2_AES      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2_AES   NID_undef
+#endif
+/* End - NID_rsa3072_dilithium2_aes - open-quantum-safe */
+
+/* Begin - NID_p256_dilithium2 - open-quantum-safe */
+#ifdef NID_p256_dilithium2
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2      NID_p256_dilithium2
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2   NID_p256_dilithium2
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2   NID_undef
+#endif
+/* End - NID_p256_dilithium2 - open-quantum-safe */
+
+/* Begin - NID_p384_dilithium3 - open-quantum-safe */
+#ifdef NID_p384_dilithium3
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3      NID_p384_dilithium3
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3   NID_p384_dilithium3
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3   NID_undef
+#endif
+/* End - NID_p384_dilithium3 - open-quantum-safe */
+
+/* Begin - NID_p521_dilithium5 - open-quantum-safe */
+#ifdef NID_p521_dilithium5
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5      NID_p521_dilithium5
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5   NID_p521_dilithium5
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5   NID_undef
+#endif
+/* End - NID_p521_dilithium5 - open-quantum-safe */
+
+/* Begin - NID_p256_dilithium2_aes - open-quantum-safe */
+#ifdef NID_p256_dilithium2_aes
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2_AES      NID_p256_dilithium2_aes
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2_AES   NID_p256_dilithium2_aes
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2_AES      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2_AES   NID_undef
+#endif
+/* End - NID_p256_dilithium2_aes - open-quantum-safe */
+
+/* Begin - NID_p384_dilithium3_aes - open-quantum-safe */
+#ifdef NID_p384_dilithium3_aes
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3_AES      NID_p384_dilithium3_aes
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3_AES   NID_p384_dilithium3_aes
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3_AES      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3_AES   NID_undef
+#endif
+/* End - NID_p384_dilithium3_aes - open-quantum-safe */
+
+/* Begin - NID_p521_dilithium5_aes - open-quantum-safe */
+#ifdef NID_p521_dilithium5_aes
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5_AES      NID_p521_dilithium5_aes
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5_AES   NID_p521_dilithium5_aes
+#else
+#define PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5_AES      NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5_AES   NID_undef
+#endif
+/* End - NID_p521_dilithium5_aes - open-quantum-safe */
+
+/* Begin - NID_p256_sphincssha256128frobust - open-quantum-safe */
+#ifdef NID_p256_sphincssha256128frobust
+#define PKI_ALGOR_COMPOSITE_P256_SPHINCS_SHA256     NID_p256_sphincssha256128frobust
+#define PKI_ALGOR_ID_COMPOSITE_P256_SPHINCS_SHA256  NID_p256_sphincssha256128frobust
+#else
+#define PKI_ALGOR_COMPOSITE_P256_SPHINCS_SHA256     NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_P256_SPHINCS_SHA256  NID_undef
+#endif
+/* End - NID_p256_sphincssha256128frobust - open-quantum-safe */
+
+/* Begin - NID_p256_sphincsshake256128frobust - open-quantum-safe */
+#ifdef NID_p256_sphincsshake256128frobust
+#define PKI_ALGOR_COMPOSITE_P256_SPHINCS_SHAKE256     NID_p256_sphincsshake256128frobust
+#define PKI_ALGOR_ID_COMPOSITE_P256_SPHINCS_SHAKE256  NID_p256_sphincsshake256128frobust
+#else
+#define PKI_ALGOR_P256_COMPOSITE_SPHINCS_SHAKE256     NID_undef
+#define PKI_ALGOR_ID_P256_COMPOSITE_SPHINCS_SHAKE256  NID_undef
+#endif
+/* End - NID_p256_sphincsshake256128frobust - open-quantum-safe */
+
 
 /* Default DIGEST algorithm */
 #ifdef ENABLE_SHA256
@@ -561,7 +846,22 @@ typedef struct pki_keyparams_st {
 	} ec;
 #endif // ENABLE_ECDSA
 
+#ifdef ENABLE_OQS
+	struct {
+		PKI_ALGOR_ID algId;
+	} oqs;
+#endif // ENABLE_OQS
+
 } PKI_KEYPARAMS;
+
+#ifdef ENABLE_OQS
+typedef enum {
+	PKI_ALGOR_OQS_PARAM_UNKNOWN       = 0,
+	PKI_ALGOR_OQS_PARAM_DILITHIUM_AES,
+	PKI_ALGOR_OQS_PARAM_SPHINCS_SHAKE
+} PKI_ALGOR_OQS_PARAM;
+
+#endif
 
 typedef X509_REVOKED	PKI_X509_CRL_ENTRY;
 

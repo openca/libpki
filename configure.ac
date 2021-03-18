@@ -430,6 +430,7 @@ if [[ "$CC" = "gcc" ]] ; then
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
         AC_CHECK_C_OPTION(-Wunused-variable)
+        AC_CHECK_C_OPTION(-Wno-switch)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)

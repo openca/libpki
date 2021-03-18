@@ -270,11 +270,15 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 {
 
 	EVP_MD_CTX *ctx = NULL;
+	EVP_PKEY_CTX *pCtx = NULL;
+
 	size_t out_size = 0;
 	size_t ossl_ret = 0;
 
 	PKI_MEM *out_mem = NULL;
 	EVP_PKEY *pkey = NULL;
+
+	int def_nid = NID_undef;
 
 	if (!der || !der->data || !key || !key->value)
 	{
@@ -302,8 +306,41 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	}
 
 	// Initializes the Context
-	EVP_MD_CTX_init(ctx);
-	// EVP_MD_CTX_cleanup(ctx);
+	// EVP_MD_CTX_init(ctx);
+
+    /*
+     * EVP_PKEY_get_default_digest_nid() returns 2 if the digest is mandatory
+     * for this algorithm.
+     */
+    if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
+            && def_nid == NID_undef) {
+        /* The signing algorithm requires there to be no digest */
+        digest = NULL;
+    }
+
+    if (!EVP_DigestSignInit(ctx, &pCtx, digest, NULL, pkey)) {
+    	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
+    	// Cleanup the context
+#if OPENSSL_VERSION_NUMBER <= 0x1010000f
+		EVP_MD_CTX_cleanup(ctx);
+#else
+		EVP_MD_CTX_reset(ctx);
+#endif
+		EVP_MD_CTX_destroy(ctx);
+        return NULL;
+    }
+
+    /*
+    for (i = 0; i < sk_OPENSSL_STRING_num(sigopts); i++) {
+        char *sigopt = sk_OPENSSL_STRING_value(sigopts, i);
+        if (pkey_ctrl_string(pkctx, sigopt) <= 0) {
+            BIO_printf(bio_err, "parameter error \"%s\"\n", sigopt);
+            ERR_print_errors(bio_err);
+            return 0;
+        }
+    }
+    */
+
 
 	// Initializes the Signature
 	EVP_SignInit_ex(ctx, digest, NULL);

@@ -86,13 +86,39 @@ BEGIN_C_DECLS
 /* Imports the library's datatypes */
 #include <libpki/datatypes.h>
 
+// Quick And Dirty Option for checking the OQS support
+// to be replaced by final support from OpenSSL
+#define ENABLE_OQS				1
+
 /* Supported Signing schemes identifiers */
 typedef enum {
+	// Classic/Modern Cryptography
 	PKI_SCHEME_UNKNOWN 	= 0,
 	PKI_SCHEME_RSA,
 	PKI_SCHEME_DSA,
 	PKI_SCHEME_DH,
-	PKI_SCHEME_ECDSA
+#ifdef ENABLE_ECDSA
+	PKI_SCHEME_ECDSA,
+#endif
+
+#ifdef ENABLE_OQS
+	// Post Quantum Cryptography - KEMS
+	PKI_SCHEME_NTRU_PRIME,
+	PKI_SCHEME_SIKE,
+	PKI_SCHEME_BIKE,
+	PKI_SCHEME_FRODOKEM,
+	// Post Quantum Cryptography - Digital Signatures
+	PKI_SCHEME_FALCON,
+	PKI_SCHEME_DILITHIUM,
+	PKI_SCHEME_PICNIC,
+	PKI_SCHEME_SPHINCS,
+	// Composite Crypto Schemes
+	PKI_SCHEME_COMPOSITE_RSA_FALCON,
+	PKI_SCHEME_COMPOSITE_ECDSA_FALCON,
+	PKI_SCHEME_COMPOSITE_RSA_DILITHIUM,
+	PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM
+#endif
+
 } PKI_SCHEME_ID;
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA

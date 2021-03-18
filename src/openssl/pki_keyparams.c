@@ -22,15 +22,6 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		PKI_X509_ALGOR_VALUE *alg = NULL;
 		char *tmp_s = NULL;
 
-		// Get the Profile value of Bits
-		if ((tmp_s = PKI_CONFIG_get_value(prof, 
-					"/profile/keyParams/bits" )) != NULL ) {
-			kp->bits = atoi(tmp_s);
-			PKI_Free ( tmp_s );
-		} else {
-			kp->bits = -1;
-		};
-
 		// Scheme
 		if( scheme <= 0 ) {
 			if(( tmp_s = PKI_CONFIG_get_value(prof, 
@@ -50,6 +41,15 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		} else {
 			kp->scheme = scheme;
 		};
+
+		// Get the Profile value of Bits
+		if ((tmp_s = PKI_CONFIG_get_value(prof, 
+					"/profile/keyParams/bits" )) != NULL ) {
+			kp->bits = atoi(tmp_s);
+			PKI_Free ( tmp_s );
+		} else {
+			kp->bits = -1;
+		};
 		
 		if( kp->scheme == PKI_SCHEME_UNKNOWN ) kp->scheme = PKI_SCHEME_DEFAULT;
 
@@ -57,7 +57,26 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		switch (kp->scheme) {
 			case PKI_SCHEME_RSA:
 			case PKI_SCHEME_DSA:
+
+#ifdef ENABLE_OQS
+
+			case PKI_SCHEME_FALCON:
 				break;
+
+			case PKI_SCHEME_DILITHIUM: {
+				if ((tmp_s = PKI_CONFIG_get_value(prof, 
+							"/profile/keyParams/mode" )) != NULL ) {
+
+					if (strncmp_nocase("AES", tmp_s, 3) == 0) {
+						// Sets the correct algorithm
+						PKI_KEYPARAMS_set_oqs(kp, PKI_ALGOR_OQS_PARAM_DILITHIUM_AES);
+					}
+
+					PKI_Free (tmp_s);
+				};
+			} break;
+
+#endif // ENABLE OQS
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
@@ -115,6 +134,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 					return NULL;
 			};
 	} else {
+		
 		if ( scheme <= 0 ) {
 			kp->scheme = PKI_SCHEME_DEFAULT;
 		} else {
@@ -122,9 +142,28 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		};
 
 		switch ( kp->scheme ) {
+
+			// Classic or Modern Cryptography - Digital Signatures
 			case PKI_SCHEME_RSA:
 			case PKI_SCHEME_DSA:
 				kp->bits = -1;
+				break;
+
+			// Post Quantum Cryptography - KEMS
+			case PKI_SCHEME_NTRU_PRIME:
+			case PKI_SCHEME_SIKE:
+			case PKI_SCHEME_BIKE:
+			case PKI_SCHEME_FRODOKEM:
+			// Post Quantum Cryptography - Digital Signatures
+			case PKI_SCHEME_FALCON:
+			case PKI_SCHEME_DILITHIUM:
+			case PKI_SCHEME_SPHINCS:
+			// Post Quantum Cryptography - Composite Crypto
+			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
+			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
+			case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:
+			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM:
+				kp->bits = 128;
 				break;
 
 #ifdef ENABLE_ECDSA
@@ -197,6 +236,7 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
                             PKI_EC_KEY_ASN1   asn1flags) {
 
 #ifdef ENABLE_ECDSA
+
 	int curveId = 0;
 
 	// Input Checks
@@ -218,6 +258,7 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
 
 	// All Done
 	return PKI_OK;
+
 #else
 	return PKI_ERR;
 #endif
@@ -227,13 +268,170 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
 int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 	// Input Checks
-	if (!kp || bits <= 0) return
+	if (!kp) return
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	// Sets the bits
+	if (kp->scheme == PKI_SCHEME_UNKNOWN)
+		return PKI_ERROR(PKI_ERR_GENERAL, "Unknown scheme when setting the bits size");
+
+	// Assigns the Bits
 	kp->bits = bits;
+
+	// Checks for modifiers
+	switch (kp->scheme) {
+
+		case PKI_SCHEME_RSA: {
+			PKI_DEBUG("RSA");
+			if (kp->bits <= 0) { kp->bits = 2048; }
+			else if (kp->bits <= 1024) { kp->bits = 1024; }
+			else if (kp->bits <= 2048) { kp->bits = 2048; }
+		} break;
+
+		case PKI_SCHEME_ECDSA: {
+			PKI_DEBUG("ECDSA");
+			if (kp->bits <= 256) { kp->bits = 256; } 
+			else if (kp->bits <= 384) { kp->bits = 384; }
+			else if (kp->bits <= 521) { kp->bits = 521; }
+		} break;
+
+		// =============================================
+		// Post Quantum Cryptography: Digital Signatures
+		// =============================================
+
+		case PKI_SCHEME_FALCON: {
+
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_FALCON512;
+				kp->bits = 128;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_FALCON1024;
+				kp->bits = 256;
+			}
+		} break;
+		
+		case PKI_SCHEME_DILITHIUM: {
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
+				kp->bits = 128;
+			} else if(kp->bits <= 192) {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
+				kp->bits = 192;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5;
+				kp->bits = 256;
+			}
+		} break;
+
+		case PKI_SCHEME_SPHINCS: {
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R;
+				kp->bits = 128;
+			} else if (kp->bits <= 192) {
+				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_192_R;
+				kp->bits = 192;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_256_R;
+				kp->bits = 256;
+			}
+		} break;
+
+		// ======================
+		// Composite Cryptography
+		// ======================
+
+		case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
+			// Unfortunately we do not have many
+			// options in terms of composite, we might
+			// need to enable more on libpqs
+			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512;
+			kp->bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_ECDSA_FALCON: {
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512;
+				kp->bits = 128;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024;
+				kp->bits = 256;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM: {
+			// Unfortunately we do not have many
+			// options in terms of composite, we might
+			// need to enable more on libpqs
+			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2;
+			kp->bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM: {
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2;
+				kp->bits = 128;
+			} else if (kp->bits <= 192) {
+				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3;
+				kp->bits = 192;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5;
+				kp->bits = 256;
+			}
+		} break;
+
+		default: {
+			// Sets the bits
+			PKI_log_err("Scheme not supported (%d)", kp->scheme);
+			return PKI_ERR;
+		}
+	}
 
 	// All Done
 	return PKI_OK;
 };
 
+/*! \brief Sets the bits size for key generation */
+int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
+
+	PKI_DEBUG("Setting OQS Property...");
+
+	// Input Checks
+	if (!kp || kp->bits <= 0) return
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	if (kp->scheme == PKI_SCHEME_UNKNOWN)
+		return PKI_ERROR(PKI_ERR_GENERAL, "Unknown scheme when setting the bits size");
+
+	switch (kp->scheme) {
+
+		// =============================================
+		// Post Quantum Cryptography: Digital Signatures
+		// =============================================
+
+
+		case PKI_SCHEME_DILITHIUM: {
+			if (algParam != PKI_ALGOR_OQS_PARAM_DILITHIUM_AES) {
+				return PKI_ERROR(PKI_ERR_GENERAL, 
+					"Dilithium only supports the AES parameter");
+			};
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2_AES;
+			} else if (kp->bits <= 192) {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3_AES;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5_AES;
+			}
+		} break;
+
+		default: {
+			PKI_DEBUG("Trying to set OQS param [%d] on a non-OQS algorithm [%d]",
+				algParam, kp->scheme);
+
+			return PKI_ERR;
+		}
+	}
+
+	PKI_DEBUG("OQS Property Set Correctly");
+
+	// All Done
+	return PKI_OK;
+}
