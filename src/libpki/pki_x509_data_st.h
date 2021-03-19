@@ -62,7 +62,6 @@ typedef struct pki_x509_all_callbacks_st {
 	const PKI_X509_CALLBACKS * x509_scep_cb_set;
 	const PKI_X509_CALLBACKS * x509_prqp_req_cb_set;
 	const PKI_X509_CALLBACKS * x509_prqp_resp_cb_set;
-	const PKI_X509_CALLBACKS * x509_lirt_resp_cb_set;
 } PKI_X509_CALLBACKS_FULL;
 
 /* PKI_X509 general object */

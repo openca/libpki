@@ -145,10 +145,9 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
     int bits     = PKI_EC_KEY_DEFAULT_SIZE;
     int curve     = PKI_EC_KEY_CURVE_DEFAULT;
-    int form     = PKI_EC_KEY_FORM_DEFAULT;
     int flags   = PKI_EC_KEY_ASN1_DEFAULT;
 
-    // struct __ec_key_st2 *ecKeyPnt = NULL;
+    PKI_EC_KEY_FORM form     = PKI_EC_KEY_FORM_DEFAULT;
 
     /* Get the number of availabe ECDSA curves in OpenSSL */
     if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
@@ -359,7 +358,7 @@ EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
     return ctx;
 
  err:
- 
+
     PKI_log_err("Error initializing context for [scheme: %d, algId: %d]\n", 
         kp->scheme, kp->oqs.algId);
 
@@ -384,7 +383,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     EVP_PKEY_CTX * ctx = NULL;
 #endif
 
-    int type = PKI_SCHEME_DEFAULT;
+    PKI_SCHEME_ID type = PKI_SCHEME_DEFAULT;
 
     if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
@@ -529,7 +528,8 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
             ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
                 (char *) kstr, klen, cb, u);
             
-            if (!ret) PKI_DEBUG("Key Type NOT supported (%d)", EVP_PKEY_type(EVP_PKEY_id(x)));
+            if (!ret) PKI_DEBUG("Key Type NOT supported (%d)", 
+                EVP_PKEY_type(EVP_PKEY_id(x)));
         }
     }
 

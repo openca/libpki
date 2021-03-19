@@ -280,6 +280,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 	int def_nid = NID_undef;
 
+    PKI_log_err("DIGEST ALGORITHM => %p", digest);
+
 	if (!der || !der->data || !key || !key->value)
 	{
 		PKI_ERROR( PKI_ERR_PARAM_NULL, NULL);
@@ -306,7 +308,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	}
 
 	// Initializes the Context
-	// EVP_MD_CTX_init(ctx);
+	EVP_MD_CTX_init(ctx);
 
     /*
      * EVP_PKEY_get_default_digest_nid() returns 2 if the digest is mandatory
@@ -318,7 +320,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
         digest = NULL;
     }
 
-    if (!EVP_DigestSignInit(ctx, &pCtx, digest, NULL, pkey)) {
+    if (!EVP_DigestSignInit(ctx, &pCtx, NULL, NULL, pkey)) {
     	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
     	// Cleanup the context
 #if OPENSSL_VERSION_NUMBER <= 0x1010000f

@@ -836,6 +836,7 @@ build_os
 build_vendor
 build_cpu
 build
+enable_debug
 extra_checks
 sdkver
 BUILD_DATE_PRETTY
@@ -906,6 +907,7 @@ enable_option_checking
 enable_iphone
 with_sdk
 enable_extra_checks
+enable_debug
 enable_shared
 enable_static
 with_pic
@@ -1577,6 +1579,8 @@ Optional Features:
   --enable-extra-checks=LIBPREFIX
                           enables extra compile-time checks (GCC) (for devel
                           only)
+  --enable-debug          enables extra debug information in the code (GCC)
+                          (for devel only)
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=yes]
   --enable-fast-install[=PKGS]
@@ -2716,6 +2720,15 @@ if test "${enable_extra_checks+set}" = set; then :
   enableval=$enable_extra_checks; extra_checks=$enableval
 else
   extra_checks=no
+fi
+
+
+
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug; enable_debug=$enableval
+else
+  enable_debug=no
 fi
 
 
@@ -14321,6 +14334,49 @@ CFLAGS="$CFLAGS -Wno-unknown-pragmas"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -Wno-unknown-pragmas support" >&5
 $as_echo_n "checking checking for -Wno-unknown-pragmas support... " >&6; };
+
+if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+int main(void)
+{
+        return(0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+   _supported=yes
+else
+   _supported=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+if [ $_supported = no ] ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+$as_echo "not supported" >&6; };
+	CFLAGS=$old_cflags
+else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; };
+fi
+	fi
+
+	if [ "x${enable_debug}" = "xyes" ] ; then
+
+old_cflags=$CFLAGS
+CFLAGS="$CFLAGS -ggdb"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -ggdb support" >&5
+$as_echo_n "checking checking for -ggdb support... " >&6; };
 
 if test "$cross_compiling" = yes; then :
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5

@@ -192,6 +192,12 @@ AC_ARG_ENABLE(extra-checks,
 			extra_checks=$enableval, extra_checks=no )
 AC_SUBST(extra_checks)
 
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING( [--enable-debug],
+		[enables extra debug information in the code (GCC) (for devel only)]),
+			enable_debug=$enableval, enable_debug=no )
+AC_SUBST(enable_debug)
+
 enable_rpath=yes
 
 # Export variables to prevent autoconf to use rpl_malloc instead
@@ -444,6 +450,10 @@ if [[ "$CC" = "gcc" ]] ; then
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		AC_CHECK_C_OPTION(-Wno-deprecated)
 		AC_CHECK_C_OPTION(-Wno-unknown-pragmas)
+	fi
+
+	if [[ "x${enable_debug}" = "xyes" ]] ; then
+		AC_CHECK_C_OPTION(-ggdb)
 	fi
 
 	AC_GCC_CHECK_PRAGMA_IGNORED

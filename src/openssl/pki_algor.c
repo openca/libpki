@@ -533,7 +533,7 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 	if (alg_nid == PKI_ALGOR_ID_UNKNOWN) {
 		// Unknown or unsupported Algorithm
 		PKI_DEBUG("Unknown algorithm [ Algor ID: %d ]", algor);
-		ret = PKI_ALGOR_NULL;
+		goto err;
 	}
 
 	// Let's return the PKIX X509 Algorithm Data structure
@@ -673,9 +673,9 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *alg
 
 	if ( !algor || !algor->algorithm ) return PKI_ALGOR_ID_UNKNOWN;
 
-	i=OBJ_obj2nid(algor->algorithm);
-        if(( md = EVP_get_digestbyname(OBJ_nid2sn(i))) != NULL ) {
-		return EVP_MD_nid( md );
+	i = OBJ_obj2nid(algor->algorithm);
+    if ((md = EVP_get_digestbyname(OBJ_nid2sn(i))) != NULL ) {
+		return EVP_MD_nid(md);
 	}
 
 	return PKI_ALGOR_ID_UNKNOWN;
@@ -848,6 +848,8 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 		return PKI_ERR;
 	}
 
+	PKI_DEBUG("KEY_SIZE => %d", size);
+
 	pp = (EVP_PKEY *) pkey->value;
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
@@ -857,12 +859,17 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 #endif
 
 	switch (p_type) {
+
 		case EVP_PKEY_DSA:
 			digest=PKI_DIGEST_ALG_DSA_DEFAULT;
 			break;
+
 #ifdef ENABLE_ECDSA
 		case EVP_PKEY_EC:
-			if ( size <= 192  ) {
+
+			PKI_log_err("EC -> Key Type [%d]", p_type);
+
+			if ( size <= 160  ) {
 				digest = PKI_DIGEST_ALG_SHA1;
 			} else if ( size <= 224 ) {
 				digest = PKI_DIGEST_ALG_SHA224;
@@ -877,14 +884,29 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 			};
 			break;
 #endif
+
+#ifdef ENABLE_OQS
+			case PKI_ALGOR_ID_FALCON512: {
+				PKI_log_err("FALCON -> Key Type [%d]", p_type);
+			} break;
+
+			case PKI_ALGOR_ID_DILITHIUM2:
+			case PKI_ALGOR_ID_DILITHIUM3:
+			case PKI_ALGOR_ID_DILITHIUM5: {
+				PKI_log_err("DILITHIUM -> Key Type [%d]", p_type);
+			} break;
+
+#endif
+
 		case EVP_PKEY_RSA:
 			digest=PKI_DIGEST_ALG_RSA_DEFAULT;
 			break;
+
 		default:
 			digest = NULL;
 	}
 
-	PKI_DEBUG("Return Value is %p", digest );
+	PKI_log_err("Return Value is %p", digest );
 
 	return digest;
 }

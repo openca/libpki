@@ -273,6 +273,8 @@ PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type, int flags) {
 	PKI_X509_CMS_VALUE * value  = NULL;
 	  // Container for the main data structures
 
+	unsigned int u_flags;
+
 	// Creation Flags
 	if (flags <= 0) {
 		// Sets the Default Flags
@@ -280,37 +282,37 @@ PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type, int flags) {
 	}
 
 	// Make sure we have the CMS_PARTIAL in the flags
-	flags |= CMS_PARTIAL;
+	u_flags = (unsigned int)(flags |= CMS_PARTIAL);
 
 	// Initializes Based on the Type
 	switch (type) {
 
         case PKI_X509_CMS_TYPE_DATA: {
-        	value = CMS_data_create(NULL, flags);
+        	value = CMS_data_create(NULL, u_flags);
         } break;
 
 				case PKI_X509_CMS_TYPE_SIGNED: {
 					flags |= PKI_X509_CMS_FLAGS_REUSE_DIGEST;
 					if (flags & PKI_X509_CMS_FLAGS_DETACHED)
 						flags |= PKI_X509_CMS_FLAGS_STREAM;
-					value = CMS_sign(NULL, NULL, NULL, NULL, flags);
+					value = CMS_sign(NULL, NULL, NULL, NULL, u_flags);
 				} break;
 
         case PKI_X509_CMS_TYPE_ENVELOPED: {
         	if (flags & PKI_X509_CMS_FLAGS_DETACHED) flags |= PKI_X509_CMS_FLAGS_STREAM;
-        	value = CMS_encrypt(NULL, NULL, PKI_CIPHER_AES(256, cbc), flags);
+        	value = CMS_encrypt(NULL, NULL, PKI_CIPHER_AES(256, cbc), u_flags);
         } break;
 
         case PKI_X509_CMS_TYPE_DIGEST: {
-        	value = CMS_digest_create(NULL, PKI_DIGEST_ALG_SHA256, flags);
+        	value = CMS_digest_create(NULL, PKI_DIGEST_ALG_SHA256, u_flags);
         } break;
 
         case PKI_X509_CMS_TYPE_SMIME_COMPRESSED: {
-        	value = CMS_compress(NULL, NID_zlib_compression, flags);
+        	value = CMS_compress(NULL, NID_zlib_compression, u_flags);
         } break;
 
         case PKI_X509_CMS_TYPE_SYM_ENCRYPTED: {
-        	value = CMS_EncryptedData_encrypt(NULL, PKI_CIPHER_AES(256, cbc), NULL, 0, flags);
+        	value = CMS_EncryptedData_encrypt(NULL, PKI_CIPHER_AES(256, cbc), NULL, 0, u_flags);
         } break;
 
         default: {
@@ -341,7 +343,7 @@ PKI_X509_CMS *PKI_X509_CMS_new(PKI_X509_CMS_TYPE type, int flags) {
 	cms->status = flags;
 
 	// TODO: Remove the Debug
-	PKI_DEBUG("Created CMS [ Flags = %d ]", flags);
+	PKI_DEBUG("Created CMS [ Flags = %d/%u ]", flags, u_flags);
 
 	// Returns the allocated structure
 	return cms;
@@ -359,7 +361,7 @@ PKI_X509_CMS *PKI_X509_CMS_new_value(PKI_X509_CMS_VALUE * value) {
 PKI_X509_CMS_TYPE PKI_X509_CMS_get_type(const PKI_X509_CMS * const cms ) {
 
 	const PKI_OID * cms_type = NULL;
-	int type = NID_undef;
+	// PKI_X509_CMS_TYPE type = PKI_X509_CMS_TYPE_UNKNOWN;
 	  // Pointer for the CMS Type (ASN1 OBJECT)
 
 	PKI_X509_CMS_TYPE ret = PKI_X509_CMS_TYPE_UNKNOWN;
@@ -383,8 +385,9 @@ PKI_X509_CMS_TYPE PKI_X509_CMS_get_type(const PKI_X509_CMS * const cms ) {
 		return PKI_X509_CMS_TYPE_UNKNOWN;
 	}
 
+	/*
 	// Let's get the ID of the Type
-	type = PKI_OID_get_id(cms_type);
+	type = (PKI_X509_CMS_TYPE) PKI_OID_get_id(cms_type);
 
 	// Checks it is a recognized type
 	switch ( type ) {
@@ -405,9 +408,10 @@ PKI_X509_CMS_TYPE PKI_X509_CMS_get_type(const PKI_X509_CMS * const cms ) {
 			ret = PKI_X509_CMS_TYPE_UNKNOWN;
 		} break;
 	}
+	*/
 
 	// Returns the Type
-	return PKI_OID_get_id(cms_type);
+	return (PKI_X509_CMS_TYPE) PKI_OID_get_id(cms_type);
 
 }
 
@@ -471,7 +475,7 @@ int PKI_X509_CMS_data_set(PKI_X509_CMS  * cms,
 
 	// Let's finalize the CMS
 	if (!CMS_final((PKI_X509_CMS_VALUE *)cms->value, 
-		              cms_io, out_io, cms->status)) {
+		              cms_io, out_io, (unsigned int)cms->status)) {
 		// Reports the error
 		PKI_DEBUG("Cannot finalize CMS [%d::%s]",
 			HSM_get_errno(NULL), HSM_get_errdesc(HSM_get_errno(NULL), NULL));
@@ -485,10 +489,10 @@ int PKI_X509_CMS_data_set(PKI_X509_CMS  * cms,
 
 	if (out_io && BIO_pending(out_io) > 0) {
 
-		int data_size = 0;
+		size_t data_size = 0;
 		unsigned char buf[1024];
 
-		data_size = BIO_pending(out_io);
+		data_size = (size_t)BIO_pending(out_io);
 
 		// Creates the output MEM
 		if ((x_out = PKI_MEM_new_null()) == NULL) {
@@ -497,7 +501,7 @@ int PKI_X509_CMS_data_set(PKI_X509_CMS  * cms,
 		}
 
 		// Reads from the I/O and writes to the PKI_MEM
-		if ((data_size = PKI_IO_read(out_io, buf, data_size)) > 0) {
+		if ((data_size = (size_t) PKI_IO_read(out_io, buf, (int)data_size)) > 0) {
 
 			// Let's Add the Data to the output buffer
 			if (PKI_MEM_add(x_out, (char *)buf, data_size) != PKI_OK) {
@@ -573,7 +577,7 @@ int PKI_X509_CMS_stream_write(PKI_IO              * stream,
 	if (!stream || !data)
 		return PKI_ERR_PARAM_NULL;
 
-	if (size > 0 && !PKI_IO_write(stream, data, size))
+	if (size > 0 && !PKI_IO_write(stream, data, (int)size))
 		return PKI_ERR;
 
 	return PKI_OK;
@@ -581,7 +585,7 @@ int PKI_X509_CMS_stream_write(PKI_IO              * stream,
 
 int PKI_X509_CMS_stream_final(PKI_X509_CMS * cms, PKI_IO * cms_io) {
 
-	long err = 0;
+	unsigned long err = 0;
 
 	// Input Checks
 	if (!cms || !cms->value || !cms_io)
@@ -849,13 +853,13 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * const cms,
 			                      const PKI_DIGEST_ALG   * md,
 			                      const int                flags ) {
 
-	int cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
+	PKI_X509_CMS_TYPE cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
 		// CMS Type
 
 	PKI_X509_CMS_SIGNER_INFO * si = NULL;
 		// Signer Info
 
-	int si_flags = CMS_PARTIAL;
+	unsigned int si_flags = CMS_PARTIAL;
 	  // Signer Flags
 
 	// Input Check
@@ -873,7 +877,7 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * const cms,
 	if (flags > 0) {
 
 		// Overrides the init parameters with the passed ones
-		si_flags = flags;
+		si_flags = (unsigned int)flags;
 
 	} else {
 
@@ -919,7 +923,7 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * const cms,
 
 int PKI_X509_CMS_has_signers(const PKI_X509_CMS * const cms ) {
 
-  int cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
+  PKI_X509_CMS_TYPE cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
     // CMS Type
 
 	// Input Checks
@@ -935,13 +939,18 @@ int PKI_X509_CMS_has_signers(const PKI_X509_CMS * const cms ) {
 		// For Signed types only
 		case PKI_X509_CMS_TYPE_SIGNED: {
 			// Gets the Reference to the SI (if any)
-		  if (CMS_get0_SignerInfos(cms->value) != NULL) return PKI_OK;
+		  if (CMS_get0_SignerInfos(cms->value) != NULL) 
+		  	return PKI_OK;
 		} break;
+
+		default: {
+			// Nothing to be done, error
+			return PKI_ERR;
+		}
 	}
 
 	// If reaches here, it is not a supported format
 	return PKI_ERR;
-
 }
 
 /*! \brief Returns PKI_OK if the cms has recipients already set, PKI_ERR
@@ -1237,7 +1246,7 @@ PKI_MEM *PKI_X509_CMS_decode(const PKI_X509_CMS * const cms,
 int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 			      			          const PKI_CIPHER   * const cipher) {
 
-	int type = PKI_X509_CMS_TYPE_UNKNOWN;
+	PKI_X509_CMS_TYPE type = PKI_X509_CMS_TYPE_UNKNOWN;
 	  // Type of CMS
 
 	PKI_X509_CMS_VALUE * tmp_val = NULL;
@@ -1259,7 +1268,7 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 
 			// Allocates the new CMS with the new cipher
 			if ((tmp_val = CMS_encrypt(NULL, NULL, cipher, 
-				                         cms->status)) == NULL) {
+				                         (int)cms->status)) == NULL) {
 
 				// Reports the error
 				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);

@@ -48,16 +48,6 @@ PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new_url( PKI_KEYPARAMS *params,
 		hsm = driver;
 	} else {
 		hsm = (HSM *) HSM_get_default();
-		// PKI_log_debug("Getting Default HSM (%p/%p)", hsm, &openssl_hsm );
-		/*
-		PKI_log_debug("%s:%d::DEBUG => Getting Default HSM (%p/%p)",
-				__FILE__, __LINE__, hsm, &openssl_hsm );
-		PKI_log_debug("%s:%d::DEBUG => Default HSM (CALLBK %p/%p)",
-			hsm->callbacks, &openssl_hsm_callbacks );
-		hsm->callbacks = &openssl_hsm_callbacks;
-		PKI_log_debug("%s:%d::DEBUG (CB keypair_new_url=>%p)", 
-			__FILE__, __LINE__ , hsm->callbacks->keypair_new_url );
-		*/
 	}
 	
 	if( hsm && hsm->callbacks && hsm->callbacks->keypair_new_url ) {
