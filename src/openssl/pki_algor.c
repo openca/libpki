@@ -340,9 +340,11 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "RSA";
 		} break;
 
+#ifdef ENABLE_ECDSA
 		case PKI_SCHEME_ECDSA: {
 			ret = "ECDSA";
 		} break;
+#endif
 
 		case PKI_SCHEME_DSA: {
 			ret = "DSA";
@@ -406,8 +408,10 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 			return PKI_SCHEME_RSA;
 		} else if (strncmp_nocase("DSA", data, 3) == 0) {
 			return PKI_SCHEME_DSA;
+#ifdef ENABLE_ECDSA
 		} else if (strncmp_nocase("EC", data, 2) == 0) {
 			return PKI_SCHEME_ECDSA;
+#endif
 		} else if (strncmp_nocase("FALCON", data, 6) == 0) {
 			return PKI_SCHEME_FALCON;
 		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
@@ -501,8 +505,8 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 		// Post Quantum and Composite Cryptograpy
 #ifdef ENABLE_OQS
 		case PKI_ALGOR_FALCON512:
-		case PKI_ALGOR_FALCON1024:
-		case PKI_ALGOR_DILITHIUM2:
+		// case PKI_ALGOR_FALCON1024:
+		// case PKI_ALGOR_DILITHIUM2:
 		case PKI_ALGOR_DILITHIUM3:
 		case PKI_ALGOR_DILITHIUM5:
 		case PKI_ALGOR_SPHINCS_SHA256_128_R:

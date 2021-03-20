@@ -48,7 +48,7 @@ static char * _xml_search_namespace_add ( char *search ) {
 	int r = 0;
 	int i = 0;
 
-	// return strdup ( search );
+	int strSize = -1;
 
 	/* Let's alloc enough memory for the arguments, maybe this is
 	   too much, but for the moment, let's keep it big */
@@ -80,13 +80,14 @@ static char * _xml_search_namespace_add ( char *search ) {
 				BUFF_MAX_SIZE - strlen( my_search ));
 		}
 	}
-	PKI_Free( my_arg );
+	PKI_Free(my_arg);
 
-	ret = PKI_Malloc ( strlen( my_search ) + 1);
-	strncpy( ret, my_search, strlen(my_search) );
+	strSize = strlen(my_search);
+	ret = PKI_Malloc(strSize + 1);
+	strncpy(ret, my_search, strSize);
 
-	PKI_Free ( my_search );
-	return( ret );
+	PKI_Free(my_search);
+	return(ret);
 }
 
 /*! \brief Loads a PKI_CONFIG object (XML config file) */

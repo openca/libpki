@@ -729,8 +729,9 @@ PKI_X509_KEYPAIR *HSM_PKCS11_KEYPAIR_new( PKI_KEYPARAMS *kp,
 	switch (type) {
 		case PKI_SCHEME_RSA:
 			break;
-		case PKI_SCHEME_DSA:
-		case PKI_SCHEME_ECDSA:
+		
+		// case PKI_SCHEME_DSA:
+		// case PKI_SCHEME_ECDSA:
 		default:
 			PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "Scheme %d", type );
 			return ( NULL );
