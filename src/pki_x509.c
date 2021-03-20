@@ -276,10 +276,12 @@ PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type,
 int PKI_X509_set_modified ( PKI_X509 *x ) {
 
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
+
 	PKI_X509_CERT_VALUE *cVal = NULL;
 	PKI_X509_CRL_VALUE *cRLVal = NULL;
+	PKI_X509_REQ_VALUE *rVal = NULL;
 #endif
-	int type;
+	PKI_DATATYPE type;
 	
 	if ( !x || !x->value ) return PKI_ERR;
 
@@ -318,6 +320,25 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 # endif
 #endif
 				break;
+
+		case PKI_DATATYPE_X509_REQ:
+#if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
+				rVal = (PKI_X509_REQ_VALUE *) x->value;
+# if ( OPENSSL_VERSION_NUMBER >= 0x1010000f )
+				rVal->req_info.enc.modified = 1;
+# else
+				rVal->req_info->enc.modified = 1;
+# endif
+#endif
+				break;
+
+		default:
+			// Let's log the error
+			PKI_log_debug("Setting Modified Flag Ignored for DataType [%d]",
+				type);
+
+			// Not successful
+			return PKI_ERR;
 	};
 
 	return PKI_OK;
@@ -339,7 +360,7 @@ PKI_DATATYPE PKI_X509_get_type(const PKI_X509 *x) {
 
 const char * PKI_X509_get_type_parsed(const PKI_X509 *obj) {
 	int i = 0;
-	int type = 0;
+	PKI_DATATYPE type = 0;
 
 	type = PKI_X509_get_type( obj );
 	while( __parsed_datatypes[i].descr != NULL ) {

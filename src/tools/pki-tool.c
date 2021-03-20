@@ -262,19 +262,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				// Nothing to do Here - no params support
 				break;
 
-			// Post Quantum Switches
-			case PKI_SCHEME_FALCON:
-			case PKI_SCHEME_PICNIC:
-			case PKI_SCHEME_SPHINCS:
-				// Needs to check for each algorithm
-				break;
-
-			case PKI_SCHEME_DILITHIUM: {
-				if (strncmp_nocase( param_s, "AES", 3) == 0 ) {
-					PKI_KEYPARAMS_set_oqs(kp, PKI_ALGOR_OQS_PARAM_DILITHIUM_AES);
-				}
-			} break;
-
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
 				// ECDSA Scheme - allow for curve:<name> param
@@ -298,6 +285,38 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 					}
 				}
 				break;
+
+			// Post Quantum Digital Signature Switches
+			case PKI_SCHEME_FALCON:
+			case PKI_SCHEME_PICNIC:
+			case PKI_SCHEME_SPHINCS:
+				// Needs to check for each algorithm
+				break;
+
+			case PKI_SCHEME_DILITHIUM: {
+				if (strncmp_nocase( param_s, "AES", 3) == 0 ) {
+					PKI_KEYPARAMS_set_oqs(kp, PKI_ALGOR_OQS_PARAM_DILITHIUM_AES);
+				}
+			} break;
+
+			
+
+
+			// Combined Crypto
+			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
+			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
+			case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:
+			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM:
+				break;
+
+			case PKI_SCHEME_NTRU_PRIME:
+			case PKI_SCHEME_SIKE:
+			case PKI_SCHEME_BIKE:
+			case PKI_SCHEME_FRODOKEM:
+				fprintf(stderr, 
+					"ERROR: PQ Scheme [%d] not supported!\n\n",
+					kp->scheme);
+				return PKI_ERR;
 #endif
 
 			case PKI_SCHEME_DH:
@@ -307,8 +326,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		}
 
 	}
-
-	PKI_DEBUG("KeyPair OQS algId = %d", kp->oqs.algId);
 
 	if (!batch)
 	{
@@ -601,7 +618,7 @@ int main (int argc, char *argv[] ) {
 			};
 			if( verbose ) printf ( "Ok.\n");
 
-			tk->type = tk->hsm->type;
+			tk->type = (int) tk->hsm->type;
 		}
 
 		if ( signkey && !newkey) {

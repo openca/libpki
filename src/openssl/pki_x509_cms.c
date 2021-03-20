@@ -5,6 +5,7 @@
 
 /* ------------------------------ internal (static ) ------------------------- */
 
+/*
 static STACK_OF(X509) * __get_chain (const PKI_X509_CMS * const cms) {
 
 	PKI_X509_CMS_VALUE * value = NULL;
@@ -49,7 +50,7 @@ static const STACK_OF(X509_CRL) *__get_crl (const PKI_X509_CMS * const cms ) {
 	// No Success
 	return NULL;
 }
-
+*/
 
 /*! \brief Returns the number of recipients */
 
@@ -1266,9 +1267,12 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 
 		case PKI_X509_CMS_TYPE_ENVELOPED: {
 
+			// Aux Variable for signdness
+			// unsigned long tmp_status = (unsigned int) cms->status;
+
 			// Allocates the new CMS with the new cipher
 			if ((tmp_val = CMS_encrypt(NULL, NULL, cipher, 
-				                         (int)cms->status)) == NULL) {
+				                         (unsigned int) cms->status)) == NULL) {
 
 				// Reports the error
 				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
@@ -1289,7 +1293,7 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 				                                       PKI_CIPHER_AES(256, cbc), 
 				                                       NULL,
 				                                       0, 
-				                                       cms->status)) == NULL) {
+				                                       (unsigned int) cms->status)) == NULL) {
 				// Reports the error
 				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		  }
@@ -1367,13 +1371,13 @@ int PKI_X509_CMS_add_recipient(const PKI_X509_CMS  * cms,
                                const PKI_CIPHER    * const cipher,
                                const int             flags) {
 
-	int cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
+	PKI_X509_CMS_TYPE cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
 		// CMS Type
 
 	PKI_X509_CMS_RECIPIENT_INFO * ri = NULL;
 		// Recipient Info
 
-	int ri_flags = PKI_X509_CMS_FLAGS_PARTIAL;
+	unsigned int ri_flags = PKI_X509_CMS_FLAGS_PARTIAL;
 	  // Recipient Flags
 
 	// Input Check
@@ -1389,7 +1393,7 @@ int PKI_X509_CMS_add_recipient(const PKI_X509_CMS  * cms,
 
 		// If the flags are passed directly,
 		// let's override the status ones
-		ri_flags = flags;
+		ri_flags = (unsigned int) flags;
 
 	} else {
 
