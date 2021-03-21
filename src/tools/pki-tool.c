@@ -905,8 +905,8 @@ int main (int argc, char *argv[] ) {
 			int algor_id;
 			PKI_X509_ALGOR_VALUE *algor = NULL;
 
-			if((algor = PKI_X509_ALGOR_VALUE_get_by_name ( algor_opt )) == NULL ) {
-				PKI_log_err ("Can not set algor to %s", algor_opt);
+			if ((algor = PKI_X509_ALGOR_VALUE_get_by_name(algor_opt)) == NULL ) {
+				PKI_log_err ("Can not get algor by name [%s]", algor_opt);
 				return(1);
 			}
 

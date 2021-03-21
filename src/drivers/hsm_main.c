@@ -21,16 +21,25 @@ typedef struct my_meth_st {
 
 /* --------------------------- Static function(s) ------------------------- */
 
-static int __set_algIdentifier (PKI_X509_ALGOR_VALUE * alg, 
-	                              const PKI_DIGEST_ALG   * digest,
-	                              const PKI_X509_KEYPAIR * key) {
+static int __set_algIdentifier (PKI_X509_ALGOR_VALUE   * alg, 
+	                            const PKI_DIGEST_ALG   * digest,
+	                            const PKI_X509_KEYPAIR * key) {
 
 	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
 	  // KeyPair Pointer
 
+	int def_nid;
+
 	int pkey_type = 0;
 	int param_type = V_ASN1_UNDEF;
 	  // Parameter Type for Signature
+
+	PKI_DIGEST_ALG * md = NULL;
+	  // Digest to use
+
+	EVP_MD_CTX *ctx = NULL;
+	EVP_PKEY_CTX *pkctx = NULL;
+	  // EVP_PKEY_CTX for signing
 
 	// Input Checks
 	if (!key || !key->value || !digest || !alg ) 
@@ -39,8 +48,43 @@ static int __set_algIdentifier (PKI_X509_ALGOR_VALUE * alg,
 	// Gets the KeyPair Pointer from the X509 structure
 	pkey = key->value;
 
+    if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
+            && def_nid == NID_undef) {
+        /* The signing algorithm requires there to be no digest */
+        md = NULL;
+    }
+
+    if ((ctx = EVP_MD_CTX_new()) == NULL) {
+		PKI_log_err("Cannot Allocate Digest Context");
+        return 0;
+	}
+
+    if (!EVP_MD_CTX_init(ctx) || !EVP_DigestSignInit(ctx, &pkctx, md, NULL, pkey)) {
+    	PKI_log_err("Cannot Initialize DigestSignInit");
+        return 0;
+    }
+
+    pkey_type = EVP_MD_CTX_type(ctx);
+    PKI_log_err("DEBUG: pkey_type (new) = %d (%s)",
+    	pkey_type, PKI_ALGOR_ID_txt(pkey_type));
+
+	/*
+	if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
+    		&& def_nid == NID_undef) {
+
+        // The signing algorithm requires there to be no digest
+        digest = NULL;
+
+   	    PKI_log_err("DIGEST ALGORITHM => %p", digest);
+    } else {
+   	    PKI_log_err("DIGEST ALGORITHM => %s", 
+	    	PKI_DIGEST_ALG_get_parsed(digest));
+    }
+    */
+
 	// Gets the Signature Algorithm
 	pkey_type = EVP_MD_pkey_type(digest);
+	PKI_log_err("DEBUG: pkey_type (old) = %d", pkey_type);
 
 #ifdef ENABLE_AMETH
 
@@ -66,13 +110,18 @@ static int __set_algIdentifier (PKI_X509_ALGOR_VALUE * alg,
 
 #endif // End of aMeth
 
+	PKI_log_err("Set Algorithm: pkey_type = %d (%s)",
+		pkey_type, PKI_ALGOR_ID_txt(pkey_type));
+
 	// Sets the Algorithms details
 	if (!X509_ALGOR_set0(alg, OBJ_nid2obj(pkey_type), param_type, NULL))
 		return PKI_ERROR(PKI_ERR_ALGOR_SET, "Cannot set the algorithm");
 
 	// All Done
 	return PKI_OK;
+
 }
+
 
 /*! \brief Returns the errno from the crypto layer */
 
@@ -425,7 +474,7 @@ int HSM_set_sign_algor ( PKI_X509_ALGOR_VALUE *alg, HSM *hsm ) {
 
 /*! \brief Signs a PKI_X509 object */
 
-int PKI_X509_sign(PKI_X509           * x, 
+int PKI_X509_sign(PKI_X509               * x, 
 		          const PKI_DIGEST_ALG   * digest,
 		          const PKI_X509_KEYPAIR * key) {
 
@@ -433,7 +482,7 @@ int PKI_X509_sign(PKI_X509           * x,
 	PKI_MEM *sig = NULL;
 	  // Data structure for the signature
 
-	PKI_X509_ALGOR_VALUE *a_pnt = NULL;
+	// PKI_X509_ALGOR_VALUE *a_pnt = NULL;
 	  // Pointer to the Algorithm Structure
 
 	PKI_STRING * sigPtr = NULL;
@@ -446,6 +495,15 @@ int PKI_X509_sign(PKI_X509           * x,
 	// Sets the default Algorithm if none is provided
 	if (!digest) digest = PKI_DIGEST_ALG_DEFAULT;
 
+	int ret = ASN1_item_sign(x->it, 
+					PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+                	PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
+                	NULL, NULL, 
+                	key->value, digest);
+
+	PKI_log_err("RET Supposed to be err - but should set the OID (ret = %d)", ret);
+
+	/*
 	// Gets the Internal (if any) Algorithm Identifier and sets the details
 	if ((a_pnt = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1)) != NULL) {
 		// Set the algorithm and parameter
@@ -459,6 +517,7 @@ int PKI_X509_sign(PKI_X509           * x,
 		if (PKI_OK != __set_algIdentifier(a_pnt, digest, key))
 			return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not set the External Algorithm.");
 	}
+	*/
 
 	// Retrieves the DER representation of the data to be signed
 	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
