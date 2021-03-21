@@ -88,7 +88,7 @@ BEGIN_C_DECLS
 
 // Quick And Dirty Option for checking the OQS support
 // to be replaced by final support from OpenSSL
-#define ENABLE_OQS				1
+// #define ENABLE_OQS				1
 
 /* Supported Signing schemes identifiers */
 typedef enum {
