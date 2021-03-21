@@ -939,6 +939,7 @@ enable_openssl
 with_openssl_prefix
 enable_ecdsa
 enable_openssl_engine
+enable_oqs
 enable_strict
 '
       ac_precious_vars='build_alias
@@ -1606,6 +1607,7 @@ Optional Features:
                           is yes)
   --enable-ecdsa         enable Elliptic Curves DSA support
   --enable-openssl-engine      enable openssl engine support (yes)
+  --enable-oqs      enable oqs support (no)
   --enable-strict         enable strict compilation error warnings (default is
                           no)
 
@@ -12023,12 +12025,7 @@ ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 if test x"${MISSING+set}" != xset; then
-  case $am_aux_dir in
-  *\ * | *\	*)
-    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
-  *)
-    MISSING="\${SHELL} $am_aux_dir/missing" ;;
-  esac
+  MISSING="\${SHELL} '$am_aux_dir/missing'"
 fi
 # Use eval to expand $SHELL
 if eval "$MISSING --is-lightweight"; then
@@ -17461,6 +17458,86 @@ fi
 fi
 
 
+oqs_config=
+oqs_cflags=
+oqs_check=
+oqs_prefix=/usr
+oqs_ldflags=
+oqs_ldadd=
+
+cli_oqs=
+
+# Check whether --enable-oqs was given.
+if test "${enable_oqs+set}" = set; then :
+  enableval=$enable_oqs; cli_oqs=$enableval
+else
+  cli_oqs=no
+
+fi
+
+
+if ! [ "x$cli_oqs" = "xno" ] ; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Enabled via CLI option" >&5
+$as_echo "Open Quantum Safe: Enabled via CLI option" >&6; }
+
+$as_echo "#define ENABLE_OQS 1" >>confdefs.h
+
+	oqs_check="yes"
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Checking support for Open Quantum Safe" >&5
+$as_echo "Checking support for Open Quantum Safe" >&6; }
+
+	ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
+	if [ $? -gt 0 ] ; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!" >&5
+$as_echo "Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!" >&6; }
+
+
+oqs_check=
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include < $openssl_prefix/include/openssl/evp.h >
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "\#\sdefine\sEVP_PKEY_OQS_SIG_DEFAULT\sNID_oqs_sig_default" >/dev/null 2>&1; then :
+   oqs_check="yes"
+else
+   oqs_check="no"
+
+fi
+rm -f conftest*
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl/evp.h) " >&5
+$as_echo " Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl/evp.h) " >&6; }
+
+
+		if [ "x$check_oqs" = "xyes" ] ; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!" >&5
+$as_echo "Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!" >&6; }
+
+$as_echo "#define ENABLE_OQS 1" >>confdefs.h
+],
+			oqs_check="yes"
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&5
+$as_echo "Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&6; }
+			oqs_check="no"
+		fi
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL" >&5
+$as_echo "Open Quantum Safe: Supported by OpenSSL" >&6; }
+
+$as_echo "#define ENABLE_OQS 1" >>confdefs.h
+
+		oqs_check="yes"
+	fi
+
+fi
+
+
  if test "x$openssl_static_libs" != "x"; then
   STATIC_COMPILE_TRUE=
   STATIC_COMPILE_FALSE='#'
@@ -19998,7 +20075,9 @@ $as_echo X/"$am_mf" |
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  Try re-running configure with the
+    for automatic dependency tracking.  If GNU make was not used, consider
+    re-running the configure script with MAKE=\"gmake\" (or whatever is
+    necessary).  You can also try re-running configure with the
     '--disable-dependency-tracking' option to at least be able to build
     the package (albeit without support for automatic dependency tracking).
 See \`config.log' for more details" "$LINENO" 5; }
@@ -20146,6 +20225,7 @@ Configuration for $PACKAGE $VERSION :
  Compiler Flags .......: $my_cflags
  Linker Flags .........: $my_ldflags $rpath
  Libs .................: $my_ldadd
+ Open Post Qauntum ....: $oqs_check
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)

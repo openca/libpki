@@ -639,3 +639,16 @@ int main(void)
 
 ])
 
+AC_DEFUN([AC_CHECK_LIBOQS],
+[ 
+oqs_check=
+
+AC_EGREP_HEADER([\#\sdefine\sEVP_PKEY_OQS_SIG_DEFAULT\sNID_oqs_sig_default],
+	[ $openssl_prefix/include/openssl/evp.h ],
+	[ oqs_check="yes" ], 
+    	[ oqs_check="no" ]
+)
+
+	AC_MSG_RESULT([ Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl/evp.h) ])
+])
+

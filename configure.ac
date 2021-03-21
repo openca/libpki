@@ -1437,6 +1437,54 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	AM_CONDITIONAL(ENABLE_OPENSSL_ENGINE, test "${engine}" = "yes")
 fi
 
+dnl ================= Open Quantum Safe - PQ and Composite Crypto LIBRARIES ===================
+
+dnl Defaults
+oqs_config=
+oqs_cflags=
+oqs_check=
+oqs_prefix=/usr
+oqs_ldflags=
+oqs_ldadd=
+
+dnl Enable OQS support
+cli_oqs=
+
+AC_ARG_ENABLE( oqs,
+	[  --enable-oqs      enable oqs support (no)],
+	[cli_oqs=$enableval], 
+	[cli_oqs=no]
+ )
+
+if ! [[ "x$cli_oqs" = "xno" ]] ; then
+	AC_MSG_RESULT([Open Quantum Safe: Enabled via CLI option])
+	AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Support])
+	oqs_check="yes"
+else
+	AC_MSG_RESULT([Checking support for Open Quantum Safe])
+
+	ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
+	if [[ $? -gt 0 ]] ; then
+		AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!])
+
+		AC_CHECK_LIBOQS()
+
+		if [[ "x$check_oqs" = "xyes" ]] ; then
+			AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!])
+			AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])],
+			oqs_check="yes"
+		else
+			AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)])
+			oqs_check="no"
+		fi
+	else
+		AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL])
+		AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])
+		oqs_check="yes"
+	fi
+
+fi
+
 dnl ================= OpenSSL Static LIBS (?) =========================
 
 AM_CONDITIONAL(STATIC_COMPILE, test "x$openssl_static_libs" != "x")
@@ -1757,6 +1805,7 @@ Configuration for $PACKAGE $VERSION :
  Compiler Flags .......: $my_cflags
  Linker Flags .........: $my_ldflags $rpath
  Libs .................: $my_ldadd
+ Open Post Qauntum ....: $oqs_check
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)
