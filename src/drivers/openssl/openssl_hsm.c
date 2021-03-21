@@ -280,7 +280,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 	int def_nid = NID_undef;
 
-    PKI_log_err("DIGEST ALGORITHM => %p", digest);
+    PKI_log_err("DIGEST ALGORITHM => %s", 
+    	PKI_DIGEST_ALG_get_parsed(digest));
 
 	if (!der || !der->data || !key || !key->value)
 	{
@@ -319,6 +320,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
         /* The signing algorithm requires there to be no digest */
         digest = NULL;
     }
+
+    PKI_log_err("DIGEST ALGORITHM => %p", digest);
 
     if (!EVP_DigestSignInit(ctx, &pCtx, NULL, NULL, pkey)) {
     	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
