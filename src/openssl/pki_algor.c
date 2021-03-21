@@ -505,8 +505,8 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 		// Post Quantum and Composite Cryptograpy
 #ifdef ENABLE_OQS
 		case PKI_ALGOR_FALCON512:
-		// case PKI_ALGOR_FALCON1024:
-		// case PKI_ALGOR_DILITHIUM2:
+		case PKI_ALGOR_FALCON1024:
+		case PKI_ALGOR_DILITHIUM2:
 		case PKI_ALGOR_DILITHIUM3:
 		case PKI_ALGOR_DILITHIUM5:
 		case PKI_ALGOR_SPHINCS_SHA256_128_R:
@@ -661,6 +661,18 @@ PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algo
 			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA512 );
 			break;
 #endif
+
+#ifdef ENABLE_OQS
+
+		// It seems OQS Algorithms Are Also Referred to as
+		// hashes, this is needed to be able to recognize them
+		// in signatures' X509 algorithms
+		case PKI_ALGOR_ID_FALCON512:
+		case PKI_ALGOR_ID_FALCON1024:
+			ret = NULL;
+
+#endif
+
 		default:
 			ret = PKI_DIGEST_ALG_UNKNOWN;
 	}
@@ -890,16 +902,29 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 #endif
 
 #ifdef ENABLE_OQS
+			case PKI_ALGOR_ID_FALCON1024:
 			case PKI_ALGOR_ID_FALCON512: {
-				PKI_log_err("FALCON -> Key Type [%d]", p_type);
+				// PQ Algorithms, Not Returning Hash
+				PKI_log_err("FALCON -> Key Type [%d]; No Hash Returned", p_type);
 			} break;
 
-			case PKI_ALGOR_ID_DILITHIUM2:
+			case PKI_ALGOR_ID_DILITHIUM5:
 			case PKI_ALGOR_ID_DILITHIUM3:
-			case PKI_ALGOR_ID_DILITHIUM5: {
-				PKI_log_err("DILITHIUM -> Key Type [%d]", p_type);
+			case PKI_ALGOR_ID_DILITHIUM2: {
+				PKI_log_err("DILITHIUM -> Key Type [%d]; No Hash Returned", p_type);
 			} break;
 
+			// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
+			// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
+			case PKI_ALGOR_ID_SPHINCS_SHA256_128_R: {
+				PKI_log_err("SPHINCS+-SHA256 -> Key Type [%d]; No Hash Returned", p_type);
+			} break;
+
+			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R:
+			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_192_R:
+			case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R: {
+				PKI_log_err("SPHINCS+-SHAKE256 -> Key Type [%d]; No Hash Returned", p_type);
+			} break;
 #endif
 
 		case EVP_PKEY_RSA:
@@ -909,8 +934,6 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 		default:
 			digest = NULL;
 	}
-
-	PKI_log_err("Return Value is %p", digest );
 
 	return digest;
 }

@@ -940,11 +940,11 @@ int main (int argc, char *argv[] ) {
 
 		if (batch || (strncmp_nocase(prompt, "y", 1 ) == 0))
 		{
-			if( verbose ) fprintf(stderr, "Generating new request (%s) ... ", 
+			if (verbose) fprintf(stderr, "Generating new request (%s) ... ", 
 					subject ? subject : "no subject" );
 			fflush(stderr);
 
-			if((PKI_TOKEN_new_req (tk, subject, profile)) == PKI_ERR)
+			if ((PKI_TOKEN_new_req(tk, subject, profile)) == PKI_ERR)
 			{
 				fprintf(stderr, "ERROR, can not generate a new Request!\n");
 				exit(1);

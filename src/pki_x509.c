@@ -72,8 +72,11 @@ const ASN1_ITEM * _get_ossl_item(PKI_DATATYPE type) {
 			it = &CMS_ContentInfo_it;
 		}
 
+		case PKI_DATATYPE_X509_KEYPAIR: {
+			it = NULL;
+		} break;
+
 		default: {
-			PKI_log_err("type => %d", type);
 			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, 
 				  "Not Supported Datatype [%d]", type);
 			return NULL;
@@ -229,11 +232,7 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	ret->status = -1;
 
 	// Internal conversion pointer
-	if (type != PKI_DATATYPE_X509_KEYPAIR) {
-		ret->it = _get_ossl_item(type);
-	} else {
-		ret->it = NULL;
-	}
+	ret->it = _get_ossl_item(type);
 
 	// All Done
 	return ret;
