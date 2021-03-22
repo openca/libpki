@@ -319,6 +319,16 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 	if (md != NULL) {
 
+		// PKI_log_err("Overriding MD - setting it to EVP_sha512()");
+		// OQS: It seems that setting the sha512 somehow makes the signature
+		// process on PQ move a bit further.. but it is all zeros...
+		// md = (EVP_MD *) EVP_sha512();
+
+		// PKI_log_err("Overriding MD - setting it to EVP_sha512()");
+		// md = (EVP_MD *) EVP_sha512();
+
+		PKI_log_err("Message Digest is NOT NULL!");
+
 		// Creates the context
 		if ((ctx = EVP_MD_CTX_create()) == NULL) {
 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
@@ -347,6 +357,9 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	} else {
 
 		// EVP_PKEY_CTX * pCtx = NULL;
+		// md = (EVP_MD *)EVP_sha512();
+
+		PKI_log_err("Message Digest is NULL!");
 
 		// Creates the context
 		if ((ctx = EVP_MD_CTX_create()) == NULL) {
@@ -358,7 +371,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 		// Initializes the Context
 		EVP_MD_CTX_init(ctx);
 
-	    if (!EVP_DigestSignInit(ctx, /* &pCtx */ NULL, NULL, NULL, pkey)) {
+	    if (!EVP_DigestSignInit(ctx, /* &pCtx */ NULL, md, NULL, pkey)) {
 	    	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
 	    	goto err;
     	}
