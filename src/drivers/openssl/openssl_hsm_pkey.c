@@ -332,11 +332,10 @@ EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
 
     // ameth = EVP_PKEY_asn1_find_str(&tmpeng, algname, -1);
     ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
-
     if (!ameth) {
         const PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
-        PKI_log_err("Algorithm %s not found (%d)", 
-            PKI_OID_get_descr(obj), kp->oqs.algId);
+        PKI_log_err("[0] Algorithm %s (%s) not found (%d)", 
+            PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
         return NULL;
     }
 

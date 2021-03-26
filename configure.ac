@@ -1482,7 +1482,24 @@ else
 		AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])
 		oqs_check="yes"
 	fi
+fi
 
+
+dnl ================= OpenSSL Composite Crypto Native Support ===================
+
+dnl Defaults
+composite_crypto=
+
+AC_ARG_ENABLE( composite,
+	[  --enable-composite      enable openssl composite crypto support (no)],
+	[composite_crypto=$enableval], 
+	[composite_crypto=no]
+ )
+
+if ! [[ "x$composite_crypto" = "xno" ]] ; then
+	AC_MSG_RESULT([Composite Crypto Native Support: Enabled via CLI option])
+	AC_DEFINE(ENABLE_COMPOSITE, 1, [Composite Crypto Native OpenSSL Support])
+	composite_crypto="yes"
 fi
 
 dnl ================= OpenSSL Static LIBS (?) =========================
@@ -1806,6 +1823,7 @@ Configuration for $PACKAGE $VERSION :
  Linker Flags .........: $my_ldflags $rpath
  Libs .................: $my_ldadd
  Open Post Qauntum ....: $oqs_check
+ Composite Native .....: $composite_crypto
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)

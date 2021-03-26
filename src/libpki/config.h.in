@@ -6,6 +6,9 @@
 /* Forces 64bits builds */
 #undef ENABLE_ARCH_64
 
+/* Composite Crypto Native OpenSSL Support */
+#undef ENABLE_COMPOSITE
+
 /* ECC Support for OpenSSL */
 #undef ENABLE_ECDSA
 

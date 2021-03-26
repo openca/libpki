@@ -78,6 +78,14 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 #endif // ENABLE OQS
 
+#ifdef ENABLE_COMPOSITE
+
+			case PKI_SCHEME_COMPOSITE:
+			case PKI_SCHEME_COMPOSITE_OR:
+				break;
+
+#endif // ENABLE_COMPOSITE
+
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
 				if(( tmp_s = PKI_CONFIG_get_value(prof, 
@@ -149,6 +157,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 				kp->bits = -1;
 				break;
 
+#ifdef ENABLE_OQS
 			// Post Quantum Cryptography - KEMS
 			case PKI_SCHEME_NTRU_PRIME:
 			case PKI_SCHEME_SIKE:
@@ -165,6 +174,16 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM:
 				kp->bits = 128;
 				break;
+#endif // ENABLE_OQS
+
+#ifdef ENABLE_COMPOSITE
+
+			case PKI_SCHEME_COMPOSITE:
+			case PKI_SCHEME_COMPOSITE_OR:
+				kp->bits = 128;
+				break;
+
+#endif // ENABLE_COMPOSITE
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
@@ -294,6 +313,33 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			else if (kp->bits <= 521) { kp->bits = 521; }
 		} break;
 
+
+#ifdef ENABLE_COMPOSITE
+
+		// =============================
+		// Native Composite Cryptography
+		// =============================
+
+		case PKI_SCHEME_COMPOSITE: {
+			// Unfortunately we do not have many
+			// options in terms of composite, we might
+			// need to enable more on libpqs
+			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE;
+			kp->bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_OR: {
+			// Unfortunately we do not have many
+			// options in terms of composite, we might
+			// need to enable more on libpqs
+			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_OR;
+			kp->bits = 128;
+		} break;
+
+#endif
+
+#ifdef ENABLE_OQS
+
 		// =============================================
 		// Post Quantum Cryptography: Digital Signatures
 		// =============================================
@@ -335,9 +381,9 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			}
 		} break;
 
-		// ======================
-		// Composite Cryptography
-		// ======================
+		// ==========================
+		// OQS Composite Cryptography
+		// ==========================
 
 		case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
 			// Unfortunately we do not have many
@@ -378,6 +424,8 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			}
 		} break;
 
+#endif // ENABLE_OQS
+
 		default: {
 			// Sets the bits
 			PKI_log_err("Scheme not supported (%d)", kp->scheme);
@@ -393,6 +441,8 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 
 	PKI_DEBUG("Setting OQS Property...");
+
+#ifdef ENABLE_OQS
 
 	// Input Checks
 	if (!kp || kp->bits <= 0) return
@@ -431,6 +481,8 @@ int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 	}
 
 	PKI_DEBUG("OQS Property Set Correctly");
+
+#endif
 
 	// All Done
 	return PKI_OK;

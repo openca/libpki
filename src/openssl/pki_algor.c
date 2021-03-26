@@ -113,6 +113,11 @@ PKI_ALGOR_ID PKI_ALGOR_ID_LIST_COMPOSITE_ECDSA_DILITHIUM[] = {
 	PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5_AES
 };
 
+const PKI_ALGOR_ID PKI_ALGOR_ID_LIST_COMPOSITE[] = {
+	PKI_ALGOR_ID_COMPOSITE,
+	PKI_ALGOR_ID_COMPOSITE_OR
+};
+
 #endif
 
 /* List of supported digest algorithms */
@@ -367,6 +372,17 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "SPHINCS";
 		} break;
 
+		// =================
+		// Generic Composite
+		// =================
+
+		case PKI_SCHEME_COMPOSITE: {
+			ret = "COMPOSITE";
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_OR: {
+			ret = "COMPOSITE_OR";
+		} break;
 
 		// =====================
 		// Composite (PQ) Crypto
@@ -418,6 +434,14 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 			return PKI_SCHEME_DILITHIUM;
 		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
 			return PKI_SCHEME_SPHINCS;
+		} else if (strncmp_nocase("MULTIKEY_OR", data, 11) == 0) {
+			return PKI_SCHEME_COMPOSITE_OR;
+		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
+			return PKI_SCHEME_COMPOSITE;
+		} else if (strncmp_nocase("COMPOSITE_OR", data, 11) == 0) {
+			return PKI_SCHEME_COMPOSITE_OR;
+		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
+			return PKI_SCHEME_COMPOSITE;
 		} else if (strncmp_nocase("COMP_RSA_FALCON", data, 15) == 0) {
 			return PKI_SCHEME_COMPOSITE_RSA_FALCON;
 		} else if (strncmp_nocase("COMP_ECDSA_FALCON", data, 17) == 0) {
@@ -777,6 +801,18 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		// Composite Crypto
 		// ================
 
+		case PKI_ALGOR_ID_COMPOSITE:
+			ret = PKI_SCHEME_COMPOSITE;
+			break;
+
+		case PKI_ALGOR_ID_COMPOSITE_OR:
+			ret = PKI_SCHEME_COMPOSITE_OR;
+			break;
+
+		// ====================
+		// OQS Composite Crypto
+		// ====================
+
 		case PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512:
 			ret = PKI_SCHEME_COMPOSITE_RSA_FALCON;
 			break;
@@ -925,6 +961,12 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 			case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R: {
 				PKI_log_err("SPHINCS+-SHAKE256 -> Key Type [%d]; No Hash Returned", p_type);
 			} break;
+#endif
+
+#ifdef ENABLE_COMPOSITE_CRYPTO
+			case PKI_ALGOR_ID_COMPOSITE:
+			case PKI_ALGOR_ID_COMPOSITE_OR:
+				break;
 #endif
 
 		case EVP_PKEY_RSA:

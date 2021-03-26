@@ -674,6 +674,29 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 /* End - NID_p256_sphincsshake256128frobust - open-quantum-safe */
 
+// ======================================== //
+// Composite Crypto and Composite_OR Crypto //
+// ======================================== //
+
+/* Begin - NID_composite */
+#ifdef NID_composite
+#define PKI_ALGOR_COMPOSITE      NID_composite
+#define PKI_ALGOR_ID_COMPOSITE   NID_composite
+#else
+#define PKI_ALGOR_COMPOSITE     NID_undef
+#define PKI_ALGOR_ID_COMPOSITE  NID_undef
+#endif
+/* End - NID_rsa3072_falcon512 */
+
+/* Begin - NID_composite_or */
+#ifdef NID_compositeOr
+#define PKI_ALGOR_COMPOSITE_OR     NID_compositeOr
+#define PKI_ALGOR_ID_COMPOSITE_OR  NID_compositeOr
+#else
+#define PKI_ALGOR_COMPOSITE_OR     NID_undef
+#define PKI_ALGOR_ID_COMPOSITE_OR  NID_undef
+#endif
+/* End - NID_rsa3072_falcon512 */
 
 /* Default DIGEST algorithm */
 #ifdef ENABLE_SHA256

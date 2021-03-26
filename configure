@@ -940,6 +940,7 @@ with_openssl_prefix
 enable_ecdsa
 enable_openssl_engine
 enable_oqs
+enable_composite
 enable_strict
 '
       ac_precious_vars='build_alias
@@ -1608,6 +1609,7 @@ Optional Features:
   --enable-ecdsa         enable Elliptic Curves DSA support
   --enable-openssl-engine      enable openssl engine support (yes)
   --enable-oqs      enable oqs support (no)
+  --enable-composite      enable openssl composite crypto support (no)
   --enable-strict         enable strict compilation error warnings (default is
                           no)
 
@@ -17534,7 +17536,28 @@ $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 
 		oqs_check="yes"
 	fi
+fi
 
+
+
+composite_crypto=
+
+# Check whether --enable-composite was given.
+if test "${enable_composite+set}" = set; then :
+  enableval=$enable_composite; composite_crypto=$enableval
+else
+  composite_crypto=no
+
+fi
+
+
+if ! [ "x$composite_crypto" = "xno" ] ; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Composite Crypto Native Support: Enabled via CLI option" >&5
+$as_echo "Composite Crypto Native Support: Enabled via CLI option" >&6; }
+
+$as_echo "#define ENABLE_COMPOSITE 1" >>confdefs.h
+
+	composite_crypto="yes"
 fi
 
 
@@ -20226,6 +20249,7 @@ Configuration for $PACKAGE $VERSION :
  Linker Flags .........: $my_ldflags $rpath
  Libs .................: $my_ldadd
  Open Post Qauntum ....: $oqs_check
+ Composite Native .....: $composite_crypto
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)
