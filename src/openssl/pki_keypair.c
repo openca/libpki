@@ -139,8 +139,6 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *p
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 	int p_type = 0;
 
-	PKI_DEBUG("TEST TEST TEST TEST");
-
 	if ( !pVal ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return ret;
@@ -236,6 +234,13 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 			} else {
 				algId = PKI_ALGOR_ECDSA_SHA512;
 			};
+			break;
+#endif
+
+#ifdef ENABLE_COMPOSITE
+		case PKI_ALGOR_COMPOSITE:
+		case PKI_ALGOR_COMPOSITE_OR:
+			algId = p_type;
 			break;
 #endif
 

@@ -15,7 +15,16 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 	{
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
-	};
+	}
+
+#ifdef ENABLE_COMPOSITE
+
+	if ((kp->comp.k_stack = PKI_STACK_X509_KEYPAIR_new()) == NULL) {
+		OPENSSL_free(kp);
+		return NULL;
+	}
+
+#endif
 
 	if (prof)
 	{
@@ -215,6 +224,12 @@ void PKI_KEYPARAMS_free ( PKI_KEYPARAMS *kp ) {
 		return;
 	};
 
+#ifdef ENABLE_COMPOSITE
+
+	if (kp->comp.k_stack) PKI_STACK_X509_KEYPAIR_free_all(kp->comp.k_stack);
+	kp->comp.k_stack = NULL;
+
+#endif
 	PKI_Free ( kp );
 
 	return;
@@ -481,6 +496,37 @@ int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 	}
 
 	PKI_DEBUG("OQS Property Set Correctly");
+
+#endif
+
+	// All Done
+	return PKI_OK;
+}
+
+
+/*! \brief Sets the bits size for key generation */
+int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
+
+	PKI_DEBUG("Adding a Key To Composite Key...");
+
+#ifdef ENABLE_COMPOSITE
+
+	// Input Checks
+	if (!kp) return
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	if (kp->scheme != PKI_SCHEME_COMPOSITE &&
+		kp->scheme != PKI_SCHEME_COMPOSITE_OR) {
+		return PKI_ERROR(PKI_ERR_GENERAL, 
+			"Error while adding keys to non-composite scheme");
+	}
+
+	if (0 >= PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key)) {
+		return PKI_ERROR(PKI_ERR_GENERAL, 
+			"Error while adding a component key to a composite one");
+	}
+
+	PKI_DEBUG("Key Added Successfully.");
 
 #endif
 

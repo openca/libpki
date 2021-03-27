@@ -65,6 +65,9 @@ void usage ( void ) {
 	fprintf(stderr, "  -bits <num>     - Number of Bits\n");
 	fprintf(stderr, "  -type <objtype> - Type of Object\n");
 	fprintf(stderr, "  -algor <name>   - Algorithm to be used\n");
+#ifdef ENABLE_COMPOSITE
+	fprintf(stderr, "  -addkey <file>  - Key to be added to a composite key\n");
+#endif
 	fprintf(stderr, "  -newkey         - Generate new keypair when using genreq\n");
 	fprintf(stderr, "  -outkey <URI>   - URI where to store the new key\n");
 	fprintf(stderr, "  -uri <uri>      - URI of the item (key/cert/..) in the "
@@ -171,8 +174,41 @@ void version ( void ) {
 	exit(0);
 }
 
+int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
+
+	PKI_X509_KEYPAIR_STACK * tmp_stack = NULL;
+	PKI_X509_KEYPAIR * tmp_key = NULL;
+
+	if (!kp || !url) return 0;
+
+	if (kp->scheme != PKI_SCHEME_COMPOSITE &&
+		kp->scheme != PKI_SCHEME_COMPOSITE_OR) return 0;
+
+	PKI_log_debug("Adding Key from %s", url);
+
+	if ((tmp_stack = PKI_X509_KEYPAIR_STACK_get(url, 
+						PKI_DATATYPE_UNKNOWN, cred, hsm)) == NULL) {
+		// Nothing was loaded
+		return 0;
+	}
+
+	while ((tmp_key = PKI_STACK_X509_KEYPAIR_pop(tmp_stack)) != NULL) {
+		if (PKI_KEYPARAMS_add_key(kp, tmp_key) != PKI_OK) {
+			PKI_STACK_X509_KEYPAIR_free_all(tmp_stack);
+			PKI_log_err("ERROR: Cannot add keys from %s", url);
+			return 0;
+		}
+	}
+
+	PKI_STACK_X509_KEYPAIR_free(tmp_stack);
+
+	// All Done
+	return 1;
+}
+
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
-		char *url_s, char *algor_opt, char *profile_s, char *outform, int batch ) {
+		char *url_s, char *algor_opt, char *profile_s, char *outform, 
+		char *comp_keys[], int comp_keys_num, int batch ) {
 
 	// int algor_id = 0;
 
@@ -285,7 +321,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 					}
 				}
 				break;
+#endif
 
+#ifdef ENABLE_OQS
 			// Post Quantum Digital Signature Switches
 			case PKI_SCHEME_FALCON:
 			case PKI_SCHEME_PICNIC:
@@ -299,9 +337,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				}
 			} break;
 
-			
-
-
 			// Combined Crypto
 			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
 			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
@@ -312,19 +347,59 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			case PKI_SCHEME_NTRU_PRIME:
 			case PKI_SCHEME_SIKE:
 			case PKI_SCHEME_BIKE:
-			case PKI_SCHEME_FRODOKEM:
+			case PKI_SCHEME_FRODOKEM: {
 				fprintf(stderr, 
 					"ERROR: PQ Scheme [%d] not supported!\n\n",
 					kp->scheme);
 				return PKI_ERR;
-#endif
+			} break;
 
 			case PKI_SCHEME_DH:
-			case PKI_SCHEME_UNKNOWN:
+			case PKI_SCHEME_UNKNOWN: {
 				fprintf(stderr, "ERROR: Scheme not supported!\n\n");
 				return PKI_ERR;
+			} break;
+#endif
+
+#ifdef ENABLE_COMPOSITE
+			case PKI_SCHEME_COMPOSITE:
+			case PKI_SCHEME_COMPOSITE_OR:
+				break;
+#endif
+			default: {
+				fprintf(stderr, "ERROR: Scheme not supported (%d)\n\n", kp->scheme);
+				return PKI_ERR;
+			}
 		}
 
+	}
+
+	if (kp->scheme == PKI_SCHEME_COMPOSITE ||
+		kp->scheme == PKI_SCHEME_COMPOSITE_OR) {
+
+		char * url = NULL;
+		int i = 0;
+
+		fprintf(stderr, "DEBUG: Composite Scheme Detected\n");
+
+		while ((url = comp_keys[i]) != NULL) {
+
+			if (verbose) {
+				fprintf(stderr, "Loading key component [%s]\n", url);
+				fflush(stderr);
+			}
+					
+			if (0 == add_comp_stack(kp, url, tk->cred, tk->hsm)) {
+				fprintf(stderr, "ERROR: Cannot add key component (%s)\n\n",
+					url);
+				return PKI_ERR;
+			}
+
+			// Move the Index
+			if (i < comp_keys_num) { i++; }
+			else { break; }
+
+		}
 	}
 
 	if (!batch)
@@ -335,11 +410,13 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		fprintf(stderr, "  - Algorithm ......: %s\n", 
 					PKI_SCHEME_ID_get_parsed( kp->scheme ));
 		fprintf(stderr, "  - Bits ...........: %d\n", kp->bits );
+
 #ifdef ENABLE_ECDSA
 		if (kp->scheme == PKI_SCHEME_ECDSA) {
 			fprintf(stderr, "  - Point Type......: %d\n", kp->ec.form );
 		}
 #endif
+
 		fprintf(stderr, "  - Output .........: %s\n", keyurl->url_s );
 
 		prompt = prompt_str ("\nAre you sure [y/N] ? ");
@@ -461,6 +538,13 @@ int main (int argc, char *argv[] ) {
 	int mins  = 0;
 	int secs  = 0;
 
+#ifdef ENABLE_COMPOSITE
+
+	char * comp_keys[50] = { 0x0 };
+	int comp_keys_num = 0;
+
+#endif
+
 	unsigned long validity = 0;
 	PKI_DATATYPE datatype = PKI_DATATYPE_UNKNOWN;
 
@@ -504,6 +588,16 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-algor", argv[i], 6 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			algor_opt = argv[i];
+#ifdef ENABLE_COMPOSITE
+		} else if ( strncmp_nocase("-addkey", argv[i], 6 ) == 0 ) {
+			if (argv[i++] == NULL) usage();
+			if (comp_keys_num >= sizeof(comp_keys)/sizeof(*comp_keys)) {
+				fprintf(stderr, "ERROR: Number of Keys not supported (max %d)\n\n",
+					sizeof(comp_keys)/sizeof(*comp_keys));
+				usage();
+			}
+			comp_keys[comp_keys_num++] = argv[i];
+#endif
 		} else if ( strncmp_nocase("-signkey", argv[i], 8 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			signkey = argv[i];
@@ -575,8 +669,8 @@ int main (int argc, char *argv[] ) {
 	if( verbose ) log_level = PKI_LOG_INFO;
 	if( debug ) log_debug |= PKI_LOG_FLAGS_ENABLE_DEBUG;
 
-	validity = (unsigned long)(secs + mins * 60 + hours * 3600 + 
-					days * 86400);
+	validity = (unsigned long) (secs + mins * 60 + 
+							hours * 3600 + days * 86400);
 
 	if(( PKI_log_init (PKI_LOG_TYPE_STDERR, log_level, NULL,
                         log_debug, NULL )) == PKI_ERR ) {
@@ -590,18 +684,20 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	if( verbose ) {
+	if (verbose) {
 		printf("Loading Token .. ");
 		fflush( stdout );
 	}
-	if(( PKI_TOKEN_init(tk, config, token_name)) == PKI_ERR) {
+
+	if ((PKI_TOKEN_init(tk, config, token_name)) == PKI_ERR) {
 		printf("ERROR, can not load token (enable debug for "
 							"details)!\n\n");
 		exit(1);
 	}
-	if( verbose ) printf("Ok.\n");
 
-	if( batch ) {
+	if (verbose) printf("Ok.\n");
+
+	if (batch) {
 		PKI_TOKEN_cred_set_cb ( tk, NULL, NULL );
 	}
 
@@ -855,13 +951,6 @@ int main (int argc, char *argv[] ) {
 			// This should be a catch all for new algos
 			fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);
 		}
-	    /*
-	      else {
-			printf("\nERROR, algorithm (%s) not supported (use RSA, ECDSA, or DSA)!\n\n",
-				algor_opt);
-			exit(1);
-		}
-		*/
 
 		if ((gen_keypair(tk, 
 				 bits,
@@ -870,6 +959,8 @@ int main (int argc, char *argv[] ) {
 				 algor_opt, 
 				 profile,
 				 outform,
+				 comp_keys,
+				 comp_keys_num,
 				 batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
 			exit(1);
@@ -885,7 +976,7 @@ int main (int argc, char *argv[] ) {
 			if (verbose) fprintf(stderr, "Generating KeyPair %s ...", outkey_s);
 
 			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
-					profile, outform, batch)) == PKI_ERR ) 
+					profile, outform, comp_keys, comp_keys_num, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);

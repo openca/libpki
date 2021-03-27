@@ -6,24 +6,6 @@
 #ifndef _LIBPKI_HSM_OPENSSL_PKEY_H
 #define _LIBPKI_HSM_OPENSSL_PKEY_H
 
-/*
-typedef struct __ec_key_st2 {
-    int version;
-
-    EC_GROUP *group;
-
-    EC_POINT *pub_key;
-    BIGNUM   *priv_key;
-
-    unsigned int enc_flag;
-    point_conversion_form_t conv_form;
-
-    int     references;
-
-    void *method_data;
-};
-*/
-
 PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp );
 PKI_DSA_KEY * _pki_dsakey_new( PKI_KEYPARAMS *kp );
 #ifdef ENABLE_ECDSA
@@ -321,7 +303,7 @@ void * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
 #ifdef ENABLE_OQS
 
-EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
+EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
     const EVP_PKEY_ASN1_METHOD *ameth;
 
@@ -334,7 +316,7 @@ EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
     ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
     if (!ameth) {
         const PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
-        PKI_log_err("[0] Algorithm %s (%s) not found (%d)", 
+        PKI_log_debug("[0] Algorithm %s (%s) not found (%d)", 
             PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
         return NULL;
     }
@@ -350,7 +332,32 @@ EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
     if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL)
         goto err;
 
+    // EVP_PKEY_CTRL_COMPOSITE_PUSH
+    // EVP_PKEY_CTRL_COMPOSITE_POP
+    // EVP_PKEY_CTRL_COMPOSITE_ADD
+    // EVP_PKEY_CTRL_COMPOSITE_DEL
+    // EVP_PKEY_CTRL_COMPOSITE_CLEAR
+
+    if (kp->comp.k_stack != NULL) {
+
+        for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
+
+            PKI_X509_KEYPAIR * tmp_key = NULL;
+
+            // Let's get the i-th PKI_X509_KEYPAIR
+            tmp_key = PKI_STACK_X509_KEYPAIR_get_num(kp->comp.k_stack, i);
+            // Now we can use the CRTL interface to pass the new keys
+            if (EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_KEYGEN,
+                                  EVP_PKEY_CTRL_COMPOSITE_PUSH, 0, tmp_key->value) <= 0) {
+                PKI_log_debug("Cannot add key via the CTRL interface");
+                goto err;
+            }
+        }
+
+    }
+
     if (EVP_PKEY_keygen_init(ctx) <= 0) {
+        PKI_log_debug("Cannot Initialize Key Generation");
         goto err;
     }
 
@@ -358,7 +365,7 @@ EVP_PKEY_CTX * _pki_openquantumsafe_ctx(PKI_KEYPARAMS *kp) {
 
  err:
 
-    PKI_log_err("Error initializing context for [scheme: %d, algId: %d]\n", 
+    PKI_log_debug("Error initializing context for [scheme: %d, algId: %d]\n", 
         kp->scheme, kp->oqs.algId);
 
     if (ctx) EVP_PKEY_CTX_free(ctx);
@@ -452,10 +459,10 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 #endif // ENABLE_ECDSA
 
-#ifdef ENABLE_OQS
-
         default:
-            if ((ctx = _pki_openquantumsafe_ctx(kp)) == NULL) {
+
+#ifdef ENABLE_OQS
+            if ((ctx = _pki_get_evp_pkey_ctx(kp)) == NULL) {
                 if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
                 return NULL;
             }
@@ -469,7 +476,6 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 #else
 
-        default:
             /* No recognized scheme */
             PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "%d", type );
             if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );

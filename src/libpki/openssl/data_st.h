@@ -875,6 +875,12 @@ typedef struct pki_keyparams_st {
 	} oqs;
 #endif // ENABLE_OQS
 
+#ifdef ENABLE_COMPOSITE
+	struct {
+		PKI_X509_KEYPAIR_STACK * k_stack;
+	} comp;
+#endif
+
 } PKI_KEYPARAMS;
 
 #ifdef ENABLE_OQS

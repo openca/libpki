@@ -20,9 +20,15 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
 
 #ifdef ENABLE_OQS
 
-// ===================================================
-// Post-Quantum Algorithm and Composite Crypto Support
-// ===================================================
+// ========================
+// Composite Crypto Support
+// ========================
+
+int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key);
+
+// =========================
+// Open Quantum Safe Support
+// =========================
 
 int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam);
 
