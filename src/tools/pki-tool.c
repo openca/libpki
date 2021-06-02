@@ -959,8 +959,10 @@ int main (int argc, char *argv[] ) {
 				 algor_opt, 
 				 profile,
 				 outform,
+#ifdef ENABLE_COMPOSITE
 				 comp_keys,
 				 comp_keys_num,
+#endif
 				 batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
 			exit(1);
