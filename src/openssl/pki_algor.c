@@ -801,6 +801,7 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		// Composite Crypto
 		// ================
 
+#ifdef ENABLE_COMPOSITE
 		case PKI_ALGOR_ID_COMPOSITE:
 			ret = PKI_SCHEME_COMPOSITE;
 			break;
@@ -808,6 +809,7 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		case PKI_ALGOR_ID_COMPOSITE_OR:
 			ret = PKI_SCHEME_COMPOSITE_OR;
 			break;
+#endif
 
 		// ====================
 		// OQS Composite Crypto
