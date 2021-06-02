@@ -187,7 +187,7 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 	PKI_log_debug("Adding Key from %s", url);
 
 	if ((tmp_stack = PKI_X509_KEYPAIR_STACK_get(url, 
-						PKI_DATATYPE_UNKNOWN, cred, hsm)) == NULL) {
+						PKI_DATA_FORMAT_UNKNOWN, cred, hsm)) == NULL) {
 		// Nothing was loaded
 		return 0;
 	}
@@ -962,6 +962,9 @@ int main (int argc, char *argv[] ) {
 #ifdef ENABLE_COMPOSITE
 				 comp_keys,
 				 comp_keys_num,
+#else
+				 NULL,
+				 0,
 #endif
 				 batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
@@ -977,12 +980,21 @@ int main (int argc, char *argv[] ) {
 		{
 			if (verbose) fprintf(stderr, "Generating KeyPair %s ...", outkey_s);
 
+#ifdef ENABLE_COMPOSITE
 			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
 					profile, outform, comp_keys, comp_keys_num, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);
 			}
+#else
+			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
+					profile, outform, NULL, 0, batch)) == PKI_ERR ) 
+			{
+				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
+				exit(1);
+			}
+#endif
 			if ( verbose && batch ) fprintf( stderr, "Ok.\n");
 
 			// Let's assign the new key to the token
