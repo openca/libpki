@@ -338,6 +338,7 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
     // EVP_PKEY_CTRL_COMPOSITE_DEL
     // EVP_PKEY_CTRL_COMPOSITE_CLEAR
 
+#ifdef ENABLE_COMPOSITE
     if (kp->comp.k_stack != NULL) {
 
         for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
@@ -353,8 +354,8 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
                 goto err;
             }
         }
-
     }
+#endif
 
     if (EVP_PKEY_keygen_init(ctx) <= 0) {
         PKI_log_debug("Cannot Initialize Key Generation");
