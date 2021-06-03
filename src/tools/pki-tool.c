@@ -592,7 +592,7 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-addkey", argv[i], 6 ) == 0 ) {
 			if (argv[i++] == NULL) usage();
 			if (comp_keys_num >= sizeof(comp_keys)/sizeof(*comp_keys)) {
-				fprintf(stderr, "ERROR: Number of Keys not supported (max %d)\n\n",
+				fprintf(stderr, "ERROR: Number of Keys not supported (max %ld)\n\n",
 					sizeof(comp_keys)/sizeof(*comp_keys));
 				usage();
 			}
