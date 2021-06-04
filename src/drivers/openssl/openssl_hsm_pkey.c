@@ -325,13 +325,23 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
     EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
 
-#ifndef OPENSSL_NO_ENGINE
-    ENGINE_finish(tmpeng);
-#endif
+// #ifndef OPENSSL_NO_ENGINE
+//     ENGINE_finish(tmpeng);
+// #endif
 
     if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL)
         goto err;
 
+    // Let's set the operation (check EVP_PKEY_CTX_ctrl function -pmeth_lib.c:432)
+    // Use the EVP interface to initialize the operation (crypto/evp/pmeth_gn.c:69)
+    if (EVP_PKEY_keygen_init(ctx) <= 0) {
+        PKI_log_debug("Cannot Initialize Key Generation");
+        goto err;
+    }
+
+    // CTX operations for Composite Crypto
+    // (defined in <openssl-1.1.1>/include/openssl/evp.h)
+    //
     // EVP_PKEY_CTRL_COMPOSITE_PUSH
     // EVP_PKEY_CTRL_COMPOSITE_POP
     // EVP_PKEY_CTRL_COMPOSITE_ADD
@@ -356,11 +366,6 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
         }
     }
 #endif
-
-    if (EVP_PKEY_keygen_init(ctx) <= 0) {
-        PKI_log_debug("Cannot Initialize Key Generation");
-        goto err;
-    }
 
     return ctx;
 
