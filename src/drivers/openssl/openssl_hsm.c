@@ -319,6 +319,14 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 	if (md != NULL) {
 
+		int sig_nid = -1;
+		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_type(md), EVP_PKEY_id(pkey)) <= 0) {
+			PKI_log_err("Cannot find signing algorithm, aborting!");
+			return NULL;
+		};
+
+		PKI_log_debug("Signing Algorithm is [%s] (%d)", OBJ_nid2sn(sig_nid), sig_nid);
+
 		// PKI_log_err("Overriding MD - setting it to EVP_sha512()");
 		// OQS: It seems that setting the sha512 somehow makes the signature
 		// process on PQ move a bit further.. but it is all zeros...
