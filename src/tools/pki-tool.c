@@ -293,10 +293,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		exit(1);
 	}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> f43311bce7929adc4697d4193f0cd2af04fbf10a
 #ifdef ENABLE_OQS
 	fprintf(stderr, "OK, KEYPARAMS object created (scheme %d - oqs.algId %d)!\n\n", scheme, kp->oqs.algId);
 #endif
