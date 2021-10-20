@@ -12010,12 +12010,7 @@ ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 if test x"${MISSING+set}" != xset; then
-  case $am_aux_dir in
-  *\ * | *\	*)
-    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
-  *)
-    MISSING="\${SHELL} $am_aux_dir/missing" ;;
-  esac
+  MISSING="\${SHELL} '$am_aux_dir/missing'"
 fi
 # Use eval to expand $SHELL
 if eval "$MISSING --is-lightweight"; then
@@ -16929,8 +16924,7 @@ $as_echo "OpenSSL Version $ver: Ok." >&6; };
 $as_echo "OpenSSL CFlags: $library_cflags ($_shared)" >&6; }
 
 			dir="$library_prefix/lib${curr_arch}"
-
-									_static=0
+			_static=0
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL: Looking for $crypto_name and $ssl_name" >&5
 $as_echo "OpenSSL: Looking for $crypto_name and $ssl_name" >&6; }
@@ -16944,10 +16938,6 @@ $as_echo "OpenSSL: Looking for $crypto_name and $ssl_name" >&6; }
 			for ext in $ext_list ; do
 				crypto_lib=`ls "${dir}/libcrypto.${ext}" | head -n 1`;
 				ssl_lib=`ls "${dir}/libssl.${ext}" | head -n 1`;
-
-
-				echo "CRYPTO => $crypto_lib";
-				echo "SSL => $ssl_lib";
 
 				if ! [ "${crypto_lib}" = "${ssl_lib}" ] ; then
 					library_setup=yes
@@ -17211,14 +17201,12 @@ else
 	_path=${ossl_prefix%/include}
 	includes=${_path}/include/openssl
 
+		activate_ecdsa=yes;
 
 	if ! [ -f "$includes/ec.h" ] ; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&5
 $as_echo "OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&6; }
-		activate_ecdsa=no;
 	else
-		activate_ecdsa=yes;
-
 		files="$includes/opensslconf.h $includes/opensslconf-*.h"
 		for i in files ; do
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC/ECDSA: Checking support in $i" >&5
@@ -17265,14 +17253,12 @@ else
 	_path=${ossl_prefix%/include}
 	includes=${_path}/include/openssl
 
+		activate_ecdsa=yes;
 
 	if ! [ -f "$includes/ec.h" ] ; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&5
 $as_echo "OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&6; }
-		activate_ecdsa=no;
 	else
-		activate_ecdsa=yes;
-
 		files="$includes/opensslconf.h $includes/opensslconf-*.h"
 		for i in files ; do
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC/ECDSA: Checking support in $i" >&5
@@ -19902,7 +19888,9 @@ $as_echo X/"$am_mf" |
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  Try re-running configure with the
+    for automatic dependency tracking.  If GNU make was not used, consider
+    re-running the configure script with MAKE=\"gmake\" (or whatever is
+    necessary).  You can also try re-running configure with the
     '--disable-dependency-tracking' option to at least be able to build
     the package (albeit without support for automatic dependency tracking).
 See \`config.log' for more details" "$LINENO" 5; }
