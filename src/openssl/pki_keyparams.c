@@ -309,7 +309,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		return PKI_ERROR(PKI_ERR_GENERAL, "Unknown scheme when setting the bits size");
 
 	// Assigns the Bits
-	kp->bits = bits;
+	if (kp->bits <= 0 && bits > 0) kp->bits = bits;
 
 	// Checks for modifiers
 	switch (kp->scheme) {

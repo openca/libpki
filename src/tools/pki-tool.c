@@ -181,8 +181,12 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 	if (!kp || !url) return 0;
 
+#ifdef ENABLE_COMPOSITE
+
 	if (kp->scheme != PKI_SCHEME_COMPOSITE &&
 		kp->scheme != PKI_SCHEME_COMPOSITE_OR) return 0;
+
+#endif
 
 	PKI_log_debug("Adding Key from %s", url);
 
@@ -283,7 +287,10 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		exit(1);
 	}
 
+
+#ifdef ENABLE_OQS
 	fprintf(stderr, "OK, KEYPARAMS object created (scheme %d - oqs.algId %d)!\n\n", scheme, kp->oqs.algId);
+#endif
 
 	// Checks that the bits value is not negative (at least!)
 	PKI_KEYPARAMS_set_bits(kp, bits);
@@ -371,8 +378,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				return PKI_ERR;
 			}
 		}
-
 	}
+
+#ifdef ENABLE_COMPOSITE
 
 	if (kp->scheme == PKI_SCHEME_COMPOSITE ||
 		kp->scheme == PKI_SCHEME_COMPOSITE_OR) {
@@ -401,6 +409,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 		}
 	}
+#endif
 
 	if (!batch)
 	{

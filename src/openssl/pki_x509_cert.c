@@ -306,7 +306,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     };
 
     if(( tmp_s = PKI_CONFIG_get_value( conf, 
-        "/profile/validity/minutes")) != NULL ) {
+        "/profile/validity/seconds")) != NULL ) {
       secs = atoll( tmp_s );
       PKI_Free ( tmp_s );
     };
