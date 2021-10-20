@@ -276,6 +276,12 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	// If specified, search the profile among the ones already loaded
 	if (profile_s) prof = PKI_TOKEN_search_profile( tk, profile_s );
 
+	// Sanity Check
+	if (profile_s && !prof) {
+		PKI_log_debug("Detected Issue: profile %s was selected, but could not be found!");
+		exit(1);
+	}
+
 	// Let's now generate the new key parameters
 	if ((kp = PKI_KEYPARAMS_new(scheme, prof)) == NULL)
 	{
@@ -283,7 +289,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		exit(1);
 	}
 
+#ifdef ENABLE_OQS
 	fprintf(stderr, "OK, KEYPARAMS object created (scheme %d - oqs.algId %d)!\n\n", scheme, kp->oqs.algId);
+#endif
 
 	// Checks that the bits value is not negative (at least!)
 	PKI_KEYPARAMS_set_bits(kp, bits);
@@ -941,7 +949,9 @@ int main (int argc, char *argv[] ) {
 
 		PKI_TOKEN_login( tk );
 
-		if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
+		if (!algor_opt) {
+			algor_opt = "RSA";
+		} else if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
 			algor_opt = "RSA";
 		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
 			algor_opt = "EC";

@@ -741,10 +741,10 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 		PKI_Free ( tmp_s );
 	}
 
-	tk->name = strdup(tk_name);
 	ret = PKI_OK;
 
 end:
+	if (tk_name) tk->name = strdup(tk_name);
 	if (config_file) PKI_Free(config_file);
 	return ret;
 }
