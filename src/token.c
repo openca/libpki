@@ -534,6 +534,8 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 	if (tk->config_dir) snprintf(buff, BUFF_MAX_SIZE,"%s", tk->config_dir );
 	else snprintf(buff,BUFF_MAX_SIZE, "%s", PKI_DEFAULT_CONF_DIR );
 
+	tk->name = strdup(tk_name);
+
 	if ((config_file = PKI_CONFIG_find_all(buff, tk_name, PKI_DEFAULT_TOKEN_DIR)) == NULL)
 	{
 		return PKI_ERROR ( PKI_ERR_CONFIG_MISSING, buff );
@@ -741,7 +743,6 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 		PKI_Free ( tmp_s );
 	}
 
-	tk->name = strdup(tk_name);
 	ret = PKI_OK;
 
 end:
