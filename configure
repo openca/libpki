@@ -17024,8 +17024,7 @@ $as_echo "OpenSSL Version $ver: Ok." >&6; };
 $as_echo "OpenSSL CFlags: $library_cflags ($_shared)" >&6; }
 
 			dir="$library_prefix/lib${curr_arch}"
-
-									_static=0
+			_static=0
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL: Looking for $crypto_name and $ssl_name" >&5
 $as_echo "OpenSSL: Looking for $crypto_name and $ssl_name" >&6; }
@@ -17039,10 +17038,6 @@ $as_echo "OpenSSL: Looking for $crypto_name and $ssl_name" >&6; }
 			for ext in $ext_list ; do
 				crypto_lib=`ls "${dir}/libcrypto.${ext}" | head -n 1`;
 				ssl_lib=`ls "${dir}/libssl.${ext}" | head -n 1`;
-
-
-				echo "CRYPTO => $crypto_lib";
-				echo "SSL => $ssl_lib";
 
 				if ! [ "${crypto_lib}" = "${ssl_lib}" ] ; then
 					library_setup=yes
@@ -17306,14 +17301,12 @@ else
 	_path=${ossl_prefix%/include}
 	includes=${_path}/include/openssl
 
+		activate_ecdsa=yes;
 
 	if ! [ -f "$includes/ec.h" ] ; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&5
 $as_echo "OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&6; }
-		activate_ecdsa=no;
 	else
-		activate_ecdsa=yes;
-
 		files="$includes/opensslconf.h $includes/opensslconf-*.h"
 		for i in files ; do
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC/ECDSA: Checking support in $i" >&5
@@ -17360,14 +17353,12 @@ else
 	_path=${ossl_prefix%/include}
 	includes=${_path}/include/openssl
 
+		activate_ecdsa=yes;
 
 	if ! [ -f "$includes/ec.h" ] ; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&5
 $as_echo "OpenSSL EC: Missing Support for EC ($includes/ec.h)" >&6; }
-		activate_ecdsa=no;
 	else
-		activate_ecdsa=yes;
-
 		files="$includes/opensslconf.h $includes/opensslconf-*.h"
 		for i in files ; do
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: OpenSSL EC/ECDSA: Checking support in $i" >&5
