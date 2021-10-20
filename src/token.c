@@ -534,6 +534,8 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 	if (tk->config_dir) snprintf(buff, BUFF_MAX_SIZE,"%s", tk->config_dir );
 	else snprintf(buff,BUFF_MAX_SIZE, "%s", PKI_DEFAULT_CONF_DIR );
 
+	// Copies the Name Early so that it is available
+	// even when errors occur
 	tk->name = strdup(tk_name);
 
 	if ((config_file = PKI_CONFIG_find_all(buff, tk_name, PKI_DEFAULT_TOKEN_DIR)) == NULL)

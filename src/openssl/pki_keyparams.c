@@ -231,7 +231,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Sets the bits
-	kp->bits = bits;
+	if (kp->bits <= 0 && bits > 0) kp->bits = bits;
 
 	// All Done
 	return PKI_OK;
