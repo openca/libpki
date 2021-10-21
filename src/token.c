@@ -1731,10 +1731,10 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 	if ((pkey = PKI_X509_KEYPAIR_get_url( url, PKI_DATA_FORMAT_UNKNOWN,
 											tk->cred, tk->hsm )) == NULL) {
 		/* Can not load the keypair from the given URL */
-		if (url) URL_free( url );
 		PKI_log_debug("PKI_TOKEN_load_keypair()::Can not load key (%s)", url->url_s);
 		tk->status |= PKI_TOKEN_STATUS_LOGIN_ERR;
 
+		if (url) URL_free(url);
 		return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, url_string);
 	}
 
