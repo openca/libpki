@@ -194,11 +194,37 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     // random serial number, otherwise - it's a self-signed, use
     // the usual 'fake' 0
     if ( ca_cert ) {
+
+      BIGNUM * rnd_bn = NULL;
+
+      if ((rnd_bn = BN_new()) == NULL) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+        goto err;
+      }
+
+      if (!BN_rand(rnd_bn, 160, 0, 0)) {
+        PKI_log_debug("Cannot Generate a Random Serial Number");
+        BN_free(rnd_bn);
+        goto err;
+      }
+
+      if ((serial = BN_to_ASN1_INTEGER(rnd_bn, NULL)) == NULL) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+        BN_free(rnd_bn);
+        goto err;
+      }
+
+      // Free Memory
+      BN_free(rnd_bn);
+
+      /*
       unsigned char bytes[11];
       RAND_bytes(bytes, sizeof(bytes));
       bytes[0] = 0;
 
+      // Should return an ASN1_INTEGER
       serial = PKI_INTEGER_new_bin(bytes, sizeof(bytes));
+      */
     } else {
       serial = s2i_ASN1_INTEGER( NULL, "0");
     };
