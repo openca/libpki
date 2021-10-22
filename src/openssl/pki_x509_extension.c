@@ -288,7 +288,12 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 			PKI_X509_get_value ( tk->cert );
 		v3_ctx.subject_req  =  (X509_REQ *)
 			PKI_X509_get_value ( tk->req );
+		
+		if (!v3_ctx.issuer_cert) 
+			PKI_DEBUG("No CA Detected in Token, Cannot Encode CA-Bound extensions");
+
 	} else {
+
 		v3_ctx.issuer_cert = NULL;
 		v3_ctx.subject_cert = NULL;
 		v3_ctx.subject_req = NULL;
