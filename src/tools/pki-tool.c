@@ -745,10 +745,27 @@ int main (int argc, char *argv[] ) {
 			if( verbose ) printf("Loading SignCert...");
 			fflush( stdout );
 
-			if((PKI_TOKEN_load_cert( tk, signcert )) == PKI_ERR) {
-					fprintf(stderr, "ERROR: Can not load signcert (%s)\n\n",
-						signcert );
+			// If we are generating a REQ, we can use the
+			// signcert as the CA cert to provide the needed
+			// info for, for example, the authorityKeyIdentifier
+
+			if ( strncmp_nocase("genreq", cmd, 6) == 0 ) {
+				// Loads the CA certificate via the signing cert
+				// to calculate the value of certain extensions
+				if ((PKI_TOKEN_load_cacert(tk, signcert)) == PKI_ERR) {
+					fprintf(stderr, "ERROR, cannot add the signcert as the CA cert (%s)", signcert);
 					exit(1);
+				}
+
+			} else {
+				
+				// Loads the Certificate as the user certificate
+				// for generic signing operations
+				if((PKI_TOKEN_load_cert( tk, signcert )) == PKI_ERR) {
+						fprintf(stderr, "ERROR: Can not load signcert (%s)\n\n",
+							signcert );
+						exit(1);
+				}
 			}
 		}
 
