@@ -178,7 +178,7 @@ PKI_MEM_STACK *URL_get_data_fd(const URL *url, ssize_t size ) {
  * as input. This function will accept only URL with URI_PROTOCOL_FILE as
  * its protocol.
  */
-
+extern int errno;
 PKI_MEM_STACK *URL_get_data_file(const URL *url, ssize_t size ) {
 
 	PKI_MEM_STACK * ret = NULL;
@@ -190,6 +190,8 @@ PKI_MEM_STACK *URL_get_data_file(const URL *url, ssize_t size ) {
 	if( url->proto != URI_PROTO_FILE ) return (NULL);
 
 	if((fd = open( url->addr, O_RDONLY)) == -1 ) {
+		PKI_log_err_simple("Cannot Open Resource (%s): %s", 
+			url->addr, strerror(errno));
 		return (NULL);
 	}
 
