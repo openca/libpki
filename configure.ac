@@ -1208,7 +1208,7 @@ AC_MSG_RESULT([with openssl-prefix     : $openssl_prefix ])
 if [[ "${enableopenssl}" = "yes" ]] ; then
    if ! [[ "x${openssl_prefix}" = "x" ]]; then
       if [[ -d "$openssl_prefix/lib$mybits_install" ]] ; then
-      	if [[ -f "$openssl_prefix/lib$mybits_install/libcrypto.$shlext" -o
+      	if [[ -f "$openssl_prefix/lib$mybits_install/libcrypto.$shlext" -o \
       	      -f "$openssl_prefix/lib$mybits_install/libcrypto.a" ]] ; then
           openssl_path=$openssl_prefix/lib$mybits_install
         else
