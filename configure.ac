@@ -431,7 +431,7 @@ old_cflags="$CFLAGS"
 
 dnl check for stack protection of gcc
 if [[ "$CC" = "gcc" ]] ; then
-	dnl AC_CHECK_C_OPTION(-fstack-check)
+	AC_CHECK_C_OPTION(-fstack-check)
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
@@ -444,7 +444,7 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Wtype-limits)
 		AC_CHECK_C_OPTION(-Wuninitialized)
 		AC_CHECK_C_OPTION(-Wconversion)
-		AC_CHECK_C_OPTION(-fsanitize=address)
+		dnl AC_CHECK_C_OPTION(-fsanitize=address)
 	fi
 
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
@@ -802,7 +802,7 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		if [[ -d "${xml2_prefix}/include/libxml2" ]] ; then
 			xml2_cflags=-I${xml2_prefix}/include/libxml2
-			xml2_include=-I${xml2_prefix}/include/libxml2
+			xml2_include=${xml2_prefix}/include/libxml2
 		else
  			xml2_cflags=`$xml2_config --cflags`
  			xml2_include=`$xml2_config --include`
@@ -827,7 +827,7 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	dnl fi
 else
 	xml2_cflags=-I${xml2_prefix}/include/libxml2
-	xml2_include=-I${xml2_prefix}/include/libxml2
+	xml2_include=${xml2_prefix}/include/libxml2
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
 	dnl XML2_LIBTOOL_LIBS=
@@ -1589,7 +1589,7 @@ libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${com
 
 if [[ "${enable_shared}" = "yes" ]] ; then
   libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
   libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
   libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
@@ -1643,18 +1643,18 @@ AC_SUBST(libpki_ldadd)
 
 dnl Internal Makefile
 if [[ "${enable_shared}" = "yes" ]] ; then
-	my_ldadd="${openssl_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
+	my_ldadd="${openssl_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else
 	if [[ "$iphone_build" = "no" ]] ; then
 		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd}"
+		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="-static ${sys_ldadd} src/.libs/libpki.a"
 	else
 		my_ldflags="${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
-		test_libs="${sys_ldadd}"
+		my_ldadd="${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		test_libs="${sys_ldflags} ${sys_ldadd}"
 	fi
 fi
 

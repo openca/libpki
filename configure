@@ -13773,6 +13773,46 @@ old_cflags="$CFLAGS"
 if [ "$CC" = "gcc" ] ; then
 
 old_cflags=$CFLAGS
+CFLAGS="$CFLAGS -fstack-check"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -fstack-check support" >&5
+$as_echo_n "checking checking for -fstack-check support... " >&6; };
+
+if test "$cross_compiling" = yes; then :
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+int main(void)
+{
+        return(0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+   _supported=yes
+else
+   _supported=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+if [ $_supported = no ] ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+$as_echo "not supported" >&6; };
+	CFLAGS=$old_cflags
+else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; };
+fi
+
+old_cflags=$CFLAGS
 CFLAGS="$CFLAGS -maccumulate-outgoing-args"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -maccumulate-outgoing-args support" >&5
@@ -14212,47 +14252,7 @@ else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; };
 fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -fsanitize=address"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -fsanitize=address support" >&5
-$as_echo_n "checking checking for -fsanitize=address support... " >&6; };
-
-if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-   _supported=yes
-else
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-$as_echo "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; };
-fi
-	fi
+			fi
 
 	if [ "$DIST_NAME" = "darwin" ] ; then
 
@@ -15890,7 +15890,7 @@ if ! [ "x$xml2_config" = "x" ] ; then
 	if [ "$DIST_NAME" = "darwin" ] ; then
 		if [ -d "${xml2_prefix}/include/libxml2" ] ; then
 			xml2_cflags=-I${xml2_prefix}/include/libxml2
-			xml2_include=-I${xml2_prefix}/include/libxml2
+			xml2_include=${xml2_prefix}/include/libxml2
 		else
  			xml2_cflags=`$xml2_config --cflags`
  			xml2_include=`$xml2_config --include`
@@ -15910,7 +15910,7 @@ if ! [ "x$xml2_config" = "x" ] ; then
 
 					else
 	xml2_cflags=-I${xml2_prefix}/include/libxml2
-	xml2_include=-I${xml2_prefix}/include/libxml2
+	xml2_include=${xml2_prefix}/include/libxml2
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
 	fi
@@ -17651,7 +17651,7 @@ libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${com
 
 if [ "${enable_shared}" = "yes" ] ; then
   libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
   libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
   libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
@@ -17708,18 +17708,18 @@ libpki_ldflags="${libpki_ldflags}"
 
 
 if [ "${enable_shared}" = "yes" ] ; then
-	my_ldadd="${openssl_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
+	my_ldadd="${openssl_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else
 	if [ "$iphone_build" = "no" ] ; then
 		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd}"
+		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="-static ${sys_ldadd} src/.libs/libpki.a"
 	else
 		my_ldflags="${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
-		test_libs="${sys_ldadd}"
+		my_ldadd="${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		test_libs="${sys_ldflags} ${sys_ldadd}"
 	fi
 fi
 

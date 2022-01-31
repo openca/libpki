@@ -29,8 +29,8 @@ DEST_MANDIR		= @mandir@
 dist_user		= @dist_user@
 dist_group		= @dist_group@
 package_build		= @package_build@
-includedir		= @prefix@/include
-includeopt		= -I@prefix@/include @xml2_include@
+includedir		= @prefix@/include @xml2_include@
+includeopt		= -I@prefix@/include -I@xml2_include@
 
 #-------- build and utility programs: --------
 
