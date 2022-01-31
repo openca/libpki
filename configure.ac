@@ -431,7 +431,7 @@ old_cflags="$CFLAGS"
 
 dnl check for stack protection of gcc
 if [[ "$CC" = "gcc" ]] ; then
-	AC_CHECK_C_OPTION(-fstack-check)
+	dnl AC_CHECK_C_OPTION(-fstack-check)
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
@@ -756,6 +756,7 @@ xml2_cflags=
 xml2_prefix=/usr
 xml2_ldflags=
 xml2_ldadd=
+xml2_include=
 
 dnl xml2 with prefix
 AC_ARG_WITH( xml2-prefix,
@@ -801,11 +802,14 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		if [[ -d "${xml2_prefix}/include/libxml2" ]] ; then
 			xml2_cflags=-I${xml2_prefix}/include/libxml2
+			xml2_include=-I${xml2_prefix}/include/libxml2
 		else
  			xml2_cflags=`$xml2_config --cflags`
+ 			xml2_include=`$xml2_config --include`
 		fi
  		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
 	else
+ 		xml2_include=`$xml2_config --include`
 		xml2_cflags=`$xml2_config --cflags`
  		xml2_ldadd=`$xml2_config --libs`
 	fi
@@ -823,6 +827,7 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	dnl fi
 else
 	xml2_cflags=-I${xml2_prefix}/include/libxml2
+	xml2_include=-I${xml2_prefix}/include/libxml2
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
 	dnl XML2_LIBTOOL_LIBS=
@@ -834,6 +839,7 @@ AC_MSG_RESULT([with xml2-prefix      : $xml2_prefix])
 AC_MSG_RESULT([with xml2-cflags      : $xml2_cflags])
 AC_MSG_RESULT([with xml2-ldflags     : $xml2_ldflags])
 AC_MSG_RESULT([with xml2-ldadd       : $xml2_ldadd])
+AC_MSG_RESULT([with xml2-include     : $xml2_include])
 
 AM_CONDITIONAL(xml2_prefix, test ! x$xml2_prefix = x )
 
@@ -849,6 +855,7 @@ AC_SUBST(xml2_prefix)
 AC_SUBST(xml2_cflags)
 AC_SUBST(xml2_ldadd)
 AC_SUBST(xml2_ldflags)
+AC_SUBST(xml2_include)
 
 dnl ====================== mySQL LIBRARIES ===================
 
@@ -861,7 +868,6 @@ dnl ====================== mySQL LIBRARIES ===================
 	mysql_ldadd=
 	mysql_cflags=
 	mysql_libs=
-
 
 	enablemysql=yes
 
@@ -1355,9 +1361,6 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
           fi
 	fi
 
-	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
-	AC_MSG_RESULT([ OPENSSL ldadd: ................... ${openssl_ldadd}])
-
 	CFLAGS="${openssl_cflags}"
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
@@ -1407,7 +1410,11 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	CFLAGS="${old_cflags}"
 	LDFLAGS="${old_ldflags}"
 
+	AC_MSG_RESULT([ OPENSSL include: ................. ${openssl_include}])
 	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
+	AC_MSG_RESULT([ OPENSSL cflags: .................. ${openssl_cflags}])
+	AC_MSG_RESULT([ OPENSSL prefix: .................. ${openssl_prefix}])
+	AC_MSG_RESULT([ OPENSSL static: .................. ${openssl_static_libs}])
 	AC_MSG_RESULT([ OPENSSL ldadd: ................... ${openssl_ldadd}])
 
 	AC_SUBST(openssl_cflags)
@@ -1415,6 +1422,7 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	AC_SUBST(openssl_ldadd)
 	AC_SUBST(openssl_static_libs)
 	AC_SUBST(openssl_prefix)
+	AC_SUBST(openssl_include)
 
 	## End of OpenSSL build settings section ##
 

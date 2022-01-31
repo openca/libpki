@@ -82,9 +82,9 @@ static char * _xml_search_namespace_add ( char *search ) {
 	}
 	PKI_Free(my_arg);
 
-	strSize = strlen(my_search);
-	ret = PKI_Malloc(strSize + 1);
-	strncpy(ret, my_search, strSize);
+	strSize = (int) strlen(my_search);
+	ret = PKI_Malloc((size_t) strSize + 1);
+	strncpy(ret, my_search, (size_t)strSize);
 
 	PKI_Free(my_search);
 	return(ret);

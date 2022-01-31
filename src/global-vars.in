@@ -30,6 +30,7 @@ dist_user		= @dist_user@
 dist_group		= @dist_group@
 package_build		= @package_build@
 includedir		= @prefix@/include
+includeopt		= -I@prefix@/include @xml2_include@
 
 #-------- build and utility programs: --------
 

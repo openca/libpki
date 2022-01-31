@@ -661,6 +661,7 @@ oqs_ldflags
 oqs_cflags
 ENABLE_OPENSSL_ENGINE_FALSE
 ENABLE_OPENSSL_ENGINE_TRUE
+openssl_include
 openssl_static_libs
 openssl_ldadd
 openssl_ldflags
@@ -696,6 +697,7 @@ MYSQL_CPPFLAGS
 MYSQL_CONFIG
 mysql_prefix
 mysql_config
+xml2_include
 xml2_ldflags
 xml2_ldadd
 xml2_cflags
@@ -13771,46 +13773,6 @@ old_cflags="$CFLAGS"
 if [ "$CC" = "gcc" ] ; then
 
 old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -fstack-check"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -fstack-check support" >&5
-$as_echo_n "checking checking for -fstack-check support... " >&6; };
-
-if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-   _supported=yes
-else
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-$as_echo "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; };
-fi
-
-old_cflags=$CFLAGS
 CFLAGS="$CFLAGS -maccumulate-outgoing-args"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -maccumulate-outgoing-args support" >&5
@@ -15839,6 +15801,7 @@ xml2_cflags=
 xml2_prefix=/usr
 xml2_ldflags=
 xml2_ldadd=
+xml2_include=
 
 
 # Check whether --with-xml2-prefix was given.
@@ -15927,11 +15890,14 @@ if ! [ "x$xml2_config" = "x" ] ; then
 	if [ "$DIST_NAME" = "darwin" ] ; then
 		if [ -d "${xml2_prefix}/include/libxml2" ] ; then
 			xml2_cflags=-I${xml2_prefix}/include/libxml2
+			xml2_include=-I${xml2_prefix}/include/libxml2
 		else
  			xml2_cflags=`$xml2_config --cflags`
+ 			xml2_include=`$xml2_config --include`
 		fi
  		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
 	else
+ 		xml2_include=`$xml2_config --include`
 		xml2_cflags=`$xml2_config --cflags`
  		xml2_ldadd=`$xml2_config --libs`
 	fi
@@ -15944,6 +15910,7 @@ if ! [ "x$xml2_config" = "x" ] ; then
 
 					else
 	xml2_cflags=-I${xml2_prefix}/include/libxml2
+	xml2_include=-I${xml2_prefix}/include/libxml2
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
 	fi
@@ -15958,6 +15925,8 @@ $as_echo "with xml2-cflags      : $xml2_cflags" >&6; }
 $as_echo "with xml2-ldflags     : $xml2_ldflags" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: with xml2-ldadd       : $xml2_ldadd" >&5
 $as_echo "with xml2-ldadd       : $xml2_ldadd" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: with xml2-include     : $xml2_include" >&5
+$as_echo "with xml2-include     : $xml2_include" >&6; }
 
  if test ! x$xml2_prefix = x ; then
   xml2_prefix_TRUE=
@@ -15983,6 +15952,7 @@ $as_echo "#define HAVE_XML2 1" >>confdefs.h
 
 
 
+
    		MYSQL_CONFIG=mysql_config
 	mysql_cflags=-I/usr/include/mysql
 	mysql_prefix=/usr
@@ -15991,7 +15961,6 @@ $as_echo "#define HAVE_XML2 1" >>confdefs.h
 	mysql_ldadd=
 	mysql_cflags=
 	mysql_libs=
-
 
 	enablemysql=yes
 
@@ -17216,11 +17185,6 @@ $as_echo "OpenSSL Prefix: $openssl_prefix" >&6; }
           fi
 	fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL ldflags: ................. ${openssl_ldflags}" >&5
-$as_echo " OPENSSL ldflags: ................. ${openssl_ldflags}" >&6; }
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL ldadd: ................... ${openssl_ldadd}" >&5
-$as_echo " OPENSSL ldadd: ................... ${openssl_ldadd}" >&6; }
-
 	CFLAGS="${openssl_cflags}"
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
@@ -17412,10 +17376,19 @@ $as_echo "#define ENABLE_ECDSA 1" >>confdefs.h
 	CFLAGS="${old_cflags}"
 	LDFLAGS="${old_ldflags}"
 
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL include: ................. ${openssl_include}" >&5
+$as_echo " OPENSSL include: ................. ${openssl_include}" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL ldflags: ................. ${openssl_ldflags}" >&5
 $as_echo " OPENSSL ldflags: ................. ${openssl_ldflags}" >&6; }
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL cflags: .................. ${openssl_cflags}" >&5
+$as_echo " OPENSSL cflags: .................. ${openssl_cflags}" >&6; }
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL prefix: .................. ${openssl_prefix}" >&5
+$as_echo " OPENSSL prefix: .................. ${openssl_prefix}" >&6; }
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL static: .................. ${openssl_static_libs}" >&5
+$as_echo " OPENSSL static: .................. ${openssl_static_libs}" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL ldadd: ................... ${openssl_ldadd}" >&5
 $as_echo " OPENSSL ldadd: ................... ${openssl_ldadd}" >&6; }
+
 
 
 
