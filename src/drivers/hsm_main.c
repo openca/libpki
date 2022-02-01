@@ -21,6 +21,7 @@ typedef struct my_meth_st {
 
 /* --------------------------- Static function(s) ------------------------- */
 
+/*
 static int __set_algIdentifier (PKI_X509_ALGOR_VALUE   * alg, 
 	                            const PKI_DIGEST_ALG   * digest,
 	                            const PKI_X509_KEYPAIR * key) {
@@ -50,7 +51,7 @@ static int __set_algIdentifier (PKI_X509_ALGOR_VALUE   * alg,
 
     if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
             && def_nid == NID_undef) {
-        /* The signing algorithm requires there to be no digest */
+        // The signing algorithm requires there to be no digest
         md = NULL;
     }
 
@@ -68,19 +69,18 @@ static int __set_algIdentifier (PKI_X509_ALGOR_VALUE   * alg,
     PKI_log_err("DEBUG: pkey_type (new) = %d (%s)",
     	pkey_type, PKI_ALGOR_ID_txt(pkey_type));
 
-	/*
-	if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
-    		&& def_nid == NID_undef) {
-
-        // The signing algorithm requires there to be no digest
-        digest = NULL;
-
-   	    PKI_log_err("DIGEST ALGORITHM => %p", digest);
-    } else {
-   	    PKI_log_err("DIGEST ALGORITHM => %s", 
-	    	PKI_DIGEST_ALG_get_parsed(digest));
-    }
-    */
+    
+    // if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
+    // 		&& def_nid == NID_undef) {
+    //
+    //  // The signing algorithm requires there to be no digest
+    //    digest = NULL;
+    //
+    //	    PKI_log_err("DIGEST ALGORITHM => %p", digest);
+    // } else {
+    //      PKI_log_err("DIGEST ALGORITHM => %s", 
+    //    	PKI_DIGEST_ALG_get_parsed(digest));
+    // }
 
 	// Gets the Signature Algorithm
 	pkey_type = EVP_MD_pkey_type(digest);
@@ -121,6 +121,7 @@ static int __set_algIdentifier (PKI_X509_ALGOR_VALUE   * alg,
 	return PKI_OK;
 
 }
+*/
 
 
 /*! \brief Returns the errno from the crypto layer */

@@ -30,6 +30,7 @@ dist_user		= @dist_user@
 dist_group		= @dist_group@
 package_build		= @package_build@
 includedir		= @prefix@/include
+includeopt		= -I@prefix@/include -I@xml2_include@
 
 #-------- build and utility programs: --------
 
@@ -98,13 +99,13 @@ SYSTEM_LDADD		= @sys_ldadd@
 # =================================================
 
 BUILD_LIBPKI_CFLAGS	= -D__LIB_BUILD__ @pthread_opts@ @my_cflags@ @sys_cflags@
-BUILD_LIBPKI_LDFLAGS	= @my_ldflags@ @rpath@
-BUILD_LIBPKI_LDADD	= @my_ldadd@
+BUILD_LIBPKI_LDFLAGS	= @rpath@ @my_ldflags@
+BUILD_LIBPKI_LDADD	= @rpath@ @my_ldadd@
 TEST_LIBS		= @test_libs@
 
-LIBPKI_CFLAGS		= @libpki_cflags@
-LIBPKI_LDFLAGS		= @libpki_ldflags@ @rpath@
-LIBPKI_LIBADD		= @libpki_ldadd@
+LIBPKI_CFLAGS		= @libpki_cflags@ @oqs_cflags@ @composite_cflags@
+LIBPKI_LDFLAGS		= @rpath@ @libpki_ldflags@ @oqs_ldflags@ @composite_ldflags@
+LIBPKI_LIBADD		= @libpki_ldadd@ @oqs_ldadd@ @composite_ldadd@
 
 RPATH = @rpath@
 
