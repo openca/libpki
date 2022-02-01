@@ -12035,7 +12035,12 @@ ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 if test x"${MISSING+set}" != xset; then
-  MISSING="\${SHELL} '$am_aux_dir/missing'"
+  case $am_aux_dir in
+  *\ * | *\	*)
+    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
+  *)
+    MISSING="\${SHELL} $am_aux_dir/missing" ;;
+  esac
 fi
 # Use eval to expand $SHELL
 if eval "$MISSING --is-lightweight"; then
@@ -15897,7 +15902,7 @@ if ! [ "x$xml2_config" = "x" ] ; then
 		fi
  		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
 	else
- 		xml2_include=`$xml2_config --include`
+ 		xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
 		xml2_cflags=`$xml2_config --cflags`
  		xml2_ldadd=`$xml2_config --libs`
 	fi

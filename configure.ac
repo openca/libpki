@@ -809,7 +809,7 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 		fi
  		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
 	else
- 		xml2_include=`$xml2_config --include`
+ 		xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
 		xml2_cflags=`$xml2_config --cflags`
  		xml2_ldadd=`$xml2_config --libs`
 	fi
