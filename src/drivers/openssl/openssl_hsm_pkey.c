@@ -312,14 +312,28 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
     int pkey_id = -1;
 
+    PKI_log_debug("[0] Looking for the ameth... (kp->oqs.algId = %d)", kp->oqs.algId);
     // ameth = EVP_PKEY_asn1_find_str(&tmpeng, algname, -1);
     ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
     if (!ameth) {
-        const PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
-        PKI_log_debug("[0] Algorithm %s (%s) not found (%d)", 
-            PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
-        return NULL;
+    	PKI_log_debug("[1] Looking for the ameth... (by name = %s)", "falcon512");
+	ameth = EVP_PKEY_asn1_find_str(&tmpeng, "falcon512", 9);
+	if (!ameth) {
+            PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
+            PKI_log_debug("[1] Algorithm %s (%s) not found (%d)", 
+                PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
+	    if (obj) PKI_OID_free(obj);
+            return NULL;
+	}
     }
+
+    // if (!ameth) {
+    //    PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
+    //    PKI_log_debug("[0] Algorithm %s (%s) not found (%d)", 
+    //       PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
+    //    if (obj) PKI_OID_free(obj);
+    //    return NULL;
+    // }
 
     ERR_clear_error();
 

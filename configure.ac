@@ -460,9 +460,9 @@ if [[ "$CC" = "gcc" ]] ; then
 	AC_GCC_CHECK_PRAGMA_POP
 
 	dnl AC_CHECK_C_OPTION(-m64)
-	dnl AC_CHECK_C_OPTION(-rdynamic)
-	dnl AC_CHECK_C_OPTION(--export-dynamic)
-	dnl AC_CHECK_C_OPTION(--export-all-symbols)
+	AC_CHECK_C_OPTION(-rdynamic)
+	AC_CHECK_C_OPTION(--export-dynamic)
+	AC_CHECK_C_OPTION(--export-all-symbols)
 fi
 
 EXTRA_CFLAGS=$CFLAGS
@@ -1409,6 +1409,9 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 
 	CFLAGS="${old_cflags}"
 	LDFLAGS="${old_ldflags}"
+	
+	dnl Use local visibility for OpenSSL symbols
+	openssl_ldadd="-Bsymbolic -Bsymbolic-functions ${openssl_ldadd} -Bno-symbolic"
 
 	AC_MSG_RESULT([ OPENSSL include: ................. ${openssl_include}])
 	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
