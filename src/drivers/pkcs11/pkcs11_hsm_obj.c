@@ -634,7 +634,7 @@ PKI_X509_STACK *HSM_PKCS11_STACK_get_url( PKI_DATATYPE type, URL *url,
 	/* Build the template in order to search for the object
 	   we need */
 	memset(myLabel, 0x0, sizeof(myLabel));
-	strncpy(myLabel, url->addr, sizeof( myLabel ));
+	strncpy(myLabel, url->addr, sizeof(myLabel) - 1);
 	switch ( type ) {
 		case PKI_DATATYPE_X509_CERT:
 			objClass = CKO_CERTIFICATE;
@@ -851,7 +851,7 @@ int HSM_PKCS11_STACK_add_url( PKI_X509_STACK *sk, URL *url,
 	}
 
 	memset(myLabel, 0x0, sizeof(myLabel));
-	strncpy(myLabel, url->addr, sizeof( myLabel ));
+	strncpy(myLabel, url->addr, sizeof(myLabel) - 1);
 
 	if( url->path ) {
 		path_len = (int) strlen( url->path );

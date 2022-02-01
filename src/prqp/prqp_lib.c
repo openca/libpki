@@ -831,7 +831,7 @@ int PKI_X509_PRQP_REQ_add_service ( PKI_X509_PRQP_REQ *p, char *ss ) {
 	new_item->version = NULL;
 	new_item->oid = NULL;
 
-	strncpy(tmp_str, ss, sizeof(tmp_str));
+	strncpy(tmp_str, ss, sizeof(tmp_str) - strlen(ss) - 1);
 	if(( ver_s = strchr(tmp_str, ':')) != NULL ) {
 		*ver_s = '\x0';
 		ver_s++;
