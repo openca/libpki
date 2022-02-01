@@ -317,7 +317,7 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
     if (!ameth) {
         const PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
         PKI_log_debug("[0] Algorithm %s (%s) not found (%d)", 
-            PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
+            obj ? PKI_OID_get_descr(obj) : "Not Found", PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
         return NULL;
     }
 
