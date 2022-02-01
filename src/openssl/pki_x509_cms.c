@@ -237,6 +237,7 @@ void PKI_X509_CMS_VALUE_free(PKI_X509_CMS_VALUE *cms) {
 
 /* ----------------------- PEM I/O Functions ------------------------- */
 
+#if OPENSSL_VERSION_NUMBER < 0x10101000L
 PKI_X509_CMS_VALUE *PEM_read_bio_CMS( PKI_IO *bp ) {
 #if OPENSSL_VERSION_NUMBER < 0x0090800fL
 	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (char *(*)()) d2i_CMS_ContentInfo, 
@@ -252,6 +253,7 @@ int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o ) {
 			PEM_STRING_CMS, bp, (char *) o, NULL, 
 				NULL, 0, NULL, NULL );
 }
+#endif
 
 
 /* ----------------------- Exported Functions ------------------------- */
