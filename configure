@@ -13161,6 +13161,22 @@ $as_echo "no calloc was found" >&6; }
 fi
 
 
+
+# symbolic_build=
+# symbolic_start=
+# symbolic_end=
+
+# AC_ARG_ENABLE(symbolic,
+# 	AC_HELP_STRING( [--enable-symbolic],
+# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
+# 		symbolic_build=$enableval, symbolic_build=no )
+
+# if [[ "x$symbolic_build" = "xyes"]] ; then
+# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
+# 	symbolic_end="-Bno-symbolic"
+# fi
+
+
 if [ "x$iphone_build" = "xno" ] ; then
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
@@ -14438,127 +14454,7 @@ fi
 
 
 
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -rdynamic"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -rdynamic support" >&5
-$as_echo_n "checking checking for -rdynamic support... " >&6; };
-
-if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-   _supported=yes
-else
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-$as_echo "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; };
-fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS --export-dynamic"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for --export-dynamic support" >&5
-$as_echo_n "checking checking for --export-dynamic support... " >&6; };
-
-if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-   _supported=yes
-else
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-$as_echo "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; };
-fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS --export-all-symbols"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for --export-all-symbols support" >&5
-$as_echo_n "checking checking for --export-all-symbols support... " >&6; };
-
-if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-   _supported=yes
-else
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-$as_echo "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; };
-fi
-fi
+				fi
 
 EXTRA_CFLAGS=$CFLAGS
 CFLAGS="$old_cflags"
@@ -17434,8 +17330,6 @@ $as_echo "#define ENABLE_ECDSA 1" >>confdefs.h
 	CFLAGS="${old_cflags}"
 	LDFLAGS="${old_ldflags}"
 
-		openssl_ldadd="-Bsymbolic -Bsymbolic-functions ${openssl_ldadd} -Bno-symbolic"
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL include: ................. ${openssl_include}" >&5
 $as_echo " OPENSSL include: ................. ${openssl_include}" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  OPENSSL ldflags: ................. ${openssl_ldflags}" >&5
@@ -17517,7 +17411,7 @@ $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 	oqs_check="yes"
 	oqs_cflags="-DENABLE_OQS=1"
 	oqs_ldadd="-loqs"
-	oqs_ldflags="-loqs"
+	oqs_ldflags=""
 else
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Checking support for Open Quantum Safe" >&5
 $as_echo "Checking support for Open Quantum Safe" >&6; }
@@ -17557,7 +17451,7 @@ $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 ],
 			oqs_check="yes"
 			oqs_cflags="-DENABLE_OQS=1"
-			oqs_ldflags="-loqs"
+			oqs_ldflags=""
 			oqs_ldadd="-loqs"
 		else
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&5
@@ -17595,7 +17489,7 @@ $as_echo " Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl
 $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 
 		oqs_check="yes"
-		oqs_ldflags="-loqs"
+		oqs_ldflags=""
 		oqs_cflags="-DENABLE_OQS=1"
 		oqs_ldadd="-loqs"
 	fi
@@ -17768,7 +17662,7 @@ libpki_ldflags="${libpki_ldflags}"
 
 
 if [ "${enable_shared}" = "yes" ] ; then
-	my_ldadd="${openssl_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+	my_ldadd="${openssl_ldadd} ${oqs_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else

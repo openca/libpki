@@ -403,6 +403,24 @@ AC_CHECK_LIB(c, calloc,
         [ AC_MSG_RESULT([no calloc was found]) ]
 )
 
+dnl ===== Symbolic and Symbolic Functions =====
+
+# symbolic_build=
+# symbolic_start=
+# symbolic_end=
+
+# AC_ARG_ENABLE(symbolic,
+# 	AC_HELP_STRING( [--enable-symbolic],
+# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
+# 		symbolic_build=$enableval, symbolic_build=no )
+
+# if [[ "x$symbolic_build" = "xyes"]] ; then
+# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
+# 	symbolic_end="-Bno-symbolic"
+# fi
+
+dnl ===== iPhone build =====
+
 if [[ "x$iphone_build" = "xno" ]] ; then
 	dnl check for libraries
 	dnl AC_CHECK_LIB(nsl, gethostbyname)
@@ -460,9 +478,9 @@ if [[ "$CC" = "gcc" ]] ; then
 	AC_GCC_CHECK_PRAGMA_POP
 
 	dnl AC_CHECK_C_OPTION(-m64)
-	AC_CHECK_C_OPTION(-rdynamic)
-	AC_CHECK_C_OPTION(--export-dynamic)
-	AC_CHECK_C_OPTION(--export-all-symbols)
+	dnl AC_CHECK_C_OPTION(-rdynamic)
+	dnl AC_CHECK_C_OPTION(--export-dynamic)
+	dnl AC_CHECK_C_OPTION(--export-all-symbols)
 fi
 
 EXTRA_CFLAGS=$CFLAGS
@@ -1409,9 +1427,6 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 
 	CFLAGS="${old_cflags}"
 	LDFLAGS="${old_ldflags}"
-	
-	dnl Use local visibility for OpenSSL symbols
-	openssl_ldadd="-Bsymbolic -Bsymbolic-functions ${openssl_ldadd} -Bno-symbolic"
 
 	AC_MSG_RESULT([ OPENSSL include: ................. ${openssl_include}])
 	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
@@ -1473,7 +1488,7 @@ if ! [[ "x$cli_oqs" = "xno" ]] ; then
 	oqs_check="yes"
 	oqs_cflags="-DENABLE_OQS=1"
 	oqs_ldadd="-loqs"
-	oqs_ldflags="-loqs"
+	oqs_ldflags=""
 else
 	AC_MSG_RESULT([Checking support for Open Quantum Safe])
 
@@ -1488,7 +1503,7 @@ else
 			AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])],
 			oqs_check="yes"
 			oqs_cflags="-DENABLE_OQS=1"
-			oqs_ldflags="-loqs"
+			oqs_ldflags=""
 			oqs_ldadd="-loqs"
 		else
 			AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)])
@@ -1500,7 +1515,7 @@ else
 		AC_CHECK_LIBOQS()
 		AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])
 		oqs_check="yes"
-		oqs_ldflags="-loqs"
+		oqs_ldflags=""
 		oqs_cflags="-DENABLE_OQS=1"
 		oqs_ldadd="-loqs"
 	fi
@@ -1646,7 +1661,7 @@ AC_SUBST(libpki_ldadd)
 
 dnl Internal Makefile
 if [[ "${enable_shared}" = "yes" ]] ; then
-	my_ldadd="${openssl_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+	my_ldadd="${openssl_ldadd} ${oqs_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else

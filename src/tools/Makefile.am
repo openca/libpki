@@ -9,7 +9,7 @@ BASE_DEFS =
 DEFS = $(OPENCA_DEFS)
 
 LIBPKI_MYCFLAGS	 = -D__LIB_BUILD__ -I$(TOP) @pthread_opts@ @my_cflags@ @sys_cflags@
-LIBPKI_MYLDFLAGS = @my_ldflags@ @rpath@
+LIBPKI_MYLDFLAGS = @rpath@ @my_ldflags@
 
 AM_CPPFLAGS = -I$(TOP)
 MYLDADD = ../.libs/libpki.la
@@ -22,8 +22,9 @@ bin_PROGRAMS   = \
 	pki-request \
 	pki-cert \
 	pki-crl \
-	pki-derenc \
 	pki-siginfo
+
+#	pki-derenc
 
 PKI_TOOL = pki-tool.c
 pki_tool_SOURCES = $(PKI_TOOL)
@@ -67,11 +68,11 @@ pki_crl_CPPFLAGS = $(LIBPKI_MYCFLAGS)
 pki_crl_LDADD = $(MYLDADD)
 pki_crl_LDFLAGS = $(LIBPKI_MYLDFLAGS)
 
-PKI_DERENC = pki-derenc.c
-pki_derenc_SOURCES = $(PKI_DERENC)
-pki_derenc_CPPFLAGS = $(LIBPKI_MYCFLAGS)
-pki_derenc_LDADD = $(MYLDADD)
-pki_derenc_LDFLAGS = $(LIBPKI_MYLDFLAGS)
+# PKI_DERENC = pki-derenc.c
+# pki_derenc_SOURCES = $(PKI_DERENC)
+# pki_derenc_CPPFLAGS = $(LIBPKI_MYCFLAGS)
+# pki_derenc_LDADD = $(MYLDADD)
+# pki_derenc_LDFLAGS = $(LIBPKI_MYLDFLAGS)
 
 PKI_SIGINFO = pki-siginfo.c
 pki_siginfo_SOURCES = $(PKI_SIGINFO)
