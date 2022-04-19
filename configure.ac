@@ -1,10 +1,10 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2018 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2022 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.9.1, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.9.2, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -191,6 +191,12 @@ AC_ARG_ENABLE(extra-checks,
 		[enables extra compile-time checks (GCC) (for devel only)]),
 			extra_checks=$enableval, extra_checks=no )
 AC_SUBST(extra_checks)
+
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING( [--enable-debug],
+		[enables extra debug information in the code (GCC) (for devel only)]),
+			enable_debug=$enableval, enable_debug=no )
+AC_SUBST(enable_debug)
 
 enable_rpath=yes
 
@@ -421,6 +427,22 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([bzero memset setenv socket strcasecmp strchr strrchr strstr])
 
+dnl ===== Symbolic and Symbolic Functions =====
+
+# symbolic_build=
+# symbolic_start=
+# symbolic_end=
+
+# AC_ARG_ENABLE(symbolic,
+# 	AC_HELP_STRING( [--enable-symbolic],
+# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
+# 		symbolic_build=$enableval, symbolic_build=no )
+
+# if [[ "x$symbolic_build" = "xyes"]] ; then
+# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
+# 	symbolic_end="-Bno-symbolic"
+# fi
+
 old_cflags="$CFLAGS"
 
 dnl check for stack protection of gcc
@@ -429,7 +451,8 @@ if [[ "$CC" = "gcc" ]] ; then
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
-        AC_CHECK_C_OPTION(-Wunused-variable)
+    AC_CHECK_C_OPTION(-Wunused-variable)
+	AC_CHECK_C_OPTION(-Wno-switch)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
@@ -437,12 +460,16 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Wtype-limits)
 		AC_CHECK_C_OPTION(-Wuninitialized)
 		AC_CHECK_C_OPTION(-Wconversion)
-		AC_CHECK_C_OPTION(-fsanitize=address)
+		dnl AC_CHECK_C_OPTION(-fsanitize=address)
 	fi
 
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		AC_CHECK_C_OPTION(-Wno-deprecated)
 		AC_CHECK_C_OPTION(-Wno-unknown-pragmas)
+	fi
+
+	if [[ "x${enable_debug}" = "xyes" ]] ; then
+		AC_CHECK_C_OPTION(-ggdb)
 	fi
 
 	AC_GCC_CHECK_PRAGMA_IGNORED
@@ -790,11 +817,14 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
 		if [[ -d "${xml2_prefix}/include/libxml2" ]] ; then
 			xml2_cflags=-I${xml2_prefix}/include/libxml2
+			xml2_include=${xml2_prefix}/include/libxml2
 		else
  			xml2_cflags=`$xml2_config --cflags`
+			xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
 		fi
  		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
 	else
+		xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
 		xml2_cflags=`$xml2_config --cflags`
  		xml2_ldadd=`$xml2_config --libs`
 	fi
@@ -811,7 +841,8 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	dnl 	XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
 	dnl fi
 else
-	xml2_cflags=-I${xml2_prefix}/include/libxml2
+	xml2_include=${xml2_prefix}/include/libxml2
+	xml2_cflags=-I${xml2_include}
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
 	dnl XML2_LIBTOOL_LIBS=
@@ -823,6 +854,7 @@ AC_MSG_RESULT([with xml2-prefix      : $xml2_prefix])
 AC_MSG_RESULT([with xml2-cflags      : $xml2_cflags])
 AC_MSG_RESULT([with xml2-ldflags     : $xml2_ldflags])
 AC_MSG_RESULT([with xml2-ldadd       : $xml2_ldadd])
+AC_MSG_RESULT([with xml2-include     : $xml2_include])
 
 AM_CONDITIONAL(xml2_prefix, test ! x$xml2_prefix = x )
 
@@ -838,6 +870,7 @@ AC_SUBST(xml2_prefix)
 AC_SUBST(xml2_cflags)
 AC_SUBST(xml2_ldadd)
 AC_SUBST(xml2_ldflags)
+AC_SUBST(xml2_include)
 
 dnl ====================== mySQL LIBRARIES ===================
 
@@ -1197,7 +1230,7 @@ AC_MSG_RESULT([with openssl-prefix     : $openssl_prefix ])
 if [[ "${enableopenssl}" = "yes" ]] ; then
    if ! [[ "x${openssl_prefix}" = "x" ]]; then
       if [[ -d "$openssl_prefix/lib$mybits_install" ]] ; then
-      	if [[ -f "$openssl_prefix/lib$mybits_install/libcrypto.$shlext" -o
+      	if [[ -f "$openssl_prefix/lib$mybits_install/libcrypto.$shlext" -o \
       	      -f "$openssl_prefix/lib$mybits_install/libcrypto.a" ]] ; then
           openssl_path=$openssl_prefix/lib$mybits_install
         else
@@ -1344,18 +1377,15 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
           fi
 	fi
 
-	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
-	AC_MSG_RESULT([ OPENSSL ldadd: ................... ${openssl_ldadd}])
-
 	CFLAGS="${openssl_cflags}"
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
-	if [[ "$iphone_build" = "no" ]] ; then
-		if ! [[ "x$DIST_NAME" = "xdarwin" ]] ; then
-	    		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
-				AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
-		fi
-	fi
+	# if [[ "$iphone_build" = "no" ]] ; then
+	# 	if ! [[ "x$DIST_NAME" = "xdarwin" ]] ; then
+	#     		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
+	# 			AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+	# 	fi
+	# fi
 
 	activate_ecdsa=
 
@@ -1426,6 +1456,33 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	AM_CONDITIONAL(ENABLE_OPENSSL_ENGINE, test "${engine}" = "yes")
 fi
 
+dnl ================= OpenSSL Composite Crypto Native Support ===================
+
+dnl Defaults
+composite=
+composite_cflags=
+composite_ldflags=
+composite_ldadd=
+
+AC_ARG_ENABLE( composite,
+	[  --enable-composite      enable openssl composite crypto support (no)],
+	[composite=$enableval], 
+	[composite=no]
+ )
+
+if ! [[ "x$composite" = "xno" ]] ; then
+	AC_MSG_RESULT([Composite Crypto Native Support: Enabled via CLI option])
+	AC_DEFINE(ENABLE_COMPOSITE, 1, [Composite Crypto Native OpenSSL Support])
+	composite="yes"
+	composite_cflags="-DENABLE_COMPOSITE=1"
+	composite_ldflags=""
+	composite_ldadd=""
+fi
+
+AC_SUBST(composite_cflags)
+AC_SUBST(composite_ldflags)
+AC_SUBST(composite_ldadd)
+
 dnl ================= OpenSSL Static LIBS (?) =========================
 
 AM_CONDITIONAL(STATIC_COMPILE, test "x$openssl_static_libs" != "x")
@@ -1477,14 +1534,14 @@ fi
 AC_SUBST(sys_ldadd)
 AC_SUBST(sys_cflags)
 
-libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
 
 if [[ "${enable_shared}" = "yes" ]] ; then
-  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${openssl_ldadd} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${openssl_ldadd} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
-  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
 fi
 
 # Harmonize the linker directories
@@ -1535,18 +1592,18 @@ AC_SUBST(libpki_ldadd)
 
 dnl Internal Makefile
 if [[ "${enable_shared}" = "yes" ]] ; then
-	my_ldadd="-lpthread ${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
-	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+	my_ldadd="-lpthread ${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else
 	if [[ "$iphone_build" = "no" ]] ; then
-		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd}"
+		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="-static ${sys_ldadd} src/.libs/libpki.a"
 	else
-		my_ldflags="${sys_ldflags} ${ldap_ldflags} ${openssl_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
-		test_libs="${sys_ldadd}"
+		my_ldflags="${sys_ldflags} ${ldap_ldflags} ${openssl_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldadd="${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		test_libs="${sys_ldflags} ${sys_ldadd}"
 	fi
 fi
 
@@ -1744,8 +1801,9 @@ Configuration for $PACKAGE $VERSION :
  Install lib path .....: $libdir
  Install path .........: $package_prefix
  Compiler Flags .......: $my_cflags
- Linker Flags .........: $my_ldflags $rpath
+ Linker Flags .........: $rpath $my_ldflags
  Libs .................: $my_ldadd
+ Composite Native .....: $composite
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)
