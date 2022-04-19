@@ -70,11 +70,11 @@ while test $# -gt 0; do
        	;;
 
     --ldlibs)
-       	echo @rpath@ @my_ldflags@ @my_ldadd@
+       	echo @rpath@ @my_ldflags@ -L@libdir@ @my_ldadd@
        	;;
 
     --libs)
-       	echo @rpath@ @libpki_ldflags@ -lpki @libpki_ldadd@
+       	echo @rpath@ @libpki_ldflags@ -L@libdir@ -lpki @libpki_ldadd@
        	;;
 
     *)
