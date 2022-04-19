@@ -1,6 +1,6 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2018 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2022 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
@@ -444,6 +444,22 @@ AC_STRUCT_TM
 AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([bzero memset setenv socket strcasecmp strchr strrchr strstr])
+
+dnl ===== Symbolic and Symbolic Functions =====
+
+# symbolic_build=
+# symbolic_start=
+# symbolic_end=
+
+# AC_ARG_ENABLE(symbolic,
+# 	AC_HELP_STRING( [--enable-symbolic],
+# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
+# 		symbolic_build=$enableval, symbolic_build=no )
+
+# if [[ "x$symbolic_build" = "xyes"]] ; then
+# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
+# 	symbolic_end="-Bno-symbolic"
+# fi
 
 old_cflags="$CFLAGS"
 
@@ -1382,12 +1398,12 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	CFLAGS="${openssl_cflags}"
 	LDFLAGS="${openssl_ldflags} ${openssl_ldadd} ${openssl_static_libs}"
 
-	dnl if [[ "$iphone_build" = "no" ]] ; then
-	dnl 	if ! [[ "x$DIST_NAME" = "xdarwin" ]] ; then
-	dnl     		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
-	dnl 			AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
-	dnl 	fi
-	dnl fi
+	# if [[ "$iphone_build" = "no" ]] ; then
+	# 	if ! [[ "x$DIST_NAME" = "xdarwin" ]] ; then
+	#     		AC_SEARCH_LIBS(X509_verify, "crypto", [ ] ,
+	# 			AC_MSG_ERROR([**** ERROR::OpenSSL not Configured! (do you have the devel packages?) ****]), [-L$openssl_prefix/lib ] )
+	# 	fi
+	# fi
 
 	activate_ecdsa=
 

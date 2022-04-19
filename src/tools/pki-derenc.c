@@ -16,7 +16,7 @@ typedef struct der_st {
 
 static char *banner = "\n"
  "  OpenCA ASN1Der Encoder Tool - v" VERSION "\n"
- "  (c) 2011 by Massimiliano Pala and OpenCA Labs\n"
+ "  (c) 2011-2022 by Massimiliano Pala and OpenCA Labs\n"
  "  All Rights Reserved\n\n";
 
 DER *PKI_ASN1_encode_txt ( char *file, char *section ) {

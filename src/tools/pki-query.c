@@ -16,7 +16,7 @@
 
 char banner[] = 
 	"\n   " BOLD "PKI Resource Query Tool " NORM "(PRQP Client)\n"
-	"   (c) 2008-2015 by " BOLD "Massimiliano Pala" NORM
+	"   (c) 2008-2022 by " BOLD "Massimiliano Pala" NORM
 			" and " BOLD "Open" RED "CA" NORM BOLD " Labs\n" NORM
 	"       " BOLD BLUE "Open" RED "CA" NORM " Licensed software\n\n";
 
