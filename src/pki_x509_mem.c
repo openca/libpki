@@ -240,9 +240,21 @@ PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem, PKI_DATATYPE type,
 	//       unknown datatype (PKI_DATATYPE_UNKNOW)
 	for (i = PKI_DATA_FORMAT_START; i < PKI_DATA_FORMAT_END; i++) {
 
+			// Fix for older applications using -1 as format
+		if (format == 4294967295) {
+			PKI_log_err("Wrong DATA format used in application (-1),"
+				"please replace with PKI_DATA_FORMAT_UNKNOWN (%d)", 
+						PKI_DATA_FORMAT_UNKNOWN);
+		}
+
 		// A Format was selected, so we skip the others
-		if (format != PKI_DATA_FORMAT_UNKNOWN && format != i)
-			continue;
+		if (format != 4294967295 && 
+		    format != PKI_DATA_FORMAT_UNKNOWN && 
+			format != i) {
+			
+			// We cannot process the type, skipping.
+		    continue;
+		}
 
 		if ((x_obj->value = __get_data_callback(mem, cb, i, cred)) != NULL) {
 

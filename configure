@@ -20107,3 +20107,11 @@ echo "
  and then 'make install' for installation.
 "
 
+# echo "OSSL=${openssl_cflags}"
+# echo "COMP=${composite_cflags}"
+# echo "LDAP=${ldap_cflags}"
+# echo "KMF=${kmf_cflags}"
+# echo "XML2=${xml2_cflags}"
+# echo "MYSQL=${mysql_cflags}"
+# echo "PGSQL=${pg_cflags}"
+
