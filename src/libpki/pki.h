@@ -31,6 +31,8 @@ extern const long LIBPKI_OS_DETAILS;
 #include <ctype.h>
 #include <sys/types.h>
 
+#include <sys/socket.h>
+
 #define __XOPEN_OR_POSIX
 #include <signal.h>
 #undef __XOPEN_OR_POSIX
