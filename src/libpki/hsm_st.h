@@ -192,7 +192,7 @@ struct pki_mem_st;
 //  typedef struct pki_x509_callbacks_st PKI_X509_CALLBACKS;
 
   /* Forward Declaration of PKI_X509_PROFILE structure */
-  struct xmlDoc;
+  struct _xmlDoc;
 //  typedef struct xmlDoc PKI_X509_PROFILE;
 
 #endif
