@@ -95,7 +95,7 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 
 		case PKI_DATA_FORMAT_TXT: {
 			if ( cb->read_txt ) {
-				// Reat TXT formatted data
+				// Read TXT formatted data
 				ret = cb->read_txt(ro, NULL );
 			} else {
 				// No support for data decoding
