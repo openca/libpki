@@ -193,7 +193,7 @@ int PKI_X509_OCSP_RESP_add ( PKI_X509_OCSP_RESP *resp,
 	}
 
 	if((single = OCSP_basic_add1_status(r->bs, cid,
-			status, reason, 
+			(int)status, (int)reason, 
 			(ASN1_TIME *)revokeTime, 
 			(ASN1_TIME*)myThisUpdate,
 			(ASN1_TIME*)nextUpdate))== NULL)

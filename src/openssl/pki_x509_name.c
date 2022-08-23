@@ -453,11 +453,11 @@ const char *PKI_X509_NAME_RDN_type_text ( const PKI_X509_NAME_RDN *rdn ) {
 
 	if (!rdn) return ( NULL );
 
-	if(( oid = PKI_OID_new_id ( rdn->type )) == NULL ) {
-		return ( NULL );
+	if (( oid = PKI_OID_new_id((int)rdn->type)) == NULL) {
+		return NULL;
 	}
 
-	return ( OBJ_nid2sn ( rdn->type ));
+	return OBJ_nid2sn((int)rdn->type);
 }
 
 /*! \brief Returns the description of the type of an RDN */
@@ -468,10 +468,10 @@ const char *PKI_X509_NAME_RDN_type_descr ( const PKI_X509_NAME_RDN *rdn ) {
 
         if (!rdn) return ( NULL );
 
-        if(( oid = PKI_OID_new_id ( rdn->type )) == NULL ) {
-                return ( NULL );
+        if ((oid = PKI_OID_new_id((int)rdn->type )) == NULL) {
+          return NULL;
         }
 
-        return ( PKI_OID_get_descr ( oid ));
+        return PKI_OID_get_descr(oid);
 }
 

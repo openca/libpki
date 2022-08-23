@@ -141,12 +141,12 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 
 	PKI_OID *oid = NULL;
 
-
 	X509V3_CTX v3_ctx;
 	CONF *conf = NULL;
 
 	char *envValString = NULL;
 	char *valString = NULL;
+	char *tmpValue = NULL;
 	int crit = 0;
 
 	if (!profile || !extNode) {
@@ -221,7 +221,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 				}
 			}
 
-			memset((unsigned char * )tmp, 0, BUFF_MAX_SIZE );
+			memset ((unsigned char * )tmp, 0, BUFF_MAX_SIZE);
 
 			if( tag_s ) {
 				snprintf( tmp, BUFF_MAX_SIZE - 1, "%s;", 
@@ -230,8 +230,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 
 			if( type_s == NULL ) {
 				if( !oid_s ) {
-					strncat( tmp, (char *) value_s, 
-							BUFF_MAX_SIZE - strlen( tmp ));
+					strncat(tmp, (char *) value_s, 
+							BUFF_MAX_SIZE - strlen(tmp));
 				} else {
 					if( value_s && (strlen((char *) value_s) > 0) ) {
 						strncat( tmp, (char *) oid_s, 
@@ -263,11 +263,12 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 				}
 			}
 				
-			if( strlen( valString ) > 0 ) {
-				strncat( valString, ",", BUFF_MAX_SIZE - 1);
+			if (strlen(valString) > 0) {
+				strncat(valString, ",", BUFF_MAX_SIZE - 1);
 			}
 
-			strncat( valString, (char *) tmp, BUFF_MAX_SIZE - 1 );
+			tmpValue = (char *) tmp;
+			strncat(valString, tmpValue, BUFF_MAX_SIZE - strlen(valString));
 
 			if( type_s ) xmlFree ( type_s );
 			if( oid_s ) xmlFree ( oid_s );
