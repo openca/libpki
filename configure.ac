@@ -1493,10 +1493,12 @@ dnl Enable OQS support
 cli_oqs=
 
 AC_ARG_ENABLE(oqs,
-	[  --enable-oqs      enable oqs support (no)],
+	[  --enable-oqs          enable oqs support (no)],
 	[cli_oqs=$enableval], 
-	[cli_oqs=no]
+	[cli_oqs=default]
  )
+
+echo "****** ACM $cli_oqs *******"
 
 if ! [[ "x$cli_oqs" = "xno" ]] ; then
 	AC_MSG_RESULT([Open Quantum Safe: Enabled via CLI option])
@@ -1506,34 +1508,45 @@ if ! [[ "x$cli_oqs" = "xno" ]] ; then
 	oqs_ldadd="-loqs"
 	oqs_ldflags=""
 else
-	AC_MSG_RESULT([Checking support for Open Quantum Safe])
 
-	ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
-	if [[ $? -gt 0 ]] ; then
-		AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!])
+	if [[ "x$cli_oqs" = "xdefault" ]] ; then
+		AC_MSG_RESULT([Checking support for Open Quantum Safe])
 
-		AC_CHECK_LIBOQS()
+		ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
+		if [[ $? -gt 0 ]] ; then
+			AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!])
 
-		if [[ "x$check_oqs" = "xyes" ]] ; then
-			AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!])
-			AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])],
-			oqs_check="yes"
-			oqs_cflags="-DENABLE_OQS=1"
-			oqs_ldflags=""
-			oqs_ldadd="-loqs"
+			AC_CHECK_LIBOQS()
+
+			if [[ "x$check_oqs" = "xyes" ]] ; then
+				AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!])
+				AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])],
+				oqs_check="yes"
+				oqs_cflags="-DENABLE_OQS=1"
+				oqs_ldflags=""
+				oqs_ldadd="-loqs"
+			else
+				AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)])
+				oqs_check="no"
+				oqs_ldadd=""
+				oqs_cflags="-DENABLE_OQS=0"
+				AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
+			fi
 		else
-			AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)])
-			oqs_check="no"
-			AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
+			AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL])
+			AC_CHECK_LIBOQS()
+			AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])
+			oqs_check="yes"
+			oqs_ldflags=""
+			oqs_cflags="-DENABLE_OQS=1"
+			oqs_ldadd="-loqs"
 		fi
 	else
-		AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL])
-		AC_CHECK_LIBOQS()
-		AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])
-		oqs_check="yes"
-		oqs_ldflags=""
-		oqs_cflags="-DENABLE_OQS=1"
-		oqs_ldadd="-loqs"
+		AC_MSG_RESULT([Open Quantum Safe: Disabled (oqs=$check_oqs)])
+		oqs_check="no"
+		oqs_ldadd=""
+		oqs_cflags="-DENABLE_OQS=0"
+		AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
 	fi
 fi
 

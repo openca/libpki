@@ -1616,7 +1616,7 @@ Optional Features:
                           is yes)
   --enable-ecdsa         enable Elliptic Curves DSA support
   --enable-openssl-engine      enable openssl engine support (yes)
-  --enable-oqs      enable oqs support (no)
+  --enable-oqs          enable oqs support (no)
   --enable-composite      enable openssl composite crypto support (no)
   --enable-strict         enable strict compilation error warnings (default is
                           no)
@@ -17418,10 +17418,12 @@ cli_oqs=
 if test "${enable_oqs+set}" = set; then :
   enableval=$enable_oqs; cli_oqs=$enableval
 else
-  cli_oqs=no
+  cli_oqs=default
 
 fi
 
+
+echo "****** ACM $cli_oqs *******"
 
 if ! [ "x$cli_oqs" = "xno" ] ; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Enabled via CLI option" >&5
@@ -17434,12 +17436,14 @@ $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 	oqs_ldadd="-loqs"
 	oqs_ldflags=""
 else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Checking support for Open Quantum Safe" >&5
+
+	if [ "x$cli_oqs" = "xdefault" ] ; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Checking support for Open Quantum Safe" >&5
 $as_echo "Checking support for Open Quantum Safe" >&6; }
 
-	ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
-	if [ $? -gt 0 ] ; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!" >&5
+		ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
+		if [ $? -gt 0 ] ; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!" >&5
 $as_echo "Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!" >&6; }
 
 
@@ -17464,26 +17468,28 @@ rm -f conftest*
 $as_echo " Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl/evp.h) " >&6; }
 
 
-		if [ "x$check_oqs" = "xyes" ] ; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!" >&5
+			if [ "x$check_oqs" = "xyes" ] ; then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!" >&5
 $as_echo "Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!" >&6; }
 
 $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 ],
-			oqs_check="yes"
-			oqs_cflags="-DENABLE_OQS=1"
-			oqs_ldflags=""
-			oqs_ldadd="-loqs"
-		else
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&5
+				oqs_check="yes"
+				oqs_cflags="-DENABLE_OQS=1"
+				oqs_ldflags=""
+				oqs_ldadd="-loqs"
+			else
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&5
 $as_echo "Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&6; }
-			oqs_check="no"
+				oqs_check="no"
+				oqs_ldadd=""
+				oqs_cflags="-DENABLE_OQS=0"
 
 $as_echo "#define ENABLE_OQS 0" >>confdefs.h
 ],
-		fi
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL" >&5
+			fi
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL" >&5
 $as_echo "Open Quantum Safe: Supported by OpenSSL" >&6; }
 
 oqs_check=
@@ -17509,10 +17515,20 @@ $as_echo " Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl
 
 $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 
-		oqs_check="yes"
-		oqs_ldflags=""
-		oqs_cflags="-DENABLE_OQS=1"
-		oqs_ldadd="-loqs"
+			oqs_check="yes"
+			oqs_ldflags=""
+			oqs_cflags="-DENABLE_OQS=1"
+			oqs_ldadd="-loqs"
+		fi
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Disabled (oqs=$check_oqs)" >&5
+$as_echo "Open Quantum Safe: Disabled (oqs=$check_oqs)" >&6; }
+		oqs_check="no"
+		oqs_ldadd=""
+		oqs_cflags="-DENABLE_OQS=0"
+
+$as_echo "#define ENABLE_OQS 0" >>confdefs.h
+],
 	fi
 fi
 
