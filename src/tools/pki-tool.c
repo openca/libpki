@@ -214,8 +214,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		char *url_s, char *algor_opt, char *profile_s, char *outform, 
 		char *comp_keys[], int comp_keys_num, int batch ) {
 
-	// int algor_id = 0;
-
 	char *prompt = NULL;
 	int outFormVal = PKI_DATA_FORMAT_PEM;
 
@@ -294,13 +292,13 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 #ifdef ENABLE_OQS
-	fprintf(stderr, "OK, KEYPARAMS object created (scheme %d - oqs.algId %d)!\n\n", scheme, kp->oqs.algId);
+	fprintf(stderr, "Key Parmeters Generated: scheme %d (bits: %d)\n", scheme, bits);
 #endif
 
 	// Checks that the bits value is not negative (at least!)
 	PKI_KEYPARAMS_set_bits(kp, bits);
 
-	// Checks for Paramters for Key Generation
+	// Checks for Parameters for Key Generation
 	if (param_s != NULL) {
 
 		switch ( kp->scheme )

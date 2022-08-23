@@ -304,7 +304,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
    	    PKI_log_err("NO DIGEST ALGORITHM DETECTED - Post Quantum ?!?", md);
     } else {
-   	    PKI_log_err("DIGEST ALGORITHM => %s", 
+   	    PKI_DEBUG("DIGEST ALGORITHM => %s", 
 	    	PKI_DIGEST_ALG_get_parsed(md));
     }
 
@@ -335,7 +335,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 		// PKI_log_err("Overriding MD - setting it to EVP_sha512()");
 		// md = (EVP_MD *) EVP_sha512();
 
-		PKI_log_err("Message Digest is NOT NULL!");
+		PKI_DEBUG("Message Digest is NOT NULL!");
 
 		// Creates the context
 		if ((ctx = EVP_MD_CTX_create()) == NULL) {
@@ -400,8 +400,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 		else out_mem->size = (size_t) ossl_ret;
 	}
 
-    PKI_log_err("PKEY Type => %d, %s", 
-    	EVP_PKEY_id(pkey), PKI_OID_get_descr(PKI_OID_new_id(EVP_PKEY_id(pkey))));
+    	PKI_DEBUG("PKEY Type => %d, %s", 
+    		EVP_PKEY_id(pkey), PKI_OID_get_descr(PKI_OID_new_id(EVP_PKEY_id(pkey))));
 
 	PKI_DEBUG("[Signature Generated: %d bytes (estimated: %d bytes)]", 
 		ossl_ret, out_size);

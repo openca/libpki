@@ -316,16 +316,21 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 		case PKI_SCHEME_RSA: {
 			PKI_DEBUG("RSA");
-			if (kp->bits <= 0) { kp->bits = 2048; }
-			else if (kp->bits <= 1024) { kp->bits = 1024; }
-			else if (kp->bits <= 2048) { kp->bits = 2048; }
+			if (bits <= 0) { kp->bits = 2048; }
+			else if (bits <= 128 ) { kp->bits = 2048; }
+			else if (bits <= 192 ) { kp->bits = 3072; }
+			else if (bits <= 256 ) { kp->bits = 4096; }
+			else if (bits <= 512 ) { kp->bits = 512;  }
+			else if (bits <= 756 ) { kp->bits = 756;  }
+			else if (bits <= 1024) { kp->bits = 1024; }
+			else if (bits <= 2048) { kp->bits = 2048; }
 		} break;
 
 		case PKI_SCHEME_ECDSA: {
 			PKI_DEBUG("ECDSA");
-			if (kp->bits <= 256) { kp->bits = 256; } 
-			else if (kp->bits <= 384) { kp->bits = 384; }
-			else if (kp->bits <= 521) { kp->bits = 521; }
+			if (bits <= 256) { kp->bits = 256; } 
+			else if (bits <= 384) { kp->bits = 384; }
+			else if (bits <= 521) { kp->bits = 521; }
 		} break;
 
 
@@ -361,7 +366,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 		case PKI_SCHEME_FALCON: {
 
-			if (kp->bits <= 128) {
+			if (bits <= 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_FALCON512;
 				kp->bits = 128;
 			} else {
@@ -371,10 +376,10 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		} break;
 		
 		case PKI_SCHEME_DILITHIUM: {
-			if (kp->bits <= 128) {
+			if (bits <= 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
 				kp->bits = 128;
-			} else if(kp->bits <= 192) {
+			} else if(bits <= 192) {
 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
 				kp->bits = 192;
 			} else {
@@ -384,10 +389,10 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		} break;
 
 		case PKI_SCHEME_SPHINCS: {
-			if (kp->bits <= 128) {
+			if (bits <= 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R;
 				kp->bits = 128;
-			} else if (kp->bits <= 192) {
+			} else if (bits <= 192) {
 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_192_R;
 				kp->bits = 192;
 			} else {
