@@ -292,7 +292,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 #ifdef ENABLE_OQS
-	fprintf(stderr, "Key Parmeters Generated: scheme %d (bits: %d)\n", scheme, bits);
+	fprintf(stderr, "Key Parameters Generated: scheme %d (bits: %d)\n", scheme, bits);
 #endif
 
 	// Checks that the bits value is not negative (at least!)
