@@ -766,6 +766,7 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 	ret = PKI_OK;
 
 end:
+	if (tk_name) tk->name = strdup(tk_name);
 	if (config_file) PKI_Free(config_file);
 	return ret;
 }
@@ -2266,9 +2267,11 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 		};
 	};
 
+	/*
 	if( tk->algor ) {
 		if((digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor)) == PKI_DIGEST_ALG_UNKNOWN) {
-			/* Error, digest algorithm not supported or recognized! */
+			// Error, digest algorithm not supported or recognized!
+			PKI_DEBUG("Digest Algorithm Not Supported or Recognized (%s)", PKI_X509_ALGOR_VALUE_get_parsed(tk->algor));
 			return ( PKI_ERR );
 		}
 	} else {
@@ -2278,6 +2281,7 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 			return ( PKI_ERR );
 		};
 	};
+	*/
 
 	if( !tk->cred ) {
 		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );

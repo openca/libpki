@@ -148,7 +148,6 @@ static int __init_add_libpki_oids ( void ) {
 /*!
  * \brief Initialize libpki internal structures.
  */
-
 int PKI_init_all( void ) {
 
 	/* Initialize OpenSSL so that it adds all the needed algor and dgst */

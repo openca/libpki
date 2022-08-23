@@ -767,7 +767,7 @@ int PKI_SSL_set_flags ( PKI_SSL *ssl, PKI_SSL_FLAGS flags ) {
 
 	if ( !ssl ) return PKI_ERROR(PKI_ERR_PARAM_NULL, 0);
 
-	ssl->auth = flags;
+	ssl->auth = (int) flags;
 
 	return PKI_OK;
 }

@@ -4,7 +4,7 @@ AC_COPYRIGHT([Copyright 2007-2022 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
-AC_INIT(libpki, 0.9.3, [libpki-users@lists.sourceforge.net], [libpki])
+AC_INIT(libpki, 0.9.5, [libpki-users@lists.sourceforge.net], [libpki])
 AC_PREREQ(2.13)
 AC_CONFIG_AUX_DIR(build)
 AC_CONFIG_MACRO_DIR([m4])
@@ -407,6 +407,24 @@ AC_CHECK_LIB(c, calloc,
         [ AC_MSG_RESULT([no calloc was found]) ]
 )
 
+dnl ===== Symbolic and Symbolic Functions =====
+
+# symbolic_build=
+# symbolic_start=
+# symbolic_end=
+
+# AC_ARG_ENABLE(symbolic,
+# 	AC_HELP_STRING( [--enable-symbolic],
+# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
+# 		symbolic_build=$enableval, symbolic_build=no )
+
+# if [[ "x$symbolic_build" = "xyes"]] ; then
+# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
+# 	symbolic_end="-Bno-symbolic"
+# fi
+
+dnl ===== iPhone build =====
+
 if [[ "x$iphone_build" = "xno" ]] ; then
 	dnl check for libraries
 	dnl AC_CHECK_LIB(nsl, gethostbyname)
@@ -455,8 +473,8 @@ if [[ "$CC" = "gcc" ]] ; then
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
-    AC_CHECK_C_OPTION(-Wunused-variable)
-	AC_CHECK_C_OPTION(-Wno-switch)
+        AC_CHECK_C_OPTION(-Wunused-variable)
+        AC_CHECK_C_OPTION(-Wno-switch)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
@@ -776,6 +794,7 @@ xml2_cflags=
 xml2_prefix=/usr
 xml2_ldflags=
 xml2_ldadd=
+xml2_include=
 
 dnl xml2 with prefix
 AC_ARG_WITH( xml2-prefix,
@@ -824,11 +843,11 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 			xml2_include=${xml2_prefix}/include/libxml2
 		else
  			xml2_cflags=`$xml2_config --cflags`
-			xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
+ 			xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
 		fi
  		xml2_ldadd=`$xml2_config --exec-prefix=/usr --libs`
 	else
-		xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
+ 		xml2_include=`$xml2_config --cflags | sed -E 's|^\-I||g'`
 		xml2_cflags=`$xml2_config --cflags`
  		xml2_ldadd=`$xml2_config --libs`
 	fi
@@ -845,8 +864,8 @@ if ! [[ "x$xml2_config" = "x" ]] ; then
 	dnl 	XML2_LIBTOOL_LIBS=`$xml2_config --libtool-libs`
 	dnl fi
 else
+	xml2_cflags=-I${xml2_prefix}/include/libxml2
 	xml2_include=${xml2_prefix}/include/libxml2
-	xml2_cflags=-I${xml2_include}
 	xml2_ldflags="-L${xml2_prefix}/lib$mybits_install"
 	xml2_ldadd="-lxml2"
 	dnl XML2_LIBTOOL_LIBS=
@@ -887,7 +906,6 @@ dnl ====================== mySQL LIBRARIES ===================
 	mysql_ldadd=
 	mysql_cflags=
 	mysql_libs=
-
 
 	enablemysql=yes
 
@@ -1430,7 +1448,11 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	CFLAGS="${old_cflags}"
 	LDFLAGS="${old_ldflags}"
 
+	AC_MSG_RESULT([ OPENSSL include: ................. ${openssl_include}])
 	AC_MSG_RESULT([ OPENSSL ldflags: ................. ${openssl_ldflags}])
+	AC_MSG_RESULT([ OPENSSL cflags: .................. ${openssl_cflags}])
+	AC_MSG_RESULT([ OPENSSL prefix: .................. ${openssl_prefix}])
+	AC_MSG_RESULT([ OPENSSL static: .................. ${openssl_static_libs}])
 	AC_MSG_RESULT([ OPENSSL ldadd: ................... ${openssl_ldadd}])
 
 	AC_SUBST(openssl_cflags)
@@ -1438,6 +1460,7 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	AC_SUBST(openssl_ldadd)
 	AC_SUBST(openssl_static_libs)
 	AC_SUBST(openssl_prefix)
+	AC_SUBST(openssl_include)
 
 	## End of OpenSSL build settings section ##
 
@@ -1459,6 +1482,81 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	fi
 	AM_CONDITIONAL(ENABLE_OPENSSL_ENGINE, test "${engine}" = "yes")
 fi
+
+dnl ================= Open Quantum Safe - PQ and Composite Crypto LIBRARIES ===================
+
+dnl Defaults
+oqs_config=
+oqs_cflags=
+oqs_check=
+oqs_prefix=/usr
+oqs_ldflags=
+oqs_ldadd=
+
+dnl Enable OQS support
+cli_oqs=
+
+AC_ARG_ENABLE(oqs,
+	[  --enable-oqs          enable oqs support (no)],
+	[cli_oqs=$enableval], 
+	[cli_oqs=default]
+ )
+
+echo "****** ACM $cli_oqs *******"
+
+if ! [[ "x$cli_oqs" = "xno" ]] ; then
+	AC_MSG_RESULT([Open Quantum Safe: Enabled via CLI option])
+	AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Support])
+	oqs_check="yes"
+	oqs_cflags="-DENABLE_OQS=1"
+	oqs_ldadd="-loqs"
+	oqs_ldflags=""
+else
+
+	if [[ "x$cli_oqs" = "xdefault" ]] ; then
+		AC_MSG_RESULT([Checking support for Open Quantum Safe])
+
+		ret=$(grep OQS $openssl_prefix/include/openssl/evp.h > /dev/null)
+		if [[ $? -gt 0 ]] ; then
+			AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (ret=$ret)!])
+
+			AC_CHECK_LIBOQS()
+
+			if [[ "x$check_oqs" = "xyes" ]] ; then
+				AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL (oqs=$check_oqs)!])
+				AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])],
+				oqs_check="yes"
+				oqs_cflags="-DENABLE_OQS=1"
+				oqs_ldflags=""
+				oqs_ldadd="-loqs"
+			else
+				AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)])
+				oqs_check="no"
+				oqs_ldadd=""
+				oqs_cflags="-DENABLE_OQS=0"
+				AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
+			fi
+		else
+			AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL])
+			AC_CHECK_LIBOQS()
+			AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Library])
+			oqs_check="yes"
+			oqs_ldflags=""
+			oqs_cflags="-DENABLE_OQS=1"
+			oqs_ldadd="-loqs"
+		fi
+	else
+		AC_MSG_RESULT([Open Quantum Safe: Disabled (oqs=$check_oqs)])
+		oqs_check="no"
+		oqs_ldadd=""
+		oqs_cflags="-DENABLE_OQS=0"
+		AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
+	fi
+fi
+
+AC_SUBST(oqs_cflags)
+AC_SUBST(oqs_ldflags)
+AC_SUBST(oqs_ldadd)
 
 dnl ================= OpenSSL Composite Crypto Native Support ===================
 
@@ -1538,14 +1636,14 @@ fi
 AC_SUBST(sys_ldadd)
 AC_SUBST(sys_cflags)
 
-libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
 
 if [[ "${enable_shared}" = "yes" ]] ; then
-  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${openssl_ldadd} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
-  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
 fi
 
 # Harmonize the linker directories
@@ -1596,17 +1694,17 @@ AC_SUBST(libpki_ldadd)
 
 dnl Internal Makefile
 if [[ "${enable_shared}" = "yes" ]] ; then
-	my_ldadd="-lpthread ${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
-	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+	my_ldadd="${openssl_ldadd} ${oqs_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else
 	if [[ "$iphone_build" = "no" ]] ; then
-		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="-static ${sys_ldadd} src/.libs/libpki.a"
 	else
-		my_ldflags="${sys_ldflags} ${ldap_ldflags} ${openssl_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${ldap_ldadd} ${openssl_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		my_ldflags="${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldadd="${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="${sys_ldflags} ${sys_ldadd}"
 	fi
 fi
@@ -1769,10 +1867,10 @@ OpenSSL Configuration:
 
  Library ..............: OpenSSL
  Prefix ...............: $openssl_prefix
- Compiler Flags .......: $openssl_cflags"
+ Compiler Flags .......: $openssl_cflags $oqs_cflags"
 if [[ "${enable_shared}" = "yes" ]] ; then
-echo " Linker Flags .........: $openssl_ldflags"
-echo " libs .................: $openssl_ldadd"
+echo " Linker Flags .........: $openssl_ldflags $oqs_ldflags"
+echo " libs .................: $openssl_ldadd $oqs_ldadd"
 else
 echo " Libs Flags (static)...: $openssl_static_libs (${enable_shared})"
 fi
@@ -1807,6 +1905,7 @@ Configuration for $PACKAGE $VERSION :
  Compiler Flags .......: $my_cflags
  Linker Flags .........: $rpath $my_ldflags
  Libs .................: $my_ldadd
+ Open Post Quantum ....: $oqs_check
  Composite Native .....: $composite
 "
 echo "

@@ -33,6 +33,60 @@ struct parsed_datatypes_st __parsed_datatypes[] = {
 	{ NULL, -1 }
 };
 
+const ASN1_ITEM * _get_ossl_item(PKI_DATATYPE type) { 
+
+	const ASN1_ITEM * it = NULL;
+
+	// Gets the ASN1_ITEM * needed to get the tbSigned
+	switch (type) {
+
+		case PKI_DATATYPE_X509_CERT : {
+			it = &X509_CINF_it;
+		} break;
+
+		case PKI_DATATYPE_X509_CRL : {
+			it = &X509_CRL_INFO_it;
+		} break;
+
+		case PKI_DATATYPE_X509_REQ : {
+			it = &X509_REQ_INFO_it;
+		} break;
+
+		case PKI_DATATYPE_X509_OCSP_REQ : {
+			it = &OCSP_REQINFO_it;
+		} break;
+
+		case PKI_DATATYPE_X509_OCSP_RESP : {
+			it = &OCSP_RESPDATA_it;
+		} break;
+
+		case PKI_DATATYPE_X509_PRQP_REQ : {
+			it = &PKI_PRQP_REQ_it;
+		} break;
+
+		case PKI_DATATYPE_X509_PRQP_RESP : {
+			it = &PKI_PRQP_RESP_it;
+		} break;
+
+		case PKI_DATATYPE_X509_CMS : {
+			it = &CMS_ContentInfo_it;
+		}
+
+		case PKI_DATATYPE_X509_KEYPAIR: {
+			it = NULL;
+		} break;
+
+		default: {
+			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, 
+				  "Not Supported Datatype [%d]", type);
+			return NULL;
+		}
+	}
+
+	// Return the Pointer
+	return it;
+}
+
 PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type, 
                                        const void   * v) {
 
@@ -40,11 +94,14 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 	const ASN1_ITEM * it = NULL;
 	const void * p = NULL;
 
+	if ((it = _get_ossl_item(type)) == NULL) {
+		return NULL;
+	}
+
 	// Gets the ASN1_ITEM * needed to get the tbSigned
 	switch (type) {
 
 		case PKI_DATATYPE_X509_CERT : {
-			it = &X509_CINF_it;
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 			p = &(((LIBPKI_X509_CERT *)v)->cert_info);
 #else
@@ -53,7 +110,6 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 		} break;
 
 		case PKI_DATATYPE_X509_CRL : {
-			it = &X509_CRL_INFO_it;
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 			p = &(((PKI_X509_CRL_VALUE *)v)->crl);
 #else
@@ -62,7 +118,6 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 		} break;
 
 		case PKI_DATATYPE_X509_REQ : {
-			it = &X509_REQ_INFO_it;
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 			p = &(((LIBPKI_X509_REQ *)v)->req_info);
 #else
@@ -71,7 +126,6 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 		} break;
 
 		case PKI_DATATYPE_X509_OCSP_REQ : {
-			it = &OCSP_REQINFO_it;
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 			p = &(((PKI_X509_OCSP_REQ_VALUE *)v)->tbsRequest);
 #else
@@ -80,7 +134,6 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 		} break;
 
 		case PKI_DATATYPE_X509_OCSP_RESP : {
-			it = &OCSP_RESPDATA_it;
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 			p = &(((PKI_OCSP_RESP *)v)->bs->tbsResponseData);
 #else
@@ -89,17 +142,14 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 		} break;
 
 		case PKI_DATATYPE_X509_PRQP_REQ : {
-			it = &PKI_PRQP_REQ_it;
 			p = ((PKI_X509_PRQP_REQ_VALUE *)v)->requestData;
 		} break;
 
 		case PKI_DATATYPE_X509_PRQP_RESP : {
-			it = &PKI_PRQP_RESP_it;
 			p = ((PKI_X509_PRQP_RESP_VALUE *)v)->respData;
 		} break;
 
 		case PKI_DATATYPE_X509_CMS : {
-			it = &CMS_ContentInfo_it;
 			p = NULL;
 		}
 
@@ -180,6 +230,9 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 
 	// Internal Status
 	ret->status = -1;
+
+	// Internal conversion pointer
+	ret->it = _get_ossl_item(type);
 
 	// All Done
 	return ret;
@@ -276,10 +329,12 @@ PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type,
 int PKI_X509_set_modified ( PKI_X509 *x ) {
 
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
+
 	PKI_X509_CERT_VALUE *cVal = NULL;
 	PKI_X509_CRL_VALUE *cRLVal = NULL;
+	PKI_X509_REQ_VALUE *rVal = NULL;
 #endif
-	int type;
+	PKI_DATATYPE type;
 	
 	if ( !x || !x->value ) return PKI_ERR;
 
@@ -318,6 +373,25 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 # endif
 #endif
 				break;
+
+		case PKI_DATATYPE_X509_REQ:
+#if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
+				rVal = (PKI_X509_REQ_VALUE *) x->value;
+# if ( OPENSSL_VERSION_NUMBER >= 0x1010000f )
+				rVal->req_info.enc.modified = 1;
+# else
+				rVal->req_info->enc.modified = 1;
+# endif
+#endif
+				break;
+
+		default:
+			// Let's log the error
+			PKI_log_debug("Setting Modified Flag Ignored for DataType [%d]",
+				type);
+
+			// Not successful
+			return PKI_ERR;
 	};
 
 	return PKI_OK;
@@ -339,7 +413,7 @@ PKI_DATATYPE PKI_X509_get_type(const PKI_X509 *x) {
 
 const char * PKI_X509_get_type_parsed(const PKI_X509 *obj) {
 	int i = 0;
-	int type = 0;
+	PKI_DATATYPE type = 0;
 
 	type = PKI_X509_get_type( obj );
 	while( __parsed_datatypes[i].descr != NULL ) {

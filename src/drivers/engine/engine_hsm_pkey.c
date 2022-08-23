@@ -155,7 +155,7 @@ PKI_X509_KEYPAIR *HSM_ENGINE_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 #endif
 	ENGINE *e = NULL;
 
-	int type = PKI_SCHEME_DEFAULT;
+	PKI_SCHEME_ID type = PKI_SCHEME_DEFAULT;
 
 	if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 

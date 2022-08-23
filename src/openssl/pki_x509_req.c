@@ -54,12 +54,15 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 	}
 	kVal = (EVP_PKEY *) k->value;
 
-	/* Let's set the digest for the right signature scheme */
+	// Let's set the digest for the right signature scheme */
+	// Open Quantum Safe Algos do not offer Digests, we are now
+	// more permissive with the digest
 	if( !digest ) {
-		if((digest = PKI_DIGEST_ALG_get_by_key( k )) == NULL ) {
-			PKI_ERROR(PKI_ERR_UNKNOWN, NULL);
-			return NULL;
-		};
+		PKI_DEBUG("No Digest Associated with used algorithm");
+		// if((digest = PKI_DIGEST_ALG_get_by_key( k )) == NULL ) {
+		//   PKI_ERROR(PKI_ERR_UNKNOWN, NULL);
+	    //   return NULL;
+		// };
 	};
 
 	/* This has to be fixed, to work on every option */

@@ -497,7 +497,7 @@ int PKI_X509_EST_MSG_set_status(PKI_X509_EST_MSG * msg,
 
 	return PKI_X509_EST_MSG_set_attribute_int(msg,
 				                               EST_ATTRIBUTE_PKI_STATUS,
-											   status );
+											   (int) status);
 }
 
 

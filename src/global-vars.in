@@ -103,9 +103,9 @@ BUILD_LIBPKI_LDFLAGS	= @rpath@ @my_ldflags@
 BUILD_LIBPKI_LDADD	= @rpath@ @my_ldadd@
 TEST_LIBS		= @test_libs@
 
-LIBPKI_CFLAGS		= @libpki_cflags@ @composite_cflags@
-LIBPKI_LDFLAGS		= @rpath@ @libpki_ldflags@ @composite_ldflags@
-LIBPKI_LIBADD		= @libpki_ldadd@ @composite_ldadd@
+LIBPKI_CFLAGS		= @libpki_cflags@ @oqs_cflags@ @composite_cflags@
+LIBPKI_LDFLAGS		= @rpath@ @libpki_ldflags@ @oqs_ldflags@ @composite_ldflags@
+LIBPKI_LIBADD		= @libpki_ldadd@ @oqs_ldadd@ @composite_ldadd@
 
 RPATH = @rpath@
 
