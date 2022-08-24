@@ -457,12 +457,10 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 	return PKI_OK;
 };
 
+#ifdef ENABLE_OQS
+
 /*! \brief Sets the bits size for key generation */
 int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
-
-	PKI_DEBUG("Setting OQS Property...");
-
-#ifdef ENABLE_OQS
 
 	// Input Checks
 	if (!kp || kp->bits <= 0) return
@@ -500,21 +498,18 @@ int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 		}
 	}
 
-	PKI_DEBUG("OQS Property Set Correctly");
-
-#endif
-
 	// All Done
 	return PKI_OK;
 }
 
+#endif
+
+#ifdef ENABLE_COMPOSITE
 
 /*! \brief Sets the bits size for key generation */
 int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
 	PKI_DEBUG("Adding a Key To Composite Key...");
-
-#ifdef ENABLE_COMPOSITE
 
 	// Input Checks
 	if (!kp) return
@@ -533,8 +528,8 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
 	PKI_DEBUG("Key Added Successfully.");
 
-#endif
-
 	// All Done
 	return PKI_OK;
 }
+
+#endif // ENABLE_COMPOSITE

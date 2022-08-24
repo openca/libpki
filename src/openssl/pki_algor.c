@@ -360,6 +360,8 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 		// Post-Quantum Crypto
 		// ===================
 
+#ifdef ENABLE_OQS
+
 		case PKI_SCHEME_FALCON: {
 			ret = "FALCON";
 		} break;
@@ -370,18 +372,6 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 
 		case PKI_SCHEME_SPHINCS: {
 			ret = "SPHINCS";
-		} break;
-
-		// =================
-		// Generic Composite
-		// =================
-
-		case PKI_SCHEME_COMPOSITE: {
-			ret = "COMPOSITE";
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_OR: {
-			ret = "COMPOSITE_OR";
 		} break;
 
 		// =====================
@@ -403,6 +393,24 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 		case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM: {
 			ret = "COMP_ECDSA_DILITHIUM";
 		} break;
+
+#endif
+
+		// =================
+		// Generic Composite
+		// =================
+
+#ifdef ENABLE_COMPOSITE
+
+		case PKI_SCHEME_COMPOSITE: {
+			ret = "COMPOSITE";
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_OR: {
+			ret = "COMPOSITE_OR";
+		} break;
+
+#endif
 
 		default: {
 			ret = "Unknown";
@@ -428,20 +436,13 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 		} else if (strncmp_nocase("EC", data, 2) == 0) {
 			return PKI_SCHEME_ECDSA;
 #endif
+#ifdef ENABLE_OQS
 		} else if (strncmp_nocase("FALCON", data, 6) == 0) {
 			return PKI_SCHEME_FALCON;
 		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
 			return PKI_SCHEME_DILITHIUM;
 		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
 			return PKI_SCHEME_SPHINCS;
-		} else if (strncmp_nocase("MULTIKEY_OR", data, 11) == 0) {
-			return PKI_SCHEME_COMPOSITE_OR;
-		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
-			return PKI_SCHEME_COMPOSITE;
-		} else if (strncmp_nocase("COMPOSITE_OR", data, 11) == 0) {
-			return PKI_SCHEME_COMPOSITE_OR;
-		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
-			return PKI_SCHEME_COMPOSITE;
 		} else if (strncmp_nocase("COMP_RSA_FALCON", data, 15) == 0) {
 			return PKI_SCHEME_COMPOSITE_RSA_FALCON;
 		} else if (strncmp_nocase("COMP_ECDSA_FALCON", data, 17) == 0) {
@@ -450,6 +451,17 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 			return PKI_SCHEME_COMPOSITE_RSA_DILITHIUM;
 		} else if (strncmp_nocase("COMP_ECDSA_DILITHIUM", data, 19) == 0) {
 			return PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM;
+#endif
+#ifdef ENABLE_COMPOSITE
+		} else if (strncmp_nocase("MULTIKEY_OR", data, 11) == 0) {
+			return PKI_SCHEME_COMPOSITE_OR;
+		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
+			return PKI_SCHEME_COMPOSITE;
+		} else if (strncmp_nocase("COMPOSITE_OR", data, 11) == 0) {
+			return PKI_SCHEME_COMPOSITE_OR;
+		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
+			return PKI_SCHEME_COMPOSITE;
+#endif
 		} else {
 			PKI_log_err("Cannot Convert [%s] into a recognized OID.", data);
 		}

@@ -884,6 +884,7 @@ typedef struct pki_keyparams_st {
 } PKI_KEYPARAMS;
 
 #ifdef ENABLE_OQS
+
 typedef enum {
 	PKI_ALGOR_OQS_PARAM_UNKNOWN       = 0,
 	PKI_ALGOR_OQS_PARAM_DILITHIUM_AES,

@@ -176,17 +176,15 @@ void version ( void ) {
 
 int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
+#ifdef ENABLE_COMPOSITE
+
 	PKI_X509_KEYPAIR_STACK * tmp_stack = NULL;
 	PKI_X509_KEYPAIR * tmp_key = NULL;
 
 	if (!kp || !url) return 0;
 
-#ifdef ENABLE_COMPOSITE
-
 	if (kp->scheme != PKI_SCHEME_COMPOSITE &&
 		kp->scheme != PKI_SCHEME_COMPOSITE_OR) return 0;
-
-#endif
 
 	PKI_log_debug("Adding Key from %s", url);
 
@@ -208,6 +206,14 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 	// All Done
 	return 1;
+
+#else
+
+	// Not Supported
+	return 0;
+
+#endif
+
 }
 
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
