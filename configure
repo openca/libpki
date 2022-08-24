@@ -17427,8 +17427,6 @@ else
 fi
 
 
-echo "****** ACM $cli_oqs *******"
-
 if ! [ "x$cli_oqs" = "xno" ] ; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Enabled via CLI option" >&5
 $as_echo "Open Quantum Safe: Enabled via CLI option" >&6; }
@@ -17487,10 +17485,7 @@ $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 $as_echo "Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)" >&6; }
 				oqs_check="no"
 				oqs_ldadd=""
-				oqs_cflags="-DENABLE_OQS=0"
-
-$as_echo "#define ENABLE_OQS 0" >>confdefs.h
-],
+				oqs_cflags=""
 			fi
 		else
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Supported by OpenSSL" >&5
@@ -17529,10 +17524,7 @@ $as_echo "#define ENABLE_OQS 1" >>confdefs.h
 $as_echo "Open Quantum Safe: Disabled (oqs=$check_oqs)" >&6; }
 		oqs_check="no"
 		oqs_ldadd=""
-		oqs_cflags="-DENABLE_OQS=0"
-
-$as_echo "#define ENABLE_OQS 0" >>confdefs.h
-],
+		oqs_cflags=""
 	fi
 fi
 

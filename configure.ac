@@ -1502,8 +1502,6 @@ AC_ARG_ENABLE(oqs,
 	[cli_oqs=default]
  )
 
-echo "****** ACM $cli_oqs *******"
-
 if ! [[ "x$cli_oqs" = "xno" ]] ; then
 	AC_MSG_RESULT([Open Quantum Safe: Enabled via CLI option])
 	AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Support])
@@ -1533,8 +1531,7 @@ else
 				AC_MSG_RESULT([Open Quantum Safe: Not Supported by OpenSSL (oqs=$check_oqs)])
 				oqs_check="no"
 				oqs_ldadd=""
-				oqs_cflags="-DENABLE_OQS=0"
-				AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
+				oqs_cflags=""
 			fi
 		else
 			AC_MSG_RESULT([Open Quantum Safe: Supported by OpenSSL])
@@ -1549,8 +1546,7 @@ else
 		AC_MSG_RESULT([Open Quantum Safe: Disabled (oqs=$check_oqs)])
 		oqs_check="no"
 		oqs_ldadd=""
-		oqs_cflags="-DENABLE_OQS=0"
-		AC_DEFINE(ENABLE_OQS, 0, [Open Quantum Safe Library])],
+		oqs_cflags=""
 	fi
 fi
 
