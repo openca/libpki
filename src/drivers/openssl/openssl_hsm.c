@@ -302,11 +302,11 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
         // The signing algorithm requires there to be no digest
         md = NULL;
 
-   	    PKI_log_err("NO DIGEST ALGORITHM DETECTED - Post Quantum ?!?", md);
-    } else {
-   	    PKI_DEBUG("DIGEST ALGORITHM => %s", 
-	    	PKI_DIGEST_ALG_get_parsed(md));
-    }
+   	    // PKI_DEBUG("NO DIGEST ALGORITHM DETECTED - Post Quantum ?!?", md);
+    } 
+
+	// Debug Info
+   	// PKI_DEBUG("DIGEST ALGORITHM => %s", md ? PKI_DIGEST_ALG_get_parsed(md) : "<null>");
 
 	// Initialize the return structure
 	if ((out_mem = PKI_MEM_new ((size_t)out_size)) == NULL) {
@@ -325,17 +325,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 			return NULL;
 		};
 
-		PKI_log_debug("Signing Algorithm is [%s] (%d)", OBJ_nid2sn(sig_nid), sig_nid);
-
-		// PKI_log_err("Overriding MD - setting it to EVP_sha512()");
-		// OQS: It seems that setting the sha512 somehow makes the signature
-		// process on PQ move a bit further.. but it is all zeros...
-		// md = (EVP_MD *) EVP_sha512();
-
-		// PKI_log_err("Overriding MD - setting it to EVP_sha512()");
-		// md = (EVP_MD *) EVP_sha512();
-
-		PKI_DEBUG("Message Digest is NOT NULL!");
+		// Debug Info
+		PKI_DEBUG("Signing Algorithm is [%s] (%d)", OBJ_nid2sn(sig_nid), sig_nid);
 
 		// Creates the context
 		if ((ctx = EVP_MD_CTX_create()) == NULL) {
@@ -364,10 +355,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 	} else {
 
-		// EVP_PKEY_CTX * pCtx = NULL;
-		// md = (EVP_MD *)EVP_sha512();
-
-		PKI_log_err("Message Digest is NULL!");
+		// PKI_DEBUG("Message Digest is NULL!");
 
 		// Creates the context
 		if ((ctx = EVP_MD_CTX_create()) == NULL) {
@@ -400,11 +388,11 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 		else out_mem->size = (size_t) ossl_ret;
 	}
 
-    	PKI_DEBUG("PKEY Type => %d, %s", 
-    		EVP_PKEY_id(pkey), PKI_OID_get_descr(PKI_OID_new_id(EVP_PKEY_id(pkey))));
+	// PKI_DEBUG("PKEY Type => %d, %s", 
+	// 	EVP_PKEY_id(pkey), PKI_OID_get_descr(PKI_OID_new_id(EVP_PKEY_id(pkey))));
 
-	PKI_DEBUG("[Signature Generated: %d bytes (estimated: %d bytes)]", 
-		ossl_ret, out_size);
+	// PKI_DEBUG("[Signature Generated: %d bytes (estimated: %d bytes)]", 
+	// 	ossl_ret, out_size);
 
 	// Cleanup the context
 #if OPENSSL_VERSION_NUMBER <= 0x1010000f

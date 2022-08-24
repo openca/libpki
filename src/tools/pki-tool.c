@@ -298,7 +298,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 #ifdef ENABLE_OQS
-	fprintf(stderr, "Key Parameters Generated: scheme %d (bits: %d)\n", scheme, bits);
+	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme, bits);
 #endif
 
 	// Checks that the bits value is not negative (at least!)
@@ -397,18 +397,17 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		char * url = NULL;
 		int i = 0;
 
-		fprintf(stderr, "DEBUG: Composite Scheme Detected\n");
+		PKI_DEBUG("Composite Scheme Detected");
 
 		while ((url = comp_keys[i]) != NULL) {
 
 			if (verbose) {
-				fprintf(stderr, "Loading key component [%s]\n", url);
+				PKI_DEBUG("Loading key component [%s]", url);
 				fflush(stderr);
 			}
 					
 			if (0 == add_comp_stack(kp, url, tk->cred, tk->hsm)) {
-				fprintf(stderr, "ERROR: Cannot add key component (%s)\n\n",
-					url);
+				PKI_DEBUG("ERROR: Cannot add key component (%s)", url);
 				return PKI_ERR;
 			}
 
