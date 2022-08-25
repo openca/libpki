@@ -496,13 +496,15 @@ int PKI_X509_sign(PKI_X509               * x,
 	// Sets the default Algorithm if none is provided
 	if (!digest) digest = PKI_DIGEST_ALG_DEFAULT;
 
-	int ret = ASN1_item_sign(x->it, 
-					PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
-                	PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
-                	NULL, NULL, 
-                	key->value, digest);
+	// Sets the right OID for the signature
+	ASN1_item_sign(x->it, 
+	               PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+                   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
+                   NULL, NULL, 
+                   key->value, digest);
 
-	PKI_log_err("RET Supposed to be err - but should set the OID (ret = %d)", ret);
+	// TODO: Investigate the error
+	// PKI_DEBUG("RET Supposed to be err - but should set the OID (ret = %d)", ret);
 
 	/*
 	// Gets the Internal (if any) Algorithm Identifier and sets the details

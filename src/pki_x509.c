@@ -343,7 +343,12 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 	// This should be implemented via callbacks!!!
 	switch ( type )
 	{
-		case PKI_DATATYPE_X509_CERT:
+		case PKI_DATATYPE_X509_KEYPAIR: {
+			// Keys do not need updates, let's return ok
+			return PKI_OK;
+		} break;
+
+		case PKI_DATATYPE_X509_CERT: {
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cVal = (PKI_X509_CERT_VALUE *) x->value;
 				// cVal->cert_info->enc.modified = 1;
@@ -361,9 +366,9 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 				}
 # endif
 #endif
-				break;
+		} break;
 
-		case PKI_DATATYPE_X509_CRL:
+		case PKI_DATATYPE_X509_CRL: {
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				cRLVal = (PKI_X509_CRL_VALUE *) x->value;
 # if ( OPENSSL_VERSION_NUMBER >= 0x1010000f )
@@ -372,9 +377,9 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 				cRLVal->crl->enc.modified = 1;
 # endif
 #endif
-				break;
+		} break;
 
-		case PKI_DATATYPE_X509_REQ:
+		case PKI_DATATYPE_X509_REQ: {
 #if ( OPENSSL_VERSION_NUMBER >= 0x0090900f )
 				rVal = (PKI_X509_REQ_VALUE *) x->value;
 # if ( OPENSSL_VERSION_NUMBER >= 0x1010000f )
@@ -383,19 +388,19 @@ int PKI_X509_set_modified ( PKI_X509 *x ) {
 				rVal->req_info->enc.modified = 1;
 # endif
 #endif
-				break;
+		} break;
 
-		default:
+		default: {
 			// Let's log the error
-			PKI_log_debug("Setting Modified Flag Ignored for DataType [%d]",
-				type);
+			PKI_DEBUG("Setting Modified Flag Ignored for DataType [%d]", type);
 
 			// Not successful
 			return PKI_ERR;
+		}
 	};
 
+	// All Done.
 	return PKI_OK;
-
 };
 
 /*! \brief Returns the type of a PKI_X509 object */

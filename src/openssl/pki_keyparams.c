@@ -315,7 +315,6 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 	switch (kp->scheme) {
 
 		case PKI_SCHEME_RSA: {
-			PKI_DEBUG("RSA");
 			if (bits <= 0) { kp->bits = 2048; }
 			else if (bits <= 128 ) { kp->bits = 2048; }
 			else if (bits <= 192 ) { kp->bits = 3072; }
@@ -327,7 +326,6 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		} break;
 
 		case PKI_SCHEME_ECDSA: {
-			PKI_DEBUG("ECDSA");
 			if (bits <= 256) { kp->bits = 256; } 
 			else if (bits <= 384) { kp->bits = 384; }
 			else if (bits <= 521) { kp->bits = 521; }
@@ -426,7 +424,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM: {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
-			// need to enable more on libpqs
+			// need to enable more on LibOQS
 			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2;
 			kp->bits = 128;
 		} break;

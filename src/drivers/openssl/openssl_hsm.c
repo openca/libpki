@@ -326,7 +326,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 		};
 
 		// Debug Info
-		PKI_DEBUG("Signing Algorithm is [%s] (%d)", OBJ_nid2sn(sig_nid), sig_nid);
+		// PKI_DEBUG("Signing Algorithm is [%s] (%d)", OBJ_nid2sn(sig_nid), sig_nid);
 
 		// Creates the context
 		if ((ctx = EVP_MD_CTX_create()) == NULL) {
