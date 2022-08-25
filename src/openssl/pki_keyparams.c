@@ -10,12 +10,17 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 				  const PKI_X509_PROFILE *prof ) {
 
 	PKI_KEYPARAMS *kp = NULL;
+		// Pointer to the data structure
 
+	// Allocates the memory
 	if ((kp = (PKI_KEYPARAMS *) PKI_Malloc(sizeof(PKI_KEYPARAMS))) == NULL)
 	{
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
+
+	// Zeroize the Memory
+	memset(kp, 1, sizeof(PKI_KEYPARAMS));
 
 #ifdef ENABLE_COMPOSITE
 
@@ -97,6 +102,11 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
+				
+				// Sets the standard defaults
+				kp->ec.asn1flags = PKI_EC_KEY_ASN1_DEFAULT;
+				kp->ec.form = PKI_EC_KEY_FORM_DEFAULT;
+
 				if(( tmp_s = PKI_CONFIG_get_value(prof, 
 							"/profile/keyParams/curveName" )) != NULL ) {
 					PKI_OID *oid = NULL;
@@ -122,8 +132,6 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 						kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 					};
 					PKI_Free ( tmp_s );
-				} else {
-						kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 				};
 
 				if(( tmp_s = PKI_CONFIG_get_value(prof, 

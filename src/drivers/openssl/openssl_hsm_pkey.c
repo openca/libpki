@@ -125,13 +125,13 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
     size_t num_curves = 0;
     int degree = 0;
 
-    int bits     = PKI_EC_KEY_DEFAULT_SIZE;
-    int curve     = PKI_EC_KEY_CURVE_DEFAULT;
+    int bits    = PKI_EC_KEY_DEFAULT_SIZE;
+    int curve   = PKI_EC_KEY_CURVE_DEFAULT;
     int flags   = PKI_EC_KEY_ASN1_DEFAULT;
 
     PKI_EC_KEY_FORM form     = PKI_EC_KEY_FORM_DEFAULT;
 
-    /* Get the number of availabe ECDSA curves in OpenSSL */
+    /* Get the number of available ECDSA curves in OpenSSL */
     if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
         /* No curves available! */
         PKI_ERROR(PKI_ERR_OBJECT_CREATE, "Builtin EC curves");
@@ -216,13 +216,15 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
         return NULL;
     };
 
+    EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE);
+    EC_GROUP_set_point_conversion_form(group, form);
+
     /* Assign the group to the key */
     if (EC_KEY_set_group(k, group) == 0) {
         PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Invalid Group");
         goto err;
         return NULL;
     }
-
 
     /* Sets the point compression */
     if ( kp && kp->ec.form != PKI_EC_KEY_FORM_UNKNOWN ) {
@@ -508,38 +510,47 @@ void HSM_OPENSSL_X509_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey ) {
 // this issue
 
 int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x, 
-        const EVP_CIPHER *enc, unsigned char *kstr, int klen, 
+        const EVP_CIPHER *enc, unsigned char *out_buffer, int klen, 
         pem_password_cb *cb, void *u) {
 
-    int ret = 0;
+    int ret = PKI_ERR;
 
-    if(!x || !bp) return 0;
+    // Input Check
+    if (!x || !bp) return PKI_ERR;
 
+    // Different functions depending on the Key type
     switch(EVP_PKEY_type(EVP_PKEY_id(x)))
     {
 
-/*
 #ifdef ENABLE_ECDSA
         case EVP_PKEY_EC: {
 # if OPENSSL_VERSION_NUMBER < 0x1010000fL
             ret = PEM_write_bio_ECPrivateKey(bp, 
-                x->pkey.ec, enc, (unsigned char *) kstr, klen, cb, u);
+                x->pkey.ec, enc, (unsigned char *) out_buffer, klen, cb, u);
 # else
             ret = PEM_write_bio_ECPrivateKey(bp, 
-                EVP_PKEY_get0_EC_KEY(x), enc, (unsigned char *) kstr, klen, cb, u);
+                EVP_PKEY_get0_EC_KEY(x), enc, (unsigned char *) out_buffer, klen, cb, u);
 # endif
-            } break;
+            if (!ret) {
+                PKI_DEBUG("Internal Error while encoding EC Key (PEM).");
+                return PKI_ERR;
+            }
+        } break;
 #endif
-*/
+
         default: {
-            ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
-                (char *) kstr, klen, cb, u);
-            
-            if (!ret) PKI_DEBUG("Key Type NOT supported (%d)", 
-                EVP_PKEY_type(EVP_PKEY_id(x)));
+            if ((ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
+                (char *) out_buffer, klen, cb, u)) != 1) {
+                // Debug Info
+                PKI_DEBUG("Key Type NOT supported (%d)", 
+                    EVP_PKEY_type(EVP_PKEY_id(x)));
+                // Error Condition
+                return PKI_ERR;
+            }
         }
     }
 
+    // All Done
     return ret;
 }
 

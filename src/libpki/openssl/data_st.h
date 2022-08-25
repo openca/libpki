@@ -20,6 +20,8 @@
 #include <openssl/objects.h>
 #include <openssl/hmac.h>
 
+#include <openssl/ec.h>
+
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
 
@@ -830,21 +832,26 @@ typedef struct pki_x509_extension_st {
 
 #define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
 
-typedef enum {
-	PKI_EC_KEY_FORM_UNKNOWN		=	0,
-	PKI_EC_KEY_FORM_COMPRESSED	=	POINT_CONVERSION_COMPRESSED,
-	PKI_EC_KEY_FORM_UNCOMPRESSED	=	POINT_CONVERSION_UNCOMPRESSED,
-	PKI_EC_KEY_FORM_HYBRID		=	POINT_CONVERSION_HYBRID,
-} PKI_EC_KEY_FORM;
+// Typedef for EC Form
+typedef point_conversion_form_t PKI_EC_KEY_FORM;
 
-#define PKI_EC_KEY_FORM_DEFAULT			PKI_EC_KEY_FORM_COMPRESSED
+// Defines for supported EC Form
+#define PKI_EC_KEY_FORM_UNKNOWN        0
+#define PKI_EC_KEY_FORM_COMPRESSED     POINT_CONVERSION_COMPRESSED
+#define PKI_EC_KEY_FORM_UNCOMPRESSED   POINT_CONVERSION_UNCOMPRESSED
+#define PKI_EC_KEY_FORM_HYBRID         POINT_CONVERSION_HYBRID
 
+// Default Value
+#define PKI_EC_KEY_FORM_DEFAULT		   PKI_EC_KEY_FORM_UNCOMPRESSED
+
+// ASN1 flags for EC keys
 typedef enum {
-	PKI_EC_KEY_ASN1_SPECIFIED_CURVE	=	0,
-	PKI_EC_KEY_ASN1_NAMED_CURVE,
-	PKI_EC_KEY_ASN1_IMPLICIT_CURVE	=	-1
+	PKI_EC_KEY_ASN1_EXPLICIT_CURVE  = OPENSSL_EC_EXPLICIT_CURVE,
+	PKI_EC_KEY_ASN1_NAMED_CURVE     = OPENSSL_EC_NAMED_CURVE,
+	PKI_EC_KEY_ASN1_IMPLICIT_CURVE  = -1
 } PKI_EC_KEY_ASN1;
 
+// Default for ASN1 flag
 #define PKI_EC_KEY_ASN1_DEFAULT			PKI_EC_KEY_ASN1_NAMED_CURVE
 
 typedef struct pki_keyparams_st {
