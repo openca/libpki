@@ -688,7 +688,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_COMPOSITE     NID_undef
 #define PKI_ALGOR_ID_COMPOSITE  NID_undef
 #endif
-/* End - NID_rsa3072_falcon512 */
+/* End - NID_composite */
 
 /* Begin - NID_composite_or */
 #ifdef NID_compositeOr

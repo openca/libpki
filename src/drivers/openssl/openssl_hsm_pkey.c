@@ -337,16 +337,17 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
         goto err;
     }
 
-    // CTX operations for Composite Crypto
-    // (defined in <openssl-1.1.1>/include/openssl/evp.h)
-    //
-    // EVP_PKEY_CTRL_COMPOSITE_PUSH
-    // EVP_PKEY_CTRL_COMPOSITE_POP
-    // EVP_PKEY_CTRL_COMPOSITE_ADD
-    // EVP_PKEY_CTRL_COMPOSITE_DEL
-    // EVP_PKEY_CTRL_COMPOSITE_CLEAR
-
 #ifdef ENABLE_COMPOSITE
+
+    // CTX operations for Composite Crypto
+    // (originally defined in <openssl-1.1.1>/include/openssl/evp.h)
+    //
+    # define EVP_PKEY_CTRL_COMPOSITE_PUSH       0xF0
+    # define EVP_PKEY_CTRL_COMPOSITE_POP        0xF1
+    # define EVP_PKEY_CTRL_COMPOSITE_ADD        0xF2
+    # define EVP_PKEY_CTRL_COMPOSITE_DEL        0xF3
+    # define EVP_PKEY_CTRL_COMPOSITE_CLEAR      0xF4
+
     if (kp->comp.k_stack != NULL) {
 
         for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
