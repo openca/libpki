@@ -267,6 +267,7 @@ case "${build_os}" in
 		;;
  *bsd*) myarch=bsd
 		shlext=so
+		mybits_install=""
 		;;
  *iphone*)
 		myarch=iphone
@@ -306,6 +307,9 @@ case "$target" in
 		arch_target=x86
 		;;
 	x86_64-*)
+		arch_target=x86_64
+		;;
+	amd64*-*)
 		arch_target=x86_64
 		;;
 	sparc*-*)
