@@ -1585,6 +1585,8 @@ AC_SUBST(composite_cflags)
 AC_SUBST(composite_ldflags)
 AC_SUBST(composite_ldadd)
 
+AM_CONDITIONAL(ENABLE_COMPOSITE, test "${composite}" = "yes")
+
 dnl ================= OpenSSL Static LIBS (?) =========================
 
 AM_CONDITIONAL(STATIC_COMPILE, test "x$openssl_static_libs" != "x")
@@ -1776,6 +1778,7 @@ AC_CONFIG_FILES(
 	src/drivers/pkcs11/Makefile
 	src/drivers/kmf/Makefile
 	src/openssl/Makefile
+	src/openssl/composite/Makefile
 	src/io/Makefile
 	src/net/Makefile
 	src/est/Makefile
