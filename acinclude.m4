@@ -138,9 +138,6 @@ if [[ "$library_setup" = "no" ]] ; then
 			AC_MSG_RESULT([OpenSSL CFlags: $library_cflags ($_shared)])
 
 			dir="$library_prefix/lib${curr_arch}"
-
-			dnl crypto_name="${dir}/libcrypto*.$shlext*"
-			dnl ssl_name="${dir}/libssl*.$shlext*"
 			_static=0
 
 			AC_MSG_RESULT([OpenSSL: Looking for $crypto_name and $ssl_name])
@@ -154,12 +151,6 @@ if [[ "$library_setup" = "no" ]] ; then
 			for ext in $ext_list ; do
 				crypto_lib=`ls "${dir}/libcrypto.${ext}" | head -n 1`;
 				ssl_lib=`ls "${dir}/libssl.${ext}" | head -n 1`;
-
-				dnl crypto_lib=`find "${dir}" -name "libcrypto.${ext}" -type f -maxdepth 0 | head -n 1`;
-				dnl ssl_lib=`find "${dir}" -name "libssl.${ext}" -type f -maxdepth 0 | head -n 1`;
-
-				echo "CRYPTO => $crypto_lib";
-				echo "SSL => $ssl_lib";
 
 				if ! [[ "${crypto_lib}" = "${ssl_lib}" ]] ; then
 					library_setup=yes
@@ -493,13 +484,12 @@ else
 	_path=${ossl_prefix%/include}
 	includes=${_path}/include/openssl
 
+	dnl Default Enabled
+	activate_ecdsa=yes;
 
 	if ! [[ -f "$includes/ec.h" ]] ; then
 		AC_MSG_RESULT([OpenSSL EC: Missing Support for EC ($includes/ec.h)])
-		activate_ecdsa=no;
 	else
-		activate_ecdsa=yes;
-
 		files="$includes/opensslconf.h $includes/opensslconf-*.h"
 		for i in files ; do
 			AC_MSG_RESULT([OpenSSL EC/ECDSA: Checking support in $i])
@@ -637,5 +627,18 @@ int main(void)
 #pragma GCC diagnostic pop
 ])], [ AC_DEFINE(HAVE_GCC_PRAGMA_POP, 1, [GCC pragma pop]) ], [])
 
+])
+
+AC_DEFUN([AC_CHECK_LIBOQS],
+[ 
+oqs_check=
+
+AC_EGREP_HEADER([\#\sdefine\sEVP_PKEY_OQS_SIG_DEFAULT\sNID_oqs_sig_default],
+	[ $openssl_prefix/include/openssl/evp.h ],
+	[ oqs_check="yes" ], 
+    	[ oqs_check="no" ]
+)
+
+	AC_MSG_RESULT([ Enable Open Quantum Safe: $oqs_check ($openssl_prefix/include/openssl/evp.h) ])
 ])
 

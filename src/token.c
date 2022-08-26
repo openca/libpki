@@ -177,33 +177,38 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 /*! \brief Checks the integrity of a PKI_TOKEN
  */
 
-int PKI_TOKEN_check ( PKI_TOKEN *tk )
+int PKI_TOKEN_check(PKI_TOKEN *tk )
 {
 	int check_val = 0;
 	int ret = PKI_TOKEN_STATUS_OK;
 
 	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
-	if (!tk->keypair)
-		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
+	if (tk->hsm == NULL && tk->type != HSM_TYPE_SOFTWARE)
+		ret |= PKI_TOKEN_STATUS_HSM_ERR;
 
-	if ((check_val = PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair)) != 0)
-	{
-		PKI_log_err("Possible PrivKey/Certificate Mismatch (%d)", check_val);
-		ret |= PKI_TOKEN_STATUS_KEYPAIR_ERR;
+	if (tk->keypair == NULL) {
+		// If there is no key, the error condition is triggered if the
+		// TOKEN is not a software token or the reported status is
+		// a successful login
+		if (tk->type == HSM_TYPE_SOFTWARE || tk->status & PKI_TOKEN_STATUS_LOGIN_OK)
+			ret |= PKI_TOKEN_STATUS_KEYPAIR_MISSING_ERR;
 	}
 
+	if ((check_val = PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair)) != 0)
+		ret |= PKI_TOKEN_STATUS_KEYPAIR_CHECK_ERR;
+
 	if (!tk->cert ) 
-		ret |= PKI_TOKEN_STATUS_CERT_ERR;
+		ret |= PKI_TOKEN_STATUS_CERT_MISSING_ERR;
 
 	if (!tk->cacert ) 
-		ret |= PKI_TOKEN_STATUS_CACERT_ERR;
+		ret |= PKI_TOKEN_STATUS_CACERT_MISSING_ERR;
 
 	if (!tk->otherCerts )
-		ret |= PKI_TOKEN_STATUS_OTHERCERTS_ERR;
+		ret |= PKI_TOKEN_STATUS_OTHERCERTS_MISSING_ERR;
 
 	if (!tk->trustedCerts )
-		ret |= PKI_TOKEN_STATUS_TRUSTEDCERTS_ERR;
+		ret |= PKI_TOKEN_STATUS_TRUSTEDCERTS_MISSING_ERR;
 
 	return ret;
 }
@@ -480,8 +485,11 @@ int PKI_TOKEN_login( PKI_TOKEN *tk )
 
 	if (tk->hsm)
 	{
-		if (HSM_login ( tk->hsm, tk->cred ) != PKI_OK)
-			return PKI_ERROR( PKI_ERR_HSM_LOGIN, NULL );
+		if (HSM_login(tk->hsm, tk->cred) != PKI_OK) {
+			return PKI_ERROR( PKI_ERR_HSM_LOGIN, NULL);
+		} else {
+			tk->status |= PKI_TOKEN_STATUS_LOGIN_OK;
+		}
 	}
 
 	// Loads the Keypair - this will trigger login for the token
@@ -533,6 +541,10 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 
 	if (tk->config_dir) snprintf(buff, BUFF_MAX_SIZE,"%s", tk->config_dir );
 	else snprintf(buff,BUFF_MAX_SIZE, "%s", PKI_DEFAULT_CONF_DIR );
+
+	// Copies the Name Early so that it is available
+	// even when errors occur
+	tk->name = strdup(tk_name);
 
 	if ((config_file = PKI_CONFIG_find_all(buff, tk_name, PKI_DEFAULT_TOKEN_DIR)) == NULL)
 	{
@@ -656,6 +668,7 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 	if (tk->type != HSM_TYPE_PKCS11)
 	{
 		tk->slot_id = 0;
+
 	}
 	else
 	{
@@ -667,20 +680,29 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 			tk->slot_id = strtol(tmp_slotid, NULL, 0);
 			PKI_Free ( tmp_slotid );
 		}
-	}
-		
-	if(( PKI_TOKEN_use_slot ( tk, tk->slot_id )) == PKI_ERR )
-	{
-		PKI_ERROR ( PKI_ERR_HSM_SET_SLOT, NULL);
-		goto end;
+
+		if ((PKI_TOKEN_use_slot(tk, tk->slot_id)) == PKI_ERR) {
+			PKI_ERROR ( PKI_ERR_HSM_SET_SLOT, NULL);
+			goto end;
+		}
 	}
 
 	if ((tmp_s = PKI_CONFIG_get_value( tk->config, "/tokenConfig/keypair")) != NULL)
 	{
-		/* Initialize OpenSSL so that it adds all the needed algor and dgst */
+		// Make sure the libraty is initialized
+		// to get all the needed OIDs
 		PKI_init_all();
+
+		// Duplicates the Key ID
 		tk->key_id = strdup(tmp_s);
+
+		// Frees the temporary memory
 		PKI_Free ( tmp_s );
+
+		// We do not load the key as this would trigger the login procedure.
+		// Key loading is delayed until the call to the PKI_TOKEN_login()
+		// function
+		
 	}
 	else PKI_log_debug("TOKEN::Warning::No Key Provided!");
 
@@ -741,10 +763,10 @@ int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
 		PKI_Free ( tmp_s );
 	}
 
-	tk->name = strdup(tk_name);
 	ret = PKI_OK;
 
 end:
+	if (tk_name) tk->name = strdup(tk_name);
 	if (config_file) PKI_Free(config_file);
 	return ret;
 }
@@ -1727,10 +1749,10 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 	if ((pkey = PKI_X509_KEYPAIR_get_url( url, PKI_DATA_FORMAT_UNKNOWN,
 											tk->cred, tk->hsm )) == NULL) {
 		/* Can not load the keypair from the given URL */
-		if (url) URL_free( url );
 		PKI_log_debug("PKI_TOKEN_load_keypair()::Can not load key (%s)", url->url_s);
 		tk->status |= PKI_TOKEN_STATUS_LOGIN_ERR;
 
+		if (url) URL_free(url);
 		return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, url_string);
 	}
 
@@ -2245,9 +2267,11 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 		};
 	};
 
+	/*
 	if( tk->algor ) {
 		if((digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor)) == PKI_DIGEST_ALG_UNKNOWN) {
-			/* Error, digest algorithm not supported or recognized! */
+			// Error, digest algorithm not supported or recognized!
+			PKI_DEBUG("Digest Algorithm Not Supported or Recognized (%s)", PKI_X509_ALGOR_VALUE_get_parsed(tk->algor));
 			return ( PKI_ERR );
 		}
 	} else {
@@ -2257,6 +2281,7 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 			return ( PKI_ERR );
 		};
 	};
+	*/
 
 	if( !tk->cred ) {
 		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );

@@ -437,7 +437,7 @@ typedef struct ResponseBody_st {
 
 DECLARE_ASN1_FUNCTIONS(RESPONSE_BODY)
 
-#include <libpki/cmc/cms_cert_req.h>
+#include <libpki/cmc/cmc_cert_req.h>
 
 /* End _LIBPKI_CMS_H */
 #endif

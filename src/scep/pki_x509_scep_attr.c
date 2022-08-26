@@ -497,7 +497,7 @@ int PKI_X509_SCEP_MSG_set_status(PKI_X509_SCEP_MSG * msg,
 
 	return PKI_X509_SCEP_MSG_set_attribute_int(msg,
 				                               SCEP_ATTRIBUTE_PKI_STATUS,
-											   status );
+											   (int)status);
 }
 
 

@@ -67,29 +67,31 @@ int main (int argc, char *argv[] ) {
 	PKI_X509_PROFILE *prof =  NULL;
 	// PKI_OID *oid = NULL;
 
-	PKI_MEM * mem_data = NULL;
+	// PKI_MEM * mem_data = NULL;
 
 	// PKI_X509_CRL *crl = NULL;
 	// PKI_X509_CRL_ENTRY       *entry = NULL;
 	PKI_MEM_STACK       *data = NULL;
-	PKI_X509_CERT_STACK *cert_data = NULL;
+	// PKI_X509_CERT_STACK *cert_data = NULL;
 	// PKI_KEY_STACK  *key_data = NULL;
-	PKI_X509_CRL_STACK       *crl_data = NULL;
+	// PKI_X509_CRL_STACK       *crl_data = NULL;
 
 	char *url[] = { 
 		"file://COPYING",
 		"http://www.apache.org",
-		"ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?cACertificate;binary",
-		"mysql://openca:openca@localhost/openca/certificate/?data"
+		// "ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?cACertificate;binary",
+		// "mysql://openca:openca@localhost/openca/certificate/?data"
         };
 
+	/*
 	char *cert_url[] = { 
-		"ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?cACertificate;binary",
-		"mysql://openca:openca@localhost/openca/certificate/?data",
-		"pkcs11:///usr/lib/libeTPkcs11.so/(slotid=\"0\")(label=\"openca\")?certificate",
-		"mysql://openca:openca@localhost/openca/certificate/(cert_key=\"9999\")?data",
-		"pg://openca:openca@localhost/openca/certificate/(cert_key=\"9999\")?data",
+		// "ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?cACertificate;binary",
+		// "mysql://openca:openca@localhost/openca/certificate/?data",
+		// "pkcs11:///usr/lib/libeTPkcs11.so/(slotid=\"0\")(label=\"openca\")?certificate",
+		// "mysql://openca:openca@localhost/openca/certificate/(cert_key=\"9999\")?data",
+		// "pg://openca:openca@localhost/openca/certificate/(cert_key=\"9999\")?data",
         };
+	*/
 
 	/*
 	char *key_url[] = {
@@ -98,9 +100,11 @@ int main (int argc, char *argv[] ) {
 	};
 	*/
 
+	/*
 	char *crl_url[] = { 
 		"ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?certificateRevocationList;binary"
         };
+	*/
 
 	printf("\n\nlibpki Test - Massimiliano Pala <madwolf@openca.org>\n");
 	printf("(c) 2006 by Massimiliano Pala and OpenCA Project\n");
@@ -143,6 +147,7 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
+	/*
 	printf("  o LDAP [ %s ] ... ", url[2] );
 	if((data = URL_get_data( url[2], 0, 0, NULL )) != NULL ) {
 		printf("Ok (got %d objects)\n", PKI_STACK_MEM_elements( data ));
@@ -163,6 +168,7 @@ int main (int argc, char *argv[] ) {
 		printf("ERROR!\n\n");
 		exit(1);
 	}
+	*/
 
 	/*
 	printf("* Retrieving Key(s) from test URLs:\n");
@@ -178,6 +184,7 @@ int main (int argc, char *argv[] ) {
 	}
 	*/
 
+	/*
 	printf("* Retrieving Certificate(s) from test URLs:\n");
 	printf("  o LDAP [ %s ] ... ", cert_url[0] );
 	if((cert_data = PKI_X509_CERT_STACK_get( cert_url[0], 
@@ -215,14 +222,15 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
+	*/
 
+	/*
 	printf("* Putting DATA to test URLs:\n");
 	printf("  o MySQL [ %s ] ... ", cert_url[3] );
 
 	mem_data = PKI_MEM_new_null();
 	PKI_MEM_add( mem_data, "THIS IS IT", 10);
 
-	/*
 	if(URL_put_data(cert_url[3], mem_data, NULL ) == PKI_OK ) {
 		printf("Ok!\n");
 	} else {
@@ -254,7 +262,7 @@ int main (int argc, char *argv[] ) {
 	}
 */
 
-
+	/*
 	printf("* Retrieving CRL(s) from test URLs:\n");
 	printf("  o LDAP [ %s ] ... ", crl_url[0] );
 	if((crl_data = PKI_X509_CRL_STACK_get( crl_url[0],
@@ -267,6 +275,7 @@ int main (int argc, char *argv[] ) {
 		printf("ERROR!\n\n");
 		exit(1);
 	}
+	*/
 
 	if( tk ) PKI_TOKEN_free ( tk );
 	if( prof ) PKI_X509_PROFILE_free ( prof );

@@ -23,7 +23,7 @@ typedef enum {
 
 char banner[] = 
 	"\n   " BOLD "PKI Certificate Request Tool " EE
-	"   (c) 2008-2009 by " BOLD "Massimiliano Pala" NORM
+	"   (c) 2008-2022 by " BOLD "Massimiliano Pala" NORM
 			" and " BOLD "Open" RED "CA" NORM BOLD " Labs" EE
 	"       " BOLD BLUE "Open" RED "CA" NORM " Licensed software" EE "\n";
 

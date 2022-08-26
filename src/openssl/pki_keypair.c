@@ -69,6 +69,11 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( PKI_SCHEME_ID type, int bits,
 	kp.ec.asn1flags = -1;
 #endif
 
+	// Open Quantum Safe
+#ifdef ENABLE_OQS
+	kp.oqs.algId = -1;
+#endif
+
 	return HSM_X509_KEYPAIR_new_url ( &kp, url, cred, hsm );
 }
 
@@ -232,7 +237,43 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 			break;
 #endif
 
+#ifdef ENABLE_COMPOSITE
+		case PKI_ALGOR_COMPOSITE:
+		case PKI_ALGOR_COMPOSITE_OR:
+			algId = p_type;
+			break;
+#endif
+
+#ifdef ENABLE_OQS
+
+		// Open Quantum Safe Algos
+		case PKI_ALGOR_FALCON512:
+		case PKI_ALGOR_FALCON1024:
+		case PKI_ALGOR_DILITHIUM2:
+		case PKI_ALGOR_DILITHIUM3:
+		case PKI_ALGOR_DILITHIUM5:
+		case PKI_ALGOR_DILITHIUM2_AES:
+		case PKI_ALGOR_DILITHIUM3_AES:
+		case PKI_ALGOR_DILITHIUM5_AES:
+		case PKI_ALGOR_SPHINCS_SHA256_128_R:
+		case PKI_ALGOR_SPHINCS_SHAKE256_128_R:
+			algId = p_type;
+			break;
+
+		// Composite Crypto Quantum Safe Algos
+		case PKI_ALGOR_COMPOSITE_RSA_FALCON512:
+		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON512:
+		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024:
+		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2:
+		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2:
+		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3:
+		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5:
+			algId = p_type;
+			break;
+#endif
+
 		default:
+			PKI_DEBUG("Algorithm not found [%d]", p_type);
 			return ret;
 	};
 

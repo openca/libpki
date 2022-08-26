@@ -11,6 +11,7 @@
 
 # include <sys/param.h>
 # include <sys/types.h>
+# include <unistd.h>
 
 // ---------------------- ENDIANNESS defines ----------------------
 

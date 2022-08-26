@@ -1,7 +1,21 @@
-* Jun  2 2018 Massimiliano Pala <madwolf@openca.org>
-- Fixed all warnings from Automake and Autoconf.
-- Fixed includes (-I) parameter for tools Makefile.
-- Fixed version number and behavior for --with-libdir option.
+* Aug 24 2022 Massimiliano Pala <madwolf@openca.org>
+- Fixed EC key generation and encoding.
+- Fix for correct support for when ENABLE_OQS is disabled.
+- Updated PKI_KEYPARAMS_set_bits() to enable the use of 128/192/256 bits paradigm.
+- Fix for signature OID set.
+- Small fix for older application that use -1 as PKI_DATA_FORMAT instead of PKI_DATA_FORMAT_UNKNOWN when loading X509 objects without specifying the type.
+- Fixed @path@ -> @rpath@ in src/global-vars.in.
+- Fixed order of ldflags <libs> ldadd.
+- Updated libpki-config file to correctly report the libxml2 include library too.
+- Updated global vars file to better support libxml2 includes and linker options.
+- Regenerated ./configure script after removing check for X509_verfiy function in openssl's libcrypto library.
+- Removed the use of -fsanitize=address for compiler because it creates issues with nodejs integration (node_addon_api is missing -shared-libasan when compiling).
+- Added better logging when URL (file) resources are not found.
+- Improved handling of PKI TOKEN. Updated delayed key-loading procedure for the token interface to simplify applications' integration.
+- Fix for CSR generation by using profiles.
+- Fixed generation of Random Serial Number for Certificate Signing.
+- Small fix for ECDSA detection support when using the 'prefix' option.
+- Initial support for PQC via LibOQS
 
 * May 31 2018 Massimiliano Pala <madwolf@openca.org>
 - Updated build system by converting INCLUDES to AM_CPPFLAGS in Makefiles.

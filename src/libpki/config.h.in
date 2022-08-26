@@ -1,10 +1,13 @@
-/* src/libpki/config.h.in.  Generated from configure.in by autoheader.  */
+/* src/libpki/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Forces 32bits builds */
 #undef ENABLE_ARCH_32
 
 /* Forces 64bits builds */
 #undef ENABLE_ARCH_64
+
+/* Composite Crypto Native OpenSSL Support */
+#undef ENABLE_COMPOSITE
 
 /* ECC Support for OpenSSL */
 #undef ENABLE_ECDSA
@@ -14,6 +17,9 @@
 
 /* OPENSSL */
 #undef ENABLE_OPENSSL
+
+/* Open Quantum Safe Library */
+#undef ENABLE_OQS
 
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
@@ -157,8 +163,7 @@
 /* Solaris */
 #undef LIBPKI_TARGET_SOLARIS
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Name of package */

@@ -6,24 +6,6 @@
 #ifndef _LIBPKI_HSM_OPENSSL_PKEY_H
 #define _LIBPKI_HSM_OPENSSL_PKEY_H
 
-/*
-typedef struct __ec_key_st2 {
-    int version;
-
-    EC_GROUP *group;
-
-    EC_POINT *pub_key;
-    BIGNUM   *priv_key;
-
-    unsigned int enc_flag;
-    point_conversion_form_t conv_form;
-
-    int     references;
-
-    void *method_data;
-};
-*/
-
 PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp );
 PKI_DSA_KEY * _pki_dsakey_new( PKI_KEYPARAMS *kp );
 #ifdef ENABLE_ECDSA
@@ -143,14 +125,13 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
     size_t num_curves = 0;
     int degree = 0;
 
-    int bits     = PKI_EC_KEY_DEFAULT_SIZE;
-    int curve     = PKI_EC_KEY_CURVE_DEFAULT;
-    int form     = PKI_EC_KEY_FORM_DEFAULT;
+    int bits    = PKI_EC_KEY_DEFAULT_SIZE;
+    int curve   = PKI_EC_KEY_CURVE_DEFAULT;
     int flags   = PKI_EC_KEY_ASN1_DEFAULT;
 
-    // struct __ec_key_st2 *ecKeyPnt = NULL;
+    PKI_EC_KEY_FORM form     = PKI_EC_KEY_FORM_DEFAULT;
 
-    /* Get the number of availabe ECDSA curves in OpenSSL */
+    /* Get the number of available ECDSA curves in OpenSSL */
     if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
         /* No curves available! */
         PKI_ERROR(PKI_ERR_OBJECT_CREATE, "Builtin EC curves");
@@ -235,13 +216,15 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
         return NULL;
     };
 
+    EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE);
+    EC_GROUP_set_point_conversion_form(group, form);
+
     /* Assign the group to the key */
     if (EC_KEY_set_group(k, group) == 0) {
         PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Invalid Group");
         goto err;
         return NULL;
     }
-
 
     /* Sets the point compression */
     if ( kp && kp->ec.form != PKI_EC_KEY_FORM_UNKNOWN ) {
@@ -320,6 +303,80 @@ void * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
 #endif
 
+#ifdef ENABLE_OQS
+
+EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
+
+    const EVP_PKEY_ASN1_METHOD *ameth;
+
+    ENGINE *tmpeng = NULL;
+    EVP_PKEY_CTX *ctx = NULL;
+
+    int pkey_id = -1;
+
+    ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
+    if (!ameth) {
+       PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
+       PKI_log_debug("[1] Algorithm %s (%s) not found (%d)", 
+           PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
+       if (obj) PKI_OID_free(obj);
+       return NULL;
+    }
+
+    ERR_clear_error();
+
+    EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
+
+    if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL)
+        goto err;
+
+    // Let's set the operation (check EVP_PKEY_CTX_ctrl function -pmeth_lib.c:432)
+    // Use the EVP interface to initialize the operation (crypto/evp/pmeth_gn.c:69)
+    if (EVP_PKEY_keygen_init(ctx) <= 0) {
+        PKI_log_debug("Cannot Initialize Key Generation");
+        goto err;
+    }
+
+    // CTX operations for Composite Crypto
+    // (defined in <openssl-1.1.1>/include/openssl/evp.h)
+    //
+    // EVP_PKEY_CTRL_COMPOSITE_PUSH
+    // EVP_PKEY_CTRL_COMPOSITE_POP
+    // EVP_PKEY_CTRL_COMPOSITE_ADD
+    // EVP_PKEY_CTRL_COMPOSITE_DEL
+    // EVP_PKEY_CTRL_COMPOSITE_CLEAR
+
+#ifdef ENABLE_COMPOSITE
+    if (kp->comp.k_stack != NULL) {
+
+        for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
+
+            PKI_X509_KEYPAIR * tmp_key = NULL;
+
+            // Let's get the i-th PKI_X509_KEYPAIR
+            tmp_key = PKI_STACK_X509_KEYPAIR_get_num(kp->comp.k_stack, i);
+            // Now we can use the CRTL interface to pass the new keys
+            if (EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_KEYGEN,
+                                  EVP_PKEY_CTRL_COMPOSITE_PUSH, 0, tmp_key->value) <= 0) {
+                PKI_log_debug("Cannot add key via the CTRL interface");
+                goto err;
+            }
+        }
+    }
+#endif
+
+    return ctx;
+
+ err:
+
+    PKI_log_debug("Error initializing context for [scheme: %d, algId: %d]\n", 
+        kp->scheme, kp->oqs.algId);
+
+    if (ctx) EVP_PKEY_CTX_free(ctx);
+    return NULL;
+}
+
+#endif
 
 PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp, 
         URL *url, PKI_CRED *cred, HSM *driver ) {
@@ -327,11 +384,16 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     PKI_X509_KEYPAIR *ret = NULL;
     PKI_RSA_KEY *rsa = NULL;
     PKI_DSA_KEY *dsa = NULL;
+
 #ifdef ENABLE_ECDSA
     PKI_EC_KEY *ec = NULL;
 #endif
 
-    int type = PKI_SCHEME_DEFAULT;
+#ifdef ENABLE_OQS
+    EVP_PKEY_CTX * ctx = NULL;
+#endif
+
+    PKI_SCHEME_ID type = PKI_SCHEME_DEFAULT;
 
     if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
@@ -384,6 +446,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             break;
 
 #ifdef ENABLE_ECDSA
+
         case PKI_SCHEME_ECDSA:
             if((ec = _pki_ecdsakey_new( kp )) == NULL ) {
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
@@ -397,13 +460,33 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             }
             ec=NULL;
             break;
-#endif
+
+#endif // ENABLE_ECDSA
 
         default:
+
+#ifdef ENABLE_OQS
+            if ((ctx = _pki_get_evp_pkey_ctx(kp)) == NULL) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+                return NULL;
+            }
+
+            if (EVP_PKEY_keygen(ctx, (EVP_PKEY **)&(ret->value)) <= 0) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+                if (ctx) EVP_PKEY_CTX_free(ctx);
+                return NULL;
+            }
+            break;
+
+#else
+
             /* No recognized scheme */
             PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "%d", type );
             if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
             return NULL;
+
+#endif // ENABLE_OQS
+
     }
 
     /* Let's return the PKEY infrastructure */
@@ -427,36 +510,47 @@ void HSM_OPENSSL_X509_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey ) {
 // this issue
 
 int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x, 
-        const EVP_CIPHER *enc, unsigned char *kstr, int klen, 
+        const EVP_CIPHER *enc, unsigned char *out_buffer, int klen, 
         pem_password_cb *cb, void *u) {
 
-    int ret = 0;
+    int ret = PKI_ERR;
 
-    if(!x || !bp) return 0;
+    // Input Check
+    if (!x || !bp) return PKI_ERR;
 
+    // Different functions depending on the Key type
     switch(EVP_PKEY_type(EVP_PKEY_id(x)))
     {
-        case EVP_PKEY_DSA:
-        case EVP_PKEY_RSA: {
-            ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
-                (char *) kstr, klen, cb, u);
-            } break;
+
 #ifdef ENABLE_ECDSA
         case EVP_PKEY_EC: {
 # if OPENSSL_VERSION_NUMBER < 0x1010000fL
             ret = PEM_write_bio_ECPrivateKey(bp, 
-                x->pkey.ec, enc, (unsigned char *) kstr, klen, cb, u);
+                x->pkey.ec, enc, (unsigned char *) out_buffer, klen, cb, u);
 # else
             ret = PEM_write_bio_ECPrivateKey(bp, 
-                EVP_PKEY_get0_EC_KEY(x), enc, (unsigned char *) kstr, klen, cb, u);
+                EVP_PKEY_get0_EC_KEY(x), enc, (unsigned char *) out_buffer, klen, cb, u);
 # endif
-            } break;
+            if (!ret) {
+                PKI_DEBUG("Internal Error while encoding EC Key (PEM).");
+                return PKI_ERR;
+            }
+        } break;
 #endif
+
         default: {
-            ret = 0;
+            if ((ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
+                (char *) out_buffer, klen, cb, u)) != 1) {
+                // Debug Info
+                PKI_DEBUG("Key Type NOT supported (%d)", 
+                    EVP_PKEY_type(EVP_PKEY_id(x)));
+                // Error Condition
+                return PKI_ERR;
+            }
         }
     }
 
+    // All Done
     return ret;
 }
 

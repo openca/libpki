@@ -31,6 +31,8 @@ extern const long LIBPKI_OS_DETAILS;
 #include <ctype.h>
 #include <sys/types.h>
 
+#include <sys/socket.h>
+
 #define __XOPEN_OR_POSIX
 #include <signal.h>
 #undef __XOPEN_OR_POSIX
@@ -86,13 +88,42 @@ BEGIN_C_DECLS
 /* Imports the library's datatypes */
 #include <libpki/datatypes.h>
 
+// Quick And Dirty Option for checking the OQS support
+// to be replaced by final support from OpenSSL
+// #define ENABLE_OQS				1
+
 /* Supported Signing schemes identifiers */
 typedef enum {
+	// Classic/Modern Cryptography
 	PKI_SCHEME_UNKNOWN 	= 0,
 	PKI_SCHEME_RSA,
 	PKI_SCHEME_DSA,
 	PKI_SCHEME_DH,
-	PKI_SCHEME_ECDSA
+#ifdef ENABLE_ECDSA
+	PKI_SCHEME_ECDSA,
+#endif
+
+#ifdef ENABLE_OQS
+	// Post Quantum Cryptography - KEMS
+	PKI_SCHEME_NTRU_PRIME,
+	PKI_SCHEME_SIKE,
+	PKI_SCHEME_BIKE,
+	PKI_SCHEME_FRODOKEM,
+	// Post Quantum Cryptography - Digital Signatures
+	PKI_SCHEME_FALCON,
+	PKI_SCHEME_DILITHIUM,
+	PKI_SCHEME_PICNIC,
+	PKI_SCHEME_SPHINCS,
+	// Composite Crypto Schemes
+	PKI_SCHEME_COMPOSITE,
+	PKI_SCHEME_COMPOSITE_OR,
+	// OQS Composite Crypto Schemes
+	PKI_SCHEME_COMPOSITE_RSA_FALCON,
+	PKI_SCHEME_COMPOSITE_ECDSA_FALCON,
+	PKI_SCHEME_COMPOSITE_RSA_DILITHIUM,
+	PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM
+#endif
+
 } PKI_SCHEME_ID;
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
@@ -246,7 +277,8 @@ typedef enum {
 /* Pthread lib include */
   #include <pthread.h>
 
-#ifndef HAVE_PTHREAD_RWLOCK
+#ifdef __LIB_BUILD__
+# ifndef HAVE_PTHREAD_RWLOCK
   typedef struct pthread_rwlock_t
   {
     pthread_cond_t cond_var;
@@ -257,9 +289,13 @@ typedef enum {
     uint64_t n_writers;
     uint64_t n_writers_waiting;
   } PKI_RWLOCK;
+# else
+  typedef pthread_rwlock_t PKI_RWLOCK;
+# endif
 #else
   typedef pthread_rwlock_t PKI_RWLOCK;
 #endif
+
   typedef pthread_mutex_t PKI_MUTEX;
   typedef pthread_cond_t PKI_COND;
 

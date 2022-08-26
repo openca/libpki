@@ -55,6 +55,8 @@ int PKI_X509_EXTENSIONS_req_add_profile(const PKI_X509_PROFILE *conf,
 
 	for ( i = 0; i < ext_num; i++ )
 	{
+		// For Extensions that Require the CA certificate to generate,
+		// the TOKEN must have the CA certificate configured
 		if ((ext = PKI_X509_PROFILE_get_ext_by_num ( conf, i, tk )) != NULL)
 		{
 			ret = PKI_X509_REQ_add_extension(req, ext);

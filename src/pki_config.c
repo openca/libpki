@@ -48,12 +48,18 @@ static char * _xml_search_namespace_add ( char *search ) {
 	int r = 0;
 	int i = 0;
 
-	// return strdup ( search );
+	// int strSize = -1;
 
 	/* Let's alloc enough memory for the arguments, maybe this is
 	   too much, but for the moment, let's keep it big */
 	my_arg = PKI_Malloc ( BUFF_MAX_SIZE );
 	my_search = PKI_Malloc ( BUFF_MAX_SIZE );
+
+	if (!my_arg || !my_search) {
+		if (my_arg) PKI_Free(my_arg);
+		if (my_search) PKI_Free(my_search);
+		return NULL;
+	}
 
 	/* Now let's take care about setting the appropriate namespace
 	   if it is not passed, already */
@@ -80,13 +86,18 @@ static char * _xml_search_namespace_add ( char *search ) {
 				BUFF_MAX_SIZE - strlen( my_search ));
 		}
 	}
-	PKI_Free( my_arg );
+	PKI_Free(my_arg);
 
-	ret = PKI_Malloc ( strlen( my_search ) + 1);
-	strncpy( ret, my_search, strlen(my_search) );
+	// Duplicates only the good parts
+	ret = strdup(my_search);
 
-	PKI_Free ( my_search );
-	return( ret );
+	// strSize = (int) strlen(my_search);
+	// if ((ret = PKI_Malloc((size_t) strSize + 1)) != NULL) {
+	//	strncpy(ret, my_search, (size_t)strSize - strlen(my_search) - 1);
+	// }
+
+	PKI_Free(my_search);
+	return(ret);
 }
 
 /*! \brief Loads a PKI_CONFIG object (XML config file) */

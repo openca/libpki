@@ -9,7 +9,7 @@
 static STACK_OF(X509) * __get_chain (const PKI_X509_PKCS7 * const p7) {
 
 	STACK_OF(X509) *x_sk = NULL;
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 
 	PKI_X509_PKCS7_VALUE *value = NULL;
 
@@ -36,7 +36,7 @@ static STACK_OF(X509) * __get_chain (const PKI_X509_PKCS7 * const p7) {
 static const STACK_OF(X509_CRL) *__get_crl (const PKI_X509_PKCS7 * const p7 ) {
 
 	STACK_OF(X509_CRL) *x_sk = NULL;
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 
 	PKI_X509_PKCS7_VALUE *value = NULL;
 
@@ -69,7 +69,7 @@ int PKI_X509_PKCS7_get_recipients_num(const PKI_X509_PKCS7 * const p7 ) {
 	STACK_OF(PKCS7_RECIP_INFO) *r_sk = NULL;
 	PKI_X509_PKCS7_VALUE *p7val = NULL;
 
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 	int ret = 0;
 
 	if ( !p7 || !p7->value ) return -1;
@@ -104,7 +104,7 @@ int PKI_X509_PKCS7_get_recipients_num(const PKI_X509_PKCS7 * const p7 ) {
 int PKI_X509_PKCS7_get_signers_num(const PKI_X509_PKCS7 * const p7) {
 
 	int ret = -1;
-	int type = -1;
+	PKI_X509_PKCS7_TYPE type = PKI_X509_PKCS7_TYPE_UNKNOWN;
 
 	PKI_X509_PKCS7_VALUE *p7val = NULL;
 	STACK_OF(PKCS7_SIGNER_INFO) *s_sk = NULL;
@@ -139,7 +139,7 @@ const PKCS7_RECIP_INFO * PKI_X509_PKCS7_get_recipient_info(
 					const PKI_X509_PKCS7 * const p7,
 					int                    idx ) {
 
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 	int recipients_num = 0;
 	PKCS7_RECIP_INFO *ret = NULL;
 	STACK_OF(PKCS7_RECIP_INFO) *r_sk = NULL;
@@ -219,7 +219,7 @@ const PKCS7_SIGNER_INFO * PKI_X509_PKCS7_get_signer_info(
 					const PKI_X509_PKCS7 * const p7, 
 					int                    idx ) {
 
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 	int cnt = 0;
 	const STACK_OF(PKCS7_SIGNER_INFO) *sk = NULL;
 	const PKCS7_SIGNER_INFO *ret = NULL;
@@ -299,7 +299,7 @@ PKI_X509_PKCS7 *PKI_X509_PKCS7_new(PKI_X509_PKCS7_TYPE type) {
 		return NULL;
 	}
 
-	if(!PKCS7_set_type(value, type)) {
+	if(!PKCS7_set_type(value, (int)type)) {
 		PKCS7_free(value);
 		PKI_ERROR(PKI_ERR_X509_PKCS7_TYPE_UNKNOWN, NULL);
 		return ( NULL );
@@ -609,7 +609,7 @@ int PKI_X509_PKCS7_add_signer(const PKI_X509_PKCS7   * p7,
 
 int PKI_X509_PKCS7_has_signers(const PKI_X509_PKCS7 * const p7 ) {
 
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 
 	if ( !p7 || !p7->value ) return ( PKI_ERR );
 
@@ -635,7 +635,7 @@ int PKI_X509_PKCS7_has_signers(const PKI_X509_PKCS7 * const p7 ) {
 
 int PKI_X509_PKCS7_has_recipients(const PKI_X509_PKCS7 * const p7) {
 
-	int type = 0;
+	PKI_X509_PKCS7_TYPE type = 0;
 	PKI_X509_PKCS7_VALUE *value = NULL;
 
 	if( !p7 || !p7->value ) return ( PKI_ERR );
@@ -670,7 +670,7 @@ int PKI_X509_PKCS7_encode(const PKI_X509_PKCS7 * const p7,
 			  unsigned char *data, 
 			  size_t size ) {
 
-	int type = NID_pkcs7_signed;
+	PKI_X509_PKCS7_TYPE type = PKI_X509_PKCS7_TYPE_SIGNED;
 	const PKCS7_SIGNER_INFO * signerInfo = NULL;
 	BIO *bio = NULL;
 
@@ -736,7 +736,7 @@ PKI_MEM *PKI_X509_PKCS7_get_raw_data(const PKI_X509_PKCS7 * const p7 ) {
 
 	unsigned char *data = NULL;
 	ssize_t len = -1;
-	int type = -1;
+	PKI_X509_PKCS7_TYPE type = PKI_X509_PKCS7_TYPE_UNKNOWN;
 
 	PKI_X509_PKCS7_VALUE *p7val = NULL;
 	PKI_MEM *ret = NULL;
@@ -836,7 +836,7 @@ PKI_MEM *PKI_X509_PKCS7_get_data(const PKI_X509_PKCS7 * const p7,
 				 const PKI_X509_KEYPAIR * const k,
 				 const PKI_X509_CERT * const x ) {
 
-	PKI_ID type;
+	PKI_X509_PKCS7_TYPE type = PKI_X509_PKCS7_TYPE_UNKNOWN;
 
 	if( !p7 || !p7->value ) return ( NULL );
 
@@ -865,7 +865,7 @@ PKI_MEM *PKI_X509_PKCS7_decode(const PKI_X509_PKCS7 * const p7,
 
 	BIO *bio = NULL;
 	PKI_MEM *mem = NULL;
-	PKI_ID type = 0;
+	PKI_X509_PKCS7_TYPE type = PKI_X509_PKCS7_TYPE_UNKNOWN;
 	PKI_X509_CERT_VALUE *x_val = NULL;
 	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
 
@@ -911,7 +911,7 @@ PKI_MEM *PKI_X509_PKCS7_decode(const PKI_X509_PKCS7 * const p7,
 int PKI_X509_PKCS7_set_cipher(const PKI_X509_PKCS7 * p7,
 			      const PKI_CIPHER     * const cipher) {
 
-	int type;
+	PKI_X509_PKCS7_TYPE type;
 
 	if( !p7 || !p7->value || !cipher ) return ( PKI_ERR );
 
@@ -940,7 +940,7 @@ int PKI_X509_PKCS7_set_recipients(const PKI_X509_PKCS7 *p7,
 				  const PKI_X509_CERT_STACK * const x_sk ) {
 
 	int i = 0;
-	int type;
+	PKI_X509_PKCS7_TYPE type;
 
 	if( !p7 || !p7->value || !x_sk ) return ( PKI_ERR );
 
@@ -1142,7 +1142,7 @@ int PKI_X509_PKCS7_delete_attribute(const PKI_X509_PKCS7 *p7, PKI_ID id ) {
 int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio, 
 				     const PKI_X509_PKCS7_VALUE *p7val ) {
 
-	int type;
+	PKI_X509_PKCS7_TYPE type;
 	int i,j;
 
 	int cert_num = -1;
@@ -1188,7 +1188,7 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 	if (( mem = PKI_X509_PKCS7_get_raw_data ( msg )) == NULL ) {
 		BIO_printf( bio, "        None.\r\n");
 	} else {
-		int msg_type = 0;
+		PKI_X509_PKCS7_TYPE msg_type = 0;
 
 		BIO_printf( bio, "        Size=%u bytes\r\n", 
 						(unsigned int) mem->size );
