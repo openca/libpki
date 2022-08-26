@@ -350,7 +350,7 @@ static int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
 
 err:
 
-  if (buff && buff_len >= 0) OPENSSL_secure_clear_free(buff, buff_len);
+  if (buff && buff_len >= 0) OPENSSL_secure_clear_free(buff, (size_t) buff_len);
 
   if (oct_string) ASN1_OCTET_STRING_free(oct_string);
 
@@ -628,9 +628,9 @@ static int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   int buff_len = 0;
     // Temporary Storage for ASN1 data
 
-  unsigned char * tot_buff = NULL;
-  unsigned char * tmp_pnt = NULL;
-  int tot_buff_len = 0;
+  // unsigned char * tot_buff = NULL;
+  // unsigned char * tmp_pnt = NULL;
+  // int tot_buff_len = 0;
     // Temporary Storage for ASN1 data
 
   // ASN1_STRING seq;
@@ -735,7 +735,7 @@ err:
 
   DEBUG("Function Failed.");
 
-  if (buff && buff_len >= 0) OPENSSL_secure_clear_free(buff, buff_len);
+  if (buff && buff_len >= 0) OPENSSL_secure_clear_free(buff, (size_t) buff_len);
 
   if (oct_string) ASN1_OCTET_STRING_free(oct_string);
 

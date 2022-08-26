@@ -4,8 +4,11 @@
 // (c) 2021 by Massimiliano Pala
 
 #include <openssl/x509.h>
-// #include <crypto/evp/evp_local.h>
 #include <openssl/asn1t.h>
+
+#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
+#include <libpki/composite/composite_ossl_internals.h>
+#endif
 
 #ifndef OPENSSL_COMPOSITE_LOCAL_H
 #define OPENSSL_COMPOSITE_LOCAL_H
@@ -37,6 +40,12 @@ extern "C" {
 # define EVP_PKEY_CTRL_COMPOSITE_ADD     0x203
 # define EVP_PKEY_CTRL_COMPOSITE_DEL     0x204
 # define EVP_PKEY_CTRL_COMPOSITE_CLEAR   0x205
+
+// Define for common assign function
+#ifdef ENABLE_COMPOSITE
+# define EVP_PKEY_assign_COMPOSITE(pkey,comp_key) \
+    EVP_PKEY_assign((pkey),EVP_PKEY_COMPOSITE, (char *)(comp_key))
+# endif
 
 // ==============================
 // Declarations & Data Structures

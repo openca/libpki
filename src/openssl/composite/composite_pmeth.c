@@ -638,7 +638,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
     // Pointer to inner key structure
 
-  COMPOSITE_CTX * comp_ctx = ctx->data;
+  // COMPOSITE_CTX * comp_ctx = ctx->data;
     // Pointer to algorithm specific CTX
 
   const int signature_size = EVP_PKEY_size(ctx->pkey);
@@ -712,7 +712,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // Allocate the buffer for the single signature
-    if ((pnt = buff = OPENSSL_malloc(buff_len)) == NULL) {
+    if ((pnt = buff = OPENSSL_malloc((size_t)buff_len)) == NULL) {
       DEBUG("ERROR: Memory Allocation");
       goto err;
     }
@@ -788,7 +788,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
   // Sets the output buffer
   sig = buff;
-  *siglen = buff_len;
+  *siglen = (size_t) buff_len;
 
   // All Done
   return 1;

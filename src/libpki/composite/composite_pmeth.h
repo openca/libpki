@@ -11,8 +11,13 @@
 
 #include <stdio.h>
 #include <openssl/x509.h>
-#include <crypto/asn1.h>
-#include <crypto/evp.h>
+
+// #include <crypto/asn1.h>
+// #include <crypto/evp.h>
+
+#ifndef OPENSSL_COMPOSITE_LOCAL_H
+#include <libpki/composite/composite_internals.h>
+#endif
 
 #ifndef OPENSSL_COMPOSITE_PKEY_METH_H
 #define OPENSSL_COMPOSITE_PKEY_METH_H
@@ -21,10 +26,9 @@
 extern "C" {
 #endif
 
-// ===============
-// Data Structures
-// ===============
-
+// ===========================
+// Data Structures and Defines
+// ===========================
 
 // ==========================
 // EVP_PKEY_METHOD Prototypes
