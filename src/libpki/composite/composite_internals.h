@@ -6,6 +6,8 @@
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 
+#ifdef ENABLE_COMPOSITE
+
 #ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
 #include <libpki/composite/composite_ossl_internals.h>
 #endif
@@ -31,8 +33,8 @@ extern "C" {
 // We need to find a solution for replacing
 // the use of NID_composite with the dynamic
 // version of it
-# define EVP_PKEY_COMPOSITE NID_composite
-# define EVP_PKEY_COMBINED NID_combined
+# define EVP_PKEY_COMPOSITE     NID_composite
+# define EVP_PKEY_COMBINED      NID_combined
 
 // Basic CTRL values for COMPOSITE support
 # define EVP_PKEY_CTRL_COMPOSITE_PUSH    0x201
@@ -184,7 +186,7 @@ void COMPOSITE_CTX_ITEM_free(COMPOSITE_CTX_ITEM * it);
   // Adds a component at num-th position
 
 #define COMPOSITE_CTX_del(ctx, num)        COMPOSITE_CTX_ITEM_free(sk_COMPOSITE_CTX_ITEM_delete(ctx, num))
-  // Deletesthe num-th component from the key
+  // Deletes the num-th component from the key
 
 #define COMPOSITE_CTX_get_item(ctx, num)   sk_COMPOSITE_CTX_ITEM_value(ctx, num)
   // Alias for the COMPOSITE_KEY_num() define
@@ -245,3 +247,5 @@ int COMPOSITE_KEY_security_bits(COMPOSITE_KEY * sec_bits);
 #endif
 
 /* END: composite_local.h */
+
+#endif // ENABLE_COMPOSITE

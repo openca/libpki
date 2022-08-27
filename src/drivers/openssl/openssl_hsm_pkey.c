@@ -340,13 +340,12 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 #ifdef ENABLE_COMPOSITE
 
     // CTX operations for Composite Crypto
-    // (originally defined in <openssl-1.1.1>/include/openssl/evp.h)
     //
-    # define EVP_PKEY_CTRL_COMPOSITE_PUSH       0xF0
-    # define EVP_PKEY_CTRL_COMPOSITE_POP        0xF1
-    # define EVP_PKEY_CTRL_COMPOSITE_ADD        0xF2
-    # define EVP_PKEY_CTRL_COMPOSITE_DEL        0xF3
-    # define EVP_PKEY_CTRL_COMPOSITE_CLEAR      0xF4
+    // EVP_PKEY_CTRL_COMPOSITE_PUSH       
+    // EVP_PKEY_CTRL_COMPOSITE_POP        
+    // EVP_PKEY_CTRL_COMPOSITE_ADD        
+    // EVP_PKEY_CTRL_COMPOSITE_DEL        
+    // EVP_PKEY_CTRL_COMPOSITE_CLEAR      
 
     if (kp->comp.k_stack != NULL) {
 
@@ -379,6 +378,43 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
 #endif
 
+#ifdef ENABLE_COMPOSITE
+PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
+
+    PKI_COMPOSITE_KEY *k = NULL;
+
+    if ((k = COMPOSITE_KEY_new()) == NULL) {
+        // Memory Allocation Error
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Too low Entropy");
+        return NULL;
+    }
+
+    if (kp->comp.k_stack != NULL) {
+
+        for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
+
+            PKI_X509_KEYPAIR * tmp_key = NULL;
+
+            // Let's get the i-th PKI_X509_KEYPAIR
+            tmp_key = PKI_STACK_X509_KEYPAIR_get_num(kp->comp.k_stack, i);
+
+            // Pushes the Key onto the stack
+            COMPOSITE_KEY_push(k, tmp_key->value);
+
+            // // Now we can use the CRTL interface to pass the new keys
+            // if (EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_KEYGEN,
+            //                       EVP_PKEY_CTRL_COMPOSITE_PUSH, 0, tmp_key->value) <= 0) {
+            //     PKI_log_debug("Cannot add key via the CTRL interface");
+            //     goto err;
+            // }
+        }
+    }
+
+    // All Done.
+    return k;
+}
+#endif
+
 PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp, 
         URL *url, PKI_CRED *cred, HSM *driver ) {
 
@@ -392,6 +428,14 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 #ifdef ENABLE_OQS
     EVP_PKEY_CTX * ctx = NULL;
+#endif
+
+#ifdef ENABLE_COMPOSITE
+    COMPOSITE_KEY * composite = NULL;
+#endif
+
+#ifdef ENABLE_COMBINED
+    EVP_PKEY_COMBINED * combined = NULL;
 #endif
 
     PKI_SCHEME_ID type = PKI_SCHEME_DEFAULT;
@@ -462,6 +506,38 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             ec=NULL;
             break;
 
+        case PKI_SCHEME_COMPOSITE:
+            if ((composite = _pki_composite_new(kp)) == NULL) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not initiate keypair generation");
+                return NULL;
+            };
+            if (!EVP_PKEY_assign_COMPOSITE(ret->value, composite)) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign COMPOSITE key");
+                if (composite) COMPOSITE_KEY_free(composite);
+                return NULL;
+            }
+            composite=NULL;
+            break;
+
+#ifdef ENABLE_COMBINED
+        case PKI_SCHEME_COMBINED:
+        if ((combined = _pki_combined_new(kp)) == NULL) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not initiate keypair generation");
+                return NULL;
+            };
+            if (!EVP_PKEY_assign_COMBINED(ret->value, combined)) {
+                if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign COMBINED key");
+                if (combined) COMBINED_KEY_free(combined);
+                return NULL;
+            }
+            combined=NULL;
+            break;
+#endif
+
 #endif // ENABLE_ECDSA
 
         default:
@@ -477,10 +553,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
                 if (ctx) EVP_PKEY_CTX_free(ctx);
                 return NULL;
             }
-            break;
-
 #else
-
             /* No recognized scheme */
             PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "%d", type );
             if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );

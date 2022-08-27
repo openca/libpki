@@ -95,8 +95,12 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 #ifdef ENABLE_COMPOSITE
 
 			case PKI_SCHEME_COMPOSITE:
-			case PKI_SCHEME_COMPOSITE_OR:
 				break;
+
+#ifdef ENABLE_COMBINED
+			case PKI_SCHEME_COMBINED:
+				break;
+#endif
 
 #endif // ENABLE_COMPOSITE
 
@@ -196,9 +200,14 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 #ifdef ENABLE_COMPOSITE
 
 			case PKI_SCHEME_COMPOSITE:
-			case PKI_SCHEME_COMPOSITE_OR:
 				kp->bits = 128;
 				break;
+
+#ifdef ENABLE_COMBINED
+			case PKI_SCHEME_COMBINED:
+				kp->bits = 128;
+				break;
+#endif
 
 #endif // ENABLE_COMPOSITE
 
@@ -349,19 +358,20 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		case PKI_SCHEME_COMPOSITE: {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
-			// need to enable more on libpqs
+			// need to enable more on LibOQS
 			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE;
 			kp->bits = 128;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_OR: {
+# ifdef ENABLE_COMBINED
+		case PKI_SCHEME_COMBINED: {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
-			// need to enable more on libpqs
-			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_OR;
+			// need to enable more on LibOQS
+			kp->oqs.algId = PKI_ALGOR_ID_COMBINED;
 			kp->bits = 128;
 		} break;
-
+# endif
 #endif
 
 #ifdef ENABLE_OQS
@@ -521,10 +531,14 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 	if (!kp) return
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if (kp->scheme != PKI_SCHEME_COMPOSITE &&
-		kp->scheme != PKI_SCHEME_COMPOSITE_OR) {
+	if (kp->scheme != PKI_SCHEME_COMPOSITE
+# ifdef ENABLE_COMBINED
+		&& kp->scheme != PKI_SCHEME_COMBINED
+# endif
+											) {
 		return PKI_ERROR(PKI_ERR_GENERAL, 
 			"Error while adding keys to non-composite scheme");
+
 	}
 
 	if (0 >= PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key)) {

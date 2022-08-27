@@ -88,10 +88,6 @@ BEGIN_C_DECLS
 /* Imports the library's datatypes */
 #include <libpki/datatypes.h>
 
-// Quick And Dirty Option for checking the OQS support
-// to be replaced by final support from OpenSSL
-// #define ENABLE_OQS				1
-
 /* Supported Signing schemes identifiers */
 typedef enum {
 	// Classic/Modern Cryptography
@@ -114,17 +110,32 @@ typedef enum {
 	PKI_SCHEME_DILITHIUM,
 	PKI_SCHEME_PICNIC,
 	PKI_SCHEME_SPHINCS,
-	// Composite Crypto Schemes
-	PKI_SCHEME_COMPOSITE,
-	PKI_SCHEME_COMPOSITE_OR,
 	// OQS Composite Crypto Schemes
 	PKI_SCHEME_COMPOSITE_RSA_FALCON,
 	PKI_SCHEME_COMPOSITE_ECDSA_FALCON,
 	PKI_SCHEME_COMPOSITE_RSA_DILITHIUM,
-	PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM
+	PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM,
+#endif
+#ifdef ENABLE_COMPOSITE
+	// Composite Crypto Schemes
+	PKI_SCHEME_COMPOSITE,
+#endif
+#ifdef ENABLE_COMPOSITE
+	// Combined Crypto Schemes
+	PKI_SCHEME_COMBINED,
 #endif
 
 } PKI_SCHEME_ID;
+
+#ifdef ENABLE_COMPOSITE
+#include <libpki/composite/composite_ameth.h>
+#include <libpki/composite/composite_pmeth.h>
+#endif
+
+#ifdef ENABLE_COMBINED
+#include <libpki/composite/combined_ameth.h>
+#include <libpki/composite/combined_pmeth.h>
+#endif
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 

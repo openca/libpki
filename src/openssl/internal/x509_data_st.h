@@ -57,8 +57,8 @@ typedef struct CMS_PasswordRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_PASSWORD;
 typedef struct CMS_OtherRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_OTHER;
 typedef struct CMS_ReceiptsFrom_st LIBPKI_CMS_RECEIPTS_FROM;
 
-// Definition for OSSL v1.1.1+
-typedef int CRYPTO_REF_COUNT;
+// // Definition for OSSL v1.1.1+
+// typedef int CRYPTO_REF_COUNT;
 
 // ----- Includes specific for OpenSSL v1.0.x ----- //
 #    if OPENSSL_VERSION_NUMBER <= 0x1000ffffL

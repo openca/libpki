@@ -31,6 +31,10 @@
 #include <openssl/ec.h>
 #endif
 
+#ifndef OPENSSL_COMPOSITE_LOCAL_H
+#include <libpki/composite/composite_internals.h>
+#endif
+
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 # define DECLARE_STACK_OF DEFINE_STACK_OF
 #endif
@@ -54,6 +58,14 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 #ifdef ENABLE_ECDSA
 #define PKI_EC_KEY		EC_KEY
+#endif
+
+#ifdef ENABLE_COMPOSITE
+# define PKI_COMPOSITE_KEY	COMPOSITE_KEY
+#endif
+
+#ifdef ENABLE_COMBINED
+# define PKI_COMBINED_KEY	COMBINED_KEY
 #endif
 
 #define  PKI_ID						int
@@ -681,19 +693,21 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 // ======================================== //
 
 /* Begin - NID_composite */
-#ifdef NID_composite
-#define PKI_ALGOR_COMPOSITE      NID_composite
-#define PKI_ALGOR_ID_COMPOSITE   NID_composite
+#ifdef NID_combined
+#define PKI_ALGOR_COMPOSITE      NID_combined
+#define PKI_ALGOR_ID_COMPOSITE   NID_combined
+#define PKI_ALGOR_COMBINED		 NID_combined
+#define PKI_ALGOR_ID_COMBINED	 NID_combined
 #else
 #define PKI_ALGOR_COMPOSITE     NID_undef
 #define PKI_ALGOR_ID_COMPOSITE  NID_undef
 #endif
-/* End - NID_composite */
+/* End - NID_combined */
 
-/* Begin - NID_composite_or */
-#ifdef NID_compositeOr
-#define PKI_ALGOR_COMPOSITE_OR     NID_compositeOr
-#define PKI_ALGOR_ID_COMPOSITE_OR  NID_compositeOr
+/* Begin - NID_composite */
+#ifdef NID_composite
+#define PKI_ALGOR_COMPOSITE_OR     NID_composite
+#define PKI_ALGOR_ID_COMPOSITE_OR  NID_composite
 #else
 #define PKI_ALGOR_COMPOSITE_OR     NID_undef
 #define PKI_ALGOR_ID_COMPOSITE_OR  NID_undef

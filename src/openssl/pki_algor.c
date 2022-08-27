@@ -406,9 +406,11 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "COMPOSITE";
 		} break;
 
+#ifdef ENABLE_COMBINED
 		case PKI_SCHEME_COMPOSITE_OR: {
 			ret = "COMPOSITE_OR";
 		} break;
+#endif
 
 #endif
 
@@ -454,13 +456,17 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 #endif
 #ifdef ENABLE_COMPOSITE
 		} else if (strncmp_nocase("MULTIKEY_OR", data, 11) == 0) {
-			return PKI_SCHEME_COMPOSITE_OR;
-		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
 			return PKI_SCHEME_COMPOSITE;
 		} else if (strncmp_nocase("COMPOSITE_OR", data, 11) == 0) {
-			return PKI_SCHEME_COMPOSITE_OR;
+			return PKI_SCHEME_COMPOSITE;
 		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
 			return PKI_SCHEME_COMPOSITE;
+#ifdef ENABLE_COMBINED
+		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
+			return PKI_SCHEME_COMBINED;
+		} else if (strncmp_nocase("COMBINED", data, 9) == 0) {
+			return PKI_SCHEME_COMBINED;
+#endif
 #endif
 		} else {
 			PKI_log_err("Cannot Convert [%s] into a recognized OID.", data);

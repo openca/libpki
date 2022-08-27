@@ -183,8 +183,11 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 	if (!kp || !url) return 0;
 
-	if (kp->scheme != PKI_SCHEME_COMPOSITE &&
-		kp->scheme != PKI_SCHEME_COMPOSITE_OR) return 0;
+	if (kp->scheme != PKI_SCHEME_COMPOSITE
+#ifdef ENABLE_COMBINED
+		&& kp->scheme != PKI_SCHEME_COMBINED
+#endif
+		) return 0;
 
 	PKI_log_debug("Adding Key from %s", url);
 
@@ -379,7 +382,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 #ifdef ENABLE_COMPOSITE
 			case PKI_SCHEME_COMPOSITE:
-			case PKI_SCHEME_COMPOSITE_OR:
+# ifdef ENABLE_COMBINED
+			case PKI_SCHEME_COMBINED:
+#endif
 				break;
 #endif
 			default: {
@@ -391,8 +396,11 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 #ifdef ENABLE_COMPOSITE
 
-	if (kp->scheme == PKI_SCHEME_COMPOSITE ||
-		kp->scheme == PKI_SCHEME_COMPOSITE_OR) {
+	if (kp->scheme == PKI_SCHEME_COMPOSITE
+#ifdef ENABLE_COMBINED
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
+#endif
+											) {
 
 		char * url = NULL;
 		int i = 0;
