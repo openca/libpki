@@ -1,6 +1,14 @@
-/* TOKEN Object Management Functions */
+/* Initialization functions */
 
 #include <libpki/pki.h>
+
+#ifndef OPENSSL_COMPOSITE_PKEY_METH_H
+#include <libpki/composite/composite_pmeth.h>
+#endif
+
+#ifndef OPENSSL_COMPOSITE_ASN1_METH_H
+#include <libpki/composite/composite_ameth.h>
+#endif
 
 const long LIBPKI_OS_DETAILS = LIBPKI_OS_CLASS | 
 		LIBPKI_OS_BITS | LIBPKI_OS_VENDOR;
@@ -8,8 +16,13 @@ const long LIBPKI_OS_DETAILS = LIBPKI_OS_CLASS |
 #include <sys/types.h>
 #include <dirent.h>
 
+// Global Vars
 static int _libpki_init = 0;
 static int _libpki_fips_mode = 0;
+
+// Composite Methods
+extern const EVP_PKEY_ASN1_METHOD composite_asn1_meth;
+extern const EVP_PKEY_METHOD composite_pkey_meth;
 
 #if OPENSSL_VERSION_NUMBER < 0x00908000
 int NID_proxyCertInfo = -1;
@@ -143,6 +156,24 @@ static int __init_add_libpki_oids ( void ) {
 	return PKI_OK;
 }
 
+#ifdef ENABLE_COMPOSITE
+static int _init_composite() {
+
+	// We Need to initialize the ASN1 conversion method
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+
+	// We also Need to initialize the PKEY method for the algorithm
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+
+	printf("[DEBUG] EVP_PKEY_asn1 and EVP_PKEY methods added successfully!\n");
+
+	// All Done, Success.
+	return 1;
+}
+#endif
+
 // static int _list_all_tokens_dir ( char * dir, PKI_STACK *list );
 
 /*!
@@ -150,7 +181,8 @@ static int __init_add_libpki_oids ( void ) {
  */
 int PKI_init_all( void ) {
 
-	/* Initialize OpenSSL so that it adds all the needed algor and dgst */
+	// Initialize OpenSSL so that it adds all 
+	// the needed algor and digest
 	if( _libpki_init == 0 ) {
 		X509V3_add_standard_extensions();
 		OpenSSL_add_all_algorithms();
@@ -168,6 +200,7 @@ int PKI_init_all( void ) {
 		SSL_library_init();
 
 		__init_add_libpki_oids ();
+		_init_composite();
 	}
 
 	/* Enable Proxy Certificates Support */
@@ -209,7 +242,7 @@ int PKI_init_all( void ) {
 }
 
 /*!
- * \brief Finialization libpki internal structures.
+ * \brief Finalization libpki internal structures.
  */
 
 void PKI_final_all( void )
