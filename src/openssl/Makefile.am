@@ -14,16 +14,23 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
+if ENABLE_COMPOSITE
+	COMPOSITE_SUBDIR = composite
+	COMPOSITE_OBJ = $(top_builddir)/src/openssl/composite/libpki-composite.la
+else
+	COMPOSITE_SUBDIR =
+	COMPOSITE_OBJ =
+endif
+
+OBJECTS = $(COMPOSITE_OBJ)
+
+SUBDIRS = $(COMPOSITE_SUBDIR)
+
 OPENSSL_INTERNAL_SRCS = \
         internal/x509_data_st.h
 
-nobase_include_HEADERS = \
-	internal/ossl_1_0_x/*.h \
-	internal/ossl_1_1_0/*.h \
-	internal/ossl_1_1_1/*.h
-
 OPENSSL_SRCS = \
-        $(OPENSSL_INTERNAL_SRCS) \
+    $(OPENSSL_INTERNAL_SRCS) \
 	pthread_init.c \
 	pki_id.c \
 	pki_oid.c \
@@ -50,14 +57,17 @@ OPENSSL_SRCS = \
 	pki_ocsp_resp.c \
 	pki_x509_attribute.c
 
-# pki_algorithm.c
+nobase_include_HEADERS = \
+	internal/ossl_1_0_x/*.h \
+	internal/ossl_1_1_0/*.h \
+	internal/ossl_1_1_1/*.h
 
 noinst_LTLIBRARIES = libpki-openssl.la
 
 libpki_openssl_la_SOURCES = $(OPENSSL_SRCS)
 libpki_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 # libpki_openssl_la_LDFLAGS = $(BUILD_LIBPKI_LDFLAGS)
-# libpki_openssl_la_LIBADD = $(BUILD_LIBPKI_LDADD)
+libpki_openssl_la_LIBADD = $(OBJECTS)
 
 # libpki_token_a_LDFLAGS = -version-info 1:0:0
 

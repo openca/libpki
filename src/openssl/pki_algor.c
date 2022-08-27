@@ -814,13 +814,17 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		// ================
 
 #ifdef ENABLE_COMPOSITE
+# ifdef NID_composite
 		case PKI_ALGOR_ID_COMPOSITE:
 			ret = PKI_SCHEME_COMPOSITE;
 			break;
+# endif
 
+# ifdef NID_compositeOr
 		case PKI_ALGOR_ID_COMPOSITE_OR:
 			ret = PKI_SCHEME_COMPOSITE_OR;
 			break;
+# endif
 #endif
 
 		// ====================

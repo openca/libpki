@@ -238,10 +238,14 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 #endif
 
 #ifdef ENABLE_COMPOSITE
+# ifdef NID_composite
 		case PKI_ALGOR_COMPOSITE:
+# endif
+# ifdef NID_compositeOr
 		case PKI_ALGOR_COMPOSITE_OR:
 			algId = p_type;
 			break;
+# endif
 #endif
 
 #ifdef ENABLE_OQS
