@@ -339,7 +339,9 @@ static int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
-
+  DEBUG("Possible Issue with OBJ_nid2obj() and similar functions with composite if we do not generate OIDs (%p)\n", 
+    OBJ_nid2obj(pk->ameth->pkey_id));
+    
   if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
                               V_ASN1_UNDEF, NULL, buff, buff_len)) {
     DEBUG("ERROR: Cannot Set the Parameter")
