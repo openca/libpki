@@ -4,9 +4,9 @@
 #define _LIBPKI_INIT_H
 
 #define PKI_STATUS_NOT_INIT			0
-#define PKI_STATUS_INIT					1
+#define PKI_STATUS_INIT				1
 
-int PKI_init_all( void );
+int PKI_init_all( void ) __attribute__((constructor));
 void PKI_final_all ( void );
 
 int PKI_get_init_status ( void );

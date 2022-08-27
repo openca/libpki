@@ -562,6 +562,8 @@ int main (int argc, char *argv[] ) {
 
 #endif
 
+	PKI_init_all();
+
 	unsigned long validity = 0;
 	PKI_DATATYPE datatype = PKI_DATATYPE_UNKNOWN;
 
