@@ -6,7 +6,7 @@
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 
-#ifdef ENABLE_COMPOSITE
+// #ifdef ENABLE_COMPOSITE
 
 #ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
 #include <libpki/composite/composite_ossl_internals.h>
@@ -248,4 +248,4 @@ int COMPOSITE_KEY_security_bits(COMPOSITE_KEY * sec_bits);
 
 /* END: composite_local.h */
 
-#endif // ENABLE_COMPOSITE
+// #endif // ENABLE_COMPOSITE
