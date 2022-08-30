@@ -26,10 +26,16 @@ OBJECTS = $(COMPOSITE_OBJ)
 
 SUBDIRS = $(COMPOSITE_SUBDIR)
 
+NOINST_SRCS = \
+	internal/ossl_1_0_x/*.h \
+	internal/ossl_1_1_0/*.h \
+	internal/ossl_1_1_1/*.h
+
 OPENSSL_INTERNAL_SRCS = \
         internal/x509_data_st.h
 
 OPENSSL_SRCS = \
+	${NOINST_SRCS} \
     $(OPENSSL_INTERNAL_SRCS) \
 	pthread_init.c \
 	pki_id.c \
@@ -57,25 +63,9 @@ OPENSSL_SRCS = \
 	pki_ocsp_resp.c \
 	pki_x509_attribute.c
 
-nobase_include_HEADERS = \
-	internal/ossl_1_0_x/*.h \
-	internal/ossl_1_1_0/*.h \
-	internal/ossl_1_1_1/*.h
-
 noinst_LTLIBRARIES = libpki-openssl.la
 
 libpki_openssl_la_SOURCES = $(OPENSSL_SRCS)
 libpki_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
-# libpki_openssl_la_LDFLAGS = $(BUILD_LIBPKI_LDFLAGS)
 libpki_openssl_la_LIBADD = $(OBJECTS)
-
-# libpki_token_a_LDFLAGS = -version-info 1:0:0
-
-# $(OPENCA_INCLUDE_LIBS) \
-#			$(openssl_cflags) $(openssl_libs)
-
-#pki_token_a_LIBADD   = \
-#			$(openssl_cflags) $(openssl_libs) \
-#			$(libxml2_cflags) $(libxml2_libs) \
-#			$(OPENCA_INCLUDE_LIBS)
 

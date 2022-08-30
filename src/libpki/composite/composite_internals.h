@@ -39,8 +39,8 @@ extern int NID_combined;
 // We need to find a solution for replacing
 // the use of NID_composite with the dynamic
 // version of it
-# define EVP_PKEY_COMPOSITE     0
-# define EVP_PKEY_COMBINED      1
+// # define EVP_PKEY_COMPOSITE     0
+// # define EVP_PKEY_COMBINED      1
 
 // Basic CTRL values for COMPOSITE support
 # define EVP_PKEY_CTRL_COMPOSITE_PUSH    0x201
@@ -49,11 +49,18 @@ extern int NID_combined;
 # define EVP_PKEY_CTRL_COMPOSITE_DEL     0x204
 # define EVP_PKEY_CTRL_COMPOSITE_CLEAR   0x205
 
-// Define for common assign function
-#ifdef ENABLE_COMPOSITE
-# define EVP_PKEY_assign_COMPOSITE(pkey,comp_key) \
-    EVP_PKEY_assign((pkey),EVP_PKEY_COMPOSITE, (char *)(comp_key))
-# endif
+// Declares the assign function, we can not use the
+// define mechanism because the EVP_PKEY_COMPOSITE is
+// not defined at compile time
+// #ifdef ENABLE_COMPOSITE
+// # define EVP_PKEY_assign_COMPOSITE(pkey,comp_key) \
+//     EVP_PKEY_assign((pkey),EVP_PKEY_COMPOSITE, (char *)(comp_key))
+// # endif
+
+inline int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
+  // Assigns the internal key
+  return EVP_PKEY_assign(pkey, NID_composite, comp_key);
+};
 
 // ==============================
 // Declarations & Data Structures

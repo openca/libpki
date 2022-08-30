@@ -164,9 +164,9 @@ static int _init_composite() {
 	if (NID_composite == NID_undef) return 0;
 
 	// // Assigns the generated IDs
-	// composite_asn1_meth.pkey_id = NID_composite;
-	// composite_asn1_meth.pkey_base_id = NID_composite;
-	// composite_pkey_meth.pkey_id = NID_composite;
+	composite_asn1_meth.pkey_id = NID_composite;
+	composite_asn1_meth.pkey_base_id = NID_composite;
+	composite_pkey_meth.pkey_id = NID_composite;
 
 	// We also Need to initialize the PKEY method for the algorithm
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html

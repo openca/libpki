@@ -1243,7 +1243,7 @@ static int get_pub_key(const EVP_PKEY *pk, unsigned char *pub, size_t *len) {
 // it is taken from OPENSSL_SRC/include/crypto/asn1.h, see the
 // OPENSSL_SRC/include/ossl_typ.h
 EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
-    EVP_PKEY_COMPOSITE,       // int pkey_id; // EVP_PKEY_COMPOSITE
+    0,            // int pkey_id; // EVP_PKEY_COMPOSITE
     0,                        // int pkey_base_id; // EVP_PKEY_COMPOSITE
     ASN1_PKEY_SIGPARAM_NULL,  // unsigned long pkey_flags; // ASN1_PKEY_SIGPARAM_NULL
     "COMPOSITE",              // char *pem_str;
