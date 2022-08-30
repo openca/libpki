@@ -27,14 +27,20 @@ extern "C" {
 //       is meant to patch things until we
 //       can use the dynamic implementation
 //       of the ameth/pmeth
-#define NID_composite           1321
-#define NID_combined            1322
+// #define NID_composite           1321
+// #define NID_combined            1322
+
+// The Dynamic Approach does not let you reference
+// the NID directly, therefore we need a different
+// approach by using a global variable
+extern int NID_composite;
+extern int NID_combined;
 
 // We need to find a solution for replacing
 // the use of NID_composite with the dynamic
 // version of it
-# define EVP_PKEY_COMPOSITE     NID_composite
-# define EVP_PKEY_COMBINED      NID_combined
+# define EVP_PKEY_COMPOSITE     0
+# define EVP_PKEY_COMBINED      1
 
 // Basic CTRL values for COMPOSITE support
 # define EVP_PKEY_CTRL_COMPOSITE_PUSH    0x201

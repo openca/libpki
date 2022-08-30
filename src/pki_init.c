@@ -21,14 +21,16 @@ static int _libpki_init = 0;
 static int _libpki_fips_mode = 0;
 
 // Composite Methods
-extern const EVP_PKEY_ASN1_METHOD composite_asn1_meth;
-extern const EVP_PKEY_METHOD composite_pkey_meth;
+extern EVP_PKEY_ASN1_METHOD composite_asn1_meth;
+extern EVP_PKEY_METHOD composite_pkey_meth;
 
 #if OPENSSL_VERSION_NUMBER < 0x00908000
 int NID_proxyCertInfo = -1;
 #endif
 
 static char *libpki_oids[] = {
+	// OpenCA PEN
+	"1.3.6.1.4.1.18227", "openca", "OpenCA Labs Private Enterprise Name",
 	/* MS Extension - Used for Profile Requesting in Cert Reqs */
 	"1.3.6.1.4.1.311.20.2", "certificateTemplate", "Certificate Template",
 	/* OID - {{1.3.6.1.4.1.18227 (OpenCA)} . 50 (Extensions)} */
@@ -69,7 +71,6 @@ static struct obj_alias_st nist_curves_alias[] = {
 };
 #endif
 
-#ifdef ENABLE_ECDSA
 static int __create_object_with_id ( const char *oid, const char *sn, 
 		const char *ln, int id) {
 	int ret = PKI_OK;
@@ -108,7 +109,6 @@ err:
 
 	return PKI_OK;
 }
-#endif
 
 static int __init_add_libpki_oids ( void ) {
 	int i, ret;
@@ -159,19 +159,60 @@ static int __init_add_libpki_oids ( void ) {
 #ifdef ENABLE_COMPOSITE
 static int _init_composite() {
 
-	// We Need to initialize the ASN1 conversion method
-	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
-	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+	// Let's create the Initial OID for Composite Crypto
+	NID_composite = OBJ_create("1.3.6.1.4.1.18277.2.1", "composite", "pk-Composite");
+	if (NID_composite == NID_undef) return 0;
+
+	// // Assigns the generated IDs
+	// composite_asn1_meth.pkey_id = NID_composite;
+	// composite_asn1_meth.pkey_base_id = NID_composite;
+	// composite_pkey_meth.pkey_id = NID_composite;
 
 	// We also Need to initialize the PKEY method for the algorithm
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
 	if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
 
-	printf("[DEBUG] EVP_PKEY_asn1 and EVP_PKEY methods added successfully!\n");
+	// We Need to initialize the ASN1 conversion method
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+	
+	printf("[DEBUG] Composite EVP_PKEY_asn1 and EVP_PKEY methods added successfully!\n");
 
 	// All Done, Success.
 	return 1;
 }
+#endif
+
+#ifdef ENABLE_COMBINED
+static int _init_combined() {
+
+	// Let's create the Initial OID for Composite Crypto
+	NID_composite = OBJ_create("1.3.6.1.4.1.18277.2.1", "composite", "pk-Composite");
+	if (NID_composite == NID_undef) return 0;
+
+	// Assigns the generated IDs
+	combined_asn1_meth.pkey_id = NID_combined;
+	combined_asn1_meth.pkey_base_id = NID_combined;
+	combined_pkey_meth.pkey_id = NID_combined;
+
+	// We Need to initialize the ASN1 conversion method
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	if (!EVP_PKEY_asn1_add0(&combined_asn1_meth)) return 0;
+
+	// We also Need to initialize the PKEY method for the algorithm
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	if (!EVP_PKEY_meth_add0(&combined_pkey_meth)) return 0;
+	
+	printf("[DEBUG] Combined EVP_PKEY_asn1 and EVP_PKEY methods added successfully!\n");
+
+	// All Done, Success.
+	return 1;
+}
+#endif
+
+#ifdef ENABLE_COMBINED
+SSL3_CK_DH_DSS_DES_192_CBC3_SHA
+
 #endif
 
 // static int _list_all_tokens_dir ( char * dir, PKI_STACK *list );
@@ -200,7 +241,12 @@ int PKI_init_all( void ) {
 		SSL_library_init();
 
 		__init_add_libpki_oids ();
+#ifdef ENABLE_COMPOSITE
 		_init_composite();
+#endif
+#ifdef ENABLE_COMBINED
+		_init_combined();
+#endif
 	}
 
 	/* Enable Proxy Certificates Support */

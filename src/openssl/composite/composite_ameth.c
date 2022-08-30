@@ -26,7 +26,9 @@ struct X509_pubkey_st {
   { fprintf(stderr, "[%s:%d] %s() - ", __FILE__, __LINE__, __func__) ; \
     fprintf(stderr, ## args) ; fprintf(stderr,"\n") ; fflush(stderr); }
 
-// Retuurns a COPY of the stack
+#ifdef ENABLE_COMPOSITE
+
+// Returns a COPY of the stack
 STACK_OF(EVP_PKEY) * COMPOSITE_KEY_sk_get1(COMPOSITE_KEY * key) {
 
   EVP_PKEY * tmp_pkey = NULL;
@@ -725,6 +727,10 @@ static int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
+
+  DEBUG("CONVERTING Composite PubKEYID to OBJ: %d -> %p\n", 
+    pk->ameth->pkey_id, OBJ_nid2obj(pk->ameth->pkey_id));
+
   if (!PKCS8_pkey_set0(p8, OBJ_nid2obj(pk->ameth->pkey_id), 
                        0, /* V_ASN1_UNDEF */ V_ASN1_NULL, NULL, buff, buff_len)) {
     DEBUG("ERROR: Cannot set the P8 key contents");
@@ -1065,7 +1071,7 @@ static int item_sign(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR
   // This situation is because we are porting the COMPOSITE support from the
   // original approach of patching OpenSSL to providing a dynamic ameth/pmeth
   // that is injected at runtime
-  PKI_DEBUG("[DEBUG] Workaround for composite implementation (transitioning from OSSL to LibPKI)");
+  DEBUG("Workaround for composite implementation (transitioning from OSSL to LibPKI)");
   return -1;
 #endif
 
@@ -1236,9 +1242,9 @@ static int get_pub_key(const EVP_PKEY *pk, unsigned char *pub, size_t *len) {
 // The Definition of the EVP_PKEY_ASN1_METHOD is provided above and
 // it is taken from OPENSSL_SRC/include/crypto/asn1.h, see the
 // OPENSSL_SRC/include/ossl_typ.h
-const EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
-    EVP_PKEY_COMPOSITE,       // int pkey_id;
-    EVP_PKEY_COMPOSITE,       // int pkey_base_id;
+EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
+    EVP_PKEY_COMPOSITE,       // int pkey_id; // EVP_PKEY_COMPOSITE
+    0,                        // int pkey_base_id; // EVP_PKEY_COMPOSITE
     ASN1_PKEY_SIGPARAM_NULL,  // unsigned long pkey_flags; // ASN1_PKEY_SIGPARAM_NULL
     "COMPOSITE",              // char *pem_str;
     "Composite Crypto With Combined Keys", // char *info;
@@ -1277,5 +1283,7 @@ const EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     get_priv_key,             // int (*get_priv_key) (const EVP_PKEY *pk, unsigned char *priv, size_t *len);
     get_pub_key,              // int (*get_pub_key) (const EVP_PKEY *pk, unsigned char *pub, size_t *len);
 };
+
+#endif
 
 /* END: composite_amenth.c */

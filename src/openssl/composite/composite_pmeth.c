@@ -11,6 +11,7 @@
 
 #include <libpki/composite/composite_internals.h>
 
+
 // ======================
 // MACRO & Other Oddities
 // ======================
@@ -18,6 +19,18 @@
 #define DEBUG(args...) \
   { fprintf(stderr, "[%s:%d] %s() - ", __FILE__, __LINE__, __func__); \
   fprintf(stderr, ## args) ; fprintf(stderr,"\n"); fflush(stderr) ; }
+
+// ========================
+// Exported Global Variable
+// ========================
+
+#ifdef ENABLE_COMPOSITE
+
+int NID_composite = 0X0FF1;
+  // Value for the composite EVP_PKEY type
+
+int NID_combined = 0X0FF2;
+  // Value for the combined EVP_PKEY type
 
 // ==================
 // Internal Functions
@@ -510,11 +523,8 @@ static int keygen_init(EVP_PKEY_CTX *ctx) {
   return 1;
 }
 
-// Not Implemented
+// Implemented
 static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
-
-  int alg_nid = 0;
-    // NID for the algorithm
 
   COMPOSITE_CTX * comp_ctx = NULL;
   COMPOSITE_KEY * key = NULL;
@@ -1347,8 +1357,9 @@ static int digest_custom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
 // return a NULL as a default MD, otherwise OpenSSL will stop the
 // execution (see the do_sigver_init() at m_sigver.c:25)
 
-const EVP_PKEY_METHOD composite_pkey_meth = {
-    EVP_PKEY_COMPOSITE,  // int pkey_id;
+
+EVP_PKEY_METHOD composite_pkey_meth = {
+    EVP_PKEY_COMPOSITE,  // int pkey_id; // EVP_PKEY_COMPOSITE
     0,  // int flags; //EVP_PKEY_FLAG_SIGCTX_CUSTOM
     init,           // int (*init)(EVP_PKEY_CTX *ctx);
     copy,           // int (*copy)(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src);
@@ -1385,5 +1396,7 @@ const EVP_PKEY_METHOD composite_pkey_meth = {
     0, // digest_custom   // int (*digest_custom) (EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx);
 #endif
 };
+
+#endif // ENABLE_COMPOSITE
 
 /* END: composite_pmeth.c */
