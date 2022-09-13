@@ -189,7 +189,7 @@ static int _init_composite() {
 	comp_digest[6].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.2", "compositeWithSha3At512", "Composite Signature With SHA3-512");
 	comp_digest[6].dgst = NID_sha3_512;
 	comp_digest[7].sigid = 0;
-	comp_digest[8].sigid = 0;
+	comp_digest[7].sigid = 0;
 
 	// Signature Algorithms
 	int idx = 0;
