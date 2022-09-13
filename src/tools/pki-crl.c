@@ -425,7 +425,7 @@ int main (int argc, char *argv[] ) {
 				"    * Saving CRL ....." );
 		};
 
-		if( PKI_X509_CERT_put(crl, outform, outfile, 
+		if( PKI_X509_CRL_put(crl, outform, outfile, 
 				NULL, NULL, NULL) != PKI_OK ) {
 			fprintf( stderr, BOLD RED "    ERROR: " 
 					NORM "Can not store CRL to URL " BLUE "(%s)\n\n" NORM,

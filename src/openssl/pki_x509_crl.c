@@ -37,15 +37,13 @@ PKI_X509_CRL *PKI_X509_CRL_new_null ( void ) {
  * the passed pointer was NULL.
  */
 
-int PKI_X509_CRL_free ( PKI_X509_CRL * x ) {
+void PKI_X509_CRL_free ( PKI_X509_CRL * x ) {
 
-  if( !x ) return (PKI_ERR);
+  if( !x ) return;
 
   if( x->value ) X509_CRL_free ((X509_CRL *) x->value );
 
   PKI_Free ( x );
-
-  return( PKI_OK );
 }
 
 void PKI_X509_CRL_free_void( void *x ) {
