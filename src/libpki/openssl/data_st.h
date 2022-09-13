@@ -694,23 +694,24 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - NID_composite */
 #ifdef ENABLE_COMBINED
-int PKI_ALGOR_COMPOSITE = NID_combined;
-int PKI_ALGOR_ID_COMPOSITE = NID_combined;
-int PKI_ALGOR_COMBINED = NID_combined;
-int PKI_ALGOR_ID_COMBINED = NID_combined;
+#define PKI_ALGOR_COMBINED			NID_combined;
+#define PKI_ALGOR_ID_COMBINED		NID_combined;
+#define int PKI_ALGOR_COMBINED 		NID_combined;
+#define int PKI_ALGOR_ID_COMBINED	NID_combined;
 #else
-int PKI_ALGOR_COMPOSITE = NID_undef;
-int PKI_ALGOR_ID_COMPOSITE = NID_undef;
+#define PKI_ALGOR_COMBINED 			NID_undef;
+#define PKI_ALGOR_ID_COMBINED 		NID_undef;
 #endif
 /* End - NID_combined */
 
 /* Begin - NID_composite */
 #ifdef ENABLE_COMPOSITE
-int PKI_ALGOR_COMPOSITE_OR;
-int PKI_ALGOR_ID_COMPOSITE_OR;
+#define PKI_ALGOR_ID_COMPOSITE			NID_composite
+#define PKI_ALGOR_COMPOSITE_OR			NID_composite
+#define PKI_ALGOR_ID_COMPOSITE_OR		NID_composite
 #else
-int PKI_ALGOR_COMPOSITE_OR = NID_undef;
-int PKI_ALGOR_ID_COMPOSITE_OR = NID_undef;
+#define PKI_ALGOR_COMPOSITE_OR 			NID_undef;
+#define PKI_ALGOR_ID_COMPOSITE_OR		NID_undef;
 #endif
 /* End - NID_rsa3072_falcon512 */
 

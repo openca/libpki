@@ -159,14 +159,51 @@ static int __init_add_libpki_oids ( void ) {
 #ifdef ENABLE_COMPOSITE
 static int _init_composite() {
 
+	typedef struct comp_digest_st {
+		int sigid;
+		int dgst;
+	} COMP_DIGEST;
+
+	COMP_DIGEST comp_digest[8] = { 0x0 };
+
+	// Temp Trick - To be replaced with array of values
+	OBJ_create("1.3.6.1.4.1.18277", "openca", "OpenCA Labs");
+
 	// Let's create the Initial OID for Composite Crypto
-	NID_composite = OBJ_create("1.3.6.1.4.1.18277.2.1", "composite", "pk-Composite");
+	NID_composite = OBJ_create("1.3.6.1.4.1.18277.2.1.1", "composite", "Composite Key");
 	if (NID_composite == NID_undef) return 0;
 
-	// // Assigns the generated IDs
-	// composite_asn1_meth.pkey_id = NID_composite;
-	// composite_asn1_meth.pkey_base_id = NID_composite;
-	// composite_pkey_meth.pkey_id = NID_composite;
+	// Signature Algoritms OIDs
+	comp_digest[0].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.1", "compositeWithNoHash", "Composite Signature With No Hash");
+	comp_digest[0].dgst = NID_undef;
+	comp_digest[1].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.2", "compositeWithSha256", "Composite Signature With SHA2-256");
+	comp_digest[1].dgst = PKI_ALGOR_ID_SHA256;
+	comp_digest[2].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.3", "compositeWithSha384", "Composite Signature With SHA2-384");
+	comp_digest[2].dgst = PKI_ALGOR_ID_SHA384;
+	comp_digest[3].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.3", "compositeWithSha512", "Composite Signature With SHA2-512");
+	comp_digest[3].dgst = PKI_ALGOR_ID_SHA512;
+	comp_digest[4].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.4", "compositeWithSha3At256", "Composite Signature With SHA3-256");
+	comp_digest[4].dgst = NID_sha3_256;
+	comp_digest[5].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.2", "compositeWithSha3At384", "Composite Signature With SHA3-384");
+	comp_digest[5].dgst = NID_sha3_384;
+	comp_digest[6].sigid = OBJ_create("1.3.6.1.4.1.18277.2.2.2", "compositeWithSha3At512", "Composite Signature With SHA3-512");
+	comp_digest[6].dgst = NID_sha3_512;
+	comp_digest[7].sigid = 0;
+	comp_digest[8].sigid = 0;
+
+	// Signature Algorithms
+	int idx = 0;
+	while (comp_digest[idx].sigid != NID_undef) {
+		OBJ_add_sigid(comp_digest[idx].sigid, comp_digest[idx].dgst, NID_composite);
+		printf("[DEBUG] %d: Adding Sig Algor (%d => hash: %d, pkey: %d)\n",
+			idx, comp_digest[idx].sigid, comp_digest[idx].dgst, NID_composite);
+		idx++;
+	}
+
+	// Assigns the generated IDs
+	composite_asn1_meth.pkey_id = NID_composite;
+	composite_asn1_meth.pkey_base_id = NID_composite;
+	composite_pkey_meth.pkey_id = NID_composite;
 
 	// We also Need to initialize the PKEY method for the algorithm
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html

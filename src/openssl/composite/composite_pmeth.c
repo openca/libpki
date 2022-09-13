@@ -1359,7 +1359,7 @@ static int digest_custom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
 
 
 EVP_PKEY_METHOD composite_pkey_meth = {
-    EVP_PKEY_COMPOSITE,  // int pkey_id; // EVP_PKEY_COMPOSITE
+    0,  // int pkey_id; // EVP_PKEY_COMPOSITE
     0,  // int flags; //EVP_PKEY_FLAG_SIGCTX_CUSTOM
     init,           // int (*init)(EVP_PKEY_CTX *ctx);
     copy,           // int (*copy)(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src);

@@ -321,7 +321,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 
 		int sig_nid = -1;
 		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_type(md), EVP_PKEY_id(pkey)) <= 0) {
-			PKI_log_err("Cannot find signing algorithm, aborting!");
+			PKI_log_err("Cannot find signing algorithm (dgst: %d, pkey: %d), aborting!",
+				EVP_MD_type(md), EVP_PKEY_id(pkey));
 			return NULL;
 		};
 
