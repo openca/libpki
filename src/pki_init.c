@@ -195,8 +195,8 @@ static int _init_composite() {
 	int idx = 0;
 	while (comp_digest[idx].sigid != NID_undef) {
 		OBJ_add_sigid(comp_digest[idx].sigid, comp_digest[idx].dgst, NID_composite);
-		printf("[DEBUG] %d: Adding Sig Algor (%d => hash: %d, pkey: %d)\n",
-			idx, comp_digest[idx].sigid, comp_digest[idx].dgst, NID_composite);
+		// printf("[DEBUG] %d: Adding Sig Algor (%d => hash: %d, pkey: %d)\n",
+		// 	idx, comp_digest[idx].sigid, comp_digest[idx].dgst, NID_composite);
 		idx++;
 	}
 
@@ -223,8 +223,6 @@ static int _init_composite() {
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
 	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
 	
-	printf("[DEBUG] Composite EVP_PKEY_asn1 and EVP_PKEY methods added successfully!\n");
-
 	// All Done, Success.
 	return 1;
 }
