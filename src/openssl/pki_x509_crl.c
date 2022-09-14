@@ -630,23 +630,18 @@ err:
   return NULL;
 }
 
-void PKI_X509_CRL_ENTRY_free_void ( void *entry ) {
-  PKI_X509_CRL_ENTRY_free ( (PKI_X509_CRL_ENTRY *) entry );
-}
-
 /*! \brief Frees a PKI_X509_CRL_ENTRY
  *
  * Frees memory associated to a PKI_X509_CRL_ENTRY
  */
 
-int PKI_X509_CRL_ENTRY_free ( PKI_X509_CRL_ENTRY *entry ) {
+void PKI_X509_CRL_ENTRY_free ( PKI_X509_CRL_ENTRY *entry ) {
 
-  if( !entry ) return (PKI_ERR);
+  if( !entry ) return;
 
   if( entry ) X509_REVOKED_free ( (X509_REVOKED *) entry );
 
-  return (PKI_OK);
-
+  return;
 }
 
 /*! \brief Find an entry within a CRL by using the PKI_INTEGER serial

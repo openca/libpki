@@ -15,7 +15,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(
 					   const PKI_TIME *revDate, 
 					   const PKI_X509_PROFILE *profile);
 
-int PKI_X509_CRL_ENTRY_free ( PKI_X509_CRL_ENTRY *entry );
+void PKI_X509_CRL_ENTRY_free ( PKI_X509_CRL_ENTRY *entry );
 
 /* PKI CRL lookup functions */
 const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup(const PKI_X509_CRL *x, 
