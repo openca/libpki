@@ -200,10 +200,20 @@ static int _init_composite() {
 		idx++;
 	}
 
+	// TODO:
+	// =====
+	//
+	// Update the way we add the composite ASN1 method. Currently we use the
+	// auxillary function (see composite_ameth.c) to set the method's pkey id.
+	//
+	// The Right way to add a new method would be to first generate a new
+	// one and then set the different callbacks, such as:
+	//
+	//   composite_asn1_method = EVP_PKEY_asn1_meth_new(NID_composite);
+	//   EVP_PKEY_asn1_meth_set_XXX(composite_asn1_method, .... );
+
 	// Assigns the generated IDs
-	composite_asn1_meth.pkey_id = NID_composite;
-	composite_asn1_meth.pkey_base_id = NID_composite;
-	composite_pkey_meth.pkey_id = NID_composite;
+	EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, NID_composite);
 
 	// We also Need to initialize the PKEY method for the algorithm
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html

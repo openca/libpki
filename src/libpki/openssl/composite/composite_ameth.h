@@ -40,6 +40,9 @@ extern "C" {
 
 // const EVP_PKEY_ASN1_METHOD composite_asn1_meth;
 
+// Sets the ID of a ASN1 method
+int EVP_PKEY_asn1_meth_set_id(EVP_PKEY_ASN1_METHOD * pkey_ameth, int pkey_id);
+
 // ===============================
 // EVP_PKEY_ASN1_METHOD Prototypes
 // ===============================

@@ -10,10 +10,6 @@
 // ===============
 
 #ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
-#include <libpki/openssl/composite/composite_internals.h>
-#endif
-
-#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
 #include "composite_ossl_internals.h"
 #endif
 
@@ -26,6 +22,20 @@
     fprintf(stderr, ## args) ; fprintf(stderr,"\n") ; fflush(stderr); }
 
 #ifdef ENABLE_COMPOSITE
+
+int EVP_PKEY_asn1_meth_set_id(EVP_PKEY_ASN1_METHOD * pkey_ameth, int pkey_id) {
+
+  // Input Check
+  if (!pkey_ameth || pkey_id <= 0) return 0;
+
+  // Assigns the generated IDs
+	pkey_ameth->pkey_id = NID_composite;
+	pkey_ameth->pkey_base_id = NID_composite;
+	pkey_ameth->pkey_id = NID_composite;
+
+  // All Done
+  return 1;
+};
 
 // Returns a COPY of the stack
 STACK_OF(EVP_PKEY) * COMPOSITE_KEY_sk_get1(COMPOSITE_KEY * key) {

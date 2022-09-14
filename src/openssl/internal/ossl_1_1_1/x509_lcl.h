@@ -1,3 +1,8 @@
+
+#ifndef HEADER_INTERNAL_REFCOUNT_H
+#include "refcount.h"
+#endif
+
 #ifndef _LIBPKI_OSSL_1_1_1_X509_LCL_H
 #define _LIBPKI_OSSL_1_1_1_X509_LCL_H
 
@@ -6,7 +11,6 @@
  * including an X509_VERIFY_PARAM structure in related structures the
  * parameters used can be customized
  */
-
 struct X509_VERIFY_PARAM_st {
     char *name;
     time_t check_time;          /* Time to use */
