@@ -473,12 +473,13 @@ old_cflags="$CFLAGS"
 
 dnl check for stack protection of gcc
 if [[ "$CC" = "gcc" ]] ; then
-	AC_CHECK_C_OPTION(-fstack-check)
+	# AC_CHECK_C_OPTION(-fstack-check)
+	AC_CHECK_C_OPTION(-fstack-clash_protection)
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
 	AC_CHECK_C_OPTION(-Werror)
 	AC_CHECK_C_OPTION(-Wfatal-errors)
-        AC_CHECK_C_OPTION(-Wunused-variable)
-        AC_CHECK_C_OPTION(-Wno-switch)
+	AC_CHECK_C_OPTION(-Wunused-variable)
+	AC_CHECK_C_OPTION(-Wno-switch)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)

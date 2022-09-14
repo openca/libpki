@@ -12041,12 +12041,7 @@ ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 if test x"${MISSING+set}" != xset; then
-  case $am_aux_dir in
-  *\ * | *\	*)
-    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
-  *)
-    MISSING="\${SHELL} $am_aux_dir/missing" ;;
-  esac
+  MISSING="\${SHELL} '$am_aux_dir/missing'"
 fi
 # Use eval to expand $SHELL
 if eval "$MISSING --is-lightweight"; then
@@ -13817,12 +13812,13 @@ done
 old_cflags="$CFLAGS"
 
 if [ "$CC" = "gcc" ] ; then
+	# AC_CHECK_C_OPTION(-fstack-check)
 
 old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -fstack-check"
+CFLAGS="$CFLAGS -fstack-clash_protection"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -fstack-check support" >&5
-$as_echo_n "checking checking for -fstack-check support... " >&6; };
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for -fstack-clash_protection support" >&5
+$as_echo_n "checking checking for -fstack-clash_protection support... " >&6; };
 
 if test "$cross_compiling" = yes; then :
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5

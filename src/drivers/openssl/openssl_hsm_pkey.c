@@ -506,6 +506,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             ec=NULL;
             break;
 
+#ifdef ENABLE_COMPOSITE
         case PKI_SCHEME_COMPOSITE:
             if ((composite = _pki_composite_new(kp)) == NULL) {
                 if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
@@ -520,6 +521,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
             }
             composite=NULL;
             break;
+#endif
 
 #ifdef ENABLE_COMBINED
         case PKI_SCHEME_COMBINED:
