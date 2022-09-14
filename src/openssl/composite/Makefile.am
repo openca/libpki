@@ -22,6 +22,7 @@ COMPOSITE_SRCS = \
 	composite_ameth.c \
 	composite_pmeth.c \
 	composite_err.c \
+	composite_ossl_internals.h \
 	$(OPENSSL_INTERNAL_SRCS)
 
 noinst_LTLIBRARIES = libpki-composite.la

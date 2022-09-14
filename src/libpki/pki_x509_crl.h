@@ -49,7 +49,7 @@ PKI_X509_CRL *PKI_X509_CRL_new (const PKI_X509_KEYPAIR *pkey,
 				const PKI_CONFIG *oids,
 				HSM *hsm);
 
-void PKI_X509_CRL_free ( PKI_X509_CRL * x );
+int PKI_X509_CRL_free ( PKI_X509_CRL * x );
 int PKI_X509_CRL_add_extension(PKI_X509_CRL *x, PKI_X509_EXTENSION *ext);
 
 PKI_MEM * PKI_X509_CRL_tbs_asn1(PKI_X509_CRL *x);

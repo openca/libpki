@@ -194,7 +194,7 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 #define PKI_STACK_X509_CRL_ENTRY_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 /* define for PKI_X509_CRL stacks - implement object type casting */
-#define PKI_STACK_X509_CRL_new(a) (PKI_X509_CRL_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_CRL_free)
+#define PKI_STACK_X509_CRL_new(a) (PKI_X509_CRL_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_CRL_free_void)
 #define PKI_STACK_X509_CRL_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CRL_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
 #define PKI_STACK_X509_CRL_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)

@@ -3,20 +3,19 @@
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 
-#include <libpki/composite/composite_ameth.h>
+#include <libpki/openssl/composite/composite_ameth.h>
 
 // ===============
 // Data Structures
 // ===============
 
-// Definition from pem_pkey.c
-struct X509_pubkey_st {
-    X509_ALGOR *algor;
-    ASN1_BIT_STRING *public_key;
-    EVP_PKEY *pkey;
-};
+#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
+#include <libpki/openssl/composite/composite_internals.h>
+#endif
 
-#include <libpki/composite/composite_internals.h>
+#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
+#include "composite_ossl_internals.h"
+#endif
 
 // ======================
 // MACRO & Other Oddities

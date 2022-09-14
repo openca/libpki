@@ -6,12 +6,6 @@
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 
-// #ifdef ENABLE_COMPOSITE
-
-#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
-#include <libpki/composite/composite_ossl_internals.h>
-#endif
-
 #ifndef OPENSSL_COMPOSITE_LOCAL_H
 #define OPENSSL_COMPOSITE_LOCAL_H
 

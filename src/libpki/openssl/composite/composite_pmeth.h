@@ -10,13 +10,13 @@
 // the corresponding functions are defined in composite_ameth.c
 
 #include <stdio.h>
-#include <openssl/x509.h>
 
-// #include <crypto/asn1.h>
-// #include <crypto/evp.h>
+#ifndef HEADER_X509_H
+#include <openssl/x509.h>
+#endif
 
 #ifndef OPENSSL_COMPOSITE_LOCAL_H
-#include <libpki/composite/composite_internals.h>
+#include <libpki/openssl/composite/composite_internals.h>
 #endif
 
 #ifndef OPENSSL_COMPOSITE_PKEY_METH_H

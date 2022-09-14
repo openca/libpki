@@ -128,8 +128,8 @@ typedef enum {
 } PKI_SCHEME_ID;
 
 #ifdef ENABLE_COMPOSITE
-#include <libpki/composite/composite_ameth.h>
-#include <libpki/composite/composite_pmeth.h>
+#include <libpki/openssl/composite/composite_ameth.h>
+#include <libpki/openssl/composite/composite_pmeth.h>
 #endif
 
 #ifdef ENABLE_COMBINED

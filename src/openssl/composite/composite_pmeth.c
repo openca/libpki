@@ -1,16 +1,19 @@
-/* BEGIN: composite_pmenth.c */
+/* BEGIN: composite_pmeth.c */
 
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 
-#include <libpki/composite/composite_pmeth.h>
+#ifndef OPENSSL_COMPOSITE_PKEY_METH_H
+#include <libpki/openssl/composite/composite_pmeth.h>
+#endif
 
 // ===============
 // Data Structures
 // ===============
 
-#include <libpki/composite/composite_internals.h>
-
+#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
+#include "composite_ossl_internals.h"
+#endif
 
 // ======================
 // MACRO & Other Oddities
@@ -23,6 +26,9 @@
 // ========================
 // Exported Global Variable
 // ========================
+
+// Temporary Measure until the functions are all used
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 #ifdef ENABLE_COMPOSITE
 

@@ -31,9 +31,9 @@
 #include <openssl/ec.h>
 #endif
 
-#ifndef OPENSSL_COMPOSITE_LOCAL_H
-#include <libpki/composite/composite_internals.h>
-#endif
+// #ifndef OPENSSL_COMPOSITE_LOCAL_H
+// #include <libpki/composite/composite_internals.h>
+// #endif
 
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 # define DECLARE_STACK_OF DEFINE_STACK_OF

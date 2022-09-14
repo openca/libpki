@@ -4,11 +4,10 @@
 // (c) 2021 by Massimiliano Pala
 
 #include <stdio.h>
+
 // #include "internal/cryptlib.h"
 #include <openssl/x509.h>
 #include <openssl/ec.h>
-
-#include <libpki/composite/composite_internals.h>
 
 #include <openssl/evp.h>
 #include <openssl/asn1.h>
@@ -16,6 +15,10 @@
 
 // #include "crypto/asn1.h"
 // #include "crypto/evp.h"
+
+#ifndef OPENSSL_COMPOSITE_LOCAL_H
+#include <libpki/openssl/composite/composite_internals.h>
+#endif
 
 #ifndef OPENSSL_COMPOSITE_ASN1_METH_H
 #define OPENSSL_COMPOSITE_ASN1_METH_H
@@ -40,6 +43,9 @@ extern "C" {
 // ===============================
 // EVP_PKEY_ASN1_METHOD Prototypes
 // ===============================
+
+// Temporary Measure until the functions are all used
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 // Implemented
 static int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pub);
@@ -156,4 +162,4 @@ static int get_pub_key(const EVP_PKEY *pk, unsigned char *pub, size_t *len);
 
 #endif // OPENSSL_COMPOSITE_AMETH_H
 
-/* END: composite_amenth.h */
+/* END: composite_ameth.h */

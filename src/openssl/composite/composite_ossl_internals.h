@@ -10,12 +10,12 @@
 #define OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL
-# include "internal/ossl_1_1_1/refcount.h"
-# include "internal/ossl_1_1_1/x509_int.h"
+# include "../internal/ossl_1_1_1/refcount.h"
+# include "../internal/ossl_1_1_1/x509_int.h"
 #else
 # if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-#  include "internal/ossl_1_1_1/refcount.h"
-#  include "internal/ossl_1_1_0/x509_int.h"
+#  include "../internal/ossl_1_1_1/refcount.h"
+#  include "../internal/ossl_1_1_0/x509_int.h"
 # endif
 #endif
 
@@ -44,6 +44,13 @@ typedef struct {
 } ECX_KEY;
 
 #endif
+
+// Definition from pem_pkey.c
+struct X509_pubkey_st {
+    X509_ALGOR *algor;
+    ASN1_BIT_STRING *public_key;
+    EVP_PKEY *pkey;
+};
 
 // EVP_MD_CTX related stuff
 // ========================

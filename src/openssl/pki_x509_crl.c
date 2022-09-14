@@ -30,25 +30,33 @@ PKI_X509_CRL *PKI_X509_CRL_new_null ( void ) {
 }
 
 /*! 
- * \brief Frees memory associated with a PKI_CRL
+ * \brief PKI_X509_CRL_free() - Frees memory associated with a PKI_CRL
  *
  * This function frees memory associated with a PKI_X509_CRL data structure.
  * Returns PKI_OK if successful or PKI_ERR in case of an error (or if
  * the passed pointer was NULL.
  */
 
-void PKI_X509_CRL_free ( PKI_X509_CRL * x ) {
+int PKI_X509_CRL_free ( PKI_X509_CRL * x ) {
 
-  if( !x ) return;
+  if( !x ) return PKI_OK;
 
   if( x->value ) X509_CRL_free ((X509_CRL *) x->value );
 
   PKI_Free ( x );
+
+  return PKI_OK;
 }
 
+/*! 
+ * \brief PKI_X509_CRL_free_void() - Frees memory associated with a PKI_CRL
+ *
+ * This function frees memory associated with a PKI_X509_CRL data structure.
+ * Returns PKI_OK if successful or PKI_ERR in case of an error (or if
+ * the passed pointer was NULL.
+ */
 void PKI_X509_CRL_free_void( void *x ) {
   PKI_X509_free( (PKI_X509_CRL *) x );
-
   return;
 }
 
