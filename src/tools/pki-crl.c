@@ -45,7 +45,7 @@ void usage ( void ) {
 	printf(BLUE "    -profileuri " RED "<URI>" NORM "....: URI of a CRL profile to be loaded\n");
 	printf(BLUE "    -entry " RED "<ser:[code]>" NORM "..: Revoked Entry (with reason code)\n");
 	printf(BLUE "    -crlNum " RED "<num>" NORM "........: CRL's serial number\n");
-	printf(BLUE "    -validity " RED "<secs>" NORM ".....: CRL validity period (in secs)\n");
+	printf(BLUE "    -nextUpdate " RED "<secs>" NORM "...: CRL nextUpdate (seconds from 'now')\n");
 	printf(BLUE "    -outform " RED "<opt>" NORM ".......: Output format (PEM, DER, TXT, XML)\n");
 	printf(BLUE "    -verbose"        NORM " ............: Be verbose during operations\n");
 	printf(BLUE "    -debug"        NORM " ..............: Print debug information\n");
@@ -54,8 +54,8 @@ void usage ( void ) {
 	printf("   Where revocation codes are:\n");
 	for ( i = 0 ; i < PKI_X509_CRL_REASON_CODE_num(); i++ ) {
 		printf("    * " BLUE "%s " NORM ": %s\n", 
-			PKI_X509_CRL_REASON_CODE_get_parsed ( i ),
-			PKI_X509_CRL_REASON_CODE_get_descr ( i ));
+			PKI_X509_CRL_REASON_CODE_get_parsed((PKI_X509_CRL_REASON)i),
+			PKI_X509_CRL_REASON_CODE_get_descr((PKI_X509_CRL_REASON)i));
 	} 
 	printf("\n");
 
@@ -123,7 +123,11 @@ int main (int argc, char *argv[] ) {
 	char *passin = NULL;
 	char *password = NULL;
 
-	long long validity = PKI_VALIDITY_ONE_WEEK;
+	// long long validity = PKI_VALIDITY_ONE_WEEK;
+	
+	long long thisUpdate = 0;
+	long long nextUpdate = PKI_VALIDITY_ONE_WEEK;
+
 	PKI_X509_CRL_ENTRY_STACK *entryStack = NULL;
 	PKI_X509_CRL_ENTRY *crlEntry = NULL;
 
@@ -202,11 +206,14 @@ int main (int argc, char *argv[] ) {
 			}
 
 			if ((crlEntry = PKI_X509_CRL_ENTRY_new_serial(entry_s,
-            						instruction, NULL, NULL )) == NULL ) {
-        			fprintf(stderr, "ERROR, can not generate CRL entry from -entry %s!\n\n",
-					entry_s);
-        			exit(1);
-    			}
+            											  instruction,
+														  NULL,
+														  NULL,
+														  NULL)) == NULL ) {
+				fprintf(stderr, "ERROR, can not generate CRL entry from -entry %s!\n\n",
+				entry_s);
+				exit(1);
+			}
 
 			if( PKI_STACK_X509_CRL_ENTRY_push( entryStack, crlEntry ) == PKI_ERR ) {
 				fprintf(stderr, "ERROR, can not add entry %s to CRL "
@@ -231,12 +238,12 @@ int main (int argc, char *argv[] ) {
 				break;
 			}
 			crlNum_s=(argv[++i]);
-		} else if ( strncmp_nocase ( argv[i], "-validity", 9 ) == 0) {
+		} else if ( strncmp_nocase ( argv[i], "-nextUpdate", 9 ) == 0) {
 			if( argv[i+1] == NULL ) {
 				error=1;
 				break;
 			}
-			validity=atoll(argv[++i]);
+			nextUpdate=atoll(argv[++i]);
 		} else if(strncmp_nocase( argv[i], "-outform", 8) == 0 ) {
 			if( argv[i+1] == NULL ) {
 				error = 1;
@@ -404,7 +411,13 @@ int main (int argc, char *argv[] ) {
 		// fprintf( stderr, "REASON CODES = > %d\n",
 		// 	PKI_X509_CRL_REASON_CODE_get ( "" ) );
 
-		if ((crl = PKI_TOKEN_issue_crl(tk, crlNum_s, (long unsigned int) validity, entryStack, profile_s )) == NULL ) {
+		if ((crl = PKI_TOKEN_issue_crl(tk, 
+									   crlNum_s,
+									   thisUpdate,
+									   nextUpdate, 
+									   entryStack, 
+									   NULL, 
+									   profile_s)) == NULL ) {
 			fprintf( stderr, "ERROR, can not issue new CRL!\n\n");
 			exit(1);
 		};

@@ -86,7 +86,13 @@ typedef enum {
 	PKI_ERR_X509_REQ_CREATE_ALGORITHM,
 	PKI_ERR_X509_REQ_,
 	/* CRL Errors */
-	PKI_ERR_X509_CRL,
+	PKI_ERR_X509_CRL_NUMBER,
+	PKI_ERR_X509_CRL_VERSION,
+	PKI_ERR_X509_CRL_REVOCATION_ENTRY,
+	PKI_ERR_X509_CRL_REVOCATION_ENTRY_DATE,
+	PKI_ERR_X509_CRL_REVOCATION_ENTRY_REASON_CODE,
+	PKI_ERR_X509_CRL_REVOCATION_ENTRY_EXTENSION,
+	PKI_ERR_X509_CRL_,
 	/* OCSP Ops */
 	PKI_ERR_OCSP_RESP_ENCODE,
 	PKI_ERR_OCSP_RESP_DECODE,
@@ -195,6 +201,12 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_REQ_CREATE_ALGORITHM, "Can not set request Algorithm" },
 	{ PKI_ERR_X509_REQ_, "" },
 	/* CRL Errors */
+	{ PKI_ERR_X509_CRL_NUMBER, "CRL Number issue" },
+	{ PKI_ERR_X509_CRL_VERSION, "CRL Version issue" },
+	{ PKI_ERR_X509_CRL_REVOCATION_ENTRY, "Revocation Entry general issue"},
+	{ PKI_ERR_X509_CRL_REVOCATION_ENTRY_DATE, "Revocation Date issue in revoked entry"},
+	{ PKI_ERR_X509_CRL_REVOCATION_ENTRY_REASON_CODE, "Revocation Code issue in revoked entry"},
+	{ PKI_ERR_X509_CRL_REVOCATION_ENTRY_EXTENSION, "Extensions issue in revoked entry"},
 	{ PKI_ERR_X509_CRL, "" },
 	/* OCSP Ops */
 	{ PKI_ERR_OCSP_RESP_ENCODE, "Can not encode OCSP response" },

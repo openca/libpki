@@ -1299,8 +1299,15 @@ int main (int argc, char *argv[] ) {
 		if( verbose ) fprintf(stderr, "Generating new CRL (%s) ... ", outfile );
 		fflush(stdout);
 
-		if((crl = PKI_TOKEN_issue_crl( tk, serial, validity, NULL,
-				profile )) == NULL) {
+		long long thisUpdate = 0;
+		long long nextUpdate = (long long) validity;
+		if ((crl = PKI_TOKEN_issue_crl(tk,
+									   serial,
+									   thisUpdate,
+									   nextUpdate,
+									   NULL,
+									   NULL,
+									   profile )) == NULL) {
 			fprintf(stderr, "ERROR: can not generate a new CRL!\n\n");
 			exit(1);
 		};

@@ -76,6 +76,10 @@ const ASN1_ITEM * _get_ossl_item(PKI_DATATYPE type) {
 			it = NULL;
 		} break;
 
+		case PKI_DATATYPE_X509_EXTENSION: {
+			it = &X509_EXTENSION_it;
+		} break;
+
 		default: {
 			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, 
 				  "Not Supported Datatype [%d]", type);
@@ -147,6 +151,10 @@ PKI_TBS_ASN1 * __datatype_get_asn1_ref(PKI_DATATYPE   type,
 
 		case PKI_DATATYPE_X509_PRQP_RESP : {
 			p = ((PKI_X509_PRQP_RESP_VALUE *)v)->respData;
+		} break;
+
+		case PKI_DATATYPE_X509_EXTENSION : {
+			p = &((PKI_X509_EXTENSION_VALUE *) v)->value;
 		} break;
 
 		case PKI_DATATYPE_X509_CMS : {

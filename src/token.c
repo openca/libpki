@@ -2185,9 +2185,13 @@ int PKI_TOKEN_import_cert_stack ( PKI_TOKEN *tk, PKI_X509_CERT_STACK *sk,
  * passed, it is used to set the right extensions in the CRL. To generate a
  * new revoked entry the PKI_X509_CRL_ENTRY_new() function has to be used.
  */
-
-PKI_X509_CRL * PKI_TOKEN_issue_crl ( PKI_TOKEN *tk, char *serial,
-	unsigned long validity, PKI_X509_CRL_ENTRY_STACK *sk, char *profile_s) {
+PKI_X509_CRL * PKI_TOKEN_issue_crl (PKI_TOKEN *tk,
+									char *serial, 
+									long long thisUpdate /* offset */,
+									long long nextUpdate /* offset */, 
+									PKI_X509_CRL_ENTRY_STACK *sk,
+									PKI_X509_EXTENSION_STACK *exts,
+									char *profile_s ) {
 
 	PKI_X509_CRL *crl = NULL;
 	PKI_X509_PROFILE *profile = NULL;
@@ -2231,10 +2235,18 @@ PKI_X509_CRL * PKI_TOKEN_issue_crl ( PKI_TOKEN *tk, char *serial,
 	// 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 	// };
 
-	crl = PKI_X509_CRL_new( tk->keypair, tk->cert, serial,
-				validity, sk, profile, tk->oids, tk->hsm );
+	crl = PKI_X509_CRL_new(tk->keypair,
+						   tk->cert,
+						   serial,
+						   thisUpdate, 
+						   nextUpdate,
+						   sk,
+						   exts,
+						   profile,
+						   tk->oids,
+						   tk->hsm );
 
-	return( crl );
+	return crl;
 }
 
 /*!

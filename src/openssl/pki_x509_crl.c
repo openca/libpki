@@ -6,18 +6,18 @@
 #include "internal/x509_data_st.h"
 
 PKI_X509_CRL_REASON_CODE PKI_X509_CRL_REASON_DESCR[] = {
-  { PKI_CRL_REASON_UNSPECIFIED,       "unspecified",    "No specified reason" },
-  { PKI_CRL_REASON_KEY_COMPROMISE,     "keyCompromise",  "Subject's Key Compromised" },
-  { PKI_CRL_REASON_CA_COMPROMISE,     "caCompromise",    "Certification Authority Compromised" },
-  { PKI_CRL_REASON_AFFILIATION_CHANGED,   "affiliationChanged",  "Subject's Change in affiliation" },
-  { PKI_CRL_REASON_SUPERSEDED,       "superseded",    "Superseded" },
-  { PKI_CRL_REASON_CESSATION_OF_OPERATION, "cessationOfOperation", "Cessation of Operation" },
-  { PKI_CRL_REASON_CERTIFICATE_HOLD,     "certificateHold",  "Certificate is Suspended" },
-  { PKI_CRL_REASON_REMOVE_FROM_CRL,     "removeFromCRL",  "Remove From CRL" },
-  { PKI_CRL_REASON_PRIVILEGE_WITHDRAWN,   "privilegeWithdrawn",  "Privilege is Withdrawn" },
-  { PKI_CRL_REASON_AA_COMPROMISE,     "aaCompromise",    "Attribute Authority Compromised" },
-  { PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT,   "onHoldReject",  "Certificate is Suspended, Reject" },
-  { PKI_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER,  "onHoldCallIssuer", "Certificate is Suspended, Call Issuer" },
+  { PKI_CRL_REASON_UNSPECIFIED,                 "unspecified",          "No specified reason" },
+  { PKI_CRL_REASON_KEY_COMPROMISE,              "keyCompromise",        "Subject's Key Compromised" },
+  { PKI_CRL_REASON_CA_COMPROMISE,               "caCompromise",         "Certification Authority Compromised" },
+  { PKI_CRL_REASON_AFFILIATION_CHANGED,         "affiliationChanged",   "Subject's Change in affiliation" },
+  { PKI_CRL_REASON_SUPERSEDED,                  "superseded",           "Superseded" },
+  { PKI_CRL_REASON_CESSATION_OF_OPERATION,      "cessationOfOperation", "Cessation of Operation" },
+  { PKI_CRL_REASON_CERTIFICATE_HOLD,            "certificateHold",      "Certificate is Suspended" },
+  { PKI_CRL_REASON_REMOVE_FROM_CRL,             "removeFromCRL",        "Remove From CRL" },
+  { PKI_CRL_REASON_PRIVILEGE_WITHDRAWN,         "privilegeWithdrawn",   "Privilege is Withdrawn" },
+  { PKI_CRL_REASON_AA_COMPROMISE,               "aaCompromise",         "Attribute Authority Compromised" },
+  { PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT,     "onHoldReject",         "Certificate is Suspended, Reject" },
+  { PKI_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER, "onHoldCallIssuer",     "Certificate is Suspended, Call Issuer" },
 };
 
 
@@ -67,14 +67,16 @@ void PKI_X509_CRL_free_void( void *x ) {
  * entry the PKI_X509_CRL_ENTRY_new() function has to be used.
  */
 
-PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR *k,
-             const PKI_X509_CERT *cert, 
-             const char * crlNumber_s,
-             unsigned long validity,
-             const PKI_X509_CRL_ENTRY_STACK *sk, 
-             const PKI_X509_PROFILE *profile,
-             const PKI_CONFIG *oids,
-             HSM *hsm) {
+PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR         * k,
+                               const PKI_X509_CERT            * cert, 
+                               const char                     * crlNumber_s,
+                               long long                        thisUpdate,
+                               long long                        nextUpdate,
+                               const PKI_X509_CRL_ENTRY_STACK * sk,
+                               const PKI_X509_EXTENSION_STACK * sk_exts,
+                               const PKI_X509_PROFILE         * profile,
+                               const PKI_CONFIG               * oids,
+                               HSM                            * hsm) {
 
   PKI_X509_CRL *ret = NULL;
   PKI_X509_CRL_VALUE *val = NULL;
@@ -125,8 +127,40 @@ PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR *k,
     X509_CRL_add1_ext_i2d(val, NID_crl_number, crlNumber, 0, 0);
   };
 
-  /* Set the start date (notBefore) */
-  if (profile)
+  if (sk_exts != NULL 
+      && PKI_X509_CRL_add_extension_stack(ret, sk_exts) == PKI_ERR) {
+    // Error Condition
+    PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Cannot set CRL extension");
+    goto err;
+  }
+
+  // // Adds the set of extensions, if any is passed
+  // if (sk_exts != NULL && PKI_STACK_X509_EXTENSION_elements(sk_exts) > 0) {
+  //   // Cycles through the stack elements
+  //   for (int idx = 0; idx < PKI_STACK_X509_EXTENSION_elements(sk_exts); idx++) {
+  //     // // Adding Extensions to the CRL
+  //     // if (!X509_CRL_add_ext(val, PKI_STACK_X509_EXTENSION_get_num(sk_exts, idx), -1)) {
+  //     //   PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Cannot set CRL extension");
+  //     //   goto err;
+  //     // };
+  //     PKI_X509_EXTENSION * pki_ext = NULL;
+  //       // The PKI extension structure
+
+  //     // Retrieves the PKI extension data structure
+  //     if ((pki_ext = PKI_STACK_X509_EXTENSION_get_num(sk_exts, idx)) == NULL) {
+  //       PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Internal Error: Cannot get the CRL extension");
+  //       goto err;
+  //     }
+
+  //     // Assigns the Extension to the CRL
+  //     if (PKI_X509_CRL_add_extension(ret, pki_ext) == PKI_ERR) {
+  //       PKI_ERROR(PKI_ERR_X509_CRL_EXTENSION, "Internal Error: Cannot set the CRL extension");
+  //       goto err;
+  //     }
+  // }
+
+  /* Set the start date (thisUpdate) */
+  if (profile && (thisUpdate < 0))
   {
     int years = 0;
     int days  = 0;
@@ -173,10 +207,10 @@ PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR *k,
   else 
   {
     // Sets lastUpdate to current time
-    lastUpdateVal = 0;
+    lastUpdateVal = thisUpdate;
   };
 
-  if ( profile && validity <= 0 ) {
+  if ( profile && (nextUpdate <= 0)) {
     long long years = 0;
     long long days = 0;
     long long hours = 0;
@@ -224,7 +258,7 @@ PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR *k,
   } 
   else
   {
-    nextUpdateVal = (long long) validity;
+    nextUpdateVal = (long long) nextUpdate;
   };
 
   /* Generates a new time for lastUpdate field */
@@ -267,9 +301,19 @@ PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR *k,
     for(i=0; i < PKI_STACK_X509_CRL_ENTRY_elements(sk); i++ ) {
       PKI_log_debug("CRL::ADDING ENTRY %d\n", i );
 
+      // Retrieves the entry to add to the CRL
       entry = PKI_STACK_X509_CRL_ENTRY_get_num(sk, i);
       if(!entry) break;
 
+      // Checks we have a revocation date to the entry
+      if (NULL == X509_REVOKED_get0_revocationDate(entry)) {
+        PKI_ERROR(PKI_ERR_X509_CRL_REVOCATION_ENTRY_DATE, "Missing revocation date in entry %d", i);
+        goto err;
+      }
+
+      PKI_DEBUG("REVOKED TIME => %s", PKI_TIME_get_parsed(X509_REVOKED_get0_revocationDate(entry)));
+
+      // Adds the entry to the internal data structure
       X509_CRL_add0_revoked(val, entry);
     };
   }
@@ -360,8 +404,8 @@ int PKI_X509_CRL_REASON_CODE_get ( const char * st ) {
  * \brief Returns a string representation of the passed reason code
  */
 
-const char *PKI_X509_CRL_REASON_CODE_get_parsed ( int reason ) {
-  if (reason < 0 || reason > PKI_X509_CRL_REASON_CODE_num() ) {
+const char *PKI_X509_CRL_REASON_CODE_get_parsed ( PKI_X509_CRL_REASON reason ) {
+  if (reason > PKI_X509_CRL_REASON_CODE_num() ) {
     return NULL;
   };
 
@@ -372,8 +416,8 @@ const char *PKI_X509_CRL_REASON_CODE_get_parsed ( int reason ) {
  * \brief Returns a description of the passed reason code
  */
 
-const char *PKI_X509_CRL_REASON_CODE_get_descr ( int reason ) {
-  if (reason < 0 || reason > PKI_X509_CRL_REASON_CODE_num() ) {
+const char *PKI_X509_CRL_REASON_CODE_get_descr ( PKI_X509_CRL_REASON reason ) {
+  if (reason > PKI_X509_CRL_REASON_CODE_num() ) {
     return NULL;
   };
 
@@ -395,25 +439,28 @@ int PKI_X509_CRL_REASON_CODE_num ( void ) {
  * order to generate a new CRL.
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new(const PKI_X509_CERT *cert, 
-              PKI_X509_CRL_REASON reason,
-              const PKI_TIME * revDate,
-              const PKI_X509_PROFILE *profile ) {
+PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new(const PKI_X509_CERT            * cert,
+					    					                    PKI_X509_CRL_REASON              reason, 
+					    					                    const PKI_TIME 		             * revDate,
+											                      const PKI_X509_EXTENSION_STACK * sk_exts,
+					    					                    const PKI_X509_PROFILE         * profile) {
 
   PKI_X509_CRL_ENTRY *entry = NULL;
   char *ser_s = NULL;
 
-  if((ser_s = PKI_X509_CERT_get_parsed(cert, PKI_X509_DATA_SERIAL)) 
-                == NULL ) {
+  if  ((ser_s = PKI_X509_CERT_get_parsed(cert, PKI_X509_DATA_SERIAL)) == NULL ) {
     return ( NULL );
   }
 
-  entry = PKI_X509_CRL_ENTRY_new_serial ( ser_s, reason, 
-              revDate, profile );
+  entry = PKI_X509_CRL_ENTRY_new_serial(ser_s,
+                                        reason,
+                                        revDate,
+                                        sk_exts,
+                                        profile);
 
-  if( ser_s ) PKI_Free ( ser_s );
+  if (ser_s) PKI_Free(ser_s);
 
-  return ( entry );
+  return entry;
 }
 
 /*! \brief Generates a new PKI_X509_CRL_ENTRY from a serial number (string)
@@ -423,9 +470,11 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new(const PKI_X509_CERT *cert,
  * is used to add extensions to the entry (when needed)
  */
 
-PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial, 
-          PKI_X509_CRL_REASON reason, const PKI_TIME *revDate,
-          const PKI_X509_PROFILE *profile ) {
+PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                     * serial, 
+                                                   const PKI_X509_CRL_REASON        reason, 
+                                                   const PKI_TIME                 * revDate,
+                                                   const PKI_X509_EXTENSION_STACK * sk_exts,
+                                                   const PKI_X509_PROFILE         * profile) {
 
   PKI_X509_CRL_ENTRY *entry = NULL;
     // Entry to be added to the CRL
@@ -449,16 +498,23 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial,
   }
 
   // If no revocation date is provided, let's use "now"
-  if (!revDate && (a_date = PKI_TIME_new(0)) == NULL) {
-
-    // Can not allocate the revocation date time
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-    return NULL;
-
+  if (revDate == NULL) {
+    // Allocates a new ASN1_GENERALIZEDTIME
+    a_date = PKI_TIME_new(0);
+    // Checks for correct allocation
+    if (a_date == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      return NULL;
+    }
   } else {
-
-    // Gets the Pointer from the caller
-    a_date = (PKI_TIME *)revDate;
+    // Copies the passed date
+    a_date = PKI_TIME_dup(revDate);
+    // Checks for correct copying
+    if (a_date == NULL) {
+      // Can not allocate the revocation date time
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      return NULL;
+    }
   }
 
   // Generates the integer carrying the serial number
@@ -468,12 +524,14 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial,
     if (X509_REVOKED_set_serialNumber(entry, s_int) == 1) {
 
       // Sets the revocation date
-      if (a_date && !X509_REVOKED_set_revocationDate((X509_REVOKED *) entry, a_date)) {
+      if (!X509_REVOKED_set_revocationDate(entry, a_date)) {
         PKI_ERROR(PKI_ERR_GENERAL, "Can not assign revocation date");
         goto err;
       }
 
       // All Ok here
+      PKI_TIME_free(a_date); // Free Memory
+      a_date = NULL; // Safety
 
     } else {
 
@@ -481,6 +539,10 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial,
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not assign the serial (%s)", serial);
       goto err;
     }
+
+    // Free the memory
+    if (s_int) PKI_INTEGER_free(s_int);
+    s_int = NULL; // Safety
 
   } else {
 
@@ -570,51 +632,29 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial( const char *serial,
       if (!ASN1_ENUMERATED_set(rtmp, supported_reason)) goto err;
       if (!X509_REVOKED_add1_ext_i2d( entry, NID_crl_reason, rtmp, 0, 0)) goto err;
     }
-
-    /*
-    if( reason == CRL_REASON_HOLD_INSTRUCTION ) {
-      // if (!X509_REVOKED_add1_ext_i2d ( entry, 
-      //     NID_invalidity_date, revDate, 0, 0)) {
-      //   goto err;
-      // };
-      // if (!X509_REVOKED_add1_ext_i2d(entry, NID_hold_instruction_code, 
-        //   PKI_OID_get( "holdInstructionReject"), 0, 0)) {
-      // goto err;
-      // };
-    };
-    */
-
   }
 
-/*
-  if (rev && !X509_REVOKED_set_revocationDate(rev, revDate))
-                goto err;
+  // Adds the Entry's Extensions, if any
+  for (int idx = 0; sk_exts != NULL && idx < PKI_STACK_X509_EXTENSION_elements(sk_exts); idx++) {
 
-        if (rev && (reason_code != OCSP_REVOKED_STATUS_NOSTATUS))
-                {
-                rtmp = ASN1_ENUMERATED_new();
-                if (!rtmp || !ASN1_ENUMERATED_set(rtmp, reason_code))
-                        goto err;
-                if (!X509_REVOKED_add1_ext_i2d(rev, NID_crl_reason, rtmp, 0, 0))
-                        goto err;
-                }
+    PKI_X509_EXTENSION * ext = NULL;
+      // Pointer to the internal structure
 
-        if (rev && comp_time)
-                {
-                if (!X509_REVOKED_add1_ext_i2d(rev, NID_invalidity_date, comp_time, 0, 0))
-                        goto err;
-                }
-  if (rev && hold)
-                {
-                if (!X509_REVOKED_add1_ext_i2d(rev, NID_hold_instruction_code, hold, 0, 0))
-                        goto err;
-                }
+    // Retrieves the idx-th entry from the stack
+    if ((ext = PKI_STACK_X509_EXTENSION_get_num(sk_exts, idx)) == NULL) {
+      PKI_ERROR(PKI_ERR_X509_CRL_REVOCATION_ENTRY, NULL);
+      goto err;
+    }
 
-*/
+    // Adds the entry to the entry's extensions
+    if (!X509_REVOKED_add_ext(entry, ext->value, -1)) {
+      PKI_ERROR(PKI_ERR_X509_CRL_REVOCATION_ENTRY_EXTENSION, NULL);
+      goto err;
+    }
+  }
 
   // Free Allocated Memory
   if (s_int) PKI_INTEGER_free(s_int);
-  if (a_date && !revDate) PKI_TIME_free(a_date);
 
   // Returns the created entry
   return entry;
@@ -623,8 +663,8 @@ err:
 
   // Free Allocated memory
   if (s_int) PKI_INTEGER_free(s_int);
-  if (a_date && !revDate) PKI_TIME_free(a_date);
   if (entry) X509_REVOKED_free((X509_REVOKED *) entry);
+  if (a_date) PKI_TIME_free(a_date);
 
   // Returns null (error)
   return NULL;
@@ -803,9 +843,11 @@ const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_long(const PKI_X509_CRL *x,
 /*! \brief Adds an Extension to a CRL object
  */
 
-int PKI_X509_CRL_add_extension(PKI_X509_CRL *x, PKI_X509_EXTENSION *ext) {
+int PKI_X509_CRL_add_extension(const PKI_X509_CRL       * x,
+                               const PKI_X509_EXTENSION * ext) {
 
-  if( !x || !x->value || !ext || !ext->value ) return (PKI_ERR);
+  if( !x || !x->value || !ext || !ext->value )
+    return (PKI_ERR);
 
   if (!X509_CRL_add_ext((X509_CRL *)x->value, ext->value, -1)) 
     return (PKI_ERR);
@@ -816,29 +858,30 @@ int PKI_X509_CRL_add_extension(PKI_X509_CRL *x, PKI_X509_EXTENSION *ext) {
 /*! \brief Adds a stack of extensions to a CRL object.
  */
 
-int PKI_X509_CRL_add_extension_stack(PKI_X509_CRL *x, 
-          PKI_X509_EXTENSION_STACK *ext) {
+int PKI_X509_CRL_add_extension_stack(const PKI_X509_CRL             * x, 
+                                     const PKI_X509_EXTENSION_STACK * ext) {
 
-  int i = 0;
-
+  // Input Check
   if( !x || !ext ) return (PKI_ERR);
 
-  for( i = 0; i < PKI_STACK_X509_EXTENSION_elements(ext); i++ ) {
-    PKI_X509_EXTENSION *ossl_ext = NULL;
+  for(int i = 0; i < PKI_STACK_X509_EXTENSION_elements(ext); i++ ) {
 
+    PKI_X509_EXTENSION *ossl_ext = NULL;
+      // OpenSSL data structure
+
+    // Retrieves the crypto library's internals
     ossl_ext = PKI_STACK_X509_EXTENSION_get_num( ext, i);
     if (!ossl_ext ) continue;
 
-    if(!X509_CRL_add_ext ( (X509_CRL *) x->value, 
-              ossl_ext->value, -1 )) {
-      PKI_log_err("Adding Extension::%s",
-        ERR_error_string(ERR_get_error(), NULL));
+    // Adds the extension value to the list of extensions
+    if(!X509_CRL_add_ext ( (X509_CRL *) x->value, ossl_ext->value, -1 )) {
+      PKI_log_err("Adding Extension::%s", ERR_error_string(ERR_get_error(), NULL));
       return ( PKI_ERR );
     }
-
   }
 
-  return (PKI_OK);
+  // All Done
+  return PKI_OK;
 }
 
 /*! \brief Get Data from a CRL object

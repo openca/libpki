@@ -96,7 +96,7 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 PKI_X509_CERT* PKI_TOKEN_issue_cert(PKI_TOKEN *tk, char *subject, char *serial,
 		unsigned long validity, PKI_X509_REQ *req, char *profile_s);
 PKI_X509_CRL * PKI_TOKEN_issue_crl ( PKI_TOKEN *tk, char *serial,
-	unsigned long validity, PKI_X509_CRL_ENTRY_STACK *sk, char *profile_s );
+	long long thisUpdate, long long nextUpdate, PKI_X509_CRL_ENTRY_STACK *sk, PKI_X509_EXTENSION_STACK *exts, char *profile_s );
 PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject, 
 		char *serial, unsigned long validity, 
 			char *profile_s, PKI_TOKEN *px_tk );
