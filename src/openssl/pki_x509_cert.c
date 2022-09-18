@@ -1492,12 +1492,12 @@ int PKI_X509_CERT_check_pubkey(const PKI_X509_CERT *x,
 			       const PKI_X509_KEYPAIR *k)
 {
   // Input checks
-  if (!x || !x->value || !k || !k->value) return -2;
+  if (!x || !x->value || !k || !k->value) return PKI_ERR;
 
   // Checks that the private key corresponds to the public key in
   // the certificate. The '1' value corresponds to success in the
   // OpenSSL library. We return the '0' for success instead.
-  if (X509_check_private_key(x->value, k->value) != 1) return -1;
-  else return 0;
-
+  if (X509_check_private_key(x->value, k->value) != 1) return PKI_ERR;
+  // All Done.
+  return PKI_OK;
 }

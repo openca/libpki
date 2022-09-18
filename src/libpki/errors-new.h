@@ -5,7 +5,11 @@
  */
 
 #ifndef _LIBPKI_ERR_H
-#define _LIBPKI_ERR_H
+#include <libpki/pki_err.h>
+#endif
+
+#ifndef _LIBPKI_ERR_NEW_H
+#define _LIBPKI_ERR_NEW_H
 
 typedef enum {
 	/* General Errors */
@@ -16,6 +20,7 @@ typedef enum {
 	PKI_ERR_OBJECT_CREATE,
 	PKI_ERR_POINTER_NULL,
 	PKI_ERR_PARAM_NULL,
+	PKI_ERR_PARAM_RANGE,
 	PKI_ERR_CALLBACK_NULL,
 	PKI_ERR_PARAM_TYPE,
 	/* PKI MEM Errors */
@@ -53,12 +58,16 @@ typedef enum {
 	/* Token Related */
 	PKI_ERR_TOKEN_INIT,
 	PKI_ERR_TOKEN_LOGIN,
+	PKI_ERR_TOKEN_NOT_LOGGED_IN,
 	PKI_ERR_TOKEN_KEYPAIR_LOAD,
+	PKI_ERR_TOKEN_KEYPAIR_SET,
 	PKI_ERR_TOKEN_SET_CRED,
 	PKI_ERR_TOKEN_USE_SLOT,
 	PKI_ERR_TOKEN_PROFILE_LOAD,
 	PKI_ERR_TOKEN_SET_ALGOR,
 	PKI_ERR_TOKEN_GET_ALGOR,
+	PKI_ERR_TOKEN_SET_STATUS,
+	PKI_ERR_TOKEN_GET_STATUS,
 	PKI_ERR_TOKEN_,
 	/* Key Operations */
 	PKI_ERR_X509_KEYPAIR_SIZE,
@@ -131,6 +140,7 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_OBJECT_CREATE, "Object Creation Error" },
 	{ PKI_ERR_POINTER_NULL, "Null Memory Pointer" },
 	{ PKI_ERR_PARAM_NULL, "Null Parameter" },
+	{ PKI_ERR_PARAM_RANGE, "Parameter out of range" },
 	{ PKI_ERR_CALLBACK_NULL, "Missing or Null Callback" },
 	{ PKI_ERR_PARAM_TYPE, "Wrong Paramenter Type" },
 	/* PKI MEM Errors */
@@ -168,12 +178,16 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	/* Token Related */
 	{ PKI_ERR_TOKEN_INIT, "Can not initialize Token" },
 	{ PKI_ERR_TOKEN_LOGIN, "Error while logging into token" },
+	{ PKI_ERR_TOKEN_NOT_LOGGED_IN, "Error, login is needed for the operation" },
 	{ PKI_ERR_TOKEN_KEYPAIR_LOAD,  "Can not load Token Key" },
+	{ PKI_ERR_TOKEN_KEYPAIR_SET,  "Can not set the key for the Token" },
 	{ PKI_ERR_TOKEN_SET_CRED, "Can not set Token credentials" },
 	{ PKI_ERR_TOKEN_USE_SLOT, "Error while setting Token's Slot" },
 	{ PKI_ERR_TOKEN_PROFILE_LOAD, "Can not load Token's Profile" },
 	{ PKI_ERR_TOKEN_SET_ALGOR, "Error while setting Token's Algorithm" },
 	{ PKI_ERR_TOKEN_GET_ALGOR, "Error while retrieving Token's Algorithm" },
+	{ PKI_ERR_TOKEN_SET_STATUS, "Error while setting Token's internal status" },
+	{ PKI_ERR_TOKEN_GET_STATUS, "Error while retrieving Token's internal status" },
 	{ PKI_ERR_TOKEN_,  "" },
 	/* Key Operations */
 	{ PKI_ERR_X509_KEYPAIR_SIZE, "Key Size Error" },

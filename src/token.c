@@ -6,6 +6,39 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+
+// ==========================
+// Auxillary Static Functions
+// ==========================
+
+static int __check_token_status_range(PKI_TOKEN_STATUS status) {
+	switch(status) {
+		case PKI_TOKEN_STATUS_OK:
+		case PKI_TOKEN_STATUS_INIT_ERR:
+		case PKI_TOKEN_STATUS_LOGIN_ERR:
+		case PKI_TOKEN_STATUS_KEYPAIR_LOAD:
+		case PKI_TOKEN_STATUS_KEYPAIR_CHECK_ERR:
+		case PKI_TOKEN_STATUS_KEYPAIR_MISSING_ERR:
+		case PKI_TOKEN_STATUS_CERT_MISSING_ERR:
+		case PKI_TOKEN_STATUS_CACERT_MISSING_ERR:
+		case PKI_TOKEN_STATUS_OTHERCERTS_MISSING_ERR:
+		case PKI_TOKEN_STATUS_TRUSTEDCERTS_MISSING_ERR:
+		case PKI_TOKEN_STATUS_MEMORY_ERR:
+		case PKI_TOKEN_STATUS_UNKNOWN:
+		case PKI_TOKEN_STATUS_HSM_ERR:
+			// Accepted status
+			break;
+
+		default:
+			return PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+	}
+	return PKI_OK;
+}
+
+// =========
+// Functions
+// =========
+
 PKI_CRED *PKI_TOKEN_cred_cb_stdin ( char * prompt ) {
 
 	PKI_CRED *ret = NULL;
@@ -179,38 +212,39 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 
 int PKI_TOKEN_check(PKI_TOKEN *tk )
 {
-	int check_val = 0;
-	int ret = PKI_TOKEN_STATUS_OK;
-
 	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
 	if (tk->hsm == NULL && tk->type != HSM_TYPE_SOFTWARE)
-		ret |= PKI_TOKEN_STATUS_HSM_ERR;
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_HSM_ERR);
 
 	if (tk->keypair == NULL) {
 		// If there is no key, the error condition is triggered if the
 		// TOKEN is not a software token or the reported status is
 		// a successful login
-		if (tk->type == HSM_TYPE_SOFTWARE || tk->status & PKI_TOKEN_STATUS_LOGIN_OK)
-			ret |= PKI_TOKEN_STATUS_KEYPAIR_MISSING_ERR;
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_KEYPAIR_MISSING_ERR);
 	}
 
-	if ((check_val = PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair)) != 0)
-		ret |= PKI_TOKEN_STATUS_KEYPAIR_CHECK_ERR;
+	if (PKI_X509_CERT_check_pubkey(tk->cert, tk->keypair) != PKI_OK)
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_KEYPAIR_CHECK_ERR);
 
-	if (!tk->cert ) 
-		ret |= PKI_TOKEN_STATUS_CERT_MISSING_ERR;
+	if (!tk->cert) 
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_CERT_MISSING_ERR);
 
-	if (!tk->cacert ) 
-		ret |= PKI_TOKEN_STATUS_CACERT_MISSING_ERR;
+	if (!tk->cacert) 
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_CACERT_MISSING_ERR);
 
-	if (!tk->otherCerts )
-		ret |= PKI_TOKEN_STATUS_OTHERCERTS_MISSING_ERR;
+	if (!tk->otherCerts)
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_OTHERCERTS_MISSING_ERR);
 
-	if (!tk->trustedCerts )
-		ret |= PKI_TOKEN_STATUS_TRUSTEDCERTS_MISSING_ERR;
+	if (!tk->trustedCerts)
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_TRUSTEDCERTS_MISSING_ERR);
 
-	return ret;
+	// There are issues, let's return an error
+	if (tk->status != 0) return PKI_ERR;
+
+	// All Ok
+	return PKI_OK;
+
 }
 
 /*!
@@ -466,47 +500,126 @@ int PKI_TOKEN_free( PKI_TOKEN *tk )
 
 /*! \brief Login into the token (triggers keypair loading) */
 
-int PKI_TOKEN_login( PKI_TOKEN *tk )
-{
-	if (!tk)
-	{
-		PKI_ERROR ( PKI_ERR_PARAM_NULL, NULL );
-		return PKI_ERR;
+int PKI_TOKEN_login(PKI_TOKEN * const tk) {
+
+	PKI_CRED * creds = NULL;
+		// Credentials for login
+
+	// Input Check
+	if (!tk) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
- 	if (tk->keypair)
-	{
-		// The Key is already loaded
-		return PKI_OK;
-	};
+	if (NULL == tk->cred) {
+		creds = PKI_TOKEN_cred_get ( tk, NULL );
+	} else {
+		creds = tk->cred;
+	}
 
-	if (!tk->cred)
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-
-	if (tk->hsm)
-	{
-		if (HSM_login(tk->hsm, tk->cred) != PKI_OK) {
+	// Logs into the HSM, if any is configured
+	// for the token
+	if (tk->hsm && !PKI_TOKEN_is_logged_in(tk)) {
+		// Login into the HSM
+		if (HSM_login(tk->hsm, creds) != PKI_OK) {
+			// Sets the error condition
+			PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_LOGIN_ERR);
+			// Returns the error
 			return PKI_ERROR( PKI_ERR_HSM_LOGIN, NULL);
 		} else {
-			tk->status |= PKI_TOKEN_STATUS_LOGIN_OK;
+			// Sets the success status for the login
+			PKI_TOKEN_set_login_success(tk);
+			// Resets the login error condition, if any
+			PKI_TOKEN_status_del_error(tk, PKI_TOKEN_STATUS_LOGIN_ERR);
 		}
 	}
 
 	// Loads the Keypair - this will trigger login for the token
-	if (tk->key_id)
-	{
-		if ((PKI_TOKEN_load_keypair(tk, tk->key_id)) != PKI_OK)
-		{
-			tk->status |= PKI_TOKEN_STATUS_LOGIN_ERR;
+	if (!tk->keypair && tk->key_id) {
+
+		if ((PKI_TOKEN_load_keypair(tk, tk->key_id)) != PKI_OK) {
+			tk->status |= PKI_TOKEN_STATUS_KEYPAIR_CHECK_ERR;
 			return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, tk->key_id );
 		}
 	}
 
-	/* Clears the login error bit if set */
-	tk->status ^= PKI_TOKEN_STATUS_LOGIN_ERR;
+	// Sets the login success
+	return PKI_TOKEN_set_login_success(tk);
 
+	// tk->status ^= PKI_TOKEN_STATUS_LOGIN_ERR;
+	// tk->status &= PKI_TOKEN_STATUS_LOGIN_OK;
+
+	// return PKI_OK;
+};
+
+int PKI_TOKEN_set_login_success(PKI_TOKEN * const tk) {
+	// Input Checks
+	if (!tk) return PKI_ERR;
+	// Sets the login status
+	tk->isLoggedIn = true;
+	// All Done
 	return PKI_OK;
-}
+};
+
+int PKI_TOKEN_is_logged_in(const PKI_TOKEN * const tk) {
+	// Input Checks & Get operation
+	if (!tk || tk->isLoggedIn != true) return PKI_ERR;
+	// All Done
+	return PKI_OK;
+};
+
+int PKI_TOKEN_status_clear_errors(PKI_TOKEN * const tk) {
+	// Input Checks
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	// Set Operation
+	tk->status = PKI_TOKEN_STATUS_OK;
+	// All Done
+	return PKI_OK;
+};
+
+int PKI_TOKEN_status_set(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status) {
+	// Input Checks
+	if (!tk || !__check_token_status_range(status)) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	// Set operation
+	tk->status = status;
+	// All Done
+	return PKI_OK;
+};
+
+int PKI_TOKEN_status_del_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status) {
+	// Input Checks
+	if (!tk || !__check_token_status_range(status)) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	// Set Operation
+	if (tk->status & status) tk->status ^= status;
+	// All Done
+	return PKI_OK;
+};
+
+int PKI_TOKEN_status_add_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status) {
+	// Input Checks
+	if (!tk || !__check_token_status_range(status)) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	// Set Operation
+	if (!(tk->status & status)) tk->status |= status;
+	// All Done.
+	return PKI_OK;
+};
+
+int PKI_TOKEN_status_has_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status) {
+	// Input Checks
+	if (!tk || !__check_token_status_range(status)) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	// Return the condition
+	if ((tk->status & status) == 0) {
+		return PKI_ERR;
+	}
+	// All Done
+	return PKI_OK;
+};
+
+PKI_TOKEN_STATUS PKI_TOKEN_status_get(const PKI_TOKEN * const tk) {
+	// Input Checks
+	if (!tk) return PKI_TOKEN_STATUS_UNKNOWN;
+	// Returns the status value
+	return tk->status;
+};
 
 /*!
  * \brief Loads a configuration file from the token.d directory.
@@ -1419,6 +1532,27 @@ int PKI_TOKEN_set_crls ( PKI_TOKEN *tk, PKI_X509_CRL_STACK *stack )
 }
 
 /*!
+ * \brief Returns the stack of CRLs stored in a PKI_TOKEN
+ *
+ * Use this function to get a reference (not a copy) to the stack of
+ * CRLs of the PKI_TOKEN.
+ *
+ * The function returns the pointer to the PKI_X509_CRL_STACK or NULL
+ * in case of error.
+ */
+
+PKI_X509_CRL_STACK * PKI_TOKEN_get_crls ( PKI_TOKEN *tk )
+{
+	if (!tk)
+	{
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return (NULL);
+	}
+
+	return tk->crls;
+}
+
+/*!
  * \brief Returns the stack of other certificates (chain) of a PKI_TOKEN
  *
  * Use this function to get a reference (not a copy) to the stack of
@@ -1443,7 +1577,7 @@ PKI_X509_CERT_STACK * PKI_TOKEN_get_otherCerts ( PKI_TOKEN *tk )
  * \brief Returns the stack of trusted certificates (chain) of a PKI_TOKEN
  *
  * Use this function to get a reference (not a copy) to the stack of
- * tursted certificates (Trust Anchors) of the PKI_TOKEN.
+ * trusted certificates (Trust Anchors) of the PKI_TOKEN.
  *
  * The function returns the pointer to the PKI_X509_CERT_STACK or NULL
  * in case of error.
@@ -1458,27 +1592,6 @@ PKI_X509_CERT_STACK * PKI_TOKEN_get_trustedCerts(PKI_TOKEN *tk)
 	}
 
 	return tk->trustedCerts;
-}
-
-/*!
- * \brief Returns the stack of CRLs stored in a PKI_TOKEN
- *
- * Use this function to get a reference (not a copy) to the stack of
- * CRLs of the PKI_TOKEN.
- *
- * The function returns the pointer to the PKI_X509_CRL_STACK or NULL
- * in case of error.
- */
-
-PKI_X509_CRL_STACK * PKI_TOKEN_get_crls ( PKI_TOKEN *tk )
-{
-	if (!tk)
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return (NULL);
-	}
-
-	return tk->crls;
 }
 
 /*!
@@ -1735,7 +1848,6 @@ int PKI_TOKEN_load_crls ( PKI_TOKEN *tk, char *url_string)
 
 int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 {
-	// PKI_ALGOR *pKeyAlgor = NULL;
 	PKI_X509_KEYPAIR *pkey = NULL;
 	URL *url = NULL;
 
@@ -1750,7 +1862,7 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 											tk->cred, tk->hsm )) == NULL) {
 		/* Can not load the keypair from the given URL */
 		PKI_log_debug("PKI_TOKEN_load_keypair()::Can not load key (%s)", url->url_s);
-		tk->status |= PKI_TOKEN_STATUS_LOGIN_ERR;
+		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_LOGIN_ERR);
 
 		if (url) URL_free(url);
 		return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, url_string);
@@ -1761,7 +1873,25 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 	if (url) URL_free(url);
 
 	// Set the keypair and return
-	return PKI_TOKEN_set_keypair(tk, pkey);
+	if (PKI_TOKEN_set_keypair(tk, pkey) == PKI_OK) {
+		// Sets the login status for the token
+		if (PKI_TOKEN_set_login_success(tk) == PKI_OK) {
+			// Sets the status code for the token
+			if (PKI_TOKEN_status_set(tk, PKI_TOKEN_STATUS_OK) != PKI_OK) {
+				// Cannot Set the TOKEN status
+				return PKI_ERROR(PKI_ERR_TOKEN_SET_STATUS, NULL);
+			}
+		} else {
+			// ERROR: Cannot set the Login Success
+			return PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
+		}
+	} else {
+		// ERROR: Cannot Set the KeyPair for the Token
+		return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, NULL);
+	}
+
+	// All Done.
+	return PKI_OK;
 
 	/*
 
@@ -2185,13 +2315,13 @@ int PKI_TOKEN_import_cert_stack ( PKI_TOKEN *tk, PKI_X509_CERT_STACK *sk,
  * passed, it is used to set the right extensions in the CRL. To generate a
  * new revoked entry the PKI_X509_CRL_ENTRY_new() function has to be used.
  */
-PKI_X509_CRL * PKI_TOKEN_issue_crl (PKI_TOKEN *tk,
-									char *serial, 
-									long long thisUpdate /* offset */,
-									long long nextUpdate /* offset */, 
-									PKI_X509_CRL_ENTRY_STACK *sk,
-									PKI_X509_EXTENSION_STACK *exts,
-									char *profile_s ) {
+PKI_X509_CRL * PKI_TOKEN_issue_crl (const PKI_TOKEN 			   * tk,           /* signing token */
+									const char 					   * const serial, /* crlNumber */ 
+									const long long 				 thisUpdate    /* offset */,
+									const long long 				 nextUpdate    /* offset */, 
+									const PKI_X509_CRL_ENTRY_STACK * const sk,     /* stack of rev */
+									const PKI_X509_EXTENSION_STACK * const exts,   /* stack of crl exts */
+									const char 					   * profile_s ) {
 
 	PKI_X509_CRL *crl = NULL;
 	PKI_X509_PROFILE *profile = NULL;
@@ -2223,13 +2353,20 @@ PKI_X509_CRL * PKI_TOKEN_issue_crl (PKI_TOKEN *tk,
 			/* Error, the requested profile does not exists! */
 			PKI_log_debug("ERROR, no matching profile found (%s)!\n",
 				profile_s);
-			return (NULL);
+			return NULL;
 		};
 	};
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
+	// Checks if the Token is in a good logged in status
+	if (tk->type != HSM_TYPE_SOFTWARE && PKI_TOKEN_is_logged_in(tk) == PKI_ERR) {
+		PKI_ERROR(PKI_ERR_TOKEN_NOT_LOGGED_IN, NULL);
+		return NULL;
 	}
+
+	// // 
+	// if (PKI_TOKEN_login( tk ) != PKI_OK ) {
+	// 	return NULL;
+	// }
 
 	// if( !tk->cred ) {
 	// 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
@@ -2327,7 +2464,7 @@ int PKI_TOKEN_del_url ( PKI_TOKEN *tk, URL *url, PKI_DATATYPE datatype ) {
  * \brief Returns a named profile from the loaded ones
  */
 
-PKI_X509_PROFILE *PKI_TOKEN_search_profile( PKI_TOKEN *tk, char *profile_s ) {
+PKI_X509_PROFILE *PKI_TOKEN_search_profile(const PKI_TOKEN * const tk, const char * const profile_s ) {
 
 	PKI_X509_PROFILE *tmp_profile = NULL;
 	PKI_X509_PROFILE *ret = NULL;

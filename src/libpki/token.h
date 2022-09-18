@@ -16,7 +16,21 @@ void PKI_TOKEN_free_void ( void *tk );
 /* Token Initialization */
 int PKI_TOKEN_set_config_dir ( PKI_TOKEN *tk, char *dir );
 char * PKI_TOKEN_get_config_dir ( PKI_TOKEN *tk );
-int PKI_TOKEN_login( PKI_TOKEN *tk );
+
+/// @brief Login into the token (triggers keypair loading)
+/// @param tk [in,out] The token to login into (PKI_TOKEN *)
+/// @return PKI_OK if successful or an error code otherwise (PKI_ERR_)
+int PKI_TOKEN_login(PKI_TOKEN * const tk);
+
+// Sets the login status for the token
+int PKI_TOKEN_set_login_success(PKI_TOKEN * const tk);
+int PKI_TOKEN_is_logged_in(const PKI_TOKEN * const tk);
+int PKI_TOKEN_status_clear_errors(PKI_TOKEN * const tk);
+int PKI_TOKEN_status_set(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status);
+int PKI_TOKEN_status_del_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status);
+int PKI_TOKEN_status_add_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status);
+PKI_TOKEN_STATUS PKI_TOKEN_status_get(const PKI_TOKEN * const tk);
+
 int PKI_TOKEN_init (PKI_TOKEN *tk, char *conf_url, char *name);
 PKI_OID *PKI_TOKEN_OID_new ( PKI_TOKEN *tk, char *oid_s );
 int PKI_TOKEN_check ( PKI_TOKEN *tk );
@@ -95,8 +109,27 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 				unsigned long validity, char *profile_s );
 PKI_X509_CERT* PKI_TOKEN_issue_cert(PKI_TOKEN *tk, char *subject, char *serial,
 		unsigned long validity, PKI_X509_REQ *req, char *profile_s);
-PKI_X509_CRL * PKI_TOKEN_issue_crl ( PKI_TOKEN *tk, char *serial,
-	long long thisUpdate, long long nextUpdate, PKI_X509_CRL_ENTRY_STACK *sk, PKI_X509_EXTENSION_STACK *exts, char *profile_s );
+
+/// @brief Generate a new CRL from a stack of revoked entries
+/// @details Generates a new signed CRL from a stack of revoked entries. If a profile
+///    passed, it is used to set the right extensions in the CRL. To generate a
+///    new revoked entry the PKI_X509_CRL_ENTRY_new() function has to be used.
+/// @param tk is the signing token (PKI_TOKEN)
+/// @param serial is the text representation of the crl number (char *)
+/// @param thisUpdate offset from 'now', in seconds, for thisUpdate date (long long) 
+/// @param nextUpdate offset from 'now', in seconds, for nextUpdate date (long long)
+/// @param sk is the stack of revoked entries (PKI_STACK_X509_CRL_ENTRY *)
+/// @param exts is the stack of extensions for the CRL (PKI_STACK_X509_EXTENSION *)
+/// @param profile_s is the name of the profile for CRL extensions (char *)
+/// @return The newly issued (and signed) CRL (PKI_X509_CRL *)
+PKI_X509_CRL * PKI_TOKEN_issue_crl (const PKI_TOKEN 			   * tk,           /* signing token */
+									const char 					   * const serial, /* crlNumber */ 
+									const long long 				 thisUpdate    /* offset */,
+									const long long 				 nextUpdate    /* offset */, 
+									const PKI_X509_CRL_ENTRY_STACK * const sk,     /* stack of rev */
+									const PKI_X509_EXTENSION_STACK * const exts,   /* stack of crl exts */
+									const char 					   * profile_s );
+
 PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject, 
 		char *serial, unsigned long validity, 
 			char *profile_s, PKI_TOKEN *px_tk );
@@ -105,7 +138,13 @@ PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject,
 int PKI_TOKEN_load_profiles(PKI_TOKEN *tk, char *urlStr);
 int PKI_TOKEN_clear_profiles(PKI_TOKEN * tk);
 int PKI_TOKEN_add_profile( PKI_TOKEN *tk, PKI_X509_PROFILE *profile );
-PKI_X509_PROFILE *PKI_TOKEN_search_profile( PKI_TOKEN *tk, char *profile_s );
+
+/// @brief Returns a named profile from the loaded ones
+/// @param tk is the token where the profiles have been loaded (PKI_TOKEN *)
+/// @param profile_s is the name of the requested profile (char *)
+/// @return the searched profile or NULL if none was found (PKI_X509_PROFILE *)
+PKI_X509_PROFILE *PKI_TOKEN_search_profile(const PKI_TOKEN * const tk,
+										   const char 	   * const profile_s);
 
 /* TOKEN Slot */
 int PKI_TOKEN_use_slot(PKI_TOKEN *tk, long num);
