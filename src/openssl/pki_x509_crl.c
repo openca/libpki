@@ -556,7 +556,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
     int supported_reason = -1;
     ASN1_ENUMERATED *rtmp = ASN1_ENUMERATED_new();
 
-    switch (reason )
+    switch (reason)
     {
       case PKI_CRL_REASON_CERTIFICATE_HOLD:
       case PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT:
@@ -573,6 +573,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
           goto err;
         }
 
+        // Used to set the extension for the entry
         supported_reason = PKI_CRL_REASON_CERTIFICATE_HOLD;
         break;
 
@@ -599,14 +600,15 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
           goto err;
         }
 
-        if( revDate && !X509_REVOKED_add1_ext_i2d(
-              entry, 
-              NID_invalidity_date, 
-              (PKI_TIME *)revDate, 
-              0, 0)) {
-          goto err;
-        }
+        // if( revDate && !X509_REVOKED_add1_ext_i2d(
+        //       entry, 
+        //       NID_invalidity_date, 
+        //       (PKI_TIME *)revDate, 
+        //       0, 0)) {
+        //   goto err;
+        // }
 
+        // Used to set the extension for the entry
         supported_reason = PKI_CRL_REASON_CERTIFICATE_HOLD;
         break;
 
@@ -618,8 +620,9 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
       case PKI_CRL_REASON_REMOVE_FROM_CRL:
       case PKI_CRL_REASON_PRIVILEGE_WITHDRAWN:
       case PKI_CRL_REASON_AA_COMPROMISE:
-        PKI_ERROR(PKI_ERR_GENERAL, "CRL Reason Not Implemented Yet %d", reason);
-	break;
+        // Used to set the extension for the entry
+        supported_reason = (int)reason;
+	      break;
 
       default:
         PKI_ERROR(PKI_ERR_GENERAL, "CRL Reason Unknown %d", reason);
@@ -627,8 +630,8 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
         break;
     }
 
-    if (supported_reason >= 0)
-    {
+    // Adds the reason extension
+    if (supported_reason > 0) {
       if (!ASN1_ENUMERATED_set(rtmp, supported_reason)) goto err;
       if (!X509_REVOKED_add1_ext_i2d( entry, NID_crl_reason, rtmp, 0, 0)) goto err;
     }
