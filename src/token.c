@@ -158,7 +158,11 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
 	// Initializes the token
 	PKI_TOKEN_init( tk, NULL, NULL );
 
+	// Sets the status
 	tk->status = PKI_TOKEN_STATUS_OK;
+
+	// Sets the login status
+	tk->isLoggedIn = 0;
 
 	// It seems it is not needed as the PKI_TOKEN_init() will set the
 	// algorithm already - do we want to keep it or not ?
@@ -181,7 +185,7 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
  * It returns the pointer to the memory region or NULL in case of error.
 */
 
-PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
+PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const hsmName )
 {
 	PKI_TOKEN *tk = NULL;
 
@@ -194,7 +198,7 @@ PKI_TOKEN *PKI_TOKEN_new( char * config_dir, char *name )
 	/* Initialize OpenSSL so that it adds all the needed algor and dgst */
 	if( PKI_get_init_status() == PKI_STATUS_NOT_INIT ) PKI_init_all();
 
-	if ((PKI_TOKEN_init(tk, config_dir, name)) != PKI_OK)
+	if ((PKI_TOKEN_init(tk, config_dir, hsmName)) != PKI_OK)
 	{
 		PKI_log_err("can not initialize token, config loading error.\n");
 		tk->status = PKI_TOKEN_STATUS_INIT_ERR;
@@ -634,7 +638,7 @@ PKI_TOKEN_STATUS PKI_TOKEN_status_get(const PKI_TOKEN * const tk) {
  * error.
  */
 
-int PKI_TOKEN_load_config ( PKI_TOKEN *tk, char *tk_name ) {
+int PKI_TOKEN_load_config ( PKI_TOKEN * const tk, const char * const tk_name ) {
 
 	char buff[BUFF_MAX_SIZE];
 
@@ -920,8 +924,10 @@ int PKI_TOKEN_use_slot( PKI_TOKEN *tk, long num )
  * \brief Initialize Token properties (load OIDs and PROFILES)
  */
 
-int PKI_TOKEN_init(PKI_TOKEN *tk, char *conf_dir, char *tk_name)
-{
+int PKI_TOKEN_init(PKI_TOKEN  * const tk,
+				   const char * const conf_dir,
+				   const char * const tk_name) {
+
 	char buff[2048];
 
 	PKI_CONFIG *oids = NULL;

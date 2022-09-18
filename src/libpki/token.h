@@ -7,7 +7,7 @@
 
 /* Memory related functions */
 PKI_TOKEN *PKI_TOKEN_new_null( void );
-PKI_TOKEN *PKI_TOKEN_new( char *confDir, char *name );
+PKI_TOKEN *PKI_TOKEN_new( const char * const confDir, const char * const name );
 PKI_TOKEN *PKI_TOKEN_new_p12 ( char *url, char *config_dir, PKI_CRED *cred );
 
 int PKI_TOKEN_free( PKI_TOKEN *tk );
@@ -16,6 +16,7 @@ void PKI_TOKEN_free_void ( void *tk );
 /* Token Initialization */
 int PKI_TOKEN_set_config_dir ( PKI_TOKEN *tk, char *dir );
 char * PKI_TOKEN_get_config_dir ( PKI_TOKEN *tk );
+int PKI_TOKEN_load_config ( PKI_TOKEN * const tk, const char * const tk_name );
 
 /// @brief Login into the token (triggers keypair loading)
 /// @param tk [in,out] The token to login into (PKI_TOKEN *)
@@ -31,7 +32,7 @@ int PKI_TOKEN_status_del_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS stat
 int PKI_TOKEN_status_add_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status);
 PKI_TOKEN_STATUS PKI_TOKEN_status_get(const PKI_TOKEN * const tk);
 
-int PKI_TOKEN_init (PKI_TOKEN *tk, char *conf_url, char *name);
+int PKI_TOKEN_init (PKI_TOKEN * const tk, const char * const conf_url, const char * const name);
 PKI_OID *PKI_TOKEN_OID_new ( PKI_TOKEN *tk, char *oid_s );
 int PKI_TOKEN_check ( PKI_TOKEN *tk );
 
