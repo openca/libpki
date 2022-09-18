@@ -555,14 +555,14 @@ int PKI_TOKEN_set_login_success(PKI_TOKEN * const tk) {
 	// Input Checks
 	if (!tk) return PKI_ERR;
 	// Sets the login status
-	tk->isLoggedIn = true;
+	tk->isLoggedIn = 1;
 	// All Done
 	return PKI_OK;
 };
 
 int PKI_TOKEN_is_logged_in(const PKI_TOKEN * const tk) {
 	// Input Checks & Get operation
-	if (!tk || tk->isLoggedIn != true) return PKI_ERR;
+	if (!tk || tk->isLoggedIn != 1) return PKI_ERR;
 	// All Done
 	return PKI_OK;
 };
