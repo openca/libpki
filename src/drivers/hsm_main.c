@@ -180,7 +180,8 @@ const HSM *HSM_get_default( void ) {
  * while the name is the name of the HSM (e.g., LunaCA3)
  */
 
-HSM *HSM_new( char *dir, char *name ) {
+HSM *HSM_new( const char * const dir,
+			  const char * const name ) {
 
 	HSM  * hsm   = NULL;
 	char * url_s = NULL;
@@ -305,8 +306,8 @@ err:
  * returns NULL
  */
 
-HSM *HSM_new_fips( char *dir, char *name )
-{
+HSM *HSM_new_fips(const char * const dir,
+				  const char * const name) {
 	HSM *ret = NULL;
 
 	// Let's invoke the normal initialization

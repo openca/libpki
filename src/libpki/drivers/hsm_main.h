@@ -20,8 +20,8 @@ char *HSM_get_errdesc ( unsigned long err, const HSM *hsm );
 
 const HSM *HSM_get_default( void );
 
-HSM *HSM_new( char *dir, char *name );
-HSM *HSM_new_fips(char *dir, char *name);
+HSM *HSM_new(const char * const dir, const char * const name );
+HSM *HSM_new_fips(const char * const dir, const char * const name);
 int HSM_free ( HSM *hsm );
 
 int HSM_init( HSM *hsm );
