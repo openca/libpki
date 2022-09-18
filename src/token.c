@@ -177,7 +177,7 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
  * \brief Create a new PKI_TOKEN structure and initialize it.
  *
  * Reserves the memory for a new PKI_TOKEN data structure. The returned
- * memory is already zeroized. If the first passed argument is null, the
+ * memory is already zeroize. If the first passed argument is null, the
  * default configuration directory is used (PREFIX/etc). If the second
  * argument is not NULL, the library will try to load the specified config
  * for the token.
