@@ -924,8 +924,6 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 		return PKI_ERR;
 	}
 
-	PKI_DEBUG("KEY_SIZE => %d", size);
-
 	pp = (EVP_PKEY *) pkey->value;
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
