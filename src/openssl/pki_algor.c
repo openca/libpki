@@ -940,9 +940,6 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 
 #ifdef ENABLE_ECDSA
 		case EVP_PKEY_EC:
-
-			PKI_log_err("EC -> Key Type [%d]", p_type);
-
 			if ( size <= 160  ) {
 				digest = PKI_DIGEST_ALG_SHA1;
 			} else if ( size <= 224 ) {
