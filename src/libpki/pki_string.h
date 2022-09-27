@@ -41,6 +41,7 @@ void PKI_STRING_free( PKI_STRING *s );
 int PKI_STRING_cmp(const PKI_STRING *a, const PKI_STRING *b);
 int PKI_STRING_set( PKI_STRING *s, char *content, ssize_t size );
 int PKI_STRING_get_type( const PKI_STRING *s );
+int PKI_STRING_set_type( PKI_STRING *s, int type);
 char * PKI_STRING_get_parsed( const PKI_STRING *s );
 char * PKI_STRING_get_utf8( const PKI_STRING *s );
 PKI_DIGEST * PKI_STRING_get_digest( const PKI_STRING *s, 

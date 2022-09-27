@@ -122,6 +122,33 @@ int PKI_STRING_get_type(const PKI_STRING *s )
 	return ( ret );
 }
 
+/*! \brief Returns the type of the PKI_STRING (PKI_STRING_IA5, etc.) */
+
+int PKI_STRING_set_type(PKI_STRING * s, int type) {
+
+	if( !s ) return PKI_ERR;
+
+	switch( type ) {
+		case PKI_STRING_IA5:
+		case PKI_STRING_UTF8:
+		case PKI_STRING_BMP:
+		case PKI_STRING_T61:
+		case PKI_STRING_OCTET:
+		case PKI_STRING_BIT:
+			break;
+
+		default:
+			// Unknown String Type
+			return PKI_ERR;
+	}
+
+	// Assigns the Type
+	s->type = type;
+
+	// All Done
+	return PKI_OK;
+}
+
 /*! \brief Returns the parsed value (char *) of the PKI_STRING (in UTF-8) */
 
 char * PKI_STRING_get_parsed (const PKI_STRING *s )
