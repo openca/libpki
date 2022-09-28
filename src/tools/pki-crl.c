@@ -64,32 +64,39 @@ void usage ( void ) {
 
 PKI_X509_CRL_REASON get_rev_instruction( char *st ) {
 
-	PKI_X509_CRL_REASON ret = PKI_CRL_REASON_UNSPECIFIED;
+	int ret = PKI_X509_CRL_REASON_ERROR;
 
 	if (!st || strlen(st) == 0) return ret;
 
-	if( strcmp_nocase( st, "keyCompromise") == 0 ) {
-	ret = PKI_CRL_REASON_KEY_COMPROMISE;
-	} else if( strcmp_nocase( st, "caCompromise") == 0 ) {
-    	ret = PKI_CRL_REASON_CA_COMPROMISE;
-	} else if( strcmp_nocase( st, "affiliationChanged") == 0 ) {
-    	ret = PKI_CRL_REASON_AFFILIATION_CHANGED;
-	} else if( strcmp_nocase( st, "superseded") == 0 ) {
-    	ret = PKI_CRL_REASON_SUPERSEDED;
-	} else if( strcmp_nocase( st, "cessationOfOperation") == 0 ) {
-    	ret = PKI_CRL_REASON_CESSATION_OF_OPERATION;
-	} else if( strcmp_nocase( st, "certificateHold") == 0 ) {
-    	ret = PKI_CRL_REASON_CERTIFICATE_HOLD;
-	} else if( strcmp_nocase( st, "removeFromCRL") == 0 ) {
-    	ret = PKI_CRL_REASON_REMOVE_FROM_CRL;
-	} else if( strcmp_nocase( st, "privilegeWithdrawn") == 0 ) {
-    	ret = PKI_CRL_REASON_PRIVILEGE_WITHDRAWN;
-	} else if( strcmp_nocase( st, "aaCompromise") == 0 ) {
-    	ret = PKI_CRL_REASON_AA_COMPROMISE;
-	} else {
+	// Parses the revocation code
+	ret = PKI_X509_CRL_REASON_CODE_get(st);
+	if (ret == PKI_X509_CRL_REASON_ERROR) {
 		fprintf(stderr, "ERROR, reason %s not recognized!\n\n", st);
 		exit(1);
 	}
+
+	// if( strcmp_nocase( st, "keyCompromise") == 0 ) {
+	// ret = PKI_X509_CRL_REASON_KEY_COMPROMISE;
+	// } else if( strcmp_nocase( st, "caCompromise") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_CA_COMPROMISE;
+	// } else if( strcmp_nocase( st, "affiliationChanged") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_AFFILIATION_CHANGED;
+	// } else if( strcmp_nocase( st, "superseded") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_SUPERSEDED;
+	// } else if( strcmp_nocase( st, "cessationOfOperation") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_CESSATION_OF_OPERATION;
+	// } else if( strcmp_nocase( st, "certificateHold") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_CERTIFICATE_HOLD;
+	// } else if( strcmp_nocase( st, "removeFromCRL") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_REMOVE_FROM_CRL;
+	// } else if( strcmp_nocase( st, "privilegeWithdrawn") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_PRIVILEGE_WITHDRAWN;
+	// } else if( strcmp_nocase( st, "aaCompromise") == 0 ) {
+    // 	ret = PKI_X509_CRL_REASON_AA_COMPROMISE;
+	// } else {
+	// 	fprintf(stderr, "ERROR, reason %s not recognized!\n\n", st);
+	// 	exit(1);
+	// }
 
 	return ret;
 };
@@ -187,7 +194,7 @@ int main (int argc, char *argv[] ) {
 			}
 			key_s=(argv[++i]);
 		} else if ( strncmp_nocase ( argv[i], "-entry", 6 ) == 0) {
-			PKI_X509_CRL_REASON instruction = PKI_CRL_REASON_UNSPECIFIED;
+			PKI_X509_CRL_REASON instruction = PKI_X509_CRL_REASON_UNSPECIFIED;
 			char *idx = NULL;
 			if( argv[i+1] == NULL ) {
 				error=1;
@@ -202,7 +209,7 @@ int main (int argc, char *argv[] ) {
 				reason_s = idx;
 				instruction = get_rev_instruction ( reason_s );
 			} else {
-				instruction = PKI_CRL_REASON_UNSPECIFIED;
+				instruction = PKI_X509_CRL_REASON_UNSPECIFIED;
 			}
 
 			if ((crlEntry = PKI_X509_CRL_ENTRY_new_serial(entry_s,

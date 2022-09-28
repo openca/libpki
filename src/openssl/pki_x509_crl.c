@@ -6,18 +6,18 @@
 #include "internal/x509_data_st.h"
 
 PKI_X509_CRL_REASON_CODE PKI_X509_CRL_REASON_DESCR[] = {
-  { PKI_CRL_REASON_UNSPECIFIED,                 "unspecified",          "No specified reason" },
-  { PKI_CRL_REASON_KEY_COMPROMISE,              "keyCompromise",        "Subject's Key Compromised" },
-  { PKI_CRL_REASON_CA_COMPROMISE,               "caCompromise",         "Certification Authority Compromised" },
-  { PKI_CRL_REASON_AFFILIATION_CHANGED,         "affiliationChanged",   "Subject's Change in affiliation" },
-  { PKI_CRL_REASON_SUPERSEDED,                  "superseded",           "Superseded" },
-  { PKI_CRL_REASON_CESSATION_OF_OPERATION,      "cessationOfOperation", "Cessation of Operation" },
-  { PKI_CRL_REASON_CERTIFICATE_HOLD,            "certificateHold",      "Certificate is Suspended" },
-  { PKI_CRL_REASON_REMOVE_FROM_CRL,             "removeFromCRL",        "Remove From CRL" },
-  { PKI_CRL_REASON_PRIVILEGE_WITHDRAWN,         "privilegeWithdrawn",   "Privilege is Withdrawn" },
-  { PKI_CRL_REASON_AA_COMPROMISE,               "aaCompromise",         "Attribute Authority Compromised" },
-  { PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT,     "onHoldReject",         "Certificate is Suspended, Reject" },
-  { PKI_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER, "onHoldCallIssuer",     "Certificate is Suspended, Call Issuer" },
+  { PKI_X509_CRL_REASON_UNSPECIFIED,                 "unspecified",          "No specified reason" },
+  { PKI_X509_CRL_REASON_KEY_COMPROMISE,              "keyCompromise",        "Subject's Key Compromised" },
+  { PKI_X509_CRL_REASON_CA_COMPROMISE,               "caCompromise",         "Certification Authority Compromised" },
+  { PKI_X509_CRL_REASON_AFFILIATION_CHANGED,         "affiliationChanged",   "Subject's Change in affiliation" },
+  { PKI_X509_CRL_REASON_SUPERSEDED,                  "superseded",           "Superseded" },
+  { PKI_X509_CRL_REASON_CESSATION_OF_OPERATION,      "cessationOfOperation", "Cessation of Operation" },
+  { PKI_X509_CRL_REASON_CERTIFICATE_HOLD,            "certificateHold",      "Certificate is Suspended" },
+  { PKI_X509_CRL_REASON_REMOVE_FROM_CRL,             "removeFromCRL",        "Remove From CRL" },
+  { PKI_X509_CRL_REASON_PRIVILEGE_WITHDRAWN,         "privilegeWithdrawn",   "Privilege is Withdrawn" },
+  { PKI_X509_CRL_REASON_AA_COMPROMISE,               "aaCompromise",         "Attribute Authority Compromised" },
+  { PKI_X509_CRL_REASON_HOLD_INSTRUCTION_REJECT,     "onHoldReject",         "Certificate is Suspended, Reject" },
+  { PKI_X509_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER, "onHoldCallIssuer",     "Certificate is Suspended, Call Issuer" },
 };
 
 
@@ -385,7 +385,7 @@ err:
 
 int PKI_X509_CRL_REASON_CODE_get ( const char * st ) {
 
-  int ret = -1;
+  int ret = PKI_X509_CRL_REASON_ERROR;
   int i = 0;
 
   if ( !st ) return ret;
@@ -551,15 +551,15 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
     goto err;
   }
 
-  if (reason != PKI_CRL_REASON_UNSPECIFIED) {
+  if (reason != PKI_X509_CRL_REASON_UNSPECIFIED) {
 
     int supported_reason = -1;
     ASN1_ENUMERATED *rtmp = ASN1_ENUMERATED_new();
 
     switch (reason)
     {
-      case PKI_CRL_REASON_CERTIFICATE_HOLD:
-      case PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT:
+      case PKI_X509_CRL_REASON_CERTIFICATE_HOLD:
+      case PKI_X509_CRL_REASON_HOLD_INSTRUCTION_REJECT:
         if (!X509_REVOKED_add1_ext_i2d(entry,
                                        NID_hold_instruction_code,
                                        PKI_OID_get("holdInstructionReject"), 0, 0)) {
@@ -574,7 +574,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
         }
 
         // Used to set the extension for the entry
-        supported_reason = PKI_CRL_REASON_CERTIFICATE_HOLD;
+        supported_reason = PKI_X509_CRL_REASON_CERTIFICATE_HOLD;
         break;
 
       /* --- Deprecated in RFC 5280 ---
@@ -591,7 +591,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
         break;
       */
 
-      case PKI_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER:
+      case PKI_X509_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER:
         if (!X509_REVOKED_add1_ext_i2d(
           entry, 
           NID_hold_instruction_code, 
@@ -609,17 +609,17 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
         // }
 
         // Used to set the extension for the entry
-        supported_reason = PKI_CRL_REASON_CERTIFICATE_HOLD;
+        supported_reason = PKI_X509_CRL_REASON_CERTIFICATE_HOLD;
         break;
 
-      case PKI_CRL_REASON_KEY_COMPROMISE:
-      case PKI_CRL_REASON_CA_COMPROMISE:
-      case PKI_CRL_REASON_AFFILIATION_CHANGED:
-      case PKI_CRL_REASON_SUPERSEDED:
-      case PKI_CRL_REASON_CESSATION_OF_OPERATION:
-      case PKI_CRL_REASON_REMOVE_FROM_CRL:
-      case PKI_CRL_REASON_PRIVILEGE_WITHDRAWN:
-      case PKI_CRL_REASON_AA_COMPROMISE:
+      case PKI_X509_CRL_REASON_KEY_COMPROMISE:
+      case PKI_X509_CRL_REASON_CA_COMPROMISE:
+      case PKI_X509_CRL_REASON_AFFILIATION_CHANGED:
+      case PKI_X509_CRL_REASON_SUPERSEDED:
+      case PKI_X509_CRL_REASON_CESSATION_OF_OPERATION:
+      case PKI_X509_CRL_REASON_REMOVE_FROM_CRL:
+      case PKI_X509_CRL_REASON_PRIVILEGE_WITHDRAWN:
+      case PKI_X509_CRL_REASON_AA_COMPROMISE:
         // Used to set the extension for the entry
         supported_reason = (int)reason;
 	      break;
