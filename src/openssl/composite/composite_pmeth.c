@@ -1,5 +1,6 @@
 /* BEGIN: composite_pmeth.c */
 
+// Temporary Measure until the functions are all used
 #pragma GCC diagnostic ignored "-Wunused-function"
 
 // Composite Crypto authentication methods.
