@@ -47,7 +47,7 @@ extern int NID_combined;
 // define mechanism because the EVP_PKEY_COMPOSITE is
 // not defined at compile time
 // #ifdef ENABLE_COMPOSITE
-// # define EVP_PKEY_assign_COMPOSITE(pkey,comp_key) \
+// # define EVP_PKEY_assign_COMPOSITE(pkey,comp_key)
 //     EVP_PKEY_assign((pkey),EVP_PKEY_COMPOSITE, (char *)(comp_key))
 // # endif
 
