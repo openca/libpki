@@ -777,7 +777,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset( ret->addr, 0, len+1 );
 
-			strncpy( ret->addr, tmp_s, len);
+			memcpy( ret->addr, tmp_s, len);
 			ret->addr[len] = '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -816,7 +816,7 @@ URL *URL_new(const char * url_s ) {
 					len = (size_t) (tmp_s2 - tmp_s - 1);
 					ret->addr = (char *) malloc (len+1);
 					memset( ret->addr, 0, len+1);
-					strncpy( ret->addr, tmp_s, len);
+					memcpy( ret->addr, tmp_s, len);
 					ret->addr[len] = '\x0';
 				}
 			} else {
@@ -824,7 +824,7 @@ URL *URL_new(const char * url_s ) {
 					len = (size_t) ( tmp_s2 - tmp_s );
 					ret->addr = (char *) malloc (len+1);
 					memset( ret->addr, 0, len+1);
-					strncpy( ret->addr, tmp_s, len);
+					memcpy( ret->addr, tmp_s, len);
 					ret->addr[len] = '\x0';
 				}
 
@@ -858,7 +858,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->usr = (char *) malloc (len+1);
 				memset( ret->usr, 0, len+1);
-				strncpy( ret->usr, tmp_s, len);
+				memcpy( ret->usr, tmp_s, len);
 				ret->usr[len] = '\x0';
 			
 				tmp_s = tmp_s2+1;
@@ -867,7 +867,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->pwd = (char *) malloc (len+1);
 				memset( ret->pwd, 0, len+1);
-				strncpy( ret->pwd, tmp_s, len);
+				memcpy( ret->pwd, tmp_s, len);
 				ret->pwd[len] = '\x0';
 
 				tmp_s = tmp_s2+1;
@@ -882,7 +882,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = ( char *) malloc ( len );
 			memset ( ret->addr, 0, len );
 
-			strncpy( ret->addr, tmp_s + 1, len-1 );
+			memcpy( ret->addr, tmp_s + 1, len-1 );
 			ret->addr[len-1] = '\x0';
 
 			tmp_s = tmp_s2 + 1;
@@ -902,7 +902,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset( ret->addr, 0, len+1 );
 
-			strncpy( ret->addr, tmp_s, len);
+			memcpy( ret->addr, tmp_s, len);
 			ret->addr[len] = '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -941,7 +941,7 @@ URL *URL_new(const char * url_s ) {
 				{
 					len = (size_t) (tmp_s2 - tmp_s - 1);
 					ret->addr = (char *) PKI_Malloc (len+1);
-					strncpy(ret->addr, tmp_s, len);
+					memcpy(ret->addr, tmp_s, len);
 					ret->addr[len] = '\x0';
 				}
 			} 
@@ -951,7 +951,7 @@ URL *URL_new(const char * url_s ) {
 				{
 					len = (size_t) (tmp_s2 - tmp_s - 1);
 					ret->addr = (char *) PKI_Malloc (len+1);
-					strncpy(ret->addr, tmp_s, len);
+					memcpy(ret->addr, tmp_s, len);
 					ret->addr[len] = '\x0';
 				}
 
@@ -985,7 +985,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->usr = (char *) malloc (len+1);
 				memset( ret->usr, 0, len+1);
-				strncpy( ret->usr, tmp_s, len);
+				memcpy( ret->usr, tmp_s, len);
 				ret->usr[len] = '\x0';
 			
 				tmp_s = tmp_s2+1;
@@ -994,7 +994,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->pwd = (char *) malloc (len+1);
 				memset( ret->pwd, 0, len+1);
-				strncpy( ret->pwd, tmp_s, len);
+				memcpy( ret->pwd, tmp_s, len);
 				ret->pwd[len] = '\x0';
 
 				tmp_s = tmp_s2+1;
@@ -1009,7 +1009,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = ( char *) malloc ( len );
 			memset ( ret->addr, 0, len );
 
-			strncpy( ret->addr, tmp_s + 1, len-1 );
+			memcpy( ret->addr, tmp_s + 1, len-1 );
 			ret->addr[len-1] = '\x0';
 
 			tmp_s = tmp_s2 + 1;
@@ -1029,7 +1029,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset( ret->addr, 0, len+1 );
 
-			strncpy( ret->addr, tmp_s, len);
+			memcpy( ret->addr, tmp_s, len);
 			ret->addr[len] = '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -1068,7 +1068,7 @@ URL *URL_new(const char * url_s ) {
 					len = (size_t) (tmp_s2 - tmp_s - 1);
 					ret->addr = (char *) malloc (len+1);
 					memset( ret->addr, 0, len+1);
-					strncpy( ret->addr, tmp_s, len);
+					memcpy( ret->addr, tmp_s, len);
 					ret->addr[len] = '\x0';
 				}
 			} else {
@@ -1076,7 +1076,7 @@ URL *URL_new(const char * url_s ) {
 					len = (size_t) (tmp_s2 - tmp_s);
 					ret->addr = (char *) malloc (len+1);
 					memset( ret->addr, 0, len+1);
-					strncpy( ret->addr, tmp_s, len);
+					memcpy( ret->addr, tmp_s, len);
 					ret->addr[len] = '\x0';
 				}
 
@@ -1111,7 +1111,8 @@ URL *URL_new(const char * url_s ) {
 			}
 			ret->addr = (char *) malloc ( len + 1 );
 			memset( ret->addr, 0, len + 1 );
-			strncpy( ret->addr, tmp_s, len );
+			memcpy( ret->addr, tmp_s, len );
+			ret->addr[len] = 0;
 		} else {
 			ret->addr = strdup("");
 		}
@@ -1141,7 +1142,8 @@ URL *URL_new(const char * url_s ) {
 
 			ret->addr = (char *) malloc ( len + 1 );
 			memset( ret->addr, 0, len + 1 );
-			strncpy( ret->addr, tmp_s, len );
+			memcpy( ret->addr, tmp_s, len );
+			ret->addr[len] = 0;
 			ret->port =  atoi( ret->addr );
 		} else {
 			ret->addr = strdup("0");
@@ -1163,7 +1165,8 @@ URL *URL_new(const char * url_s ) {
 
 			if((len = (size_t)(tmp_s2 - tmp_s)) > 0 ) {
 				ret->addr = PKI_Malloc( len + 1);
-				strncpy( ret->addr, tmp_s, len );
+				memcpy( ret->addr, tmp_s, len );
+				ret->addr[len] = 0;
 			} else {
 				ret->addr = strdup("");
 			};
@@ -1179,8 +1182,9 @@ URL *URL_new(const char * url_s ) {
 			}
 
 			if((len = strlen( tmp_s )) > 0 ) {
-				ret->path = PKI_Malloc( len + 1 );
-				strncpy( ret->path, tmp_s, len );
+				ret->path = PKI_Malloc( len );
+				memcpy(ret->path, tmp_s, len);
+				ret->path[len] = 0;
 			}
 		} else {
 			len = strlen(tmp_s);
@@ -1196,7 +1200,8 @@ URL *URL_new(const char * url_s ) {
 				}
 
 				ret->addr = PKI_Malloc( len + 1 );
-				strncpy( ret->addr, tmp_s, len );
+				memcpy( ret->addr, tmp_s, len );
+				ret->addr[len] = 0;
 			} else {
 				ret->addr = strdup("");
 			}
@@ -1222,7 +1227,7 @@ URL *URL_new(const char * url_s ) {
 				ret->usr = (char *) malloc (len+1);
 				memset( ret->usr, 0, len+1);
 
-				strncpy( ret->usr, tmp_s, len);
+				memcpy( ret->usr, tmp_s, len);
 				ret->usr[len] = '\x0';
 			
 				tmp_s = tmp_s2+1;
@@ -1231,7 +1236,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->pwd = (char *) malloc (len+1);
 				memset( ret->pwd, 0, len+1);
-				strncpy( ret->pwd, tmp_s, len);
+				memcpy( ret->pwd, tmp_s, len);
 				ret->pwd[len] = '\x0';
 
 				tmp_s = tmp_s2+1;
@@ -1247,7 +1252,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = ( char *) malloc ( len );
 			memset ( ret->addr, 0, len );
 
-			strncpy( ret->addr, tmp_s + 1, len-1 );
+			memcpy( ret->addr, tmp_s + 1, len-1 );
 			ret->addr[len-1] = '\x0';
 
 			tmp_s = tmp_s2 + 1;
@@ -1268,7 +1273,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset( ret->addr, 0, len+1 );
 
-			strncpy( ret->addr, tmp_s, len);
+			memcpy( ret->addr, tmp_s, len);
 			ret->addr[len] = '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -1288,7 +1293,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->addr = (char *) malloc (len+1);
 				memset( ret->addr, 0, len+1);
-				strncpy( ret->addr, tmp_s, len);
+				memcpy( ret->addr, tmp_s, len);
 				ret->addr[len] = '\x0';
 			}
 
@@ -1321,7 +1326,7 @@ URL *URL_new(const char * url_s ) {
 				ret->usr = (char *) malloc (len+1);
 				memset( ret->usr, 0, len+1);
 
-				strncpy( ret->usr, tmp_s, len);
+				memcpy( ret->usr, tmp_s, len);
 				ret->usr[len] = '\x0';
 			
 				tmp_s = tmp_s2+1;
@@ -1330,7 +1335,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->pwd = (char *) malloc (len+1);
 				memset( ret->pwd, 0, len+1);
-				strncpy( ret->pwd, tmp_s, len);
+				memcpy( ret->pwd, tmp_s, len);
 				ret->pwd[len] = '\x0';
 
 				tmp_s = tmp_s2+1;
@@ -1366,7 +1371,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset( ret->addr, 0, len+1 );
 
-			strncpy( ret->addr, tmp_s, len);
+			memcpy( ret->addr, tmp_s, len);
 			ret->addr[len] = '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -1386,7 +1391,7 @@ URL *URL_new(const char * url_s ) {
 				len = (size_t) ( tmp_s2 - tmp_s );
 				ret->addr = (char *) malloc (len+1);
 				memset( ret->addr, 0, len+1);
-				strncpy( ret->addr, tmp_s, len);
+				memcpy( ret->addr, tmp_s, len);
 				ret->addr[len] = '\x0';
 			}
 
@@ -1409,22 +1414,22 @@ URL *URL_new(const char * url_s ) {
 
 			len = (size_t) (tmp_s3 - tmp_s);
 			ret->addr = PKI_Malloc( len + 1);
-			strncpy( ret->addr, tmp_s, len );
+			memcpy( ret->addr, tmp_s, len );
 			tmp_s = tmp_s3 + 1;
 
 			if(( tmp_s3 = strchr( tmp_s, '?' )) != NULL ) {
 				len = (size_t) (tmp_s3 - tmp_s);
 				ret->path = PKI_Malloc( len + 1);
-				strncpy( ret->path, tmp_s, len );
+				memcpy( ret->path, tmp_s, len );
 
 				tmp_s = tmp_s3 + 1;
 				len = strlen( tmp_s );
 				ret->attrs = PKI_Malloc ( len + 1);
-				strncpy( ret->attrs, tmp_s, len );
+				memcpy( ret->attrs, tmp_s, len );
 			} else {
 				len = strlen( tmp_s );
 				ret->path = PKI_Malloc( len + 1 );
-				strncpy( ret->path, tmp_s, len );
+				memcpy( ret->path, tmp_s, len );
 				ret->attrs = strdup( "data" );
 			}
 
@@ -1432,7 +1437,7 @@ URL *URL_new(const char * url_s ) {
 
 			len = (size_t) (tmp_s3 - tmp_s);
 			ret->addr = PKI_Malloc( len + 1 );
-			strncpy( ret->addr, tmp_s, len );
+			memcpy( ret->addr, tmp_s, len );
 			tmp_s = tmp_s3 + 1;
 
 			ret->attrs = strdup( tmp_s );
@@ -1459,7 +1464,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset( ret->addr, 0, len+1 );
 
-			strncpy( ret->addr, tmp_s, len);
+			memcpy( ret->addr, tmp_s, len);
 			ret->addr[len] = '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -1469,7 +1474,8 @@ URL *URL_new(const char * url_s ) {
 
 			ret->addr = (char *) malloc ( BUFF_MAX_SIZE );
 			memset( ret->addr, 0, BUFF_MAX_SIZE );
-			strncpy( ret->addr, ret->url_s, BUFF_MAX_SIZE);
+			memcpy( ret->addr, ret->url_s, BUFF_MAX_SIZE);
+			ret->addr[BUFF_MAX_SIZE] = 0;
 		}
 
 		ret->proto = URI_PROTO_SOCK;
@@ -1489,7 +1495,7 @@ URL *URL_new(const char * url_s ) {
 			ret->addr = (char *) malloc (len+1);
 			memset(ret->addr, 0, len+1);
 
-			strncpy(ret->addr, tmp_s, len);
+			memcpy(ret->addr, tmp_s, len);
 			ret->addr[len] =  '\x0';
 
 			tmp_s = tmp_s2+1;
@@ -1507,7 +1513,8 @@ URL *URL_new(const char * url_s ) {
 			ret->attrs = strdup("A");
 			ret->addr = (char *) malloc (BUFF_MAX_SIZE);
 			memset(ret->addr, 0, BUFF_MAX_SIZE);
-			strncpy(ret->addr, ret->url_s, BUFF_MAX_SIZE);
+			memcpy(ret->addr, ret->url_s, BUFF_MAX_SIZE);
+			ret->addr[BUFF_MAX_SIZE] = 0;
 		}
 	}
 	else
@@ -1524,6 +1531,7 @@ URL *URL_new(const char * url_s ) {
 
 			ret->addr = (char *) PKI_Malloc( len+1 );
 			memcpy(ret->addr, ret->url_s, len);
+			ret->addr[len] = 0;
 		}
 		else
 		{

@@ -1,5 +1,7 @@
 /* BEGIN: composite_pmeth.c */
 
+#pragma GCC diagnostic ignored "-Wunused-function"
+
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 

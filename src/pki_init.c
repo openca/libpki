@@ -170,9 +170,6 @@ static int _init_composite() {
 
 	COMP_DIGEST comp_digest[8] = { 0x0 };
 
-	// Temp Trick - To be replaced with array of values
-	OBJ_create("1.3.6.1.4.1.18277", "openca", "OpenCA Labs");
-
 	// Let's create the Initial OID for Composite Crypto
 	NID_composite = OBJ_create("1.3.6.1.4.1.18277.2.1.1", "composite", "Composite Key");
 	if (NID_composite == NID_undef) return 0;
