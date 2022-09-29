@@ -1,9 +1,18 @@
 
+#ifndef _LIBPKI_URL_H
+# include <libpki/net/url.h>
+#endif
+
+#ifndef _LIBPKI_PKI_CONFIG_H
+# include <libpki/pki_config.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_DATATYPES_ST_H
+# include <libpki/pki_x509_data_st.h>
+#endif
+
 #ifndef _LIBPKI_HSM_ST_H
 #define _LIBPKI_HSM_ST_H
-
-#include <libpki/net/url.h>
-#include <libpki/pki_x509_data_st.h>
 
 #define MANUFACTURER_ID_SIZE   32
 #define DESCRIPTION_SIZE       32

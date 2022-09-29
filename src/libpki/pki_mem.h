@@ -14,6 +14,10 @@
 
 /* Functions prototypes*/
 
+#ifndef _LIBPKI_PKI_IO_H
+#include <libpki/pki_io.h>
+#endif
+
 #ifndef _LIBPKI_PKI_MEM_H
 #define _LIBPKI_PKI_MEM_H
 
@@ -49,7 +53,6 @@ size_t PKI_MEM_get_size( PKI_MEM *buf );
 ssize_t PKI_MEM_printf( PKI_MEM * buf );
 ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf );
 
-#include <openssl/bio.h>
 PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io );
 PKI_MEM *PKI_MEM_new_bio ( PKI_IO *io, PKI_MEM **mem );
 

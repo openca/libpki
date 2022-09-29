@@ -9,6 +9,10 @@
 #ifndef _LIBPKI_COMPAT_H
 #define _LIBPKI_COMPAT_H
 
+// Basic Definitions for return codes
+#define PKI_ERR					0
+#define PKI_OK					1
+
 /* BEGIN_C_DECLS should be used at the beginning of your declarations,
 so that C++ compilers don't mangle their names.  Use END_C_DECLS at
 the end of C declarations. */

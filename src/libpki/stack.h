@@ -14,7 +14,10 @@
  *
  */
 
-#include <libpki/datatypes.h>
+
+#ifndef _LIBPKI_PKI_DATATYPES_H
+# include <libpki/datatypes.h>
+#endif
 
 #ifndef _LIBPKI_STACK_H
 #define _LIBPKI_STACK_H
@@ -307,4 +310,5 @@ void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
 
 /* END of _PKI_STACK_H */
 #endif
+
 

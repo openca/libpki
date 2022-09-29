@@ -83,49 +83,12 @@ BEGIN_C_DECLS
 #define ENV_OPENCA_ENGINE_POST		"engine_post"
 #endif
 
-#define PKI_IO				BIO
+// #define PKI_IO				BIO
 
 /* Imports the library's datatypes */
-#include <libpki/datatypes.h>
-
-/* Supported Signing schemes identifiers */
-typedef enum {
-	// Classic/Modern Cryptography
-	PKI_SCHEME_UNKNOWN 	= 0,
-	PKI_SCHEME_RSA,
-	PKI_SCHEME_DSA,
-	PKI_SCHEME_DH,
-#ifdef ENABLE_ECDSA
-	PKI_SCHEME_ECDSA,
+#ifndef _LIBPKI_PKI_DATATYPES_H
+# include <libpki/datatypes.h>
 #endif
-
-#ifdef ENABLE_OQS
-	// Post Quantum Cryptography - KEMS
-	PKI_SCHEME_NTRU_PRIME,
-	PKI_SCHEME_SIKE,
-	PKI_SCHEME_BIKE,
-	PKI_SCHEME_FRODOKEM,
-	// Post Quantum Cryptography - Digital Signatures
-	PKI_SCHEME_FALCON,
-	PKI_SCHEME_DILITHIUM,
-	PKI_SCHEME_PICNIC,
-	PKI_SCHEME_SPHINCS,
-	// OQS Composite Crypto Schemes
-	PKI_SCHEME_COMPOSITE_RSA_FALCON,
-	PKI_SCHEME_COMPOSITE_ECDSA_FALCON,
-	PKI_SCHEME_COMPOSITE_RSA_DILITHIUM,
-	PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM,
-#endif
-#ifdef ENABLE_COMPOSITE
-	// Composite Crypto Schemes
-	PKI_SCHEME_COMPOSITE,
-#endif
-#ifdef ENABLE_COMPOSITE
-	// Combined Crypto Schemes
-	PKI_SCHEME_COMBINED,
-#endif
-
-} PKI_SCHEME_ID;
 
 #ifdef ENABLE_COMPOSITE
 #include <libpki/openssl/composite/composite_ameth.h>
@@ -184,23 +147,21 @@ typedef struct __pkiCrlReasonCodes_st {
 } PKI_X509_CRL_REASON_CODE;
 
 
-typedef enum {
-	PKI_HTTP_METHOD_UNKNOWN		= 0,
-	PKI_HTTP_METHOD_GET,
-	PKI_HTTP_METHOD_POST,
-	PKI_HTTP_METHOD_HTTP
-} PKI_HTTP_METHOD;
+// typedef enum {
+// 	PKI_HTTP_METHOD_UNKNOWN		= 0,
+// 	PKI_HTTP_METHOD_GET,
+// 	PKI_HTTP_METHOD_POST,
+// 	PKI_HTTP_METHOD_HTTP
+// } PKI_HTTP_METHOD;
 
-#define PKI_HTTP_METHOD_POST_TXT	"POST"
-#define PKI_HTTP_METHOD_GET_TXT		"GET"
-#define PKI_HTTP_METHOD_HTTP_TXT	"HTTP"
+// #define PKI_HTTP_METHOD_POST_TXT	"POST"
+// #define PKI_HTTP_METHOD_GET_TXT		"GET"
+// #define PKI_HTTP_METHOD_HTTP_TXT	"HTTP"
 
 // #define APP_PASS_LEN    			1024
 
-#define PKI_ERR					0
-#define PKI_OK					1
-#define PKI_CONFIG  				xmlDoc
-#define PKI_CONFIG_ELEMENT  			xmlNode
+// #define PKI_CONFIG  			xmlDoc
+// #define PKI_CONFIG_ELEMENT  	xmlNode
 
 /* Misc Define */
 /*
@@ -378,12 +339,10 @@ typedef enum {
 #include <libpki/pki_string.h>
 #include <libpki/pki_init.h>
 #include <libpki/pki_algor.h>
-// #include <libpki/pki_algorithm.h>
 #include <libpki/pki_id.h>
 #include <libpki/pki_oid.h>
 #include <libpki/pki_digest.h>
 #include <libpki/pki_hmac.h>
-// #include <libpki/pki_conf.h>
 #include <libpki/pki_config.h>
 #include <libpki/pki_keypair.h>
 #include <libpki/pki_x509_attribute.h>

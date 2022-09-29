@@ -11,6 +11,7 @@
 # define HEADER_CMS_LCL_H
 
 # include <openssl/x509.h>
+# include <openssl/cms.h>
 
 /*
  * Cryptographic message syntax (CMS) structures: taken from RFC3852
@@ -59,7 +60,7 @@ struct CMS_ContentInfo_st {
     } d;
 };
 
-DEFINE_STACK_OF(CMS_CertificateChoices)
+// DEFINE_STACK_OF(CMS_CertificateChoices)
 
 struct CMS_SignedData_st {
     int32_t version;
@@ -192,10 +193,30 @@ struct CMS_KeyAgreeRecipientIdentifier_st {
     } d;
 };
 
+struct CMS_OtherCertificateFormat_st {
+    ASN1_OBJECT *otherCertFormat;
+    ASN1_TYPE *otherCert;
+};
+
+/*
+ * This is also defined in pkcs7.h but we duplicate it to allow the CMS code
+ * to be independent of PKCS#7
+ */
+
+struct CMS_IssuerAndSerialNumber_st {
+    X509_NAME *issuer;
+    ASN1_INTEGER *serialNumber;
+};
+
+struct CMS_OtherKeyAttribute_st {
+    ASN1_OBJECT *keyAttrId;
+    ASN1_TYPE *keyAttr;
+};
+
 struct CMS_RecipientKeyIdentifier_st {
     ASN1_OCTET_STRING *subjectKeyIdentifier;
     ASN1_GENERALIZEDTIME *date;
-    CMS_OtherKeyAttribute *other;
+    struct CMS_OtherKeyAttribute *other;
 };
 
 struct CMS_KEKRecipientInfo_st {
@@ -211,7 +232,7 @@ struct CMS_KEKRecipientInfo_st {
 struct CMS_KEKIdentifier_st {
     ASN1_OCTET_STRING *keyIdentifier;
     ASN1_GENERALIZEDTIME *date;
-    CMS_OtherKeyAttribute *other;
+    struct CMS_OtherKeyAttribute *other;
 };
 
 struct CMS_PasswordRecipientInfo_st {
@@ -294,29 +315,9 @@ struct CMS_CertificateChoices {
 # define CMS_CERTCHOICE_V2ACERT          3
 # define CMS_CERTCHOICE_OTHER            4
 
-struct CMS_OtherCertificateFormat_st {
-    ASN1_OBJECT *otherCertFormat;
-    ASN1_TYPE *otherCert;
-};
-
-/*
- * This is also defined in pkcs7.h but we duplicate it to allow the CMS code
- * to be independent of PKCS#7
- */
-
-struct CMS_IssuerAndSerialNumber_st {
-    X509_NAME *issuer;
-    ASN1_INTEGER *serialNumber;
-};
-
-struct CMS_OtherKeyAttribute_st {
-    ASN1_OBJECT *keyAttrId;
-    ASN1_TYPE *keyAttr;
-};
-
 /* ESS structures */
 
-# ifdef HEADER_X509V3_H
+# ifndef HEADER_X509V3_H
 
 struct CMS_ReceiptRequest_st {
     ASN1_OCTET_STRING *signedContentIdentifier;
@@ -340,7 +341,8 @@ struct CMS_Receipt_st {
     ASN1_OCTET_STRING *originatorSignatureValue;
 };
 
-DECLARE_ASN1_FUNCTIONS(CMS_ContentInfo)
+// DECLARE_ASN1_FUNCTIONS(struct CMS_ContentInfo)
+
 DECLARE_ASN1_ITEM(CMS_SignerInfo)
 DECLARE_ASN1_ITEM(CMS_IssuerAndSerialNumber)
 DECLARE_ASN1_ITEM(CMS_Attributes_Sign)

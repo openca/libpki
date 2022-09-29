@@ -1,5 +1,21 @@
 /* src/libpki/pki_msg_req.h - General PKI message */
 
+#ifndef _LIBPKI_PKI_DATATYPES_H
+# include <libpki/datatypes.h>
+#endif
+
+#ifndef _LIBPKI_PKI_MSG_H
+# include <libpki/pki_msg.h>
+#endif
+
+#ifndef _LIBPKI_PKI_CRED_H
+# include <libpki/pki_cred.h>
+#endif
+
+#ifndef _LIBPKI_PKI_MEM_H
+# include <libpki/pki_mem.h>
+#endif
+
 #ifndef _LIBPKI_PKI_MSG_REQ_IO_H
 #define _LIBPKI_PKI_MSG_REQ_IO_H
 

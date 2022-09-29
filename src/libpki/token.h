@@ -1,5 +1,9 @@
 /* token.h */
 
+#ifndef _LIBPKI_X509_PROFILE_H
+# include <pki_x509_profile.h>
+#endif
+
 #ifndef _LIBPKI_TOKEN_HEADERS_H
 #define _LIBPKI_TOKEN_HEADERS_H
 

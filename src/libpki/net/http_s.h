@@ -26,7 +26,6 @@
 #define LIBPKI_HTTP_BUF_SIZE		8192
 #define LIBPKI_HTTPS_BUF_SIZE		8192
 
-
 /* ----------------------------- HTTP HELP Functions -------------------- */
 
 void PKI_HTTP_free(PKI_HTTP *rv);

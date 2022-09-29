@@ -1,5 +1,9 @@
 /* PKI_X509_XPAIR I/O management */
 
+#ifndef _LIBPKI_X509_XPAIR_H
+# include <libpki/pki_x509_xpair.h>
+#endif
+
 #ifndef _LIBPKI_X509_XPAIR_IO_H
 #define _LIBPKI_X509_XPAIR_IO_H
 

@@ -109,10 +109,10 @@ libpki_openssl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__objects_1 =
 am__objects_2 = $(am__objects_1) $(am__objects_1) \
 	libpki_openssl_la-pthread_init.lo libpki_openssl_la-pki_id.lo \
-	libpki_openssl_la-pki_oid.lo libpki_openssl_la-pki_algor.lo \
-	libpki_openssl_la-pki_digest.lo libpki_openssl_la-pki_hmac.lo \
-	libpki_openssl_la-pki_string.lo libpki_openssl_la-pki_time.lo \
-	libpki_openssl_la-pki_integer.lo \
+	libpki_openssl_la-pki_oid.lo libpki_openssl_la-pki_oid_defs.lo \
+	libpki_openssl_la-pki_algor.lo libpki_openssl_la-pki_digest.lo \
+	libpki_openssl_la-pki_hmac.lo libpki_openssl_la-pki_string.lo \
+	libpki_openssl_la-pki_time.lo libpki_openssl_la-pki_integer.lo \
 	libpki_openssl_la-pki_keypair.lo \
 	libpki_openssl_la-pki_keyparams.lo \
 	libpki_openssl_la-pki_x509_name.lo \
@@ -164,6 +164,7 @@ am__depfiles_remade = ./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_ocsp_req.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_ocsp_resp.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_oid.Plo \
+	./$(DEPDIR)/libpki_openssl_la-pki_oid_defs.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_string.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_time.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo \
@@ -535,6 +536,7 @@ OPENSSL_SRCS = \
 	pthread_init.c \
 	pki_id.c \
 	pki_oid.c \
+	pki_oid_defs.c \
 	pki_algor.c \
 	pki_digest.c \
 	pki_hmac.c \
@@ -626,6 +628,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_ocsp_req.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_ocsp_resp.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_oid.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_oid_defs.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_string.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_time.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo@am__quote@ # am--include-marker
@@ -692,6 +695,13 @@ libpki_openssl_la-pki_oid.lo: pki_oid.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_oid.c' object='libpki_openssl_la-pki_oid.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_oid.lo `test -f 'pki_oid.c' || echo '$(srcdir)/'`pki_oid.c
+
+libpki_openssl_la-pki_oid_defs.lo: pki_oid_defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_oid_defs.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_oid_defs.Tpo -c -o libpki_openssl_la-pki_oid_defs.lo `test -f 'pki_oid_defs.c' || echo '$(srcdir)/'`pki_oid_defs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_openssl_la-pki_oid_defs.Tpo $(DEPDIR)/libpki_openssl_la-pki_oid_defs.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_oid_defs.c' object='libpki_openssl_la-pki_oid_defs.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_oid_defs.lo `test -f 'pki_oid_defs.c' || echo '$(srcdir)/'`pki_oid_defs.c
 
 libpki_openssl_la-pki_algor.lo: pki_algor.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_algor.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_algor.Tpo -c -o libpki_openssl_la-pki_algor.lo `test -f 'pki_algor.c' || echo '$(srcdir)/'`pki_algor.c
@@ -1061,6 +1071,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_ocsp_req.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_ocsp_resp.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_oid.Plo
+	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_oid_defs.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_string.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_time.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo
@@ -1131,6 +1142,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_ocsp_req.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_ocsp_resp.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_oid.Plo
+	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_oid_defs.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_string.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_time.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo

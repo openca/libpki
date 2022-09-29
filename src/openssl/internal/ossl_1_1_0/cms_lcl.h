@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 # include <openssl/x509.h>
+# include <openssl/cms.h>
 
 /*
  * Cryptographic message syntax (CMS) structures: taken from RFC3852
@@ -61,6 +62,22 @@ struct CMS_ContentInfo_st {
         ASN1_TYPE *other;
         /* Other types ... */
         void *otherData;
+    } d;
+};
+
+struct CMS_OtherRevocationInfoFormat_st {
+    ASN1_OBJECT *otherRevInfoFormat;
+    ASN1_TYPE *otherRevInfo;
+};
+
+struct CMS_CertificateChoices {
+    int type;
+    union {
+        X509 *certificate;
+        ASN1_STRING *extendedCertificate; /* Obsolete */
+        ASN1_STRING *v1AttrCert; /* Left encoded for now */
+        ASN1_STRING *v2AttrCert; /* Left encoded for now */
+        CMS_OtherCertificateFormat *other;
     } d;
 };
 
@@ -197,6 +214,26 @@ struct CMS_KeyAgreeRecipientIdentifier_st {
     } d;
 };
 
+struct CMS_OtherCertificateFormat_st {
+    ASN1_OBJECT *otherCertFormat;
+    ASN1_TYPE *otherCert;
+};
+
+/*
+ * This is also defined in pkcs7.h but we duplicate it to allow the CMS code
+ * to be independent of PKCS#7
+ */
+
+struct CMS_IssuerAndSerialNumber_st {
+    X509_NAME *issuer;
+    ASN1_INTEGER *serialNumber;
+};
+
+struct CMS_OtherKeyAttribute_st {
+    ASN1_OBJECT *keyAttrId;
+    ASN1_TYPE *keyAttr;
+};
+
 struct CMS_RecipientKeyIdentifier_st {
     ASN1_OCTET_STRING *subjectKeyIdentifier;
     ASN1_GENERALIZEDTIME *date;
@@ -277,47 +314,11 @@ struct CMS_RevocationInfoChoice_st {
 # define CMS_REVCHOICE_CRL               0
 # define CMS_REVCHOICE_OTHER             1
 
-struct CMS_OtherRevocationInfoFormat_st {
-    ASN1_OBJECT *otherRevInfoFormat;
-    ASN1_TYPE *otherRevInfo;
-};
-
-struct CMS_CertificateChoices {
-    int type;
-    union {
-        X509 *certificate;
-        ASN1_STRING *extendedCertificate; /* Obsolete */
-        ASN1_STRING *v1AttrCert; /* Left encoded for now */
-        ASN1_STRING *v2AttrCert; /* Left encoded for now */
-        CMS_OtherCertificateFormat *other;
-    } d;
-};
-
 # define CMS_CERTCHOICE_CERT             0
 # define CMS_CERTCHOICE_EXCERT           1
 # define CMS_CERTCHOICE_V1ACERT          2
 # define CMS_CERTCHOICE_V2ACERT          3
 # define CMS_CERTCHOICE_OTHER            4
-
-struct CMS_OtherCertificateFormat_st {
-    ASN1_OBJECT *otherCertFormat;
-    ASN1_TYPE *otherCert;
-};
-
-/*
- * This is also defined in pkcs7.h but we duplicate it to allow the CMS code
- * to be independent of PKCS#7
- */
-
-struct CMS_IssuerAndSerialNumber_st {
-    X509_NAME *issuer;
-    ASN1_INTEGER *serialNumber;
-};
-
-struct CMS_OtherKeyAttribute_st {
-    ASN1_OBJECT *keyAttrId;
-    ASN1_TYPE *keyAttr;
-};
 
 /* ESS structures */
 

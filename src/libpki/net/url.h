@@ -13,9 +13,23 @@
  *
  */
 
+#ifndef _LIBPKI_PKI_MEM_H
+# include <libpki/pki_mem.h>
+#endif
 
 #ifndef _LIBPKI_URL_H
 #define _LIBPKI_URL_H
+
+typedef enum pki_http_method_enum {
+	PKI_HTTP_METHOD_UNKNOWN		= 0,
+	PKI_HTTP_METHOD_GET,
+	PKI_HTTP_METHOD_POST,
+	PKI_HTTP_METHOD_HTTP
+} PKI_HTTP_METHOD;
+
+#define PKI_HTTP_METHOD_POST_TXT	"POST"
+#define PKI_HTTP_METHOD_GET_TXT		"GET"
+#define PKI_HTTP_METHOD_HTTP_TXT	"HTTP"
 
 typedef enum {
     URI_PROTO_FILE   = 0,

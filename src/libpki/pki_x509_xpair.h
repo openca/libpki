@@ -1,4 +1,8 @@
-/* src/libpki/pki_x509_xcert.h */
+/* src/libpki/pki_x509_xpair.h */
+
+#ifndef _LIBPKI_X509_XPAIR_ASN1_H
+# include <libpki/pki_x509_xpair_asn1.h>
+#endif
 
 #ifndef _LIBPKI_X509_XPAIR_H
 #define _LIBPKI_X509_XPAIR_H

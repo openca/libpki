@@ -6,17 +6,35 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_XMLINCLUDES_H
+# include <libxml/xmlmemory.h>
+# include <libxml/parser.h>
+# include <libxml/xpath.h>
+# include <libxml/xpathInternals.h>
+#endif
+
+#ifndef _LIBPKI_STACK_H
+# include <libpki/stack.h>
+#endif
+
+#ifndef _LIBPKI_PKI_IO_H
+# include <libpki/pki_io.h>
+#endif
+
 #ifndef _LIBPKI_CONF_H
 #define _LIBPKI_CONF_H
+
+#define PKI_CONFIG                xmlDoc
+#define PKI_CONFIG_ELEMENT        xmlNode
 
 #define PKI_DEFAULT_ETC_DIR  			"@etc_dir@"
 
 #define PKI_DEFAULT_CONF_DIR			"@conf_dir@/libpki"
-#define PKI_DEFAULT_PROFILE_DIR		"profile.d"
+#define PKI_DEFAULT_PROFILE_DIR			"profile.d"
 #define PKI_DEFAULT_TOKEN_DIR			"token.d"
 #define PKI_DEFAULT_HSM_DIR				"hsm.d"
 #define PKI_DEFAULT_STORE_DIR			"store.d"
-#define PKI_DEFAULT_CONF_OID_FILE	"objectIdentifiers.xml"
+#define PKI_DEFAULT_CONF_OID_FILE		"objectIdentifiers.xml"
 
 typedef enum {
 	PKI_CONF_PROFILE = 0,

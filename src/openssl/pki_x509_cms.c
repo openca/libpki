@@ -1,7 +1,15 @@
 /* openssl/pki_x509_cms.c */
 
+#include <openssl/opensslv.h>
+#include "internal/ossl_1_1_1/cms_lcl.h"
+
+#ifndef _LIBPKI_PKI_H
 #include <libpki/pki.h>
+#endif
+
+#ifdef LIBPKI_X509_INT_H
 #include "internal/x509_data_st.h"
+#endif
 
 /* ------------------------------ internal (static ) ------------------------- */
 
@@ -237,7 +245,7 @@ void PKI_X509_CMS_VALUE_free(PKI_X509_CMS_VALUE *cms) {
 
 /* ----------------------- PEM I/O Functions ------------------------- */
 
-#if OPENSSL_VERSION_NUMBER < 0x10101000L
+#if OPENSSL_VERSION_NUMBER <= 0x10101000L
 PKI_X509_CMS_VALUE *PEM_read_bio_CMS( PKI_IO *bp ) {
 #if OPENSSL_VERSION_NUMBER < 0x0090800fL
 	return (PKI_X509_CMS_VALUE *) PEM_ASN1_read_bio( (char *(*)()) d2i_CMS_ContentInfo, 

@@ -88,9 +88,9 @@ void PKI_X509_CMS_VALUE_free(PKI_X509_CMS_VALUE *cms);
 
 /* ------------------------ PEM I/O Functions --------------------------- */
 
-PKI_X509_CMS_VALUE *PEM_read_bio_CMS( BIO *bp );
+PKI_X509_CMS_VALUE *PKI_PEM_read_bio_CMS( BIO *bp );
 
-int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o );
+// int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o );
 
 /* ---------------------------- Functions ------------------------------- */
 

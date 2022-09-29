@@ -1,7 +1,13 @@
 /* I/O headers */
 
+
+#include <openssl/bio.h>
+
 #ifndef _LIBPKI_IO_H
 #define _LIBPKI_IO_H
+
+// Base definition for PKI_IO
+#define PKI_IO				BIO
 
 #include <libpki/io/pki_x509_io.h>
 #include <libpki/io/pki_keypair_io.h>

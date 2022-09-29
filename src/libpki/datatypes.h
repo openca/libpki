@@ -6,6 +6,10 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_COMPAT_H
+# include <libpki/compat.h>
+#endif
+
 #ifndef _LIBPKI_PKI_DATATYPES_H
 #define _LIBPKI_PKI_DATATYPES_H	
 
@@ -175,7 +179,7 @@ typedef enum {
 typedef enum {
 	PKI_RSA_KEY_MIN_SIZE		= 1024,
 	PKI_DSA_KEY_MIN_SIZE		= 2048,
-	PKI_EC_KEY_MIN_SIZE		    = 256
+	PKI_EC_KEY_MIN_SIZE		    = 128
 } PKI_KEY_MIN_SIZE;
 
 typedef enum {
@@ -183,6 +187,45 @@ typedef enum {
 	PKI_DSA_KEY_DEFAULT_SIZE	= 2048,
 	PKI_EC_KEY_DEFAULT_SIZE		= 256
 } PKI_KEY_DEFAULT_SIZE;
+
+/* Supported Signing schemes identifiers */
+typedef enum {
+	// Classic/Modern Cryptography
+	PKI_SCHEME_UNKNOWN 	= 0,
+	PKI_SCHEME_RSA,
+	PKI_SCHEME_DSA,
+	PKI_SCHEME_DH,
+#ifdef ENABLE_ECDSA
+	PKI_SCHEME_ECDSA,
+#endif
+
+#ifdef ENABLE_OQS
+	// Post Quantum Cryptography - KEMS
+	PKI_SCHEME_NTRU_PRIME,
+	PKI_SCHEME_SIKE,
+	PKI_SCHEME_BIKE,
+	PKI_SCHEME_FRODOKEM,
+	// Post Quantum Cryptography - Digital Signatures
+	PKI_SCHEME_FALCON,
+	PKI_SCHEME_DILITHIUM,
+	PKI_SCHEME_PICNIC,
+	PKI_SCHEME_SPHINCS,
+	// OQS Composite Crypto Schemes
+	PKI_SCHEME_COMPOSITE_RSA_FALCON,
+	PKI_SCHEME_COMPOSITE_ECDSA_FALCON,
+	PKI_SCHEME_COMPOSITE_RSA_DILITHIUM,
+	PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM,
+#endif
+#ifdef ENABLE_COMPOSITE
+	// Composite Crypto Schemes
+	PKI_SCHEME_COMPOSITE,
+#endif
+#ifdef ENABLE_COMPOSITE
+	// Combined Crypto Schemes
+	PKI_SCHEME_COMBINED,
+#endif
+
+} PKI_SCHEME_ID;
 
 END_C_DECLS
 

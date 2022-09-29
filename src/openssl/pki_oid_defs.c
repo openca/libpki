@@ -4,16 +4,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef _LIBPKI_OID_DEFS_H
-# include <libpki/openssl/pki_oid_defs.h>
-#endif
-
 #ifndef HEADER_OBJECTS_H
 # include <openssl/objects.h>
 #endif
 
 #ifndef _LIBPKI_LOG_H
 # include <libpki/pki_log.h>
+#endif
+
+#ifndef _LIBPKI_OID_DEFS_H
+# include <libpki/openssl/pki_oid_defs.h>
+#endif
+
+#ifndef _LIBPKI_OID_H
+# include <libpki/pki_oid.h>
 #endif
 
 // Default
@@ -31,7 +35,7 @@ typedef struct oid_init_table_st {
 	const char * desc;
 } OID_INIT_OBJ;
 
-typedef struct oid_init_table_st {
+typedef struct sigs_init_table_st {
 	int nid;
 	const char * oid;
 	const char * name;
@@ -77,7 +81,7 @@ static struct obj_alias_st nist_curves_alias[] = {
 };
 #endif
 
-const OID_INIT_OBJ oids_table[] = {
+OID_INIT_OBJ oids_table[] = {
 	{ 0, OPENCA_OID, OPENCA_NAME, OPENCA_DESC},
 	{ 0, CERTIFICATE_TEMPLATE_OID, CERTIFICATE_TEMPLATE_NAME, CERTIFICATE_TEMPLATE_DESC},
 	{ 0, LEVEL_OF_ASSURANCE_OID, LEVEL_OF_ASSURANCE_NAME, LEVEL_OF_ASSURANCE_DESC},
@@ -91,7 +95,7 @@ const OID_INIT_OBJ oids_table[] = {
 	{ 0, NULL, NULL, NULL }
 };
 
-const OID_INIT_SIG sigs_table[] = {
+OID_INIT_SIG sigs_table[] = {
 	// Composite Signatures
 	{ 0, OPENCA_ALG_SIGS_COMP_OID, OPENCA_ALG_SIGS_COMP_NAME, OPENCA_ALG_SIGS_COMP_DESC, 0, 0, 0 },
 	{ 0, OPENCA_ALG_SIGS_COMP_SHA1_OID, OPENCA_ALG_SIGS_COMP_SHA1_NAME, OPENCA_ALG_SIGS_COMP_SHA1_DESC, NID_sha1, 0, 0 },

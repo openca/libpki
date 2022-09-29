@@ -5,16 +5,26 @@
  *
 */
 
+#ifndef __XML_TREE_H__
+#include <libxml/tree.h>
+#endif
+
 #ifndef _LIBPKI_X509_PROFILE_H
 #define _LIBPKI_X509_PROFILE_H
 
-#include <libxml/tree.h>
+// ===========================
+// PKI_X509_PROFILE definition
+// ===========================
 
 #define PKI_X509_PROFILE  xmlDoc
 
-#endif
+// ==========
+// Prototypes
+// ==========
 
 PKI_X509_PROFILE * PKI_X509_PROFILE_get ( char *url );
 PKI_X509_PROFILE * PKI_X509_PROFILE_write( PKI_X509_PROFILE *prof, char *url );
+
+#endif
 
 
