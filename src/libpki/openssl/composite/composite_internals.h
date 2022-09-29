@@ -6,6 +6,10 @@
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 
+#ifndef _LIBPKI_OID_DEFS_H
+#include <libpki/openssl/pki_oid_defs.h>
+#endif
+
 #ifndef OPENSSL_COMPOSITE_LOCAL_H
 #define OPENSSL_COMPOSITE_LOCAL_H
 
@@ -27,8 +31,8 @@ extern "C" {
 // The Dynamic Approach does not let you reference
 // the NID directly, therefore we need a different
 // approach by using a global variable
-extern int NID_composite;
-extern int NID_combined;
+// extern int NID_composite;
+// extern int NID_combined;
 
 // We need to find a solution for replacing
 // the use of NID_composite with the dynamic
@@ -52,8 +56,10 @@ extern int NID_combined;
 // # endif
 
 inline int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
+  // Retrieves the composite ID
+  int composite_id = OBJ_txt2nid("composite");
   // Assigns the internal key
-  return EVP_PKEY_assign(pkey, NID_composite, comp_key);
+  return EVP_PKEY_assign(pkey, composite_id, comp_key);
 };
 
 // ==============================

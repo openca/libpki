@@ -31,9 +31,9 @@ int EVP_PKEY_asn1_meth_set_id(EVP_PKEY_ASN1_METHOD * pkey_ameth, int pkey_id) {
   if (!pkey_ameth || pkey_id <= 0) return 0;
 
   // Assigns the generated IDs
-	pkey_ameth->pkey_id = NID_composite;
-	pkey_ameth->pkey_base_id = NID_composite;
-	pkey_ameth->pkey_id = NID_composite;
+	pkey_ameth->pkey_id = pkey_id;
+	pkey_ameth->pkey_base_id = pkey_id;
+	pkey_ameth->pkey_id = pkey_id;
 
   // All Done
   return 1;
@@ -1072,7 +1072,9 @@ int item_sign(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *alg1,
   * See ASN1_item_sign_ctx() at OPENSSL/crypto/asn1/a_sign.c:140
   */
 
-#ifdef NID_composite
+#ifdef ENABLE_COMPOSITE
+  int NID_composite = OBJ_txt2nid("composite");
+  
   if (alg1 != NULL)
     X509_ALGOR_set0(alg1, OBJ_nid2obj(NID_composite), V_ASN1_UNDEF, NULL);
 

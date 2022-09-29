@@ -135,6 +135,11 @@ PKI_ALGOR_ID PKI_DIGEST_ALG_ID_LIST[] = {
 	PKI_ALGOR_ID_SHA512,
 	PKI_ALGOR_ID_RIPEMD128,
 	PKI_ALGOR_ID_RIPEMD160,
+	PKI_ALGOR_ID_SHA3_256,
+	PKI_ALGOR_ID_SHA3_384,
+	PKI_ALGOR_ID_SHA3_512,
+	PKI_ALGOR_ID_SHAKE128,
+	PKI_ALGOR_ID_SHAKE256,
 	PKI_ALGOR_ID_UNKNOWN
 };
 
@@ -819,19 +824,21 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		// Composite Crypto
 		// ================
 
-#ifdef ENABLE_COMPOSITE
-# ifdef NID_composite
-		case PKI_ALGOR_ID_COMPOSITE:
-			ret = PKI_SCHEME_COMPOSITE;
-			break;
-# endif
-
-# ifdef NID_compositeOr
-		case PKI_ALGOR_ID_COMPOSITE_OR:
-			ret = PKI_SCHEME_COMPOSITE_OR;
-			break;
-# endif
-#endif
+// NOTE: We cannot handle the composite/combined crypto
+//       this way because we do not have the static value
+//       for it, therefore we need to use a different approach
+//       by checking it separately
+// #ifdef ENABLE_COMPOSITE
+// 		case NID_composite:
+// 			ret = PKI_SCHEME_COMPOSITE;
+// 			break;
+// #endif
+//
+// #ifdef ENABLE_COMBINED
+// 		case PKI_ALGOR_ID_COMPOSITE_OR:
+// 			ret = PKI_SCHEME_COMPOSITE_OR;
+// 			break;
+// #endif
 
 		// ====================
 		// OQS Composite Crypto
@@ -859,6 +866,22 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 #endif
 		default:
 			ret = PKI_SCHEME_UNKNOWN;
+	}
+
+	// Process the dynamic-provided schemes
+	if (ret == PKI_SCHEME_UNKNOWN) {
+#ifdef ENABLE_COMPOSITE
+		// Composite Crypto
+		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("composite")) {
+			ret = PKI_SCHEME_COMPOSITE;
+		}
+#endif
+
+#ifdef ENABLE_COMBINED
+		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("combined")) {
+			ret = PKI_SCHEME_COMBINED;
+		}
+#endif
 	}
 
 	return ( ret );

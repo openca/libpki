@@ -237,17 +237,6 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 			break;
 #endif
 
-#ifdef ENABLE_COMPOSITE
-# ifdef NID_composite
-		case PKI_ALGOR_COMPOSITE:
-# endif
-# ifdef NID_compositeOr
-		case PKI_ALGOR_COMPOSITE_OR:
-			algId = p_type;
-			break;
-# endif
-#endif
-
 #ifdef ENABLE_OQS
 
 		// Open Quantum Safe Algos
@@ -277,11 +266,27 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 #endif
 
 		default:
-			PKI_DEBUG("Algorithm not found [%d]", p_type);
-			return ret;
+			PKI_DEBUG("Algorithm not found in static methods [%d]", p_type);
 	};
 
-	if( algId > 0 ) ret = PKI_X509_ALGOR_VALUE_get ( algId );
+	// Address the dynamic methods
+#ifdef ENABLE_COMPOSITE
+	if (algId == NID_undef && p_type == OBJ_txt2nid("composite")) {
+		algId = p_type;
+	}
+#endif
+
+#ifdef ENABLE_COMBINED
+	if (algId == NID_undef && p_type == OBJ_txt2nid("combined")) {
+		algId = p_type;
+	}
+#endif
+
+	if( algId > 0 ) {
+		ret = PKI_X509_ALGOR_VALUE_get(algId);
+	} else {
+		PKI_DEBUG("Algorithm not found in dynamic methods [%d]", p_type);
+	}
 
 	return ret;
 };

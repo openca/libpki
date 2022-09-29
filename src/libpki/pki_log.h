@@ -1,3 +1,8 @@
+
+#ifndef _LIBPKI_TOKEN_HEADERS_H
+# include <libpki/token.h>
+#endif
+
 #ifndef _LIBPKI_LOG_H
 #define _LIBPKI_LOG_H
 

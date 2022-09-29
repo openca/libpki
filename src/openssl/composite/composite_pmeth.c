@@ -35,11 +35,11 @@
 
 #ifdef ENABLE_COMPOSITE
 
-int NID_composite = 0X0FF1;
-  // Value for the composite EVP_PKEY type
+// #define NID_composite 0X0FF1
+//   // Value for the composite EVP_PKEY type
 
-int NID_combined = 0X0FF2;
-  // Value for the combined EVP_PKEY type
+// #define NID_combined 0X0FF2
+//   // Value for the combined EVP_PKEY type
 
 // ==================
 // Internal Functions
@@ -543,9 +543,9 @@ static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
 
 #ifdef NID_composite
   // Some extra checking for correctness
-  if ((alg_nid = ctx->pmeth->pkey_id) != NID_composite) {
+  if (ctx->pmeth->pkey_id != NID_composite) {
     DEBUG("ERROR: NID is not NID_composite (%d vs. %d)",
-      alg_nid, NID_composite);
+      ctx->pmeth->pkey_id, NID_composite);
     return 0;
   }
 #else

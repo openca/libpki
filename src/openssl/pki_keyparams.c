@@ -359,7 +359,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
 			// need to enable more on LibOQS
-			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE;
+			kp->oqs.algId = OBJ_txt2nid(OPENCA_ALG_PKEY_COMP_OID);
 			kp->bits = 128;
 		} break;
 
@@ -368,7 +368,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
 			// need to enable more on LibOQS
-			kp->oqs.algId = PKI_ALGOR_ID_COMBINED;
+			kp->oqs.algId = OBJ_txt2id(OPENCA_ALG_PKEY_ALT_OID);;
 			kp->bits = 128;
 		} break;
 # endif

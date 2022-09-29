@@ -1,4 +1,5 @@
 * Sep 28 2022 Massimiliano Pala <madwolf@openca.org>
+- Full reorganization for library initialization (OID)
 - Added PKI_TOKEN_set_hsm() function to update Token's HSM
 - Updated TOKEN and HSM data structure to include login and creds status
 - Ported support for Composite Crypto with dynamic ASN1 and PKEY method
