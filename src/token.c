@@ -82,11 +82,9 @@ PKI_CRED *PKI_TOKEN_cred_cb_env ( char * env ) {
 	return ( ret );
 }
 
-/*! \brief Returns credentials from the registered callback function */
+/*! \brief Returns credentials attached to the token */
 
-PKI_CRED *PKI_TOKEN_cred_get(PKI_TOKEN *tk, char *st)
-{
-	PKI_CRED *ret = NULL;
+const PKI_CRED *PKI_TOKEN_cred_get(const PKI_TOKEN * const tk) {
 
 	if (!tk)
 	{
@@ -94,24 +92,46 @@ PKI_CRED *PKI_TOKEN_cred_get(PKI_TOKEN *tk, char *st)
 		return ( NULL );
 	}
 
-	if (!tk->cred_cb) 
-	{
-		ret = PKI_CRED_new(NULL, "");
+	return tk->cred;
+}
+
+/*! \brief Retrieves the credentials from the registered callback function */
+
+int PKI_TOKEN_cred_prompt(PKI_TOKEN *tk, char *st) {
+
+	// Input Checks
+	if (!tk) { 
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	}
+
+	// Clears the current credentials
+	if (tk->cred) PKI_CRED_free(tk->cred);
+	tk->cred = NULL; // Safety
+
+	// If the creds are already set,
+	// let's just return it
+	if (tk->cred_cb) {
+		tk->cred = NULL;
+		tk->isCredSet = 1;
 	}
 	else
 	{
 		if (!st) st = tk->cred_prompt;
-		ret = PKI_CRED_dup(tk->cred_cb ( st ));
+		tk->cred = tk->cred_cb(st);
 	}
 
-	return ( ret );
+	// Checks the error condition
+	if (!tk->cred) return PKI_ERR;
+
+	// All done.
+	return PKI_OK;
 }
 
 /*!
  * \brief Create a new PKI_TOKEN structure.
  *
  * Reserves the memory for a new PKI_TOKEN data structure. The returned
- * memory is already zeroized. No token configuration is performed. If
+ * memory is already zeroize. No token configuration is performed. If
  * you need to configure the token by using a configuration file, please
  * use the PKI_TOKEN_new() function.
  *
@@ -164,6 +184,9 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
 	// Sets the login status
 	tk->isLoggedIn = 0;
 
+	// Sets the credentials status
+	tk->isCredSet = 0;
+
 	// It seems it is not needed as the PKI_TOKEN_init() will set the
 	// algorithm already - do we want to keep it or not ?
 	if (tk->algor) X509_ALGOR_free(tk->algor);
@@ -185,9 +208,10 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
  * It returns the pointer to the memory region or NULL in case of error.
 */
 
-PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const hsmName )
+PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const tokenName )
 {
 	PKI_TOKEN *tk = NULL;
+		// Token data structure
 
 	if((tk = PKI_TOKEN_new_null()) == NULL )
 	{
@@ -196,9 +220,9 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const hsmN
 	}
 
 	/* Initialize OpenSSL so that it adds all the needed algor and dgst */
-	if( PKI_get_init_status() == PKI_STATUS_NOT_INIT ) PKI_init_all();
+	if (PKI_get_init_status() == PKI_STATUS_NOT_INIT ) PKI_init_all();
 
-	if ((PKI_TOKEN_init(tk, config_dir, hsmName)) != PKI_OK)
+	if ((PKI_TOKEN_init(tk, config_dir, tokenName)) != PKI_OK)
 	{
 		PKI_log_err("can not initialize token, config loading error.\n");
 		tk->status = PKI_TOKEN_STATUS_INIT_ERR;
@@ -208,7 +232,76 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const hsmN
 		tk->status = PKI_TOKEN_STATUS_OK;
 	}
 
+	if (tk->hsm) {
+
+		switch (tk->hsm->type) {
+
+			// Known HSM types that need
+			// logging in (no auto-login)
+			case HSM_TYPE_ENGINE:
+			case HSM_TYPE_PKCS11:
+			case HSM_TYPE_OTHER: {
+				// Nothing to do
+			};
+
+			// Overrides Software Token (no prompt)
+			case HSM_TYPE_SOFTWARE: {
+				// Auto Log-in and Creds set
+				tk->isCredSet = 1;
+				tk->isLoggedIn = 1;
+			} break;
+
+			default: {
+				// Unknown Type, assumes it requires login
+				// so there is nothing to do here
+			}
+		}
+
+	} 
+
 	return tk;
+}
+
+int PKI_TOKEN_set_hsm(PKI_TOKEN * tk, HSM * hsm ) {
+
+	// Input Checks
+	if (!tk || !hsm) return PKI_ERR;
+
+	// Free the token's HSM (if any)
+	if (tk->hsm) HSM_free(hsm);
+
+	// Assigns the new HSM to the token
+	tk->hsm = hsm;
+
+	// All Done.
+	return PKI_OK;
+}
+
+int PKI_TOKEN_set_hsm_name(PKI_TOKEN  * tk, 
+						   const char * const config_dir,
+						   const char * const hsmName) {
+
+	HSM * hsm = NULL;
+		// HSM structure
+
+	// Input Checks
+	if (!tk || !config_dir || !hsmName) return PKI_ERR;
+
+	// Initializes the HSM
+	if ((hsm = HSM_new(config_dir, hsmName)) == NULL) {
+		PKI_DEBUG("Cannot Instantiate a new HSM (dir: %s, name: %s)",
+			config_dir, hsmName);
+		return PKI_ERR;
+	}
+
+	// Free the HSM if one is present
+	if (tk->hsm) HSM_free(hsm);
+
+	// Assigns the new hsm to the token
+	tk->hsm = hsm;
+
+	// All done
+	return PKI_OK;
 }
 
 /*! \brief Checks the integrity of a PKI_TOKEN
@@ -506,25 +599,24 @@ int PKI_TOKEN_free( PKI_TOKEN *tk )
 
 int PKI_TOKEN_login(PKI_TOKEN * const tk) {
 
-	PKI_CRED * creds = NULL;
-		// Credentials for login
-
 	// Input Check
 	if (!tk) {
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-	if (NULL == tk->cred) {
-		creds = PKI_TOKEN_cred_get ( tk, NULL );
-	} else {
-		creds = tk->cred;
-	}
+	// Checks if the Token requires logging in
+	if (tk->hsm && tk->hsm->isLoginRequired)
 
-	// Logs into the HSM, if any is configured
-	// for the token
-	if (tk->hsm && !PKI_TOKEN_is_logged_in(tk)) {
+	// Logs into the HSM, if any is configured for the token
+	if (tk->hsm // We have an HSM 
+	    && tk->hsm->isLoginRequired // Login is Required
+		&& !tk->isLoggedIn /* No Login Yet */ ) {
+		// Prompts for the credentials if we have none
+		if (!tk->isCredSet && PKI_ERR == PKI_TOKEN_cred_prompt ( tk, NULL )) {
+			return PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
+		}
 		// Login into the HSM
-		if (HSM_login(tk->hsm, creds) != PKI_OK) {
+		if (HSM_login(tk->hsm, tk->cred) != PKI_OK) {
 			// Sets the error condition
 			PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_LOGIN_ERR);
 			// Returns the error
@@ -547,17 +639,17 @@ int PKI_TOKEN_login(PKI_TOKEN * const tk) {
 	}
 
 	// Sets the login success
-	return PKI_TOKEN_set_login_success(tk);
+	PKI_TOKEN_set_login_success(tk);
 
-	// tk->status ^= PKI_TOKEN_STATUS_LOGIN_ERR;
-	// tk->status &= PKI_TOKEN_STATUS_LOGIN_OK;
-
-	// return PKI_OK;
+	// All Done
+	return PKI_OK;
 };
 
 int PKI_TOKEN_set_login_success(PKI_TOKEN * const tk) {
 	// Input Checks
 	if (!tk) return PKI_ERR;
+	// Clears the error
+	PKI_TOKEN_status_del_error(tk, PKI_TOKEN_STATUS_LOGIN_ERR);
 	// Sets the login status
 	tk->isLoggedIn = 1;
 	// All Done
@@ -567,6 +659,13 @@ int PKI_TOKEN_set_login_success(PKI_TOKEN * const tk) {
 int PKI_TOKEN_is_logged_in(const PKI_TOKEN * const tk) {
 	// Input Checks & Get operation
 	if (!tk || tk->isLoggedIn != 1) return PKI_ERR;
+	// All Done
+	return PKI_OK;
+};
+
+int PKI_TOKEN_is_creds_set(const PKI_TOKEN * const tk) {
+	// Input Checks & Get operation
+	if (!tk || tk->isCredSet != 1) return PKI_ERR;
 	// All Done
 	return PKI_OK;
 };
@@ -986,6 +1085,7 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 		{
 			return PKI_ERROR ( PKI_ERR_TOKEN_PROFILE_LOAD, tk_name );
 		}
+
 	}
 
 	/* This sets the algorithm */
@@ -1283,7 +1383,10 @@ int PKI_TOKEN_new_keypair_url_ex ( PKI_TOKEN *tk, PKI_KEYPARAMS *kp,
 		}
 	}
 
-	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
+	// // madwolf: Removed since no prompt should happen at this point
+	// // if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
+	// // Let's check if we need to login
+	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
 	if ((p = PKI_X509_KEYPAIR_new_url_kp( kp, label, tk->cred, tk->hsm )) == NULL)
 	{
@@ -1687,7 +1790,7 @@ int PKI_TOKEN_load_cacert(PKI_TOKEN *tk, char *url_string)
 {
 	if (!tk || !url_string ) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	// if (!tk->cred) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
 	if ((tk->cacert = PKI_X509_CERT_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
 												tk->cred, tk->hsm)) == NULL) {
@@ -1714,7 +1817,7 @@ int PKI_TOKEN_load_cert( PKI_TOKEN *tk, char *url_string )
 {
 	if (!tk || !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	// if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
 	if((tk->cert = PKI_X509_CERT_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
 												tk->cred, tk->hsm)) == NULL) {
@@ -1759,7 +1862,7 @@ int PKI_TOKEN_load_trustedCerts( PKI_TOKEN *tk, char *url_string )
 
 	if (!tk || !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
+	// if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
 
 	if((cert = PKI_X509_CERT_STACK_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
 												tk->cred, tk->hsm)) == NULL) {
@@ -1793,7 +1896,7 @@ int PKI_TOKEN_load_otherCerts(PKI_TOKEN *tk, char *url_string)
 
 	if (!tk || !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
+	// if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
 
 	if((cert = PKI_X509_CERT_STACK_get(url_string, PKI_DATA_FORMAT_UNKNOWN,
 												tk->cred, tk->hsm)) == NULL) {
@@ -1826,7 +1929,7 @@ int PKI_TOKEN_load_crls ( PKI_TOKEN *tk, char *url_string)
 
 	if (!tk || !url_string) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	// if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
 	if ((crl_sk = PKI_X509_CRL_STACK_get( url_string, PKI_DATA_FORMAT_UNKNOWN,
 												tk->cred, tk->hsm )) == NULL) {
@@ -1862,15 +1965,14 @@ int PKI_TOKEN_load_keypair(PKI_TOKEN *tk, char *url_string)
 	if ((url = getParsedUrl(url_string)) == NULL)
 		return PKI_ERROR(PKI_ERR_URI_PARSE, url_string);
 
-	if (!tk->cred) tk->cred = PKI_TOKEN_cred_get(tk, NULL);
-
 	if ((pkey = PKI_X509_KEYPAIR_get_url( url, PKI_DATA_FORMAT_UNKNOWN,
 											tk->cred, tk->hsm )) == NULL) {
 		/* Can not load the keypair from the given URL */
 		PKI_log_debug("PKI_TOKEN_load_keypair()::Can not load key (%s)", url->url_s);
 		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_LOGIN_ERR);
-
+		// Free Memory
 		if (url) URL_free(url);
+		// Error condition
 		return PKI_ERROR(PKI_ERR_TOKEN_KEYPAIR_LOAD, url_string);
 	}
 
@@ -2030,7 +2132,12 @@ int PKI_TOKEN_export_cert ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT for
 
 	if( !tk || !tk->cert || !url_string ) return ( PKI_ERR );
 
-	if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	if (!PKI_TOKEN_is_logged_in(tk) && !PKI_TOKEN_login(tk)) {
+		// Error Condition
+		return PKI_ERROR(PKI_ERR_HSM_LOGIN, NULL);
+	}
+
+	// if( !tk->cred ) tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
 
 	return PKI_X509_CERT_put( tk->cert, format, url_string, 
 						NULL, tk->cred, tk->hsm );
@@ -2045,20 +2152,20 @@ int PKI_TOKEN_export_keypair ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT 
 	int ret = PKI_OK;
 	URL *url = NULL;
 
-	if( !tk || !tk->keypair) return ( PKI_ERR );
+	if (!tk || !tk->keypair) return ( PKI_ERR );
 
-	if(!url_string ) url_string = "stdout";
+	if (!url_string) url_string = "stdout";
 
-	if((url = URL_new( url_string )) == NULL )
-	{
+	if ((url = URL_new( url_string )) == NULL ) {
 		PKI_ERROR( PKI_ERR_URI_PARSE, url_string);
 		return ( PKI_ERR );
 	}
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK )
-	{
-		PKI_ERROR( PKI_ERR_TOKEN_LOGIN, NULL);
+	if (!PKI_TOKEN_is_logged_in(tk) && !PKI_TOKEN_login(tk)) {
+		// Free Memory
 		URL_free( url );
+		// Error Condition
+		PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
 		return PKI_ERR;
 	}
 
@@ -2078,8 +2185,6 @@ int PKI_TOKEN_export_keypair_url( PKI_TOKEN *tk, URL *url, PKI_DATA_FORMAT forma
 	PKI_MEM *mem = NULL;
 
 	if (!tk || !tk->keypair || !url) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-
-	if ( !tk->cred ) tk->cred = PKI_TOKEN_cred_get (tk, NULL );
 
 	if( PKI_TOKEN_login( tk ) != PKI_OK ) return PKI_ERROR(PKI_ERR_HSM_LOGIN, NULL);
 
@@ -2114,9 +2219,7 @@ int PKI_TOKEN_export_trustedCerts(PKI_TOKEN *tk, char *url_string, PKI_DATA_FORM
 
 	if( !tk || !tk->cert || !url_string ) return ( PKI_ERR );
 
-	if( !tk->cred ) {
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	}
+	if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
 	return PKI_X509_CERT_STACK_put ( tk->trustedCerts, format, url_string,
 						NULL, tk->cred, tk->hsm );
@@ -2160,9 +2263,7 @@ int PKI_TOKEN_export_req ( PKI_TOKEN *tk, char *url_string, PKI_DATA_FORMAT form
 		return ( PKI_ERR );
 	}
 
-	if( !tk->cred ) {
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	}
+	if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
 	return PKI_X509_REQ_put( tk->req, format, url_string, NULL,
 					tk->cred, tk->hsm);
@@ -2364,7 +2465,7 @@ PKI_X509_CRL * PKI_TOKEN_issue_crl (const PKI_TOKEN 			   * tk,           /* sig
 	};
 
 	// Checks if the Token is in a good logged in status
-	if (tk->type != HSM_TYPE_SOFTWARE && PKI_TOKEN_is_logged_in(tk) == PKI_ERR) {
+	if (PKI_TOKEN_is_logged_in(tk) == PKI_ERR) {
 		PKI_ERROR(PKI_ERR_TOKEN_NOT_LOGGED_IN, NULL);
 		return NULL;
 	}
@@ -2438,9 +2539,11 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 	};
 	*/
 
-	if( !tk->cred ) {
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	}
+	if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
+
+	// if( !tk->cred ) {
+	// 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	// }
 
 	tk->req = PKI_X509_REQ_new( tk->keypair, subject, req_profile,
 			tk->oids, digest, tk->hsm ); 
@@ -2530,7 +2633,8 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 		}
 	}
 
-	if (!tk->cred ) tk->cred = PKI_TOKEN_cred_get(tk, NULL );
+	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
+	// // if (!tk->cred ) tk->cred = PKI_TOKEN_cred_get(tk, NULL );
 
 	if (!serial) serial = "0";
 
@@ -2574,9 +2678,10 @@ PKI_X509_CERT * PKI_TOKEN_issue_cert(PKI_TOKEN *tk, char *subject, char *serial,
 
 	if( !req ) req = tk->req;
 
-	if( !tk->cred ) {
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	}
+	// // if( !tk->cred ) {
+	// // 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	// // }
+	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
 	return PKI_X509_CERT_new (tk->cert, tk->keypair, req, subject,
 			serial, validity, cert_profile, tk->algor, 
@@ -2839,9 +2944,12 @@ int PKI_TOKEN_print_info ( PKI_TOKEN *tk ) {
 
 	HSM_SLOT_INFO_print ( (unsigned long) tk->slot_id, tk->cred, tk->hsm );
 
-	if( !tk->cred ) {
-		tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	}
+	// // if( !tk->cred ) {
+	// // 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
+	// // }
+
+	// // Log in into the Token
+	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
 	if ( tk->hsm && tk->hsm->callbacks && 
 				tk->hsm->callbacks->slot_info_get ) {

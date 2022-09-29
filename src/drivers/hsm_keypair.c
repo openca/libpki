@@ -14,9 +14,8 @@ PKI_X509_KEYPAIR *HSM_X509_KEYPAIR_new( PKI_KEYPARAMS *params,
 	URL *url = NULL;
 
 	if( hsm && !url && (hsm->type == HSM_TYPE_PKCS11) ) {
-		PKI_log_debug("PKI_X509_KEYPAIR_new()::Label is required when "
-			"using HSM!");
-		return ( NULL );
+		PKI_DEBUG("Label is required when using HSM");
+		return NULL;
 	}
 
 	if ( label ) {

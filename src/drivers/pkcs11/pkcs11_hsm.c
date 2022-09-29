@@ -87,6 +87,15 @@ HSM pkcs11_hsm = {
 	/* Pointer to the credentials */
 	NULL,
 
+	/* is Logged In ? */
+	0,
+
+	/* is Cred Set ? */
+	0,
+
+	/* is Login Required ? */
+	1,
+
 	/* Callbacks Structures */
 	&pkcs11_hsm_callbacks
 };

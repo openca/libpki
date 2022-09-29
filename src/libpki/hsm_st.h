@@ -315,7 +315,18 @@ typedef struct hsm_st {
   /* Credential for the HSM - usually used for the SO */
   PKI_CRED *cred;
 
+  /* Is Logged In */
+  uint8_t isLoggedIn;
+
+  /* Is Cred Set */
+  uint8_t isCredSet;
+
+  /* Login Requirements */
+  const uint8_t isLoginRequired;
+
+  /* HSM Callbacks */
   const HSM_CALLBACKS *callbacks;
+
 } HSM;
 
 /* End of _LIBPKI_HSM_ST_H */

@@ -457,6 +457,8 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			fflush(stderr);
 		}
 
+		PKI_DEBUG("TEST");
+
 		if((PKI_TOKEN_new_keypair_url_ex (tk, kp, keyurl, profile_s)) == PKI_ERR)
 		{
 			if(verbose) fprintf(stderr, "Error.\n");
@@ -983,6 +985,8 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "genkey", 6) == 0 ) {
 
+PKI_DEBUG("DEBUG");
+
 		PKI_TOKEN_login( tk );
 
 		if (!algor_opt) {
@@ -1020,7 +1024,10 @@ int main (int argc, char *argv[] ) {
 		/* We need to generate a new keypair first - if the '-newkey'
 		   switch is used */
 
-		PKI_TOKEN_login( tk );
+		if (!PKI_TOKEN_login( tk )) {
+			fprintf(stderr, "\nERROR, cannot login into the Token!");
+			exit(1);
+		};
 
 		if( newkey ) 
 		{

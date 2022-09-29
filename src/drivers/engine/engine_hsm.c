@@ -67,23 +67,23 @@ HSM_CALLBACKS engine_hsm_callbacks = {
 /* Structure for PKI_TOKEN definition */
 HSM engine_hsm = {
 
-        /* Version of the token */
-        1,
+	/* Version of the token */
+	1,
 
-        /* Description of the HSM */
-        "OpenSSL ENGINE",
+	/* Description of the HSM */
+	"OpenSSL ENGINE",
 
-        /* Manufacturer */
-        "OpenSSL",
+	/* Manufacturer */
+	"OpenSSL",
 
-        /* Pointer to the HSM config file and parsed structure*/
-        NULL, 
+	/* Pointer to the HSM config file and parsed structure*/
+	NULL, 
 
-        /* One of PKI_HSM_TYPE value */
-        HSM_TYPE_ENGINE,
+	/* One of PKI_HSM_TYPE value */
+	HSM_TYPE_ENGINE,
 
 	/* URL for the ID of the driver, this is filled at load time */
-        NULL,
+	NULL,
 
 	/* Pointer to the driver structure */
 	NULL,
@@ -94,24 +94,33 @@ HSM engine_hsm = {
 	/* Pointer to the credentials */
 	NULL,
 
-        /* Callbacks Structures */
+	/* is Logged In ? */
+	0,
+
+	/* is Cred Set ? */
+	0,
+
+	/* is Login Required ? */
+	0,
+	
+	/* Callbacks Structures */
 	&engine_hsm_callbacks
 };
 
 HSM_SLOT_INFO engine_slot_info = {
 
-        /* Device Manufacturer ID */
+	/* Device Manufacturer ID */
 	"OpenSSL",
 
-        /* Device Description */
+	/* Device Description */
 	"ENGINE interface",
 
-        /* Hardware Version */
+	/* Hardware Version */
 	1,
 	0,
 
-        /* Firmware Version */
-        1,
+	/* Firmware Version */
+	1,
 	0,
 
 	/* Initialized */

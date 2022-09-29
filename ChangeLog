@@ -1,3 +1,9 @@
+* Sep 28 2022 Massimiliano Pala <madwolf@openca.org>
+- Added PKI_TOKEN_set_hsm() function to update Token's HSM
+- Updated TOKEN and HSM data structure to include login and creds status
+- Ported support for Composite Crypto with dynamic ASN1 and PKEY method
+- Updated support for LibOQS 0.7.2
+
 * Aug 24 2022 Massimiliano Pala <madwolf@openca.org>
 - Fixed EC key generation and encoding.
 - Fix for correct support for when ENABLE_OQS is disabled.

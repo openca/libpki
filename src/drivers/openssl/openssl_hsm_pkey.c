@@ -347,7 +347,10 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
     // EVP_PKEY_CTRL_COMPOSITE_DEL        
     // EVP_PKEY_CTRL_COMPOSITE_CLEAR      
 
-    if (kp->comp.k_stack != NULL) {
+
+    if ((kp->scheme == PKI_SCHEME_COMPOSITE ||
+         kp->scheme == PKI_SCHEME_COMBINED)
+         && kp->comp.k_stack != NULL) {
 
         for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
 

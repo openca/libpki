@@ -89,6 +89,9 @@ typedef struct pki_token_st {
 	/*! Login Status */
 	uint8_t isLoggedIn;
 
+	/*! Credentials Status */
+	uint8_t isCredSet;
+
 } PKI_TOKEN;
 
 /* End of _LIBPKI_HEADER_DATA_ST_H */

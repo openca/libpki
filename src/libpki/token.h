@@ -9,6 +9,8 @@
 PKI_TOKEN *PKI_TOKEN_new_null( void );
 PKI_TOKEN *PKI_TOKEN_new( const char * const confDir, const char * const name );
 PKI_TOKEN *PKI_TOKEN_new_p12 ( char *url, char *config_dir, PKI_CRED *cred );
+// PKI_TOKEN *PKI_TOKEN_new_p12_hsm ( char *url, char *config_dir, PKI_CRED *cred, HSM * hsm );
+// PKI_TOKEN *PKI_TOKEN_new_p12_ex ( char *url, char *config_dir, PKI_CRED *cred, const char * hsmName);
 
 int PKI_TOKEN_free( PKI_TOKEN *tk );
 void PKI_TOKEN_free_void ( void *tk );
@@ -26,6 +28,7 @@ int PKI_TOKEN_login(PKI_TOKEN * const tk);
 // Sets the login status for the token
 int PKI_TOKEN_set_login_success(PKI_TOKEN * const tk);
 int PKI_TOKEN_is_logged_in(const PKI_TOKEN * const tk);
+int PKI_TOKEN_is_creds_set(const PKI_TOKEN * const tk);
 int PKI_TOKEN_status_clear_errors(PKI_TOKEN * const tk);
 int PKI_TOKEN_status_set(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status);
 int PKI_TOKEN_status_del_error(PKI_TOKEN * const tk, const PKI_TOKEN_STATUS status);
@@ -43,6 +46,19 @@ int PKI_TOKEN_set_algor( PKI_TOKEN *tk, PKI_ALGOR_ID algor );
 int PKI_TOKEN_set_algor_by_name( PKI_TOKEN *tk, const char *algName );
 int PKI_TOKEN_X509_REQ_profile_set( PKI_TOKEN *tk, PKI_X509_PROFILE *req_prof );
 int PKI_TOKEN_X509_CERT_profile_set( PKI_TOKEN *tk, PKI_X509_PROFILE *cert_prof );
+
+/// @brief Sets the HSM in a token
+/// @param tk is the token to update
+/// @param hsm is the pointer to an initialized HSM structure
+/// @return PKI_OK if successful, PKI_ERR otherwise
+int PKI_TOKEN_set_hsm(PKI_TOKEN * tk, HSM * hsm );
+
+/// @brief Sets the HSM in a token via the token name
+/// @param tk is the token to update
+/// @param config_dir is the configuration dir (e.g., ~/.libpki)
+/// @param hsmName is the name of the HSM to instantiate for the token
+/// @return PKI_OK if successful, PKI_ERR otherwise
+int PKI_TOKEN_set_hsm_name(PKI_TOKEN * tk, const char * const config_dir, const char * const hsmName);
 
 /* Token Credential Callback functions */
 PKI_CRED *PKI_TOKEN_cred_cb_stdin ( char * prompt );
@@ -75,7 +91,7 @@ PKI_X509_CERT *PKI_TOKEN_get_cacert ( PKI_TOKEN *tk );
 PKI_X509_CERT_STACK * PKI_TOKEN_get_otherCerts ( PKI_TOKEN *tk);
 PKI_X509_CERT_STACK * PKI_TOKEN_get_trustedCerts ( PKI_TOKEN *tk);
 PKI_X509_CRL_STACK * PKI_TOKEN_get_crls ( PKI_TOKEN *tk );
-PKI_CRED *PKI_TOKEN_get_cred ( PKI_TOKEN *tk );
+const PKI_CRED * PKI_TOKEN_cred_get(const PKI_TOKEN * const tk);
 char * PKI_TOKEN_get_name ( PKI_TOKEN *tk );
 
 PKI_X509_PKCS12 *PKI_TOKEN_get_p12 ( PKI_TOKEN *tk, PKI_CRED *cred );

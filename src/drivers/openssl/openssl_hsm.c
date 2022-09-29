@@ -86,6 +86,15 @@ HSM openssl_hsm = {
 	/* Credential for the HSM - usually used for the SO */
 	NULL,
 
+	/* is Logged In ? */
+	0,
+
+	/* is Cred Set ? */
+	0,
+
+	/* is Login Required ? */
+	0,
+
 	/* Callbacks Structures */
 	&openssl_hsm_callbacks
 };

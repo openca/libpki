@@ -6,8 +6,12 @@
 HSM kmf_hsm = {
 	/* HSM Version */
 	1,
-	/* HSM id --- name */
-	NULL,
+	/* Description of the HSM */
+	"OpenSSL ENGINE",
+	/* Manufacturer */
+	"OpenSSL",
+	/* Pointer to the HSM config file and parsed structure*/
+	NULL, 
 	/* HSM type */
 	HSM_TYPE_KMF,
 	/* Engine Pointer */
@@ -18,6 +22,12 @@ HSM kmf_hsm = {
 	NULL,
 	/* Post Commands */
 	NULL,
+	/* is Logged In ? */
+	0,
+	/* is Cred Set ? */
+	0,
+	/* is Login Required ? */
+	0,
 	/* Callbacks */
 	{
 		/* New */
@@ -27,36 +37,39 @@ HSM kmf_hsm = {
 		/* Free */
 		HSM_KMF_free,
 		/* Certificate Sign */
-		HSM_KMF_CERT_sign,
+		NULL, // HSM_KMF_CERT_sign,
 		/* Certificate Verify */
 		NULL,
 		/* Request Sign */
-		HSM_KMF_REQ_sign,
+		NULL, // HSM_KMF_REQ_sign,
 		/* General Sign */
 		NULL,
 		/* Key Generation */
-		HSM_KMF_KEYPAIR_new,
+		NULL, // HSM_KMF_KEYPAIR_new,
 		/* Key Free */
-		HSM_KMF_KEYPAIR_free,
+		NULL, // HSM_KMF_KEYPAIR_free,
 		/* Key Remove Function */
 		NULL
 	}
 };
 
 HSM * HSM_KMF_new() {
-	HSM *hsm_pnt = NULL;
 
-	if(( hsm_pnt = (HSM *) malloc (sizeof( HSM ))) == NULL ) {
-		return NULL;
-	}
+	return NULL;
 
-	/* Zeroize the structure */
-	memset( hsm_pnt, 0, sizeof( openssl_hsm ));
-	memcpy( hsm_pnt, &openssl_hsm, sizeof( openssl_hsm ));
+	// HSM *hsm_pnt = NULL;
 
-	hsm_pnt->id = "KMF";
+	// if(( hsm_pnt = (HSM *) malloc (sizeof( HSM ))) == NULL ) {
+	// 	return NULL;
+	// }
 
-	return hsm_pnt;
+	// /* Zeroize the structure */
+	// memset( hsm_pnt, 0, sizeof( openssl_hsm ));
+	// memcpy( hsm_pnt, &openssl_hsm, sizeof( openssl_hsm ));
+
+	// hsm_pnt->id = "KMF";
+
+	// return hsm_pnt;
 }
 
 int HSM_KMF_free ( HSM *hsm, PKI_CONFIG *conf ) {
@@ -68,7 +81,7 @@ int HSM_KMF_free ( HSM *hsm, PKI_CONFIG *conf ) {
 }
 
 int HSM_KMF_init( HSM *hsm, PKI_STACK *pre_cmds, PKI_STACK *post_cmds ) {
-	if( !hsm || !hsm->engine ) return (PKI_ERR);
+	if( !hsm ) return (PKI_ERR);
 
 	return (PKI_ERR);
 
@@ -76,10 +89,12 @@ int HSM_KMF_init( HSM *hsm, PKI_STACK *pre_cmds, PKI_STACK *post_cmds ) {
 
 HSM *HSM_KMF_new_init( char *e_id, PKI_STACK *pre_cmds, PKI_STACK *post_cmds ) {
 
-	HSM *hsm = NULL;
-	KMF_HANDLE_T *e = NULL;
+	return NULL;
 
-	KMF_RETURN rv;
+	// HSM *hsm = NULL;
+	// KMF_HANDLE_T *e = NULL;
+
+	// KMF_RETURN rv;
 
 	/*
 	if((hsm = HSM_new( NULL )) == NULL ) {
@@ -119,6 +134,6 @@ HSM *HSM_KMF_new_init( char *e_id, PKI_STACK *pre_cmds, PKI_STACK *post_cmds ) {
 	}
 	*/
 
-	return hsm;
+	// return hsm;
 }
 
