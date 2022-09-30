@@ -2,6 +2,10 @@
 
 #include <libpki/pki.h>
 
+#ifdef _LIBPKI_OID_DEFS_H
+#include <libpki/openssl/pki_oid_defs.h>
+#endif 
+
 #ifdef ENABLE_COMPOSITE
 
 #ifndef OPENSSL_COMPOSITE_PKEY_METH_H
