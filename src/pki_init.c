@@ -8,15 +8,27 @@
 
 #ifdef ENABLE_COMPOSITE
 
-#ifndef OPENSSL_COMPOSITE_PKEY_METH_H
-#include <libpki/composite/composite_pmeth.h>
-#endif
+# ifndef OPENSSL_COMPOSITE_PKEY_METH_H
+#  include <libpki/composite/composite_pmeth.h>
+# endif
 
 #ifndef OPENSSL_COMPOSITE_ASN1_METH_H
 #include <libpki/composite/composite_ameth.h>
 #endif
 
 #endif // ENABLE_COMPOSITE
+
+#ifdef ENABLE_COMBINED
+
+# ifndef OPENSSL_COMBINED_PKEY_METH_H
+#  include <libpki/combined/combined_pmeth.h>
+# endif
+
+#ifndef OPENSSL_COMBINED_ASN1_METH_H
+#include <libpki/combined/combined_ameth.h>
+#endif
+
+#endif // ENABLE_COMBINED
 
 const long LIBPKI_OS_DETAILS = LIBPKI_OS_CLASS | 
 		LIBPKI_OS_BITS | LIBPKI_OS_VENDOR;
