@@ -1591,7 +1591,7 @@ AM_CONDITIONAL(ENABLE_COMPOSITE, test "${composite}" = "yes")
 dnl ================= OpenSSL Static LIBS (?) =========================
 
 AM_CONDITIONAL(STATIC_COMPILE, test "x$openssl_static_libs" != "x")
-AC_CONFIG_HEADER([src/libpki/config.h])
+AC_CONFIG_HEADER([src/libpki/config.h src/libpki/features.h])
 
 AC_ARG_ENABLE(strict,
 	AC_HELP_STRING( [--enable-strict],

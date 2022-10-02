@@ -6,8 +6,17 @@
 * Released under OpenCA LICENSE
 */
 
-#include <libpki/compat.h>
-#include <libpki/libpkiv.h>
+#ifndef _LIBPKI_COMPAT_H
+# include <libpki/compat.h>
+#endif
+
+#ifndef LIBPKI_VERSION_H
+# include <libpki/libpkiv.h>
+#endif
+
+#ifndef _LIBPKI_ENABLED_FEATURES
+# include <libpki/features.h>
+#endif
 
 #ifndef _LIBPKI_PKI_H
 #define _LIBPKI_PKI_H	1
