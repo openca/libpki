@@ -17588,7 +17588,7 @@ else
   STATIC_COMPILE_FALSE=
 fi
 
-ac_config_headers="$ac_config_headers src/libpki/config.h src/libpki/features.h"
+ac_config_headers="$ac_config_headers src/libpki/config.h src/libpki/libpki_enables.h"
 
 
 # Check whether --enable-strict was given.
@@ -18864,7 +18864,7 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "src/libpki/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/config.h" ;;
-    "src/libpki/features.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/features.h" ;;
+    "src/libpki/libpki_enables.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/libpki_enables.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/global-vars") CONFIG_FILES="$CONFIG_FILES src/global-vars" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;

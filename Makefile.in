@@ -107,7 +107,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
-	$(top_builddir)/src/libpki/features.h
+	$(top_builddir)/src/libpki/libpki_enables.h
 CONFIG_CLEAN_FILES = src/scripts/libpki-config src/libpki/pki_config.h \
 	src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml \
 	examples/prqp/Makefile examples/profiles/Makefile \
@@ -399,7 +399,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/compile \
 	$(top_srcdir)/examples/token/Makefile.in \
 	$(top_srcdir)/examples/url/Makefile.in \
 	$(top_srcdir)/src/libpki/config.h.in \
-	$(top_srcdir)/src/libpki/features.h.in \
+	$(top_srcdir)/src/libpki/libpki_enables.h.in \
 	$(top_srcdir)/src/libpki/libpkiv.h.in \
 	$(top_srcdir)/src/libpki/pki_config.h.in \
 	$(top_srcdir)/src/scripts/libpki-config.in AUTHORS COPYING \
@@ -817,16 +817,16 @@ $(top_srcdir)/src/libpki/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_dep
 	rm -f src/libpki/stamp-h1
 	touch $@
 
-src/libpki/features.h: src/libpki/stamp-h2
+src/libpki/libpki_enables.h: src/libpki/stamp-h2
 	@test -f $@ || rm -f src/libpki/stamp-h2
 	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) src/libpki/stamp-h2
 
-src/libpki/stamp-h2: $(top_srcdir)/src/libpki/features.h.in $(top_builddir)/config.status
+src/libpki/stamp-h2: $(top_srcdir)/src/libpki/libpki_enables.h.in $(top_builddir)/config.status
 	@rm -f src/libpki/stamp-h2
-	cd $(top_builddir) && $(SHELL) ./config.status src/libpki/features.h
+	cd $(top_builddir) && $(SHELL) ./config.status src/libpki/libpki_enables.h
 
 distclean-hdr:
-	-rm -f src/libpki/config.h src/libpki/stamp-h1 src/libpki/features.h src/libpki/stamp-h2
+	-rm -f src/libpki/config.h src/libpki/stamp-h1 src/libpki/libpki_enables.h src/libpki/stamp-h2
 src/scripts/libpki-config: $(top_builddir)/config.status $(top_srcdir)/src/scripts/libpki-config.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 src/libpki/pki_config.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/pki_config.h.in

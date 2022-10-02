@@ -104,7 +104,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(nobase_include_HEADERS) \
 	$(am__DIST_COMMON)
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
-	$(top_builddir)/src/libpki/features.h
+	$(top_builddir)/src/libpki/libpki_enables.h
 CONFIG_CLEAN_FILES = global-vars
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
