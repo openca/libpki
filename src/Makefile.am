@@ -25,7 +25,8 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	$(COND_INCLUDES)
  
-nobase_include_HEADERS = \
+# nobase_include_HEADERS = \
+HEADERS = \
 	libpki/*.h \
 	libpki/net/*.h \
 	libpki/io/*.h \
@@ -34,6 +35,7 @@ nobase_include_HEADERS = \
 	libpki/prqp/*.h \
 	libpki/cmc/*.h \
 	libpki/openssl/*.h \
+	libpki/openssl/composite/*.h \
 	libpki/drivers/*.h \
 	libpki/drivers/openssl/*.h \
 	libpki/drivers/engine/*.h \
@@ -42,6 +44,7 @@ nobase_include_HEADERS = \
 	libpki/drivers/kmf/*.h
 
 SRCS = \
+	$(HEADERS) \
 	banners.c\
 	pki_init.c \
 	stack.c \
