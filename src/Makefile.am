@@ -25,8 +25,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	$(COND_INCLUDES)
  
-# nobase_include_HEADERS = \
-HEADERS = \
+nobase_include_HEADERS = \
 	libpki/*.h \
 	libpki/net/*.h \
 	libpki/io/*.h \
