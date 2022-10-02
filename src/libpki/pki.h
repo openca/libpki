@@ -15,7 +15,7 @@
 #endif
 
 #ifndef _LIBPKI_ENABLED_FEATURES
-# include <libpki/features.h>
+# include <libpki/libpki_enables.h>
 #endif
 
 #ifndef _LIBPKI_PKI_H
