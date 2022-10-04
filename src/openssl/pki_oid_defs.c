@@ -242,9 +242,10 @@ int PKI_X509_OID_init() {
 #endif
 
 	// Process all the objects/items
-	while (obj->nid != 0) {
+	while (obj != NULL && obj->oid != NULL) {
+		fprintf(stderr, "ITEM OID => %s\n", obj->oid);
 		// Retrieves the object
-		obj = &oids_table[index++];
+		// obj = &oids_table[index];
 		// Generate the object
 		obj->nid = OBJ_create(obj->oid, obj->name, obj->desc);
 		// Verify the results
@@ -252,58 +253,82 @@ int PKI_X509_OID_init() {
 			// Debugging
 			PKI_DEBUG("Cannot create a new object for (name: %s, oid: %s)",
 				obj->name, obj->oid);
+			index++;
 			// Continue
 			continue;
 		}
+		fprintf(stderr, "[OID] New PKEY OID: %s (%d) => %s\n", obj->oid, obj->nid, obj->name);
+		obj = &oids_table[++index];
 	}
 
 	// Resets the index
 	index = 0;
 
+	fprintf(stderr, "SIG OID => %s\n", sig->oid);
+
+
 	// Process all the signatures
-	while (sig->nid != 0) {
+	while (sig != NULL && sig->oid != NULL) {
 		// Retrieves the Sig item
-		sig = &sigs_table[index++];
+		// sig = &sigs_table[index++];
+
+	fprintf(stderr, "[IN] SIG OID => %s (%s)\n", sig->oid, sig->name);
+
 		// Generates the New Signature Object
 		sig->nid = OBJ_create(sig->oid, sig->name, sig->desc);
+
+	fprintf(stderr, "[IN] SIG NID => %d (%s)\n", sig->nid, sig->name);
+
 		// Checks if we need to get the OID of the PKEY
 		if (sig->pkey_nid == 0) {
-			if (!strncmp(sig->name, OPENCA_ALG_SIGS_COMP_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA1_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA256_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA384_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA512_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA3_256_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA3_384_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHA3_512_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHAKE128_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_COMP_SHAKE256_OID, strlen(sig->oid))
+			if (!strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA1_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA256_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA384_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA512_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA3_256_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA3_384_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA3_512_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHAKE128_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHAKE256_OID, strlen(sig->oid))
 			   )
 			{
 				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_COMP_OID);
+				fprintf(stderr, "[IN] COMPOSITE PKEY NID => %d (%s)\n", sig->pkey_nid, OPENCA_ALG_PKEY_COMP_OID);
+
 			}
 			else if (
-				!strncmp(sig->name, OPENCA_ALG_SIGS_ALT_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA1_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA256_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA384_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA512_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA3_256_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA3_384_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHA3_512_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHAKE128_OID, strlen(sig->oid))
-				|| !strncmp(sig->name, OPENCA_ALG_SIGS_ALT_SHAKE256_OID, strlen(sig->oid))
+				!strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA1_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA256_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA384_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA512_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA3_256_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA3_384_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA3_512_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHAKE128_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHAKE256_OID, strlen(sig->oid))
 			)
 			{
 				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_ALT_OID);
+				fprintf(stderr, "[IN] COMBINED PKEY NID => %d (%s)\n", sig->pkey_nid, OPENCA_ALG_PKEY_ALT_OID);
 			}
 			else
 			{
 				PKI_DEBUG("Cannot find the PKEY nid for %s", sig->name);
+				index++;
+				continue;
 			}
 		}
 		sig->sig_nid = OBJ_add_sigid(sig->nid, sig->hash_nid, sig->pkey_nid);
+		fprintf(stderr, "[OID] New Signature OID: %d => %s (oid: %s, hash: %d, pkey: %d)\n", 
+			sig->sig_nid, sig->name, sig->oid, sig->hash_nid, sig->pkey_nid);
+	
+		sig = &sigs_table[++index];
 	}
+
+	fprintf(stderr, "TEST STDERR\n");
+	fflush(stderr);
 
 	return 1;
 }

@@ -10,17 +10,17 @@
 #define _LIBPKI_OID_DEFS_H
 
 // GENERAL
-# define CERTIFICATE_TEMPLATE_OID   		"1.3.6.1.4.1.18227"
-# define CERTIFICATE_TEMPLATE_NAME          "certificateTemplate"
-# define CERTIFICATE_TEMPLATE_DESC          "Certificate Template"
-
 # define LEVEL_OF_ASSURANCE_OID   		    "1.3.6.1.4.1.18227.50.1"
 # define LEVEL_OF_ASSURANCE_NAME            "levelOfAssurance"
 # define LEVEL_OF_ASSURANCE_DESC            "Level Of Assurance"
 
-# define CERTIFICATE_USAGE_OID   		    "1.3.6.1.4.1.18227.50.1"
+# define CERTIFICATE_USAGE_OID   		    "1.3.6.1.4.1.18227.50.2"
 # define CERTIFICATE_USAGE_NAME             "certificateUsage"
 # define CERTIFICATE_USAGE_DESC             "Certificate Usage"
+
+# define CERTIFICATE_TEMPLATE_OID   		"1.3.6.1.4.1.18227.50.3"
+# define CERTIFICATE_TEMPLATE_NAME          "certificateTemplate"
+# define CERTIFICATE_TEMPLATE_DESC          "Certificate Template"
 
 // PEN
 # define OPENCA_OID							"1.3.6.1.4.1.18227"

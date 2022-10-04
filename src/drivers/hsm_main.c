@@ -474,7 +474,22 @@ int HSM_set_sign_algor ( PKI_X509_ALGOR_VALUE *alg, HSM *hsm ) {
 
 /* ------------------------ General PKI Signing ---------------------------- */
 
-/*! \brief Signs a PKI_X509 object */
+/* !\brief Signs the data from a PKI_MEM structure by using the
+ *      passed key and digest algorithm. 
+ *
+ * This function signs the data passed in the PKI_MEM structure.
+ * Use PKI_DIGEST_ALG_NULL for using no hash algorithm when calculating
+ * the signature.
+ * Use NULL for the digest (PKI_DIGEST_ALG) pointer to use the data signing
+ * functions directly (i.e., signing the PKI_MEM data directly instead of
+ * first performing the digest calculation and then generating the signture
+ * over the digest)
+ * 
+ * @param der The pointer to a PKI_MEM structure with the data to sign
+ * @param digest The pointer to a PKI_DIGEST_ALG method
+ * @param key The pointer to the PKI_X509_KEYPAIR used for signing
+ * @return A PKI_MEM structure with the signature value.
+ */
 
 int PKI_X509_sign(PKI_X509               * x, 
 		          const PKI_DIGEST_ALG   * digest,
@@ -483,9 +498,6 @@ int PKI_X509_sign(PKI_X509               * x,
 	PKI_MEM *der = NULL;
 	PKI_MEM *sig = NULL;
 	  // Data structure for the signature
-
-	// PKI_X509_ALGOR_VALUE *a_pnt = NULL;
-	  // Pointer to the Algorithm Structure
 
 	PKI_STRING * sigPtr = NULL;
 	  // Pointer for the Signature in the PKIX data
@@ -503,25 +515,6 @@ int PKI_X509_sign(PKI_X509               * x,
                    PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
                    NULL, NULL, 
                    key->value, digest);
-
-	// TODO: Investigate the error
-	// PKI_DEBUG("RET Supposed to be err - but should set the OID (ret = %d)", ret);
-
-	/*
-	// Gets the Internal (if any) Algorithm Identifier and sets the details
-	if ((a_pnt = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1)) != NULL) {
-		// Set the algorithm and parameter
-		if (PKI_OK != __set_algIdentifier(a_pnt, digest, key))
-			return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not set the Internal Algorithm.");
-	}
-
-	// Set the algorithm and parameter
-	if ((a_pnt = PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2)) != NULL) {
-		// Sets the Algorithm's details
-		if (PKI_OK != __set_algIdentifier(a_pnt, digest, key))
-			return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not set the External Algorithm.");
-	}
-	*/
 
 	// Retrieves the DER representation of the data to be signed
 	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
