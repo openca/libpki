@@ -434,11 +434,11 @@ int PKI_X509_OCSP_REQ_sign(PKI_X509_OCSP_REQ   * req,
 
 int PKI_X509_OCSP_REQ_sign_tk ( PKI_X509_OCSP_REQ *req, PKI_TOKEN *tk ) {
 
-	PKI_DIGEST_ALG *digest = NULL;
+	const PKI_DIGEST_ALG *digest;
 
 	if( !req || !tk ) return ( PKI_ERR );
 
-	digest = PKI_X509_ALGOR_VALUE_get_digest ( tk->algor );
+	digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor);
 
 	if (PKI_TOKEN_login(tk) != PKI_OK)
 	{
@@ -447,7 +447,7 @@ int PKI_X509_OCSP_REQ_sign_tk ( PKI_X509_OCSP_REQ *req, PKI_TOKEN *tk ) {
 	}
 
 	return PKI_X509_OCSP_REQ_sign( req, tk->keypair, tk->cert, tk->cacert,
-			tk->otherCerts, digest );
+			tk->otherCerts, (EVP_MD *)digest );
 }
 
 /*! \brief Returns a pointer to the data present in the OCSP request

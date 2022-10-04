@@ -622,19 +622,19 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 /*! \brief Get the Digest Algorithm from the passed PKI_ALGOR
  */
 
-PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor ) {
+const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor ) {
 
-	PKI_ALGOR_ID id;
-	PKI_DIGEST_ALG *ret = PKI_DIGEST_ALG_UNKNOWN;
+	PKI_ALGOR_ID id = PKI_ID_UNKNOWN;
+	const PKI_DIGEST_ALG * ret;
 
 	if ( !algor ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, "No algorithm provided");
-		return ( PKI_DIGEST_ALG_UNKNOWN );
+		return NULL;
 	}
 
 	if((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) == PKI_ALGOR_ID_UNKNOWN ) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-		return ( PKI_DIGEST_ALG_UNKNOWN );
+		return NULL;
 	}
 
 	switch ( id ) {
@@ -724,7 +724,7 @@ PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algo
 			ret = PKI_DIGEST_ALG_UNKNOWN;
 	}
 
-	return ( ret );
+	return ret;
 }
 
 /*! \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR */
@@ -893,7 +893,7 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
  * passed id is equal to 0, the default PKI_DIGEST_ALG is returned.
  */
 
-PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name ) {
+const PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name ) {
 
 	int alg_id = PKI_ALGOR_ID_UNKNOWN;
 	  // Algorithm Identifier  
@@ -929,7 +929,7 @@ const char * PKI_DIGEST_ALG_get_parsed (const PKI_DIGEST_ALG * alg ) {
 
 /*! \brief Returns the digest algorithm based on the key */
 
-PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
+const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 
 	EVP_PKEY *pp = NULL;
 	PKI_DIGEST_ALG * digest = NULL;
@@ -944,7 +944,7 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 	if (size <= 0)
 	{
 		PKI_ERROR(PKI_ERR_GENERAL, "Key size is 0");
-		return PKI_ERR;
+		return NULL;
 	}
 
 	pp = (EVP_PKEY *) pkey->value;
@@ -954,6 +954,17 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 #else
 	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
 #endif
+
+	// Gets the default digest for the key
+	int default_nid = -1;
+	int digestResult = EVP_PKEY_get_default_digest_nid(pp, &default_nid);
+
+	// Returns the default digest for the key if it is
+	// the only one supported
+	if (digestResult == 2) {
+		// The returned digest algorithm is required
+		return (const PKI_DIGEST_ALG *)EVP_get_digestbynid(default_nid);
+	}
 
 	switch (p_type) {
 
@@ -983,19 +994,19 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 			case PKI_ALGOR_ID_FALCON1024:
 			case PKI_ALGOR_ID_FALCON512: {
 				// PQ Algorithms, Not Returning Hash
-				PKI_log_err("FALCON -> Key Type [%d]; No Hash Returned", p_type);
+				PKI_DEBUG("FALCON: Key Type [%d]; No Hash Returned", p_type);
 			} break;
 
 			case PKI_ALGOR_ID_DILITHIUM5:
 			case PKI_ALGOR_ID_DILITHIUM3:
 			case PKI_ALGOR_ID_DILITHIUM2: {
-				PKI_log_err("DILITHIUM -> Key Type [%d]; No Hash Returned", p_type);
+				PKI_DEBUG("DILITHIUM: Key Type [%d]; No Hash Returned", p_type);
 			} break;
 
 			// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
 			// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
 			case PKI_ALGOR_ID_SPHINCS_SHA256_128_R: {
-				PKI_log_err("SPHINCS+-SHA256 -> Key Type [%d]; No Hash Returned", p_type);
+				PKI_DEBUG("SPHINCS+-SHA256 -> Key Type [%d]; No Hash Returned", p_type);
 			} break;
 
 			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R:
@@ -1019,7 +1030,7 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
 			digest = NULL;
 	}
 
-	return digest;
+	return (const PKI_DIGEST_ALG *)digest;
 }
 
 /*! \brief Returns the PKI_DIGEST_ALG * associated with the alg id.
@@ -1029,7 +1040,7 @@ PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey ) {
  */
 
 
-PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
+const PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 
 	PKI_DIGEST_ALG * ret = NULL;
 
@@ -1090,13 +1101,13 @@ PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 			ret = PKI_DIGEST_ALG_UNKNOWN;
 	}
 
-	return ( ret );
+	return (const PKI_DIGEST_ALG *) ret;
 }
 
 
 const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 
-	const PKI_ALGOR_ID *ret = NULL;
+	const PKI_ALGOR_ID * ret;
 
 	switch ( scheme ) {
 		case PKI_SCHEME_RSA: {

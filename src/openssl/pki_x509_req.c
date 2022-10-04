@@ -31,12 +31,12 @@ void PKI_X509_REQ_free( PKI_X509_REQ *x ) {
 
 /*! \brief Generates a signed Certificate Request Object */
 
-PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k, 
-			       const char *subj_s,
-                               const PKI_X509_PROFILE *req_cnf,
-			       const PKI_CONFIG *oids,
-                               const PKI_DIGEST_ALG *digest, 
-			       HSM *hsm ) {
+PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k, 
+			       			   const char             * subj_s,
+                               const PKI_X509_PROFILE * req_cnf,
+			       			   const PKI_CONFIG       * oids,
+                               const PKI_DIGEST_ALG   * digest, 
+			       			   HSM 					  * hsm ) {
 
 	PKI_X509_REQ *req = NULL;
 	PKI_X509_REQ_VALUE *val = NULL;
@@ -52,18 +52,24 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 		PKI_log_debug("ERROR, no key for PKI_X509_REQ_new()!");
 		return (NULL);
 	}
-	kVal = (EVP_PKEY *) k->value;
+	kVal = (EVP_PKEY *) PKI_X509_get_value(k);
 
 	// Let's set the digest for the right signature scheme */
 	// Open Quantum Safe Algos do not offer Digests, we are now
 	// more permissive with the digest
 	if( !digest ) {
-		PKI_DEBUG("No Digest Associated with used algorithm");
-		// if((digest = PKI_DIGEST_ALG_get_by_key( k )) == NULL ) {
-		//   PKI_ERROR(PKI_ERR_UNKNOWN, NULL);
-	    //   return NULL;
-		// };
-	};
+		// Gets the default algorithm
+		if ((digest = PKI_DIGEST_ALG_get_by_key( k )) == NULL) {
+			PKI_DEBUG("No Default Digest is recommended for the PKEY algorithm");
+		}
+	}
+
+	// Debug Info
+	if (digest) {
+		PKI_DEBUG("Selected Hashing Algorithm is %s", OBJ_nid2sn(EVP_MD_type(digest)));
+	} else {
+		PKI_DEBUG("NO Hashing Algorithm is selected");
+	}
 
 	/* This has to be fixed, to work on every option */
 	if( subj_s ) {
@@ -113,25 +119,28 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 
 	/* Now we need the PKI_REQ */
 	if( req_cnf != NULL ) {
-		char *tmp_s;
-		PKI_TOKEN *tk;
+
+		PKI_TOKEN * tk = NULL;
+		PKI_KEYPARAMS *kParams = NULL;
+
+		char *tmp_s = NULL;
 
 		if(( tmp_s = PKI_X509_PROFILE_get_value( req_cnf, 
 				"/profile/keyParams/algorithm")) != NULL ) {
 			PKI_X509_ALGOR_VALUE *myAlg = NULL;
-			PKI_DIGEST_ALG *dgst = NULL;
+			const PKI_DIGEST_ALG *dgst;
 
 			if((myAlg = PKI_X509_ALGOR_VALUE_get_by_name( tmp_s )) != NULL ) {
 				scheme = PKI_X509_ALGOR_VALUE_get_scheme ( myAlg );
 				if((dgst = PKI_X509_ALGOR_VALUE_get_digest( myAlg )) != NULL ) {
-					digest = dgst;
+					digest = (PKI_DIGEST_ALG *)dgst;
 				};
 			};
 			PKI_Free ( tmp_s );
 		};
 
 		if (( tk = PKI_TOKEN_new_null()) == NULL ) {
-			PKI_log_err("Memory Allocation Failure");
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "PKI_TOKEN");
 			PKI_X509_REQ_free ( req );
 			return NULL;
 		}
@@ -152,11 +161,6 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 			// PKI_X509_REQ_free (req);
 			// return NULL;
 		}
-	}
-
-	if( req_cnf ) {
-		PKI_KEYPARAMS *kParams = NULL;
-		// PKI_SCHEME_ID scheme;
 
 		if( scheme == PKI_SCHEME_UNKNOWN ) {
 			scheme = PKI_X509_KEYPAIR_get_scheme ( k );
@@ -177,6 +181,24 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 # endif
     				};
 					break;
+#endif
+
+#ifdef ENABLE_OQS
+				case PKI_SCHEME_FALCON:
+				case PKI_SCHEME_DILITHIUM:
+# ifdef ENABLE_ECDSA
+				case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
+				case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM:
+# endif
+				case PKI_SCHEME_COMPOSITE_RSA_FALCON:
+				case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:
+#endif
+
+#ifdef ENABLE_COMPOSITE
+				case PKI_SCHEME_COMPOSITE:
+#endif
+
+#ifdef ENABLE_COMBINED
 #endif
 				case PKI_SCHEME_RSA:
 				case PKI_SCHEME_DSA:
@@ -202,20 +224,15 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR *k,
 		goto err;
 	};
 
+	// Sets the Subject
 	if (!X509_REQ_set_subject_name((X509_REQ *)val, (X509_NAME *)subj)) {
 		if(subj) X509_NAME_free((X509_NAME *) subj);
 		PKI_ERROR(PKI_ERR_X509_REQ_CREATE_SUBJECT, subj_s);
 		goto err;
 	};
 
-	rv = PKI_X509_sign( req, digest, k );
-
-	/*
-	rv = PKI_sign ( PKI_DATATYPE_X509_REQ,
-			val->req_info, (void *) &X509_REQ_INFO_it,
-				val->sig_alg, NULL, val->signature, k, digest);
-	*/
-
+	// Signs the Request
+	rv = PKI_X509_sign(req, digest, k);
 	if (rv != PKI_OK ) {
 		/* Error Signing the request */
 		PKI_log_debug("REQ::ERROR %d signing the Request [%s]", rv,

@@ -208,14 +208,14 @@ PKI_DIGEST *PKI_DIGEST_new_by_name(const char *alg_name,
 				   const unsigned char *data,
 				   size_t size ) {
 
-	PKI_DIGEST_ALG *alg = NULL;
+	const PKI_DIGEST_ALG *alg;
 
-	if(( alg = PKI_DIGEST_ALG_get_by_name( alg_name )) == NULL ) {
+	if ((alg = PKI_DIGEST_ALG_get_by_name( alg_name )) == NULL) {
 		/* Algorithm Error */
-		return (NULL);
+		return NULL;
 	}
 
-	return ( PKI_DIGEST_new( alg, data, size ));
+	return PKI_DIGEST_new(alg, data, size);
 }
 
 /*! \brief Calculates a digest over data contained in a PKI_MEM
@@ -228,11 +228,11 @@ PKI_DIGEST *PKI_DIGEST_MEM_new(const PKI_DIGEST_ALG *alg, const PKI_MEM *data) {
 PKI_DIGEST *PKI_DIGEST_MEM_new_by_name(const char *alg_name, 
 				       const PKI_MEM *data ) {
 
-	PKI_DIGEST_ALG *alg = NULL;
+	const PKI_DIGEST_ALG *alg;
 
-	if(( alg = PKI_DIGEST_ALG_get_by_name( alg_name )) == NULL ) {
+	if ((alg = PKI_DIGEST_ALG_get_by_name(alg_name)) == NULL) {
 		/* Algorithm Error */
-		return (NULL);
+		return NULL;
 	}
 
 	return ( PKI_DIGEST_new( alg, data->data, data->size ));
@@ -273,14 +273,14 @@ PKI_DIGEST *PKI_DIGEST_URL_new(const PKI_DIGEST_ALG *alg, const URL *url ) {
 
 PKI_DIGEST *PKI_DIGEST_URL_new_by_name(const char *alg_name, const URL *url) {
 
-	PKI_DIGEST_ALG *alg = NULL;
+	const PKI_DIGEST_ALG *alg;
 
-	if(( alg = PKI_DIGEST_ALG_get_by_name( alg_name )) == NULL ) {
+	if ((alg = PKI_DIGEST_ALG_get_by_name(alg_name)) == NULL) {
 		/* Algorithm Error */
-		return (NULL);
+		return NULL;
 	}
 
-	return ( PKI_DIGEST_URL_new( alg, url ));
+	return PKI_DIGEST_URL_new(alg, url);
 }
 
 /*! \brief Returns the size of the output of the selected digest algorithm */

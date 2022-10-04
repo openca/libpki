@@ -6,6 +6,10 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_ERRORS_H
+#include <libpki/errors.h>
+#endif
+
 #ifndef _LIBPKI_ERR_H
 #define _LIBPKI_ERR_H
 

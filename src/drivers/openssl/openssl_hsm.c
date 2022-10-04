@@ -275,19 +275,26 @@ int HSM_OPENSSL_is_fips_mode(const HSM *driver)
 
 /* ----------------------- General Signing function -------------------- */
 
-PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAIR *key)
-{
+PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYPAIR *key) {
 
 	EVP_MD_CTX *ctx = NULL;
+		// Digest's context
+
+	EVP_PKEY_CTX * pctx = NULL;
+		// Signing's PKEY context
 
 	size_t out_size = 0;
-	size_t ossl_ret = 0;
+	// size_t ossl_ret = 0;
 
 	PKI_MEM *out_mem = NULL;
-	EVP_PKEY *pkey = NULL;
+		// Output buffer
 
-	PKI_DIGEST_ALG * md = NULL;
-	int def_nid;
+	EVP_PKEY *pkey = NULL;
+		// Signing Key Value
+
+	int digestResult = -1;
+	int def_nid = NID_undef;
+		// OpenSSL return value
 
 	if (!der || !der->data || !key || !key->value)
 	{
@@ -296,139 +303,113 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM *der, PKI_DIGEST_ALG *digest, PKI_X509_KEYPAI
 	}
 
 	// Private Key
-	pkey = key->value;
+	pkey = PKI_X509_get_value(key);
+	if (!pkey) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Cannot retrieve the internal value of the key (PKEY).");
+		return NULL;
+	}
 
 	// Get the Maximum size of a signature
-	ossl_ret = out_size = (size_t) EVP_PKEY_size(pkey);
+	out_size = (size_t) EVP_PKEY_size(pkey);
 
-	// Copies the passed digest algorithm
-	md = digest;
+	// Gets the default digest for the key
+	digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
 
-    // EVP_PKEY_get_default_digest_nid() returns 2 if the digest is mandatory
-    // for this algorithm.
-    if (EVP_PKEY_get_default_digest_nid(pkey, &def_nid) == 2
-            && def_nid == NID_undef) {
-        // The signing algorithm requires there to be no digest
-        md = NULL;
+	// Checks for error
+	if (digestResult <= 0) {
+		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", EVP_PKEY_id(pkey));
+		return NULL;
+	}
 
-   	    // PKI_DEBUG("NO DIGEST ALGORITHM DETECTED - Post Quantum ?!?", md);
-    } 
-
-	// Debug Info
-   	// PKI_DEBUG("DIGEST ALGORITHM => %s", md ? PKI_DIGEST_ALG_get_parsed(md) : "<null>");
+	// If the returned value is == 2, then the returned
+	// digest is mandatory and cannot be replaced
+	if (digestResult == 2) {
+		// Checks if we are in a no-hash mandatory
+		if (def_nid == NID_undef && (digest != EVP_md_null() && digest != NULL)) {
+			PKI_DEBUG("PKEY requires no hash but got one (%d)", EVP_MD_type(digest));
+			return NULL;
+		}
+		// Checks if we are using the mandated digest
+		if (def_nid == NID_undef || def_nid != EVP_MD_type(digest)) {
+			PKI_DEBUG("PKEY requires digest (%d) but got (%d)", def_nid, EVP_MD_type(digest));
+			return NULL;
+		}
+	}
 
 	// Initialize the return structure
 	if ((out_mem = PKI_MEM_new ((size_t)out_size)) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
-    // PKI_log_err("OVERRIDING - SETTING DIGEST TO NULL (PQ Experiment)");
-    // if (md == (EVP_MD *)0x0111 /* stupid hack - never here */ ) {
-	// md = NULL;
 
-	if (md != NULL) {
-
-		int sig_nid = -1;
-		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_type(md), EVP_PKEY_id(pkey)) <= 0) {
-			PKI_log_err("Cannot find signing algorithm (dgst: %d, pkey: %d), aborting!",
-				EVP_MD_type(md), EVP_PKEY_id(pkey));
-			return NULL;
-		};
-
-		// Debug Info
-		// PKI_DEBUG("Signing Algorithm is [%s] (%d)", OBJ_nid2sn(sig_nid), sig_nid);
-
-		// Creates the context
-		if ((ctx = EVP_MD_CTX_create()) == NULL) {
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-			if (out_mem) PKI_MEM_free(out_mem);
-			return NULL;
-		}
-
-		// Initializes the Context
-		EVP_MD_CTX_init(ctx);
-
-		// Initializes the Signature
-		EVP_SignInit_ex(ctx, md, NULL);
-		EVP_SignUpdate (ctx, der->data, der->size);
-
-		// Finalizes the signature
-		if (!EVP_SignFinal(ctx, out_mem->data, (unsigned int *) &ossl_ret, pkey))
-		{
-			PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot finalize signature (%s)", 
-				HSM_OPENSSL_get_errdesc(HSM_OPENSSL_get_errno(), NULL, 0));
-
-			PKI_MEM_free(out_mem);
-			out_mem = NULL;
-		}
-		else out_mem->size = (size_t) ossl_ret;
-
-	} else {
-
-		// PKI_DEBUG("Message Digest is NULL!");
-
-		// Creates the context
-		if ((ctx = EVP_MD_CTX_create()) == NULL) {
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-			if (out_mem) PKI_MEM_free(out_mem);
-			return NULL;
-		}
-
-		// Initializes the Context
-		EVP_MD_CTX_init(ctx);
-
-	    if (!EVP_DigestSignInit(ctx, /* &pCtx */ NULL, md, NULL, pkey)) {
-	    	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
-	    	goto err;
-    	}
-
-   	    if (EVP_DigestSignUpdate(ctx, 
-   	    						 der->data,
-   	    						 der->size) <= 0) {
-   	    	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Update EVP_DigestSignUpdate()");
-   	    	goto err;
-   	    }
-
-	    if (EVP_DigestSignFinal(ctx,
-	    						out_mem->data,
-	    						&ossl_ret) <= 0) {
-	    	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Finalize EVP_DigestSignFinal()");
-    	    goto err;
-		}
-		else out_mem->size = (size_t) ossl_ret;
+	// Creates the context
+	if ((ctx = EVP_MD_CTX_create()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
 	}
 
-	// PKI_DEBUG("PKEY Type => %d, %s", 
-	// 	EVP_PKEY_id(pkey), PKI_OID_get_descr(PKI_OID_new_id(EVP_PKEY_id(pkey))));
+	// Initializes the Context
+	EVP_MD_CTX_init(ctx);
 
-	// PKI_DEBUG("[Signature Generated: %d bytes (estimated: %d bytes)]", 
-	// 	ossl_ret, out_size);
+	// Builds the PKEY CTX structure
+	pctx = EVP_PKEY_CTX_new(pkey, NULL);
+	if (!pctx) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the PKEY CTX");
+		goto err;
+	}
 
-	// Cleanup the context
-#if OPENSSL_VERSION_NUMBER <= 0x1010000f
-	EVP_MD_CTX_cleanup(ctx);
-#else
-	EVP_MD_CTX_reset(ctx);
-#endif
+	// Sets the PKEY CTX in the MD CTX
+	EVP_MD_CTX_set_pkey_ctx(ctx, pctx);
 
-	EVP_MD_CTX_destroy(ctx);
+	// Sets the Digest to be used when calculating the signature
+	// that is equiv to a CTRL call (see <openssl/evp.h> for more details)
+	EVP_PKEY_CTX_set_signature_md(pctx, digest);
 
-	return out_mem;
+	// Initializes the Digest
+	if (!EVP_DigestSignInit(ctx, NULL /* &pctx */, digest, NULL, pkey)) {
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
+		goto err;
+	}
+
+	// Updates the Digest calculation with the TBS data
+	if (EVP_DigestSignUpdate(ctx, 
+								der->data,
+								der->size) <= 0) {
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Update EVP_DigestSignUpdate()");
+		goto err;
+	}
+
+	// Finalizes the Signature calculation and saves it in the output buffer
+	if (EVP_DigestSignFinal(ctx,
+							out_mem->data,
+							&out_size) <= 0) {
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Finalize EVP_DigestSignFinal()");
+		goto err;
+	}
+	else out_mem->size = (size_t) out_size;
+
+	// All Done
+	goto end;
 
 err:
 
+	// Error Condition, free the output's memory
 	if (out_mem) PKI_MEM_free(out_mem);
+	out_mem = NULL;
 
+end:
 	// Cleanup the context
 #if OPENSSL_VERSION_NUMBER <= 0x1010000f
-	EVP_MD_CTX_cleanup(ctx);
+	if (ctx) EVP_MD_CTX_cleanup(ctx);
 #else
-	EVP_MD_CTX_reset(ctx);
+	if (ctx) EVP_MD_CTX_reset(ctx);
 #endif
 
-	EVP_MD_CTX_destroy(ctx);
+	// Frees the CTX structure
+	if (ctx) EVP_MD_CTX_destroy(ctx);
 
-	return NULL;
+	// Returns the result or NULL
+	return out_mem;
 }
 /* ---------------------- OPENSSL Slot Management Functions ---------------- */
 

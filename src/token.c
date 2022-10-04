@@ -1075,7 +1075,7 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 	if( PKI_TOKEN_load_profiles( tk, buff ) != PKI_OK )
 	{
 		/* We should check why... */
-		PKI_log_debug("Can not load profiles (%s)\n", buff);
+		if (conf_dir) PKI_DEBUG("Can not load profiles (%s)", buff);
 	};
 
 	/* Now let's try to load the HSM configuration file */
@@ -2867,7 +2867,7 @@ int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr )
 
 	if ((dirp = opendir(url->addr)) == NULL)
 	{
-		PKI_log_debug("ERROR, can not load directory %s!", url->addr ? url->addr : "<null>" );
+		PKI_DEBUG("Can not open directory %s!", url->addr ? url->addr : "<null>" );
 
 		URL_free(url);
 

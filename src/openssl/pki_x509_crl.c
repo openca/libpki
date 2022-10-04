@@ -89,7 +89,7 @@ PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR         * k,
 
   PKI_X509_CRL_ENTRY *entry = NULL;
 
-  PKI_DIGEST_ALG *dgst = NULL;
+  const PKI_DIGEST_ALG *dgst = NULL;
 
   long long lastUpdateVal  = 0;
   long long nextUpdateVal  = 0;

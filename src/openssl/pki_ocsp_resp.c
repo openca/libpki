@@ -608,7 +608,7 @@ int PKI_X509_OCSP_RESP_sign_tk(PKI_X509_OCSP_RESP *r, PKI_TOKEN *tk,
 	if( !r || !tk ) return ( PKI_ERR );
 
 	// Gets the Digest algorithm from the Token algor
-	if (!digest) digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor);
+	if (!digest) digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(tk->algor);
 
 	if (PKI_TOKEN_login(tk) != PKI_OK)
 	{

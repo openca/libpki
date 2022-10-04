@@ -21,6 +21,10 @@
 # include <libpki/openssl/pki_oid_defs.h>
 #endif
 
+#ifndef _LIBPKI_ERRORS_H
+#include <libpki/pki_err.h>
+#endif
+
 #ifndef _LIBPKI_OID_H
 # include <libpki/pki_oid.h>
 #endif
@@ -140,20 +144,20 @@ OID_INIT_SIG sigs_table[] = {
 
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_DESC, NID_sha256, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA384_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA384_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA384_DESC, NID_sha384, NID_dilithium5, 0 },
-	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_DESC, NID_sha512, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_DESC, NID_sha512, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_DESC, NID_shake128, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_DESC, NID_shake256, NID_dilithium5, 0 },
 
 	// Falcon512 and Falcon1024
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_DESC, NID_sha256, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA384_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA384_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA384_DESC, NID_sha384, NID_falcon512, 0 },
-	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_DESC, NID_sha512, NID_falcon512, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA512_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA512_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA512_DESC, NID_sha512, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE128_DESC, NID_shake128, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE256_DESC, NID_shake256, NID_falcon512, 0 },
 
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_DESC, NID_sha256, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA384_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA384_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA384_DESC, NID_sha384, NID_dilithium5, 0 },
-	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_DESC, NID_sha512, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA512_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA512_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA512_DESC, NID_sha512, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE128_DESC, NID_shake128, NID_falcon1024, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE256_DESC, NID_shake256, NID_falcon1024, 0 },
 #endif
@@ -243,41 +247,31 @@ int PKI_X509_OID_init() {
 
 	// Process all the objects/items
 	while (obj != NULL && obj->oid != NULL) {
-		fprintf(stderr, "ITEM OID => %s\n", obj->oid);
-		// Retrieves the object
-		// obj = &oids_table[index];
 		// Generate the object
 		obj->nid = OBJ_create(obj->oid, obj->name, obj->desc);
 		// Verify the results
 		if (obj->nid == 0) {
 			// Debugging
-			PKI_DEBUG("Cannot create a new object for (name: %s, oid: %s)",
-				obj->name, obj->oid);
+			PKI_ERROR(PKI_ERR_OBJECT_CREATE, "Name: %s - Oid: %s", obj->name, obj->oid);
 			index++;
 			// Continue
 			continue;
 		}
-		fprintf(stderr, "[OID] New PKEY OID: %s (%d) => %s\n", obj->oid, obj->nid, obj->name);
 		obj = &oids_table[++index];
 	}
 
 	// Resets the index
 	index = 0;
 
-	fprintf(stderr, "SIG OID => %s\n", sig->oid);
-
-
 	// Process all the signatures
 	while (sig != NULL && sig->oid != NULL) {
-		// Retrieves the Sig item
-		// sig = &sigs_table[index++];
-
-	fprintf(stderr, "[IN] SIG OID => %s (%s)\n", sig->oid, sig->name);
 
 		// Generates the New Signature Object
 		sig->nid = OBJ_create(sig->oid, sig->name, sig->desc);
-
-	fprintf(stderr, "[IN] SIG NID => %d (%s)\n", sig->nid, sig->name);
+		if (sig->nid == NID_undef) {
+			PKI_DEBUG("ERROR: Cannot create Object (%s - %s), already created?", 
+				sig->name, sig->oid);
+		}
 
 		// Checks if we need to get the OID of the PKEY
 		if (sig->pkey_nid == 0) {
@@ -294,8 +288,6 @@ int PKI_X509_OID_init() {
 			   )
 			{
 				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_COMP_OID);
-				fprintf(stderr, "[IN] COMPOSITE PKEY NID => %d (%s)\n", sig->pkey_nid, OPENCA_ALG_PKEY_COMP_OID);
-
 			}
 			else if (
 				!strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_OID, strlen(sig->oid))
@@ -311,25 +303,22 @@ int PKI_X509_OID_init() {
 			)
 			{
 				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_ALT_OID);
-				fprintf(stderr, "[IN] COMBINED PKEY NID => %d (%s)\n", sig->pkey_nid, OPENCA_ALG_PKEY_ALT_OID);
 			}
 			else
 			{
-				PKI_DEBUG("Cannot find the PKEY nid for %s", sig->name);
+				PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Cannot find the PKEY nid for %s", sig->name);
 				index++;
 				continue;
 			}
 		}
 		sig->sig_nid = OBJ_add_sigid(sig->nid, sig->hash_nid, sig->pkey_nid);
-		fprintf(stderr, "[OID] New Signature OID: %d => %s (oid: %s, hash: %d, pkey: %d)\n", 
+		PKI_DEBUG("[OID] New Signature OID [%d] (name: %s, oid: %s, hash: %d, pkey: %d)\n", 
 			sig->sig_nid, sig->name, sig->oid, sig->hash_nid, sig->pkey_nid);
 	
 		sig = &sigs_table[++index];
 	}
 
-	fprintf(stderr, "TEST STDERR\n");
-	fflush(stderr);
-
+	// All Done
 	return 1;
 }
 

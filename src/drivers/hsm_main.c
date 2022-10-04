@@ -786,7 +786,7 @@ int PKI_verify_signature(const PKI_MEM              * data,
                          const PKI_X509_KEYPAIR     * key ) {
 	int v_code = 0;
 	EVP_MD_CTX *ctx = NULL;
-	PKI_DIGEST_ALG *dgst = NULL;
+	const PKI_DIGEST_ALG *dgst = NULL;
 
 	// Input Checks
 	if( !data || !data->data || !sig || !sig->data ||

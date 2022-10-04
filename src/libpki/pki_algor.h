@@ -42,13 +42,13 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id );
 
 // ------------------------------ PKI_DIGEST_ALG ------------------------------- //
 
-PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest (const PKI_X509_ALGOR_VALUE * algor );
+const PKI_DIGEST_ALG * PKI_X509_ALGOR_VALUE_get_digest (const PKI_X509_ALGOR_VALUE * algor );
 
-PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey );
+const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey );
 
-PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name );
+const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_name( const char *name );
 
-PKI_DIGEST_ALG *PKI_DIGEST_ALG_get( PKI_ALGOR_ID alg );
+const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get( PKI_ALGOR_ID alg );
 
 const char * PKI_DIGEST_ALG_get_parsed (const PKI_DIGEST_ALG * alg );
 
