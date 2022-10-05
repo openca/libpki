@@ -558,6 +558,8 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     return NULL;
   }
 
+  if (digest == EVP_md_null()) digest = NULL;
+  
   // Sign the data
   if (PKI_X509_sign(ret, digest, kPair) == PKI_ERR) {
     PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not sign certificate [%s]",

@@ -609,6 +609,11 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 	// Input Checks
 	if (!algor || !algor->algorithm) return PKI_ALGOR_ID_UNKNOWN;
 
+	PKI_DEBUG("Need to update the procedure to use X509_ALGOR_get0");
+	// // Returns the algorithm's ID
+	// ret = X509_ALGOR_get0(algor);
+	// if (ret == PKI_ALGOR_ID_UKNOWN)
+
 	// Gets the Algorithm Id
 	if ((ret = OBJ_obj2nid(algor->algorithm)) == PKI_ALGOR_ID_UNKNOWN) {
 		// ERROR: Unknown or unsupported algorithm
@@ -624,17 +629,33 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 
 const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor ) {
 
-	PKI_ALGOR_ID id = PKI_ID_UNKNOWN;
 	const PKI_DIGEST_ALG * ret;
 
-	if ( !algor ) {
+	PKI_ALGOR_ID id = PKI_ID_UNKNOWN;
+	PKI_ALGOR_ID pkey_id = PKI_ID_UNKNOWN;
+	PKI_ALGOR_ID digest_id = PKI_ID_UNKNOWN; 
+
+	// Input checks
+	if (!algor) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, "No algorithm provided");
 		return NULL;
 	}
 
-	if((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) == PKI_ALGOR_ID_UNKNOWN ) {
+	// Retrieves the Algorithm ID
+	if((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) <= 0) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 		return NULL;
+	}
+
+	// Gets the MD and PKEY components
+	if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
+		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot break the signign algorithm (%d) into PKEY and MD.", id);
+		return NULL;
+	}
+
+	// If we found the digest, let's get it
+	if (digest_id != PKI_ID_UNKNOWN) {
+		return EVP_get_digestbynid(digest_id);
 	}
 
 	switch ( id ) {
@@ -995,31 +1016,36 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 			case PKI_ALGOR_ID_FALCON512: {
 				// PQ Algorithms, Not Returning Hash
 				PKI_DEBUG("FALCON: Key Type [%d]; No Hash Returned", p_type);
+				digest = PKI_DIGEST_ALG_NULL;
 			} break;
 
 			case PKI_ALGOR_ID_DILITHIUM5:
 			case PKI_ALGOR_ID_DILITHIUM3:
 			case PKI_ALGOR_ID_DILITHIUM2: {
 				PKI_DEBUG("DILITHIUM: Key Type [%d]; No Hash Returned", p_type);
+				digest = PKI_DIGEST_ALG_NULL;
 			} break;
 
 			// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
 			// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
 			case PKI_ALGOR_ID_SPHINCS_SHA256_128_R: {
 				PKI_DEBUG("SPHINCS+-SHA256 -> Key Type [%d]; No Hash Returned", p_type);
+				digest = PKI_DIGEST_ALG_NULL;
 			} break;
 
 			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R:
 			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_192_R:
 			case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R: {
 				PKI_log_err("SPHINCS+-SHAKE256 -> Key Type [%d]; No Hash Returned", p_type);
+				digest = PKI_DIGEST_ALG_NULL;
 			} break;
 #endif
 
 #ifdef ENABLE_COMPOSITE_CRYPTO
 			case PKI_ALGOR_ID_COMPOSITE:
-			case PKI_ALGOR_ID_COMPOSITE_OR:
-				break;
+			case PKI_ALGOR_ID_COMPOSITE_OR: {
+				digest = PKI_DIGEST_ALG_NULL;
+			} break;
 #endif
 
 		case EVP_PKEY_RSA:
