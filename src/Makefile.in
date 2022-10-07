@@ -556,6 +556,7 @@ nobase_include_HEADERS = \
 	libpki/cmc/*.h \
 	libpki/openssl/*.h \
 	libpki/openssl/composite/*.h \
+	libpki/openssl/pqc/*.h \
 	libpki/drivers/*.h \
 	libpki/drivers/openssl/*.h \
 	libpki/drivers/engine/*.h \

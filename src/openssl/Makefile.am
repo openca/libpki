@@ -16,15 +16,23 @@ AM_CPPFLAGS = -I$(TOP) \
 
 if ENABLE_COMPOSITE
 	COMPOSITE_SUBDIR = composite
-	COMPOSITE_OBJ = $(top_builddir)/src/openssl/composite/libpki-composite.la
+	COMPOSITE_OBJ =composite/libpki-composite.la
 else
 	COMPOSITE_SUBDIR =
 	COMPOSITE_OBJ =
 endif
 
-OBJECTS = $(COMPOSITE_OBJ)
+if ENABLE_OQS
+	PQC_SUBDIR = pqc
+	PQC_OBJ = pqc/libpki-pqc.la
+else
+	PQC_SUBDIR =
+	PQC_OBJ =
+endif
 
-SUBDIRS = $(COMPOSITE_SUBDIR)
+OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
+
+SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 
 NOINST_SRCS = \
 	internal/ossl_1_0_x/*.h \

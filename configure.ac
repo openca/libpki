@@ -1555,6 +1555,8 @@ else
 	fi
 fi
 
+AM_CONDITIONAL(ENABLE_OQS, test "${oqs_check}" = "yes")
+
 AC_SUBST(oqs_cflags)
 AC_SUBST(oqs_ldflags)
 AC_SUBST(oqs_ldadd)
@@ -1780,6 +1782,7 @@ AC_CONFIG_FILES(
 	src/drivers/kmf/Makefile
 	src/openssl/Makefile
 	src/openssl/composite/Makefile
+	src/openssl/pqc/Makefile
 	src/io/Makefile
 	src/net/Makefile
 	src/est/Makefile

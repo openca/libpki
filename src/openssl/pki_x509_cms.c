@@ -7,7 +7,7 @@
 #include <libpki/pki.h>
 #endif
 
-#ifdef LIBPKI_X509_INT_H
+#ifdef LIBPKI_X509_DATA_ST_H
 #include "internal/x509_data_st.h"
 #endif
 

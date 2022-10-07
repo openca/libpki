@@ -522,7 +522,7 @@ CERT_IDENTIFIER *PKI_PRQP_CERTID_new(
 	alg = ca_id->hashAlgorithm;
 	if (alg->algorithm != NULL) ASN1_OBJECT_free(alg->algorithm);
 
-	if (((nid = EVP_MD_type(dgst)) == NID_undef) || 
+	if (((nid = EVP_MD_nid(dgst)) == NID_undef) || 
 		(!(alg->algorithm=OBJ_nid2obj(nid))) || 
 		((alg->parameter=ASN1_TYPE_new()) == NULL))
 	{

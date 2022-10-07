@@ -661,6 +661,8 @@ composite_cflags
 oqs_ldadd
 oqs_ldflags
 oqs_cflags
+ENABLE_OQS_FALSE
+ENABLE_OQS_TRUE
 ENABLE_OPENSSL_ENGINE_FALSE
 ENABLE_OPENSSL_ENGINE_TRUE
 openssl_include
@@ -17535,6 +17537,15 @@ $as_echo "Open Quantum Safe: Disabled (oqs=$check_oqs)" >&6; }
 	fi
 fi
 
+ if test "${oqs_check}" = "yes"; then
+  ENABLE_OQS_TRUE=
+  ENABLE_OQS_FALSE='#'
+else
+  ENABLE_OQS_TRUE='#'
+  ENABLE_OQS_FALSE=
+fi
+
+
 
 
 
@@ -17786,7 +17797,7 @@ etc_dir=${prefix}/etc
 
 
 
-ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/Makefile src/openssl/composite/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
+ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/Makefile src/openssl/composite/Makefile src/openssl/pqc/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
 
 
 cat >confcache <<\_ACEOF
@@ -17976,6 +17987,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_OPENSSL_ENGINE_TRUE}" && test -z "${ENABLE_OPENSSL_ENGINE_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_OPENSSL_ENGINE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_OQS_TRUE}" && test -z "${ENABLE_OQS_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_OQS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_COMPOSITE_TRUE}" && test -z "${ENABLE_COMPOSITE_FALSE}"; then
@@ -18875,6 +18890,7 @@ do
     "src/drivers/kmf/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/kmf/Makefile" ;;
     "src/openssl/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/Makefile" ;;
     "src/openssl/composite/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/composite/Makefile" ;;
+    "src/openssl/pqc/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/pqc/Makefile" ;;
     "src/io/Makefile") CONFIG_FILES="$CONFIG_FILES src/io/Makefile" ;;
     "src/net/Makefile") CONFIG_FILES="$CONFIG_FILES src/net/Makefile" ;;
     "src/est/Makefile") CONFIG_FILES="$CONFIG_FILES src/est/Makefile" ;;

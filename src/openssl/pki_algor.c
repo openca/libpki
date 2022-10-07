@@ -202,7 +202,7 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
 
 	if ( !alg ) return NULL;
 
-	if((id = EVP_MD_type( alg )) == NID_undef) {
+	if((id = EVP_MD_nid( alg )) == NID_undef) {
 		return NULL;
 	};
 
@@ -629,8 +629,6 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 
 const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor ) {
 
-	const PKI_DIGEST_ALG * ret;
-
 	PKI_ALGOR_ID id = PKI_ID_UNKNOWN;
 	PKI_ALGOR_ID pkey_id = PKI_ID_UNKNOWN;
 	PKI_ALGOR_ID digest_id = PKI_ID_UNKNOWN; 
@@ -653,99 +651,11 @@ const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE
 		return NULL;
 	}
 
+	// If nothing was found, let's return nothing
+	if (digest_id == NID_undef) return EVP_md_null();
+
 	// If we found the digest, let's get it
-	if (digest_id != PKI_ID_UNKNOWN) {
-		return EVP_get_digestbynid(digest_id);
-	}
-
-	switch ( id ) {
-
-		case PKI_ALGOR_ID_DSA_SHA1:
-			// ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_DSS1 );
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
-			break;
-
-# ifdef ENABLE_DSA_SHA_2
-		case PKI_ALGOR_ID_DSA_SHA224:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
-			break;
-
-		case PKI_ALGOR_ID_DSA_SHA256:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
-			break;
-# endif
-		case PKI_ALGOR_ID_RSA_SHA1:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
-			break;
-
-#ifdef ENABLE_MD4
-		case PKI_ALGOR_ID_RSA_MD4:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_MD4 );
-			break;
-#endif
-#ifdef ENABLE_MD5
-		case PKI_ALGOR_ID_RSA_MD5:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_MD5 );
-			break;
-#endif
-#ifdef ENABLE_SHA224
-		case PKI_ALGOR_ID_RSA_SHA224:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
-			break;
-#endif
-#ifdef ENABLE_SHA256
-		case PKI_ALGOR_ID_RSA_SHA256:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
-			break;
-#endif
-#ifdef ENABLE_RSA_SHA_2
-		case PKI_ALGOR_ID_RSA_SHA384:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA384 );
-			break;
-
-		case PKI_ALGOR_ID_RSA_SHA512:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA512 );
-			break;
-#endif
-#ifdef ENABLE_ECDSA
-		case PKI_ALGOR_ID_ECDSA_SHA1:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA1 );
-			break;
-#endif
-#ifdef ENABLE_ECDSA_SHA_2
-		case PKI_ALGOR_ID_ECDSA_SHA224:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA224 );
-			break;
-
-		case PKI_ALGOR_ID_ECDSA_SHA256:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA256 );
-			break;
-
-		case PKI_ALGOR_ID_ECDSA_SHA384:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA384 );
-			break;
-
-		case PKI_ALGOR_ID_ECDSA_SHA512:
-			ret = PKI_DIGEST_ALG_get ( PKI_ALGOR_SHA512 );
-			break;
-#endif
-
-#ifdef ENABLE_OQS
-
-		// It seems OQS Algorithms Are Also Referred to as
-		// hashes, this is needed to be able to recognize them
-		// in signatures' X509 algorithms
-		case PKI_ALGOR_ID_FALCON512:
-		case PKI_ALGOR_ID_FALCON1024:
-			ret = NULL;
-
-#endif
-
-		default:
-			ret = PKI_DIGEST_ALG_UNKNOWN;
-	}
-
-	return ret;
+	return EVP_get_digestbynid(digest_id);
 }
 
 /*! \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR */
@@ -769,144 +679,207 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *alg
 
 PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor) {
 
-	PKI_ALGOR_ID id;
+	PKI_ALGOR_ID id, pkey_id, digest_id;
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 
 	if (!algor) return PKI_SCHEME_UNKNOWN;
 
 	if ((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) == PKI_ALGOR_ID_UNKNOWN)
-		return ( PKI_SCHEME_UNKNOWN );
+		return PKI_SCHEME_UNKNOWN;
 
-	switch ( id ) {
+	// Gets the MD and PKEY components
+	if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
+		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot break the signing algorithm (%d) into PKEY and MD.", id);
+		return PKI_SCHEME_UNKNOWN;
+	}
 
-		case PKI_ALGOR_ID_DSA_SHA1:
-#ifdef ENABLE_DSA_SHA_2
-		case PKI_ALGOR_ID_DSA_SHA224:
-		case PKI_ALGOR_ID_DSA_SHA256:
+	// Gets the Type of PKEY
+	int pkey_type = EVP_PKEY_type(pkey_id);
+
+	// Let's check the PKEY types
+	switch (pkey_type) {
+
+		// RSA
+		case EVP_PKEY_RSA: {
+			return PKI_SCHEME_RSA;
+		} break;
+
+#ifdef ENABLE_DSA
+		// DSA
+		case EVP_PKEY_DSA: {
+			return PKI_SCHEME_DSA;
+		} break;
 #endif
-			ret = PKI_SCHEME_DSA;
-			break;
-//		case PKI_ALGOR_RSA_MD2:
-		case PKI_ALGOR_ID_RSA_MD4:
-		case PKI_ALGOR_ID_RSA_MD5:
-		case PKI_ALGOR_ID_RSA_SHA1:
-#ifdef ENABLE_SHA224
-		case PKI_ALGOR_ID_RSA_SHA224:
-#endif
-#ifdef ENABLE_SHA256
-		case PKI_ALGOR_ID_RSA_SHA256:
-#endif
-#ifdef ENABLE_SHA384
-		case PKI_ALGOR_ID_RSA_SHA384:
-#endif
-#ifdef ENABLE_SHA512
-		case PKI_ALGOR_ID_RSA_SHA512:
-			ret = PKI_SCHEME_RSA;
-			break;
-#endif
+
 #ifdef ENABLE_ECDSA
-		case PKI_ALGOR_ID_ECDSA_SHA1:
-#endif
-#ifdef ENABLE_ECDSA_SHA_2
-		case PKI_ALGOR_ID_ECDSA_SHA224:
-		case PKI_ALGOR_ID_ECDSA_SHA256:
-		case PKI_ALGOR_ID_ECDSA_SHA384:
-		case PKI_ALGOR_ID_ECDSA_SHA512:
-			ret = PKI_SCHEME_ECDSA;
-			break;
-#endif
 
-#ifdef ENABLE_OQS
-
-		// ==================
-		// Post-Quantum Algos
-		// ==================
-
-		case PKI_ALGOR_ID_FALCON512:
-		case PKI_ALGOR_ID_FALCON1024:
-			ret = PKI_SCHEME_FALCON;
-			break;
-
-		case PKI_ALGOR_ID_DILITHIUM3:
-		case PKI_ALGOR_ID_DILITHIUM5:
-		case PKI_ALGOR_ID_DILITHIUM3_AES:
-		case PKI_ALGOR_ID_DILITHIUM5_AES:
-			ret = PKI_SCHEME_DILITHIUM;
-			break;
-
-		case PKI_ALGOR_ID_SPHINCS_SHA256_128_R:
-		// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
-		// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
-		case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R:
-			ret = PKI_SCHEME_SPHINCS;
-			break;
-
-		// ================
-		// Composite Crypto
-		// ================
-
-// NOTE: We cannot handle the composite/combined crypto
-//       this way because we do not have the static value
-//       for it, therefore we need to use a different approach
-//       by checking it separately
-// #ifdef ENABLE_COMPOSITE
-// 		case NID_composite:
-// 			ret = PKI_SCHEME_COMPOSITE;
-// 			break;
-// #endif
-//
-// #ifdef ENABLE_COMBINED
-// 		case PKI_ALGOR_ID_COMPOSITE_OR:
-// 			ret = PKI_SCHEME_COMPOSITE_OR;
-// 			break;
-// #endif
-
-		// ====================
-		// OQS Composite Crypto
-		// ====================
-
-		case PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512:
-			ret = PKI_SCHEME_COMPOSITE_RSA_FALCON;
-			break;
-
-		case PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512:
-		case PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024:
-			ret = PKI_SCHEME_COMPOSITE_ECDSA_FALCON;
-			break;
-
-		case PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2:
-			ret = PKI_SCHEME_COMPOSITE_RSA_DILITHIUM;
-			break;
-
-		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2:
-		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3:
-		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5:
-			ret = PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM;
-			break;
+		// EC
+		case EVP_PKEY_EC: {
+			return PKI_SCHEME_ECDSA;
+		} break;
 
 #endif
+
 		default:
 			ret = PKI_SCHEME_UNKNOWN;
 	}
 
-	// Process the dynamic-provided schemes
-	if (ret == PKI_SCHEME_UNKNOWN) {
-#ifdef ENABLE_COMPOSITE
-		// Composite Crypto
-		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("composite")) {
-			ret = PKI_SCHEME_COMPOSITE;
-		}
-#endif
+	// Let's see if we can find the scheme via the
+	// dynamic approach:
+	if (   pkey_type == PKI_ID_get_by_name("falcon512")
+	    || pkey_type == PKI_ID_get_by_name("falcon1024")) {
+		// FALCON
+		return PKI_SCHEME_FALCON;
 
-#ifdef ENABLE_COMBINED
-		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("combined")) {
-			ret = PKI_SCHEME_COMBINED;
-		}
-#endif
+	} else if (pkey_type == PKI_ID_get_by_name("dilithium3")
+			   || pkey_type == PKI_ID_get_by_name("dilithium3-AES")
+			   || pkey_type == PKI_ID_get_by_name("dilithium5")
+			   || pkey_type == PKI_ID_get_by_name("dilithium5-AES")) {
+		// DILITHIUM
+		return PKI_SCHEME_FALCON;
+	} else if (pkey_type == PKI_ID_get_by_name("composite")) {
+		// COMPOSITE
+		return PKI_SCHEME_COMPOSITE;
+	} else if (pkey_type == PKI_ID_get_by_name("combined")
+	           || pkey_type == PKI_ID_get_by_name("alternate")) {
+		// ALTKEYS
+		return PKI_SCHEME_COMBINED;
 	}
 
-	return ( ret );
+	// Let's check the pkey type
+	return PKI_SCHEME_UNKNOWN;
+
+// 	switch ( id ) {
+
+// 		case PKI_ALGOR_ID_DSA_SHA1:
+// #ifdef ENABLE_DSA_SHA_2
+// 		case PKI_ALGOR_ID_DSA_SHA224:
+// 		case PKI_ALGOR_ID_DSA_SHA256:
+// #endif
+// 			ret = PKI_SCHEME_DSA;
+// 			break;
+// //		case PKI_ALGOR_RSA_MD2:
+// 		case PKI_ALGOR_ID_RSA_MD4:
+// 		case PKI_ALGOR_ID_RSA_MD5:
+// 		case PKI_ALGOR_ID_RSA_SHA1:
+// #ifdef ENABLE_SHA224
+// 		case PKI_ALGOR_ID_RSA_SHA224:
+// #endif
+// #ifdef ENABLE_SHA256
+// 		case PKI_ALGOR_ID_RSA_SHA256:
+// #endif
+// #ifdef ENABLE_SHA384
+// 		case PKI_ALGOR_ID_RSA_SHA384:
+// #endif
+// #ifdef ENABLE_SHA512
+// 		case PKI_ALGOR_ID_RSA_SHA512:
+// 			ret = PKI_SCHEME_RSA;
+// 			break;
+// #endif
+// #ifdef ENABLE_ECDSA
+// 		case PKI_ALGOR_ID_ECDSA_SHA1:
+// #endif
+// #ifdef ENABLE_ECDSA_SHA_2
+// 		case PKI_ALGOR_ID_ECDSA_SHA224:
+// 		case PKI_ALGOR_ID_ECDSA_SHA256:
+// 		case PKI_ALGOR_ID_ECDSA_SHA384:
+// 		case PKI_ALGOR_ID_ECDSA_SHA512:
+// 			ret = PKI_SCHEME_ECDSA;
+// 			break;
+// #endif
+
+// #ifdef ENABLE_OQS
+
+// 		// ==================
+// 		// Post-Quantum Algos
+// 		// ==================
+
+// 		case PKI_ALGOR_ID_FALCON512:
+// 		case PKI_ALGOR_ID_FALCON1024:
+// 			ret = PKI_SCHEME_FALCON;
+// 			break;
+
+// 		case PKI_ALGOR_ID_DILITHIUM3:
+// 		case PKI_ALGOR_ID_DILITHIUM5:
+// 		case PKI_ALGOR_ID_DILITHIUM3_AES:
+// 		case PKI_ALGOR_ID_DILITHIUM5_AES:
+// 			ret = PKI_SCHEME_DILITHIUM;
+// 			break;
+
+// 		case PKI_ALGOR_ID_SPHINCS_SHA256_128_R:
+// 		// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
+// 		// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
+// 		case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R:
+// 			ret = PKI_SCHEME_SPHINCS;
+// 			break;
+
+// 		// ================
+// 		// Composite Crypto
+// 		// ================
+
+// // NOTE: We cannot handle the composite/combined crypto
+// //       this way because we do not have the static value
+// //       for it, therefore we need to use a different approach
+// //       by checking it separately
+// // #ifdef ENABLE_COMPOSITE
+// // 		case NID_composite:
+// // 			ret = PKI_SCHEME_COMPOSITE;
+// // 			break;
+// // #endif
+// //
+// // #ifdef ENABLE_COMBINED
+// // 		case PKI_ALGOR_ID_COMPOSITE_OR:
+// // 			ret = PKI_SCHEME_COMPOSITE_OR;
+// // 			break;
+// // #endif
+
+// 		// ====================
+// 		// OQS Composite Crypto
+// 		// ====================
+
+// 		case PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512:
+// 			ret = PKI_SCHEME_COMPOSITE_RSA_FALCON;
+// 			break;
+
+// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512:
+// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024:
+// 			ret = PKI_SCHEME_COMPOSITE_ECDSA_FALCON;
+// 			break;
+
+// 		case PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2:
+// 			ret = PKI_SCHEME_COMPOSITE_RSA_DILITHIUM;
+// 			break;
+
+// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2:
+// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3:
+// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5:
+// 			ret = PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM;
+// 			break;
+
+// #endif
+// 		default:
+// 			ret = PKI_SCHEME_UNKNOWN;
+// 	}
+
+// 	// Process the dynamic-provided schemes
+// 	if (ret == PKI_SCHEME_UNKNOWN) {
+// #ifdef ENABLE_COMPOSITE
+// 		// Composite Crypto
+// 		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("composite")) {
+// 			ret = PKI_SCHEME_COMPOSITE;
+// 		}
+// #endif
+
+// #ifdef ENABLE_COMBINED
+// 		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("combined")) {
+// 			ret = PKI_SCHEME_COMBINED;
+// 		}
+// #endif
+// 	}
+
+// 	return ( ret );
 }
+
 /*! \brief Returns the PKI_DIGEST_ALG * from its name.
  *
  * Returns the PKI_DIGEST_ALG * from its name (char *). An example
@@ -916,26 +889,26 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 
 const PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name ) {
 
-	int alg_id = PKI_ALGOR_ID_UNKNOWN;
-	  // Algorithm Identifier  
-
 	// Input Check
 	if (!name) {
 		/* For ease of use, let's fall back to the default one */
-		return( PKI_DIGEST_ALG_DEFAULT );
+		return PKI_DIGEST_ALG_DEFAULT;
 	}
 
-	// Check if the object is a valid OID
-	if((alg_id = OBJ_sn2nid(name)) == PKI_ALGOR_ID_UNKNOWN ) {
-		// Checks for the long name/description
-		if((alg_id = OBJ_ln2nid( name )) == PKI_ALGOR_ID_UNKNOWN ) {
-			// No matching OID found for the algorithm 'name'
-			return ( PKI_DIGEST_ALG_UNKNOWN );
-		}
-	}
+	// Returns the digest from the name
+	return EVP_get_digestbyname(name);
 
-	// Returns the algorithm
-	return PKI_DIGEST_ALG_get(alg_id);
+	// // Check if the object is a valid OID
+	// if ((alg_id = OBJ_sn2nid(name)) == PKI_ALGOR_ID_UNKNOWN ) {
+	// 	// Checks for the long name/description
+	// 	if((alg_id = OBJ_ln2nid( name )) == PKI_ALGOR_ID_UNKNOWN ) {
+	// 		// No matching OID found for the algorithm 'name'
+	// 		return ( PKI_DIGEST_ALG_UNKNOWN );
+	// 	}
+	// }
+
+	// // Returns the algorithm
+	// return PKI_DIGEST_ALG_get(alg_id);
 }
 
 /*! \brief Returns the string representation of a digest algorithm */
@@ -1130,6 +1103,42 @@ const PKI_DIGEST_ALG *PKI_DIGEST_ALG_get ( PKI_ALGOR_ID id ) {
 	return (const PKI_DIGEST_ALG *) ret;
 }
 
+const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_default(const PKI_X509_KEYPAIR * const x) {
+
+	// Input Check
+	if (!x || !x->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key Value");
+		return NULL;
+	}
+
+	// Gets the value
+	PKI_X509_KEYPAIR_VALUE * pkey = PKI_X509_get_value(x);
+
+	// Gets the default digest for the key
+	int def_nid = -1;
+	int digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
+
+	// Checks for error
+	if (digestResult <= 0) {
+		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", EVP_PKEY_id(pkey));
+		return NULL;
+	}
+
+	// If the returned value is == 2, then the returned
+	// digest is mandatory and cannot be replaced
+	if (digestResult == 2) {
+
+		// If no-hash is mandatory, we return the null MD
+		if (def_nid == NID_undef) return EVP_md_null();
+
+		// Let's return the mandatory one
+		return EVP_get_digestbynid(def_nid);
+	}
+	
+	// If we reach here, the PKEY does not have
+	// a mandatory hash, let's return our own default
+	return PKI_DIGEST_ALG_DEFAULT;
+}
 
 const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 

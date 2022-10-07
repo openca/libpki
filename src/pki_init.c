@@ -6,6 +6,14 @@
 #include <libpki/openssl/pki_oid_defs.h>
 #endif 
 
+#ifdef ENABLE_OQS
+# include <libpki/openssl/pqc/pqc_init.h>
+#endif
+
+#ifndef _LIBPKI_ERR_H
+#include <libpki/pki_err.h>
+#endif
+
 #ifdef ENABLE_COMPOSITE
 
 # ifndef OPENSSL_COMPOSITE_PKEY_METH_H
@@ -48,6 +56,10 @@ extern EVP_PKEY_METHOD composite_pkey_meth;
 int NID_proxyCertInfo = -1;
 #endif
 
+// ================================
+// MACRO for Algorithm Registration
+// ================================
+
 #ifdef ENABLE_COMPOSITE
 static int _init_composite() {
 
@@ -77,6 +89,49 @@ static int _init_composite() {
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
 	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
 	
+	// All Done, Success.
+	return 1;
+}
+#endif
+
+#ifdef ENABLE_OQS
+int _init_pqc() {
+
+	// TODO:
+	// =====
+	//
+	// Update the way we add the composite ASN1 method. Currently we use the
+	// auxillary function (see composite_ameth.c) to set the method's pkey id.
+	//
+	// The Right way to add a new method would be to first generate a new
+	// one and then set the different callbacks, such as:
+	//
+	//   composite_asn1_method = EVP_PKEY_asn1_meth_new(NID_composite);
+	//   EVP_PKEY_asn1_meth_set_XXX(composite_asn1_method, .... );
+
+	// // Retrieves the COMPOSITE id
+	// int dilithiumX_id = OBJ_txt2nid(OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
+
+	// // Assigns the generated IDs
+	// EVP_PKEY_asn1_meth_set_id(&dilithiumX_asn1_meth, dilithiumX_id);
+
+	// // We also Need to initialize the PKEY method for the algorithm
+	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	// if (!EVP_PKEY_meth_add0(&dilithiumX_pkey_meth)) return 0;
+
+	// // We Need to initialize the ASN1 conversion method
+	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	// if (!EVP_PKEY_asn1_add0(&dilithiumX_asn1_meth)) return 0;
+	
+	// EVP_PKEY_asn1_meth_set_id(&DILITHIUMX_ASN1_METH, OBJ_txt2nid(OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
+	// if (EVP_PKEY_meth_add0(&DILITHIUMX_PKEY_METH)) \
+	// 	{ EVP_PKEY_asn1_add0(&DILITHIUMX_ASN1_METH); }     \
+	// else { PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot add PKEY method"); }
+
+	PKI_PQC_init();
+
+	// REGISTER_PKEY_METH(DILITHIUMX, OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
+
 	// All Done, Success.
 	return 1;
 }
@@ -135,6 +190,9 @@ int PKI_init_all( void ) {
 		// Initializes the extra OIDs
 		PKI_X509_OID_init();
 
+#ifdef ENABLE_OQS
+		_init_pqc();
+#endif
 #ifdef ENABLE_COMPOSITE
 		_init_composite();
 #endif

@@ -502,19 +502,47 @@ int PKI_X509_sign(PKI_X509               * x,
 	PKI_STRING * sigPtr = NULL;
 	  // Pointer for the Signature in the PKIX data
 
+	PKI_X509_KEYPAIR_VALUE * pkey = NULL;
+	  // Internal Value
+
 	// Input Checks
 	if (!x || !x->value || !key || !key->value ) 
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Sets the default Algorithm if none is provided
-	if (!digest) digest = PKI_DIGEST_ALG_DEFAULT;
+	if (!digest) digest = PKI_DIGEST_ALG_get_default(key);
+
+	// Extracts the internal value
+	pkey = PKI_X509_get_value(key);
+	if (!pkey) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key's Internal Value");
+		return PKI_ERR;
+	}
+
+	// Let's Get The signing OID
+	int sig_nid = -1;
+	if (1 != OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_nid(digest), EVP_PKEY_id(pkey))) {
+		PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
+			PKI_ID_get_txt(EVP_PKEY_id(pkey)), digest ? PKI_ID_get_txt(EVP_MD_nid(digest)) : "NULL");
+	} else {
+		// If the find routine returns 1 it was successful, however
+		// for PQC it seems to return NID_undef for the sig_nid, this fixes it
+		if (sig_nid == NID_undef) sig_nid = EVP_PKEY_id(pkey);
+
+		// Debugging Information
+		PKI_DEBUG("Signing Algorithm Should be: %s", PKI_ID_get_txt(sig_nid));
+	}
+
+	PKI_DEBUG("Digest Signing Algorithm: %s", digest == NULL ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
 
 	// Sets the right OID for the signature
 	ASN1_item_sign(x->it, 
 	               PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
                    PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
-                   NULL, NULL, 
-                   key->value, digest);
+                   NULL,
+				   NULL, 
+                   pkey, 
+				   ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
 	// Retrieves the DER representation of the data to be signed
 	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
@@ -544,7 +572,7 @@ int PKI_X509_sign(PKI_X509               * x,
 
 	// Gets the reference to the X509 signature field
 	if ((sigPtr = PKI_X509_get_data(x,
-		                              PKI_X509_DATA_SIGNATURE)) == NULL) {
+		                            PKI_X509_DATA_SIGNATURE)) == NULL) {
 		// Error: Can not retrieve the generated signature, aborting
 		PKI_MEM_free (sig);
 		// Return the error
@@ -579,21 +607,17 @@ int PKI_X509_sign(PKI_X509               * x,
 /*! \brief General signature function on data */
 
 PKI_MEM *PKI_sign(const PKI_MEM          * der,
-		              const PKI_DIGEST_ALG   * alg,
-		              const PKI_X509_KEYPAIR * key ) {
+		          const PKI_DIGEST_ALG   * alg,
+		          const PKI_X509_KEYPAIR * key ) {
 
 	PKI_MEM *sig = NULL;
 	const HSM *hsm = NULL;
 
 	// Input check
-	if (!der || !der->data || !key || !key->value)
-	{
+	if (!der || !der->data || !key || !key->value)	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
-
-	// Uses the default algorithm if none was provided
-	if (!alg) alg = (const PKI_DIGEST_ALG *)PKI_DIGEST_ALG_DEFAULT;
 
 	// If no HSM is provided, let's get the default one
 	hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());

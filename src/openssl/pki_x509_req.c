@@ -66,7 +66,8 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 
 	// Debug Info
 	if (digest) {
-		PKI_DEBUG("Selected Hashing Algorithm is %s", OBJ_nid2sn(EVP_MD_type(digest)));
+		PKI_DEBUG("Selected Hashing Algorithm is %s (EVP_md_null() ? = %s)", 
+			OBJ_nid2sn(EVP_MD_nid(digest)), digest == PKI_DIGEST_ALG_NULL ? "Yes" : "No");
 	} else {
 		PKI_DEBUG("NO Hashing Algorithm is selected");
 	}

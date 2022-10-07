@@ -315,6 +315,10 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// Gets the default digest for the key
 	digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
 
+	PKI_DEBUG("Requested Digest for Signing is %s", digest ? PKI_ID_get_txt(EVP_MD_nid(digest)) : "NULL");
+	PKI_DEBUG("Got Default Digest for PKEY %d (%s) is %d (%s) (result = %d)",
+		EVP_PKEY_id(pkey), PKI_ID_get_txt(EVP_PKEY_id(pkey)), def_nid, PKI_ID_get_txt(def_nid), digestResult);
+
 	// Checks for error
 	if (digestResult <= 0) {
 		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", EVP_PKEY_id(pkey));
@@ -326,12 +330,12 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	if (digestResult == 2) {
 		// Checks if we are in a no-hash mandatory
 		if (def_nid == NID_undef && (digest != EVP_md_null() && digest != NULL)) {
-			PKI_DEBUG("PKEY requires no hash but got one (%d)", EVP_MD_type(digest));
+			PKI_DEBUG("PKEY requires no hash but got one (%d)", EVP_MD_nid(digest));
 			return NULL;
 		}
 		// Checks if we are using the mandated digest
-		if (def_nid == NID_undef || def_nid != EVP_MD_type(digest)) {
-			PKI_DEBUG("PKEY requires digest (%d) but got (%d)", def_nid, EVP_MD_type(digest));
+		if (def_nid == NID_undef || def_nid != EVP_MD_nid(digest)) {
+			PKI_DEBUG("PKEY requires digest (%d) but got (%d)", def_nid, EVP_MD_nid(digest));
 			return NULL;
 		}
 	}
@@ -363,7 +367,20 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 
 	// Sets the Digest to be used when calculating the signature
 	// that is equiv to a CTRL call (see <openssl/evp.h> for more details)
-	EVP_PKEY_CTX_set_signature_md(pctx, digest);
+	if (digest != NULL && digest != EVP_md_null()) {
+
+		// Sets the Digest to use when calculating the signature
+		EVP_PKEY_CTX_set_signature_md(pctx, digest);
+
+	} else {
+		
+		// This is a hack to accommodate for the issue with OQS where
+		// when we use the EVP_md_null() they apply the use of the MD
+		// to only the classic part of the key, until we use our own
+		// implementation to fix this issue, we need to set the digest
+		// to NULL or we get a segfault(11).
+		digest = NULL;
+	}
 
 	// Initializes the Digest
 	if (!EVP_DigestSignInit(ctx, NULL /* &pctx */, digest, NULL, pkey)) {
@@ -373,8 +390,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 
 	// Updates the Digest calculation with the TBS data
 	if (EVP_DigestSignUpdate(ctx, 
-								der->data,
-								der->size) <= 0) {
+							 der->data,
+							 der->size) <= 0) {
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Update EVP_DigestSignUpdate()");
 		goto err;
 	}

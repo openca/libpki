@@ -50,6 +50,8 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_name( const char *name );
 
 const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get( PKI_ALGOR_ID alg );
 
+const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_default(const PKI_X509_KEYPAIR * const x);
+
 const char * PKI_DIGEST_ALG_get_parsed (const PKI_DIGEST_ALG * alg );
 
 // --------------------------- PKI_ALGOR_ID Lists ------------------------------- //

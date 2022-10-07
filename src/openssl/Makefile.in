@@ -521,8 +521,8 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-OBJECTS = $(COMPOSITE_OBJ)
-SUBDIRS = $(COMPOSITE_SUBDIR)
+OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
+SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 NOINST_SRCS = \
 	internal/ossl_1_0_x/*.h \
 	internal/ossl_1_1_0/*.h \
@@ -1199,9 +1199,14 @@ uninstall-am:
 include $(TOP)/global-vars
 
 @ENABLE_COMPOSITE_TRUE@	COMPOSITE_SUBDIR = composite
-@ENABLE_COMPOSITE_TRUE@	COMPOSITE_OBJ = $(top_builddir)/src/openssl/composite/libpki-composite.la
+@ENABLE_COMPOSITE_TRUE@	COMPOSITE_OBJ =composite/libpki-composite.la
 @ENABLE_COMPOSITE_FALSE@	COMPOSITE_SUBDIR =
 @ENABLE_COMPOSITE_FALSE@	COMPOSITE_OBJ =
+
+@ENABLE_OQS_TRUE@	PQC_SUBDIR = pqc
+@ENABLE_OQS_TRUE@	PQC_OBJ = pqc/libpki-pqc.la
+@ENABLE_OQS_FALSE@	PQC_SUBDIR =
+@ENABLE_OQS_FALSE@	PQC_OBJ =
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

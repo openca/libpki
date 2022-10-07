@@ -276,8 +276,9 @@ int PKI_X509_OCSP_RESP_set_extendedRevoke(PKI_X509_OCSP_RESP * resp) {
 	return PKI_OK;
 }
 
-int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp, 
-				PKI_X509_KEYPAIR *k, PKI_DIGEST_ALG *md ) {
+int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP * resp, 
+								  PKI_X509_KEYPAIR   * k, 
+								  PKI_DIGEST_ALG     * md ) {
 
 	int ret = 0;
 	OCSP_BASICRESP *bsrp = NULL;
@@ -298,7 +299,7 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP *resp,
 	}
 
 	// If no digest is given, let's use the default one
-	if (!md) md = PKI_DIGEST_ALG_SHA1;
+	if (!md) md = (PKI_DIGEST_ALG *) PKI_DIGEST_ALG_get_default(k);
 
 	// DEBUG ONLY: Use this to check correctness
 	/*

@@ -3,8 +3,8 @@
 #include <openssl/opensslv.h>
 #include <openssl/x509.h>
 
-#ifndef LIBPKI_X509_INT_H
-#define LIBPKI_X509_INT_H
+#ifndef LIBPKI_X509_DATA_ST_H
+#define LIBPKI_X509_DATA_ST_H
 
 #  if OPENSSL_VERSION_NUMBER > 0x1000000fL
 
@@ -57,9 +57,6 @@ typedef struct CMS_PasswordRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_PASSWORD;
 typedef struct CMS_OtherRecipientInfo_st LIBPKI_CMS_RECIPIENT_INFO_OTHER;
 typedef struct CMS_ReceiptsFrom_st LIBPKI_CMS_RECEIPTS_FROM;
 
-// // Definition for OSSL v1.1.1+
-// typedef int CRYPTO_REF_COUNT;
-
 // ----- Includes specific for OpenSSL v1.0.x ----- //
 #    if OPENSSL_VERSION_NUMBER <= 0x1000ffffL
 #      include "ossl_1_0_x/cms_lcl.h"
@@ -82,4 +79,8 @@ typedef struct CMS_ReceiptsFrom_st LIBPKI_CMS_RECEIPTS_FROM;
 #    endif
 #  endif
 
+#ifndef OPENSSL_OSSL_INTERNALS_H
+# include "ossl_lcl.h"
 #endif
+
+#endif // End of LIBPKI_X509_DATA_ST_H

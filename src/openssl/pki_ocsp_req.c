@@ -295,8 +295,8 @@ PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial ( PKI_X509_OCSP_REQ *req,
 }
 
 int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ * req, 
-				 PKI_X509_KEYPAIR  * k,
-				 PKI_DIGEST_ALG    * md ) {
+				 				 PKI_X509_KEYPAIR  * k,
+				 				 PKI_DIGEST_ALG    * md ) {
 
 	int ret = 0;
 
@@ -312,7 +312,7 @@ int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ * req,
 		return PKI_ERR;
 	}
 
-	if( !md ) md = PKI_DIGEST_ALG_SHA1;
+	if( !md ) md = (PKI_DIGEST_ALG *)PKI_DIGEST_ALG_get_default(k);
 
 	val = req->value;
 

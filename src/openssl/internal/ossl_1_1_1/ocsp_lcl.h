@@ -1,3 +1,8 @@
+
+#ifndef HEADER_OCSP_H
+#include <openssl/ocsp.h>
+#endif
+
 #ifndef _LIBPKI_OSSL_1_1_1_OCSP_LCL_H
 #define _LIBPKI_OSSL_1_1_1_OCSP_LCL_H
 
