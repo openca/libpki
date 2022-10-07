@@ -83,8 +83,6 @@ int PKI_log_init ( PKI_LOG_TYPE type, PKI_LOG_LEVEL level, char *resource,
 	
 	int ret = PKI_OK;
 
-	PKI_init_all();
-
 	/* We should acquire both the log and log_res mutex to
 	   prevent bad programmers to mess with threads and logging */
 	pthread_mutex_lock( &log_res_mutex );

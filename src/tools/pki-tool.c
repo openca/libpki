@@ -985,8 +985,6 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "genkey", 6) == 0 ) {
 
-PKI_DEBUG("DEBUG");
-
 		PKI_TOKEN_login( tk );
 
 		if (!algor_opt) {
