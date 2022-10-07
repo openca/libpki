@@ -32,8 +32,10 @@
 // PKEY ASN.1 Method Macro
 // =======================
 
-// #define DECLARE_OQS_EVP_PKEY_ASN1_METHOD(ALG) \
+/*
+// #define DECLARE_OQS_EVP_PKEY_ASN1_METHOD(ALG)
 // extern EVP_PKEY_ASN1_METHOD ALG##_ASN1_METH
+*/
 
 #define DEFINE_OQS_EVP_PKEY_ASN1_METHOD(ALG, NID_ALG, SHORT_NAME, LONG_NAME) \
 EVP_PKEY_ASN1_METHOD ALG##_ASN1_METH = {       \
@@ -68,8 +70,10 @@ EVP_PKEY_ASN1_METHOD ALG##_ASN1_METH = {       \
 // PKEY Method Macro
 // =================
 
-// #define DECLARE_OQS_EVP_PKEY_METHOD(ALG) \
+/*
+// #define DECLARE_OQS_EVP_PKEY_METHOD(ALG)
 // extern const EVP_PKEY_METHOD ALG##_PKEY_METH
+*/
 
 #define DEFINE_OQS_EVP_PKEY_METHOD(ALG, NID_ALG)    \
 const EVP_PKEY_METHOD ALG##_PKEY_METH = {           \
