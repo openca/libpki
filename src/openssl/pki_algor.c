@@ -495,89 +495,99 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 	int alg_nid 	              = PKI_ALGOR_ID_UNKNOWN;
 	  // Algorithm Identifier
 
+	int hash_nid = 0, pkey_nid = 0;
+		// Identifiers for breaking down the algorithm
+
+	// Retrieves the ID from the internal DB
 	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ALGOR_ID_UNKNOWN) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Algorithm ID unknown (%d)", algor);
 		return NULL;
 	}
 
-	// Check if the OID found corresponds to one of the supported algorithms 
-	switch (alg_nid) {
-
-		// RSA Scheme
-#ifdef ENABLE_MD4
-		case PKI_ALGOR_RSA_MD4:
-#endif
-#ifdef ENABLE_MD5
-		case PKI_ALGOR_RSA_MD5:
-#endif
-#ifdef ENABLE_SHA1
-		case PKI_ALGOR_RSA_SHA1:
-#endif
-#ifdef ENABLE_SHA224
-		case PKI_ALGOR_RSA_SHA224:
-#endif
-#ifdef ENABLE_SHA256
-		case PKI_ALGOR_RSA_SHA256:
-#endif
-#ifdef ENABLE_SHA384
-		case PKI_ALGOR_RSA_SHA384:
-#endif
-#ifdef ENABLE_SHA512
-		case PKI_ALGOR_RSA_SHA512:
-#endif
-#ifdef ENABLE_RIPEMD
-		case PKI_ALGOR_RSA_RIPEMD128:
-		case PKI_ALGOR_RSA_RIPEMD160:
-#endif
-
-		// DSA Scheme
-		case PKI_ALGOR_DSA_SHA1:
-#ifdef ENABLE_DSA_SHA_2
-		case PKI_ALGOR_DSA_SHA224:
-		case PKI_ALGOR_DSA_SHA256:
-#endif
-
-		// ECDSA Scheme
-#ifdef ENABLE_ECDSA
-		case PKI_ALGOR_ECDSA_SHA1:
-#endif
-#ifdef ENABLE_ECDSA_SHA_2
-		case PKI_ALGOR_ECDSA_SHA224:
-		case PKI_ALGOR_ECDSA_SHA256:
-		case PKI_ALGOR_ECDSA_SHA384:
-		case PKI_ALGOR_ECDSA_SHA512:
-#endif
-			break;
-
-		// Post Quantum and Composite Cryptograpy
-#ifdef ENABLE_OQS
-		case PKI_ALGOR_FALCON512:
-		case PKI_ALGOR_FALCON1024:
-		case PKI_ALGOR_DILITHIUM2:
-		case PKI_ALGOR_DILITHIUM3:
-		case PKI_ALGOR_DILITHIUM5:
-		case PKI_ALGOR_SPHINCS_SHA256_128_R:
-		// case PKI_ALGOR_SPHINCS_SHA256_192_R:
-		// case PKI_ALGOR_SPHINCS_SHA256_256_R:
-		case PKI_ALGOR_SPHINCS_SHAKE256_128_R:
-		case PKI_ALGOR_DILITHIUM2_AES:
-		case PKI_ALGOR_DILITHIUM3_AES:
-		case PKI_ALGOR_DILITHIUM5_AES:
-		case PKI_ALGOR_COMPOSITE_RSA_FALCON512:
-		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON512:
-		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024:
-		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2:
-		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2_AES:
-		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2:
-		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3:
-		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5:
-			break;
-#endif
-
-		default:
-			alg_nid = PKI_ALGOR_ID_UNKNOWN;
-			break;
+	// Finds if this NID is a X509_ALGOR nid, if not let's return NULL
+	if (!OBJ_find_sigid_algs(alg_nid, &hash_nid, &pkey_nid)) {
+		PKI_DEBUG("Cannot Find Algors for %d (%s)", alg_nid, OBJ_nid2sn(alg_nid));
+		return NULL;
 	}
+
+// 	// Check if the OID found corresponds to one of the supported algorithms 
+// 	switch (alg_nid) {
+
+// 		// RSA Scheme
+// #ifdef ENABLE_MD4
+// 		case PKI_ALGOR_RSA_MD4:
+// #endif
+// #ifdef ENABLE_MD5
+// 		case PKI_ALGOR_RSA_MD5:
+// #endif
+// #ifdef ENABLE_SHA1
+// 		case PKI_ALGOR_RSA_SHA1:
+// #endif
+// #ifdef ENABLE_SHA224
+// 		case PKI_ALGOR_RSA_SHA224:
+// #endif
+// #ifdef ENABLE_SHA256
+// 		case PKI_ALGOR_RSA_SHA256:
+// #endif
+// #ifdef ENABLE_SHA384
+// 		case PKI_ALGOR_RSA_SHA384:
+// #endif
+// #ifdef ENABLE_SHA512
+// 		case PKI_ALGOR_RSA_SHA512:
+// #endif
+// #ifdef ENABLE_RIPEMD
+// 		case PKI_ALGOR_RSA_RIPEMD128:
+// 		case PKI_ALGOR_RSA_RIPEMD160:
+// #endif
+
+// 		// DSA Scheme
+// 		case PKI_ALGOR_DSA_SHA1:
+// #ifdef ENABLE_DSA_SHA_2
+// 		case PKI_ALGOR_DSA_SHA224:
+// 		case PKI_ALGOR_DSA_SHA256:
+// #endif
+
+// 		// ECDSA Scheme
+// #ifdef ENABLE_ECDSA
+// 		case PKI_ALGOR_ECDSA_SHA1:
+// #endif
+// #ifdef ENABLE_ECDSA_SHA_2
+// 		case PKI_ALGOR_ECDSA_SHA224:
+// 		case PKI_ALGOR_ECDSA_SHA256:
+// 		case PKI_ALGOR_ECDSA_SHA384:
+// 		case PKI_ALGOR_ECDSA_SHA512:
+// #endif
+// 			break;
+
+// 		// Post Quantum and Composite Cryptograpy
+// #ifdef ENABLE_OQS
+// 		case PKI_ALGOR_FALCON512:
+// 		case PKI_ALGOR_FALCON1024:
+// 		case PKI_ALGOR_DILITHIUM2:
+// 		case PKI_ALGOR_DILITHIUM3:
+// 		case PKI_ALGOR_DILITHIUM5:
+// 		case PKI_ALGOR_SPHINCS_SHA256_128_R:
+// 		// case PKI_ALGOR_SPHINCS_SHA256_192_R:
+// 		// case PKI_ALGOR_SPHINCS_SHA256_256_R:
+// 		case PKI_ALGOR_SPHINCS_SHAKE256_128_R:
+// 		case PKI_ALGOR_DILITHIUM2_AES:
+// 		case PKI_ALGOR_DILITHIUM3_AES:
+// 		case PKI_ALGOR_DILITHIUM5_AES:
+// 		case PKI_ALGOR_COMPOSITE_RSA_FALCON512:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON512:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024:
+// 		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2:
+// 		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2_AES:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5:
+// 			break;
+// #endif
+
+// 		default:
+// 			alg_nid = PKI_ALGOR_ID_UNKNOWN;
+// 			break;
+// 	}
 
 	// If the Algorithm ID is known, let's generate the
 	// PKIX algorithm data structure

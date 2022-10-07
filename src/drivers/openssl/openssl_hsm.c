@@ -315,7 +315,7 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
 
 	PKI_DEBUG("Requested Digest for Signing is %s", digest ? PKI_ID_get_txt(EVP_MD_nid(digest)) : "NULL");
-	PKI_DEBUG("Got Default Digest for PKEY %d (%s) is %d (%s) (result = %d)",
+	PKI_DEBUG("Checking Default Digest for PKEY %d (%s) is %d (%s) (result = %d)",
 		EVP_PKEY_id(pkey), PKI_ID_get_txt(EVP_PKEY_id(pkey)), def_nid, PKI_ID_get_txt(def_nid), digestResult);
 
 	// Checks for error
@@ -368,11 +368,15 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// that is equiv to a CTRL call (see <openssl/evp.h> for more details)
 	if (digest != NULL && digest != EVP_md_null()) {
 
+		// DEBUG
+		PKI_DEBUG("Setting the MD for the signing: %d (%s)", 
+			EVP_MD_nid(digest), PKI_DIGEST_ALG_get_parsed(digest));
+
 		// Sets the Digest to use when calculating the signature
 		EVP_PKEY_CTX_set_signature_md(pctx, digest);
 
 	} else {
-		
+
 		// This is a hack to accommodate for the issue with OQS where
 		// when we use the EVP_md_null() they apply the use of the MD
 		// to only the classic part of the key, until we use our own
@@ -380,6 +384,10 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 		// to NULL or we get a segfault(11).
 		digest = NULL;
 	}
+
+	// DEBUG
+	PKI_DEBUG("MD (digest) in DigestSignInit: %d (%s)", 
+		digest ? EVP_MD_nid(digest) : NID_undef, digest ? PKI_DIGEST_ALG_get_parsed(digest) : "<NULL>");
 
 	// Initializes the Digest
 	if (!EVP_DigestSignInit(ctx, NULL /* &pctx */, digest, NULL, pkey)) {

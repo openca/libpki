@@ -64,7 +64,8 @@ void usage ( void ) {
 	fprintf(stderr, "  -out <url>      - Output Data URI\n");
 	fprintf(stderr, "  -bits <num>     - Number of Bits\n");
 	fprintf(stderr, "  -type <objtype> - Type of Object\n");
-	fprintf(stderr, "  -algor <name>   - Algorithm to be used\n");
+	fprintf(stderr, "  -algor <name>   - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
+	fprintf(stderr, "  -digest <name>  - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
 #ifdef ENABLE_COMPOSITE
 	fprintf(stderr, "  -addkey <file>  - Key to be added to a composite key\n");
 #endif
@@ -517,6 +518,85 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	return ( PKI_OK );
 }
 
+int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * digest_opt) {
+
+	if ( algor_opt ) {
+		
+		int algor_id = PKI_ID_UNKNOWN;
+		PKI_X509_ALGOR_VALUE *algor = NULL;
+
+		// Retrieves the Algorithm By Name
+		algor = PKI_X509_ALGOR_VALUE_get_by_name(algor_opt);
+		if (algor == NULL) {
+			PKI_log_err("Cannot parse the algorithm for the token");
+			return PKI_ERR;
+		}
+		// Retrieves the ID of the algorithm
+		algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
+		if (algor_id == PKI_ID_UNKNOWN) {
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+			return PKI_ERR;
+		}
+		// Sets the Token's Algorithm
+		if (PKI_TOKEN_set_algor(tk, algor_id) == PKI_ERR) {
+			PKI_log_err( "Can not set algor in Token (%d)", algor_id);
+			return PKI_ERR;
+		}
+	}
+
+	if (digest_opt) {
+
+		PKI_DIGEST_ALG * digest = NULL;
+			// Requested Digest Algorithm
+
+		int sig_alg = PKI_ID_UNKNOWN;
+			// Signature Algorithm
+
+		// Checks for the NO-HASH (null) digest option
+		if (strncasecmp(digest_opt, "null", 4) == 0 ||
+		    strncasecmp(digest_opt, "no", 2) == 0) {
+			// Uses the NULL digest method to indicate we
+			// do not need the digest. NULL is used to
+			// indicated there is no preference, use the
+			// default hash algorithm instead.
+			digest = PKI_DIGEST_ALG_NULL;
+		} else {
+			// Retrieves the Digest from the provided name
+			digest = (PKI_DIGEST_ALG *) PKI_DIGEST_ALG_get_by_name(digest_opt);
+		}
+
+		if (digest == NULL) {
+			PKI_log_err("Cannot parse digest %s", digest_opt);
+			return PKI_ERR;
+		}
+
+		// Assigns the digest algorithm to the token
+		tk->digest = digest;
+
+		// Updates the algorithm
+		if (tk->keypair) {
+
+			PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
+				// Internal Value
+
+			// Gest the Signature ID for the digest/pkey combination
+			if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
+				PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
+					EVP_MD_nid(digest), EVP_PKEY_id(p_val));
+				return PKI_ERR;
+			}
+			
+			// Let's update the token's algorithm, if any
+			if (sig_alg != PKI_ID_UNKNOWN) {
+				PKI_TOKEN_set_algor(tk, sig_alg);
+			}
+		}
+	}
+
+	// All Done
+	return PKI_OK;
+}
+
 int main (int argc, char *argv[] ) {
 
 	PKI_TOKEN *tk = NULL;
@@ -542,6 +622,7 @@ int main (int argc, char *argv[] ) {
 	int newkey = 0;
 
 	char * algor_opt = NULL;
+	char * digest_opt = NULL;
 	char * hsm_name = NULL;
 	char * uri = NULL;
 	char * signkey = NULL;
@@ -617,6 +698,9 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-algor", argv[i], 6 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			algor_opt = argv[i];
+		} else if ( strncmp_nocase("-digest", argv[i], 7 ) == 0 ) {
+			if( argv[i++] == NULL ) usage();
+			digest_opt = argv[i];
 #ifdef ENABLE_COMPOSITE
 		} else if ( strncmp_nocase("-addkey", argv[i], 6 ) == 0 ) {
 			if (argv[i++] == NULL) usage();
@@ -1050,32 +1134,11 @@ int main (int argc, char *argv[] ) {
 			}
 		}
 
-		if ( algor_opt ) {
-			
-			int algor_id;
-			PKI_X509_ALGOR_VALUE *algor = NULL;
-			PKI_DIGEST_ALG * digest = NULL;
-
-			// Tries the X509 algorithms first
-			if ((algor = PKI_X509_ALGOR_VALUE_get_by_name(algor_opt)) == NULL ) {
-				// Checks the Digest Algorithms later
-				if ((digest = PKI_DIGEST_ALG_get_by_name(algor_opt)) == NULL) {
-					// Cannot find the algorithm
-					PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "%s", algor_opt);
-					return(1);
-				}
-				// Retrieves the NID
-				algor_id = EVP_MD_nid(digest);
-			} else {
-				// Gets the Algor NID
-				algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
-				// Sets the Token's Algorithm
-				if( PKI_TOKEN_set_algor ( tk, algor_id ) == PKI_ERR ) {
-					PKI_log_err( "Can not set algor in Token (%d)", algor_id);
-					return(1);
-				}
+		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
+			exit(1);
 		}
 
+		// Sets the Outfile
 		if( !outfile || (strcmp_nocase(outfile, "stdin") == 0)) outfile = "stdout";
 
 		if( !batch ) {
@@ -1197,21 +1260,8 @@ int main (int argc, char *argv[] ) {
 			return ( 1 );
 		}
 
-		if ( algor_opt ) 
-		{
-			int algor_id;
-			PKI_X509_ALGOR_VALUE *algor = NULL;
-
-			if((algor = PKI_X509_ALGOR_VALUE_get_by_name ( algor_opt )) == NULL ) {
-				PKI_log_err ("Can not set algor to %s", algor_opt);
-				return(1);
-			}
-
-			algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
-			if( PKI_TOKEN_set_algor ( tk, algor_id ) == PKI_ERR ) {
-				PKI_log_err( "Can not set algor in Token (%d)", algor_id);
-				return(1);
-			}
+		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
+			exit(1);
 		}
 
 		if ( selfsign == 1 ) {

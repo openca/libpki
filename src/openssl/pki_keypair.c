@@ -223,7 +223,7 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 	if (!pkey) return PKI_ID_UNKNOWN;
 
 	// Retrieves the default digest for the PKEY
-	int digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
+	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
 
 	// Check for error condition
 	if (digestResult <= 0) {
@@ -255,7 +255,7 @@ int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pk
 	if (!pkey) return PKI_ERR;
 
 	// Retrieves the default digest for the PKEY
-	int digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
+	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
 
 	// Check for error condition
 	if (digestResult <= 0) {

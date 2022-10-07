@@ -4,6 +4,7 @@
 #include <libpki/pki.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <libpki/pki_log.h>
 
 
 // ==========================
@@ -1258,7 +1259,7 @@ int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
 
 	// Input Checks
 	if (!tk || !digest) {
-		ERROR(PKI_ERR_PARAM_NULL, tk == NULL ? "Token" : "Digest");
+		PKI_ERROR(PKI_ERR_PARAM_NULL, tk == NULL ? "Token" : "Digest");
 		return PKI_ERR;
 	}
 
@@ -1266,7 +1267,7 @@ int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
 	// there is nothing else we need to do
 	if (!tk->keypair) {
 		// Assigns the digest
-		tk->digest = digest;
+		tk->digest = (PKI_DIGEST_ALG *)digest;
 		// All Done
 		return PKI_OK;
 	}
@@ -2554,22 +2555,26 @@ PKI_X509_CRL * PKI_TOKEN_issue_crl (const PKI_TOKEN 			   * tk,           /* sig
 int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 
 	PKI_X509_PROFILE *req_profile = NULL;
-	PKI_DIGEST_ALG *digest = NULL;
+		// Profile pointer
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
-	}
-
+	// Input checks
 	if( !tk || !tk->keypair ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return (PKI_ERR);
 	}
 
+	// Logs into the token (if not already logged)
+	if (!tk->isLoggedIn && PKI_TOKEN_login(tk) != PKI_OK) {
+		return PKI_ERR;
+	}
+
+	// If we have a request already, let's free it
 	if( tk->req ) {
 		PKI_X509_REQ_free ( tk->req );
 		tk->req = NULL; // Security
 	}
 
+	// Loads the profile
 	if( profile_s ) {
 		if((req_profile = PKI_TOKEN_search_profile(tk, profile_s)) == NULL) {
 			PKI_ERROR(PKI_ERR_CONFIG_MISSING, profile_s);
@@ -2577,34 +2582,15 @@ int PKI_TOKEN_new_req(PKI_TOKEN *tk, char *subject, char *profile_s ) {
 		};
 	};
 
-	/*
-	if( tk->algor ) {
-		if((digest = PKI_X509_ALGOR_VALUE_get_digest(tk->algor)) == PKI_DIGEST_ALG_UNKNOWN) {
-			// Error, digest algorithm not supported or recognized!
-			PKI_DEBUG("Digest Algorithm Not Supported or Recognized (%s)", PKI_X509_ALGOR_VALUE_get_parsed(tk->algor));
-			return ( PKI_ERR );
-		}
-	} else {
-		if((digest = PKI_DIGEST_ALG_get_by_key(tk->keypair)) == PKI_DIGEST_ALG_UNKNOWN) {
-			// Error, digest algorithm not supported or recognized!
-			PKI_log_debug("Can not get default Digest Algorithm for key!");
-			return ( PKI_ERR );
-		};
-	};
-	*/
-
-	if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
-
-	// if( !tk->cred ) {
-	// 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	// }
-
+	// Generates a new Request and saves it to the token
 	tk->req = PKI_X509_REQ_new( tk->keypair, subject, req_profile,
-			tk->oids, digest, tk->hsm ); 
+			tk->oids, tk->digest, tk->hsm ); 
 
-	if( !tk->req ) return (PKI_ERR);
+	// Error condition check
+	if (!tk->req) return PKI_ERR;
 
-	return ( PKI_OK );
+	// All Done
+	return PKI_OK;
 }
 
 

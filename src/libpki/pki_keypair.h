@@ -89,7 +89,7 @@ int PKI_X509_KEYPAIR_is_digest_supported(const PKI_X509_KEYPAIR * k, const PKI_D
 /// @param k A pointer to the PKI_X509_KEYPAIR_VALUE data structure
 /// @param digest A pointer to te PKI_DIGEST_ALG
 /// @return The PKI_OK value if the digest is supported, PKI_ERR otherwise
-int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pkey, const PKI_DIGEST_ALG * digest) {
+int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pkey, const PKI_DIGEST_ALG * digest);
 
 int PKI_X509_KEYPAIR_get_size(const PKI_X509_KEYPAIR *k);
 
