@@ -126,22 +126,22 @@ int pkey_oqs_signctx(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, EVP_
     unsigned int tbslen = 0;
 
     if (sig != NULL) {
-	// support any digest requested:
-	tbslen = EVP_MD_CTX_size(oqs_key->digest);
+      // support any digest requested:
+      tbslen = (unsigned int) EVP_MD_CTX_size(oqs_key->digest);
 
-	if (oqs_key->digest == NULL) { // error; ctrl not called?
-		return 0;
-	}
+      if (oqs_key->digest == NULL) { // error; ctrl not called?
+        return 0;
+      }
 
-	if((tbs = (unsigned char *)OPENSSL_malloc(tbslen)) == NULL) {
-		return 0;
-	}
+      if((tbs = (unsigned char *)OPENSSL_malloc((size_t) tbslen)) == NULL) {
+        return 0;
+      }
 
-	if(EVP_DigestFinal(oqs_key->digest, tbs, &tbslen) <= 0) {
-		return 0;
-	}
-
+      if(EVP_DigestFinal(oqs_key->digest, tbs, &tbslen) <= 0) {
+        return 0;
+      }
     }
+
     int ret = pkey_oqs_digestsign(mctx, sig, siglen, tbs, tbslen);
     if (sig != NULL) { // cleanup only if it's not the empty setup call
        OPENSSL_free(tbs);
@@ -174,7 +174,7 @@ int pkey_oqs_verifyctx(EVP_PKEY_CTX *ctx, const unsigned char *sig, int siglen,
 
     if (sig != NULL) {
         // support any digest requested:
-        tbslen = EVP_MD_CTX_size(oqs_key->digest);
+        tbslen = (unsigned int) EVP_MD_CTX_size(oqs_key->digest);
 
         if (oqs_key->digest == NULL) { // error; ctrl not called?
                 return 0;
@@ -190,7 +190,7 @@ int pkey_oqs_verifyctx(EVP_PKEY_CTX *ctx, const unsigned char *sig, int siglen,
 
     }
 
-    int ret = pkey_oqs_digestverify(mctx, sig, siglen, tbs, tbslen); 
+    int ret = pkey_oqs_digestverify(mctx, sig, (size_t) siglen, tbs, tbslen); 
     if (sig != NULL) { // cleanup only if it's not the empty setup call
        OPENSSL_free(tbs);
        EVP_MD_CTX_destroy(oqs_key->digest);
@@ -261,7 +261,7 @@ int pkey_oqs_digestsign(EVP_MD_CTX *ctx, unsigned char *sig,
     }
     if (is_hybrid) {
       classical_id = get_classical_nid(oqs_key->nid);
-      actual_classical_sig_len = get_classical_sig_len(classical_id);
+      actual_classical_sig_len = (size_t) get_classical_sig_len(classical_id);
       max_sig_len += (SIZE_OF_UINT32 + actual_classical_sig_len);
     }
 
@@ -317,7 +317,7 @@ int pkey_oqs_digestsign(EVP_MD_CTX *ctx, unsigned char *sig,
 	ECerr(EC_F_PKEY_OQS_DIGESTSIGN, ERR_R_FATAL);
 	goto end;
       }
-      if (EVP_PKEY_sign(classical_ctx_sign, sig + SIZE_OF_UINT32, &actual_classical_sig_len, digest, digest_len) <= 0) {
+      if (EVP_PKEY_sign(classical_ctx_sign, sig + SIZE_OF_UINT32, &actual_classical_sig_len, digest, (size_t)digest_len) <= 0) {
         ECerr(EC_F_PKEY_OQS_DIGESTSIGN, EC_R_SIGNING_FAILED);
         goto end;
       }
@@ -412,7 +412,7 @@ int pkey_oqs_digestverify(EVP_MD_CTX *ctx, const unsigned char *sig,
 	ECerr(EC_F_PKEY_OQS_DIGESTVERIFY, ERR_R_FATAL);
 	return 0;
       }
-      if (EVP_PKEY_verify(ctx_verify, sig + SIZE_OF_UINT32, actual_classical_sig_len, digest, digest_len) <= 0) {
+      if (EVP_PKEY_verify(ctx_verify, sig + SIZE_OF_UINT32, actual_classical_sig_len, digest, (size_t)digest_len) <= 0) {
 	ECerr(EC_F_PKEY_OQS_DIGESTVERIFY, EC_R_VERIFICATION_FAILED);
 	return 0;
       }

@@ -507,7 +507,7 @@ int get_oqs_security_bits(int openssl_nid)
  * Frees the OQS_KEY, including its keys.
  */
 void oqs_pkey_ctx_free(OQS_KEY* key) {
-  int privkey_len = 0;
+  size_t privkey_len = 0;
   if (key == NULL) {
     return;
   }
@@ -532,7 +532,7 @@ void oqs_pkey_ctx_free(OQS_KEY* key) {
  */
 const char *OQSKEM_options(void)
 {
-    int offset;
+    size_t offset;
 // TODO: Revisit which OQS_COMPILE_FLAGS to show
 #ifdef OQS_COMPILE_CFLAGS
     const char* OQSKEMALGS = "OQS KEM build : ";
@@ -551,7 +551,7 @@ const char *OQSKEM_options(void)
     for (i=0; i<OQS_OPENSSL_KEM_algs_length;i++) {
        const char* name = OBJ_nid2sn(oqssl_kem_nids_list[i]);
        if (OQS_KEM_alg_is_enabled(get_oqs_alg_name(oqssl_kem_nids_list[i]))) {
-           int l = strlen(name);
+           unsigned long l = strlen(name);
            memcpy(result+offset, name, l);
            if (i<OQS_OPENSSL_KEM_algs_length-1) {
               result[offset+l]=',';
@@ -567,7 +567,7 @@ const char *OQSKEM_options(void)
  */
 const char *OQSSIG_options(void)
 {
-    int offset;
+    size_t offset;
 // TODO: Revisit which OQS_COMPILE_FLAGS to show
 #ifdef OQS_COMPILE_CFLAGS
     const char* OQSSIGALGS = "OQS SIG build : ";
@@ -578,7 +578,8 @@ const char *OQSSIG_options(void)
 #else
     const char* OQSSIGALGS = "";
     char* result =  OPENSSL_zalloc(OQS_OPENSSL_SIG_algs_length*40); // OK, a bit pessimistic but this will be removed very soon...
-    memcpy(result, OQSSIGALGS, offset = strlen(OQSSIGALGS));
+    offset = strlen(OQSSIGALGS);
+    memcpy(result, OQSSIGALGS, offset);
 #endif
 
     result[offset++]='-';
@@ -586,7 +587,7 @@ const char *OQSSIG_options(void)
     for (i=0; i<OQS_OPENSSL_SIG_algs_length;i++) {
        const char* name = OBJ_nid2sn(oqssl_sig_nids_list[i]);
        if (OQS_SIG_alg_is_enabled(get_oqs_alg_name(oqssl_sig_nids_list[i]))) {
-           int l = strlen(name);
+           size_t l = strlen(name);
            memcpy(result+offset, name, l);
            if (i<OQS_OPENSSL_SIG_algs_length-1) {
               result[offset+l]=',';

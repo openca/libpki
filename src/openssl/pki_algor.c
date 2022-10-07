@@ -680,7 +680,6 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *alg
 PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor) {
 
 	PKI_ALGOR_ID id, pkey_id, digest_id;
-	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 
 	if (!algor) return PKI_SCHEME_UNKNOWN;
 
@@ -720,8 +719,6 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 
 #endif
 
-		default:
-			ret = PKI_SCHEME_UNKNOWN;
 	}
 
 	// Let's see if we can find the scheme via the
