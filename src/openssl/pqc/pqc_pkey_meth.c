@@ -14,6 +14,10 @@ int pkey_oqs_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src)
     return 1;
 }
 
+int pkey_oqs_keygen_init(EVP_PKEY_CTX *ctx) {
+  return 1;
+}
+
 int pkey_oqs_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
 {
     OQS_KEY *oqs_key = NULL;
@@ -82,10 +86,6 @@ int pkey_oqs_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
     if (keygen_ctx) EVP_PKEY_CTX_free(keygen_ctx);
     if (oqs_key && rv == 0) oqs_pkey_ctx_free(oqs_key);
     return rv;
-}
-
-int pkey_oqs_keygen_init() {
-  return 1;
 }
 
 int pkey_oqs_sign_init(EVP_PKEY_CTX *ctx) {
@@ -432,19 +432,3 @@ int pkey_oqs_digestverify(EVP_MD_CTX *ctx, const unsigned char *sig,
 int pkey_oqs_digestcustom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
    return 1;
 }
-
-// ///// OQS_TEMPLATE_FRAGMENT_DEFINE_OQS_EVP_METHS_START
-// DEFINE_OQS_EVP_METHODS(DILITHIUMX, NID_dilithium3, "dilithiumX", "OpenSSL DilithiumX algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium3, NID_dilithium3, "dilithium3", "OpenSSL Dilithium3 algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium5, NID_dilithium5, "dilithium5", "OpenSSL Dilithium5 algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium2_aes, NID_dilithium2_aes, "dilithium2_aes", "OpenSSL Dilithium2_AES algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium3_aes, NID_dilithium3_aes, "dilithium3_aes", "OpenSSL Dilithium3_AES algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium5_aes, NID_dilithium5_aes, "dilithium5_aes", "OpenSSL Dilithium5_AES algorithm")
-// DEFINE_OQS_EVP_METHODS(falcon512, NID_falcon512, "falcon512", "OpenSSL Falcon-512 algorithm")
-// DEFINE_OQS_EVP_METHODS(falcon1024, NID_falcon1024, "falcon1024", "OpenSSL Falcon-1024 algorithm")
-// DEFINE_OQS_EVP_METHODS(picnic3l1, NID_picnic3l1, "picnic3l1", "OpenSSL Picnic3 L1 algorithm")
-// DEFINE_OQS_EVP_METHODS(rainbowVclassic, NID_rainbowVclassic, "rainbowVclassic", "OpenSSL Rainbow-V-Classic algorithm")
-// DEFINE_OQS_EVP_METHODS(sphincsharaka128frobust, NID_sphincsharaka128frobust, "sphincsharaka128frobust", "OpenSSL SPHINCS+-Haraka-128f-robust algorithm")
-// DEFINE_OQS_EVP_METHODS(sphincssha256128frobust, NID_sphincssha256128frobust, "sphincssha256128frobust", "OpenSSL SPHINCS+-SHA256-128f-robust algorithm")
-// DEFINE_OQS_EVP_METHODS(sphincsshake256128frobust, NID_sphincsshake256128frobust, "sphincsshake256128frobust", "OpenSSL SPHINCS+-SHAKE256-128f-robust algorithm")
-// ///// OQS_TEMPLATE_FRAGMENT_DEFINE_OQS_EVP_METHS_END

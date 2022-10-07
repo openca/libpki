@@ -45,6 +45,11 @@ int oqssl_sig_nids_list[] = {
         NID_rsa3072_sphincsshake256128frobust,
 /////// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_NIDS_END
 };
+#ifdef OQS_OPENSSL_SIG_algs_length
+#undef OQS_OPENSSL_SIG_algs_length
+#endif
+
+#define OQS_OPENSSL_SIG_algs_length 36
 
 int oqssl_kem_nids_list[] = {
 ///// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_KEM_NIDS_START
@@ -78,6 +83,14 @@ int oqssl_kem_nids_list[] = {
         NID_sntrup857,
 /////// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_KEM_NIDS_END
 };
+
+// Size of the oqssl_kem_nids_list
+#ifdef OQS_OPENSSL_KEM_algs_length
+#undef OQS_OPENSSL_KEM_algs_length
+#endif
+
+#define OQS_OPENSSL_KEM_algs_length 28
+
 
 int* sig_nid_list = NULL;
 int* kem_nid_list = NULL;

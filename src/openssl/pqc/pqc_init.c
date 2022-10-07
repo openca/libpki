@@ -1,7 +1,4 @@
 
-#ifndef _LIBPKI_PQC_METH_H
-#include <libpki/openssl/pqc/pqc_meth.h>
-#endif
 
 #ifndef _LIBPKI_PQC_DEFS_H
 #include <libpki/openssl/pqc/pqc_defs.h>

@@ -34,7 +34,7 @@ BEGIN_C_DECLS
 
 int pkey_oqs_copy(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src);
 
-int pkey_oqs_keygen_init(EVP_PKEY_CTX *ctx, EVP_PKEY * pkey);
+int pkey_oqs_keygen_init(EVP_PKEY_CTX *ctx);
 
 int pkey_oqs_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey);
 

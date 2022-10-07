@@ -124,8 +124,8 @@ int _init_pqc() {
 	// if (!EVP_PKEY_asn1_add0(&dilithiumX_asn1_meth)) return 0;
 	
 	// EVP_PKEY_asn1_meth_set_id(&DILITHIUMX_ASN1_METH, OBJ_txt2nid(OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
-	// if (EVP_PKEY_meth_add0(&DILITHIUMX_PKEY_METH)) \
-	// 	{ EVP_PKEY_asn1_add0(&DILITHIUMX_ASN1_METH); }     \
+	// if (EVP_PKEY_meth_add0(&DILITHIUMX_PKEY_METH)) 
+	// 	{ EVP_PKEY_asn1_add0(&DILITHIUMX_ASN1_METH); }   
 	// else { PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot add PKEY method"); }
 
 	PKI_PQC_init();
@@ -172,31 +172,51 @@ int PKI_init_all( void ) {
 	// Initialize OpenSSL so that it adds all 
 	// the needed algor and digest
 	if( _libpki_init == 0 ) {
+
+		// Enables Logging/Debugging during init
+		PKI_log_init (PKI_LOG_TYPE_STDERR, PKI_LOG_INFO,
+					  NULL,
+                      PKI_LOG_FLAGS_ENABLE_DEBUG,
+					  NULL );
+
+		// OpenSSL init
 		X509V3_add_standard_extensions();
 		OpenSSL_add_all_algorithms();
 		OpenSSL_add_all_digests();
 		OpenSSL_add_all_ciphers();
+
+		// Pthread Initialization
 		OpenSSL_pthread_init();
 
+		// OpenSSL Error Interface Init
 		ERR_load_ERR_strings();
 		ERR_load_crypto_strings();
 
+		// PKI Discovery Services
 		PRQP_init_all_services();
+
+		// SCEP Init
 		PKI_X509_SCEP_init();
+
+		// Parser for Config files
 		xmlInitParser();
 
+		// Initializes the SSL layer
 		SSL_library_init();
 
-		// Initializes the extra OIDs
+		// Initializes the OID layer
 		PKI_X509_OID_init();
 
 #ifdef ENABLE_OQS
+		// Post-Quantum Crypto Implementation
 		_init_pqc();
 #endif
 #ifdef ENABLE_COMPOSITE
+		// Composite Crypto (multi-keys AND)
 		_init_composite();
 #endif
 #ifdef ENABLE_COMBINED
+		// Multikey Crypto (multi-keys OR)
 		_init_combined();
 #endif
 	}

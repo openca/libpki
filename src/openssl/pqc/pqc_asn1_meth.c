@@ -69,14 +69,13 @@ int oqs_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
     OQS_KEY *oqs_key = NULL;
     int id = pkey->ameth->pkey_id;
     int is_hybrid = is_oqs_hybrid_alg(id);
-    int index = 0;
+    size_t index = 0;
 
     if (!X509_PUBKEY_get0_param(NULL, &p, &pklen, &palg, pubkey)) {
         return 0;
     }
     if (p == NULL) {
-      /* pklen is checked below, after we instantiate the oqs_key to
-	 learn the max len */
+      /* pklen is checked below, after we instantiate the oqs_key to learn the max len */
       ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
       return 0;
     }
@@ -113,23 +112,23 @@ int oqs_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
       uint32_t actual_classical_pubkey_len;
       DECODE_UINT32(actual_classical_pubkey_len, p);
       if (is_EC_nid(classical_id)) {
-	if (!decode_EC_key(KEY_TYPE_PUBLIC, classical_id, p + SIZE_OF_UINT32, (int) actual_classical_pubkey_len, oqs_key)) {
-	  ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
-	  goto err;
-	}
+        if (!decode_EC_key(KEY_TYPE_PUBLIC, classical_id, p + SIZE_OF_UINT32, (int) actual_classical_pubkey_len, oqs_key)) {
+          ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
+          goto err;
+        }
       } else {
-	const unsigned char* pubkey_temp = p + SIZE_OF_UINT32;
-	oqs_key->classical_pkey = d2i_PublicKey(classical_id, &oqs_key->classical_pkey, &pubkey_temp, actual_classical_pubkey_len);
-	if (oqs_key->classical_pkey == NULL) {
-	  ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
-	  goto err;
-	}
+        const unsigned char* pubkey_temp = p + SIZE_OF_UINT32;
+        oqs_key->classical_pkey = d2i_PublicKey(classical_id, &oqs_key->classical_pkey, &pubkey_temp, actual_classical_pubkey_len);
+        if (oqs_key->classical_pkey == NULL) {
+          ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
+          goto err;
+        }
       }
 
       index += (SIZE_OF_UINT32 + actual_classical_pubkey_len);
     }
     /* decode PQC public key */
-    memcpy(oqs_key->pubkey, p + index, oqs_key->s->length_public_key);
+    memcpy(oqs_key->pubkey, (char *) (p + index), oqs_key->s->length_public_key);
 
     EVP_PKEY_assign(pkey, id, oqs_key);
     return 1;
@@ -228,11 +227,11 @@ int oqs_priv_decode(EVP_PKEY *pkey, const PKCS8_PRIV_KEY_INFO *p8)
 	  goto err;
 	}
       }
-      index += (SIZE_OF_UINT32 + actual_classical_privkey_len);
+      index += (int)(SIZE_OF_UINT32 + actual_classical_privkey_len);
     }
     /* decode private key */
-    memcpy(oqs_key->privkey, p + index, oqs_key->s->length_secret_key);
-    index += oqs_key->s->length_secret_key;
+    memcpy(oqs_key->privkey, (char *)(p + index), oqs_key->s->length_secret_key);
+    index += (int)oqs_key->s->length_secret_key;
 
     /* decode public key */
     memcpy(oqs_key->pubkey, p + index, oqs_key->s->length_public_key);
@@ -287,12 +286,12 @@ int oqs_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
       }
       ENCODE_UINT32(buf, actual_classical_privkey_len);
       classical_privkey_len = SIZE_OF_UINT32 + (uint32_t) actual_classical_privkey_len;
-      index += classical_privkey_len;
+      index += (int) classical_privkey_len;
     }
 
     /* encode the pqc private key */
     memcpy(buf + index, oqs_key->privkey, oqs_key->s->length_secret_key);
-    index += oqs_key->s->length_secret_key;
+    index += (int)oqs_key->s->length_secret_key;
 
     /* encode the pqc public key */
     memcpy(buf + index, oqs_key->pubkey, oqs_key->s->length_public_key);
