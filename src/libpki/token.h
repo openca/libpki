@@ -43,13 +43,22 @@ int PKI_TOKEN_init (PKI_TOKEN * const tk, const char * const conf_url, const cha
 PKI_OID *PKI_TOKEN_OID_new ( PKI_TOKEN *tk, char *oid_s );
 int PKI_TOKEN_check ( PKI_TOKEN *tk );
 
-/* Configuration options */
+// X509 Algorithm
 PKI_X509_ALGOR_VALUE *PKI_TOKEN_get_algor( PKI_TOKEN *tk );
 int PKI_TOKEN_get_algor_id( PKI_TOKEN *tk );
 int PKI_TOKEN_set_algor( PKI_TOKEN *tk, PKI_ALGOR_ID algor );
 int PKI_TOKEN_set_algor_by_name( PKI_TOKEN *tk, const char *algName );
 int PKI_TOKEN_X509_REQ_profile_set( PKI_TOKEN *tk, PKI_X509_PROFILE *req_prof );
 int PKI_TOKEN_X509_CERT_profile_set( PKI_TOKEN *tk, PKI_X509_PROFILE *cert_prof );
+
+// Algorithm Digest
+int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest);
+int PKI_TOKEN_set_digest_id(PKI_TOKEN * tk, PKI_ALGOR_ID digest_id);
+int PKI_TOKEN_set_digest_by_name(PKI_TOKEN * tk, const char * digest_name);
+const PKI_DIGEST_ALG * PKI_TOKEN_get_digest(PKI_TOKEN * tk);
+int PKI_TOKEN_get_digest_id(PKI_TOKEN * tk);
+const char * PKI_TOKEN_get_digest_name(PKI_TOKEN * tk);
+
 
 /// @brief Sets the HSM in a token
 /// @param tk is the token to update

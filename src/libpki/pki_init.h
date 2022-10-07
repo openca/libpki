@@ -3,8 +3,20 @@
 #ifndef _LIBPKI_INIT_H
 #define _LIBPKI_INIT_H
 
+#ifndef _LIBPKI_STACK_H
+#include <libpki/stack.h>
+#endif
+
+// ==================
+// Defines and Macros
+// ==================
+
 #define PKI_STATUS_NOT_INIT			0
 #define PKI_STATUS_INIT				1
+
+// ===================
+// Function Prototypes
+// ===================
 
 int PKI_init_all( void ) __attribute__((constructor));
 void PKI_final_all ( void );

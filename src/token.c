@@ -2,7 +2,6 @@
 
 #include <strings.h>
 #include <libpki/pki.h>
-
 #include <sys/types.h>
 #include <dirent.h>
 
@@ -1254,6 +1253,61 @@ PKI_X509_ALGOR_VALUE * PKI_TOKEN_get_algor( PKI_TOKEN *tk )
 
 	return tk->algor;
 }
+
+int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
+
+	// Input Checks
+	if (!tk || !digest) {
+		ERROR(PKI_ERR_PARAM_NULL, tk == NULL ? "Token" : "Digest");
+		return PKI_ERR;
+	}
+
+	// If there is no Keypair associated with the token,
+	// there is nothing else we need to do
+	if (!tk->keypair) {
+		// Assigns the digest
+		tk->digest = digest;
+		// All Done
+		return PKI_OK;
+	}
+
+	// Extracts the keypair value
+	PKI_X509_KEYPAIR_VALUE * k_val = PKI_X509_get_value(tk->keypair);
+	if (!k_val) return PKI_ERR;
+
+	// Checks if the algorithm is supported by the key
+	if (PKI_ERR == PKI_X509_KEYPAIR_is_digest_supported(tk->keypair, digest)) {
+		// The Digest is not supported, let's report the error
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Digest Algorithm not supported by the key");
+		return PKI_ERR;
+	}
+
+	// Let's get the X509 algorithm from key and digest
+	int alg_nid = PKI_ID_UNKNOWN;
+	if (!OBJ_find_sigid_by_algs(&alg_nid, EVP_MD_nid(digest), EVP_PKEY_id(k_val))) {
+		PKI_ERROR(PKI_ERR_ALGOR_SET, "Error while setting the X509 algorithm");
+		return PKI_ERR;
+	}
+
+	// Checks the value
+	if (alg_nid == PKI_ID_UNKNOWN) {
+		PKI_ERROR(PKI_ERR_ALGOR_SET, "Combined PKEY and MD Algorithm is UNKNOWN");
+		return PKI_ERR;
+	}
+
+	// Sets the Token's Algorithm
+	tk->algor = PKI_X509_ALGOR_VALUE_new_type(alg_nid);
+
+	// All Done.
+	return PKI_OK;
+}
+
+int PKI_TOKEN_set_digest_id(PKI_TOKEN * tk, PKI_ALGOR_ID digest_id);
+int PKI_TOKEN_set_digest_by_name(PKI_TOKEN * tk, const char * digest_name);
+const PKI_DIGEST_ALG * PKI_TOKEN_get_digest(PKI_TOKEN * tk);
+int PKI_TOKEN_get_digest_id(PKI_TOKEN * tk);
+const char * PKI_TOKEN_get_digest_name(PKI_TOKEN * tk);
+
 
 /*!
  * \brief Generates a PKI_X509_KEYPAIR and store it in a PKI_TOKEN.

@@ -14,13 +14,12 @@
  *
  */
 
+#ifndef _LIBPKI_STACK_H
+#define _LIBPKI_STACK_H
 
 #ifndef _LIBPKI_PKI_DATATYPES_H
 # include <libpki/datatypes.h>
 #endif
-
-#ifndef _LIBPKI_STACK_H
-#define _LIBPKI_STACK_H
 
 /*!
  * \brief Data structure for PKI_STACK nodes (INTERNAL ONLY)

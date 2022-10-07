@@ -839,14 +839,8 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		};
 
-		PKI_log_debug("Profile Added to Token: Ok.");
+		PKI_DEBUG("Profile Added to Token: Ok.");
 	};
-
-	/*
-	if( tk ) {
-		PKI_TOKEN_login ( tk );
-	};
-	*/
 
 	if ( strncmp_nocase("version", cmd, 3) == 0 ) {
 		version();
@@ -1056,21 +1050,30 @@ int main (int argc, char *argv[] ) {
 			}
 		}
 
-		if ( algor_opt ) 
-		{
+		if ( algor_opt ) {
+			
 			int algor_id;
 			PKI_X509_ALGOR_VALUE *algor = NULL;
+			PKI_DIGEST_ALG * digest = NULL;
 
+			// Tries the X509 algorithms first
 			if ((algor = PKI_X509_ALGOR_VALUE_get_by_name(algor_opt)) == NULL ) {
-				PKI_log_err ("Can not get algor by name [%s]", algor_opt);
-				return(1);
-			}
-
-			algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
-			if( PKI_TOKEN_set_algor ( tk, algor_id ) == PKI_ERR ) {
-				PKI_log_err( "Can not set algor in Token (%d)", algor_id);
-				return(1);
-			}
+				// Checks the Digest Algorithms later
+				if ((digest = PKI_DIGEST_ALG_get_by_name(algor_opt)) == NULL) {
+					// Cannot find the algorithm
+					PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "%s", algor_opt);
+					return(1);
+				}
+				// Retrieves the NID
+				algor_id = EVP_MD_nid(digest);
+			} else {
+				// Gets the Algor NID
+				algor_id = PKI_X509_ALGOR_VALUE_get_id (algor);
+				// Sets the Token's Algorithm
+				if( PKI_TOKEN_set_algor ( tk, algor_id ) == PKI_ERR ) {
+					PKI_log_err( "Can not set algor in Token (%d)", algor_id);
+					return(1);
+				}
 		}
 
 		if( !outfile || (strcmp_nocase(outfile, "stdin") == 0)) outfile = "stdout";

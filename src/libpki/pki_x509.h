@@ -3,6 +3,14 @@
 #ifndef _LIBPKI_PKI_X509_H
 #define _LIBPKI_PKI_X509_H
 
+#ifndef _LIBPKI_HSM_MAIN_H
+#include <libpki/drivers/hsm_main.h>
+#endif
+
+// ===================
+// Function Prototypes
+// ===================
+
 const PKI_X509_CALLBACKS *PKI_X509_CALLBACKS_get ( PKI_DATATYPE type, struct hsm_st *hsm );
 
 PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm );

@@ -1,10 +1,10 @@
 /* openssl/pki_pkey.c */
 
-#include <libpki/pki.h>
-
 /* Internal usage only - we want to keep the lib abstract */
 #ifndef _LIBPKI_HSM_OPENSSL_PKEY_H
 #define _LIBPKI_HSM_OPENSSL_PKEY_H
+
+#include <libpki/pki.h>
 
 PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp );
 PKI_DSA_KEY * _pki_dsakey_new( PKI_KEYPARAMS *kp );

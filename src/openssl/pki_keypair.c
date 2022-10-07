@@ -192,6 +192,92 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_get_algor (const PKI_X509_KEYPAIR *k ) {
 }
 
 
+int PKI_X509_KEYPAIR_get_id(const PKI_X509_KEYPAIR * key) {
+
+	// Input check
+	if (!key || !key->value) return PKI_ID_UNKNOWN;
+
+	// Forward
+	return PKI_X509_KEYPAIR_VALUE_get_id(key->value);
+}
+
+int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey) {
+
+	// Input Check
+	if (!pkey) return PKI_ID_UNKNOWN;
+
+	// Returns the PKEY ID
+	return EVP_PKEY_id(pkey);
+}
+
+int PKI_X509_KEYPAIR_get_default_digest(const PKI_X509_KEYPAIR * key) {
+    return PKI_X509_KEYPAIR_VALUE_get_default_digest(key ? key->value : NULL);
+}
+
+int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pkey) {
+
+	int def_nid = PKI_ID_UNKNOWN;
+		// Return Value
+
+	// Input Check
+	if (!pkey) return PKI_ID_UNKNOWN;
+
+	// Retrieves the default digest for the PKEY
+	int digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
+
+	// Check for error condition
+	if (digestResult <= 0) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+		return PKI_ID_UNKNOWN;
+	}
+
+	// All Done
+	return def_nid;
+}
+
+int PKI_X509_KEYPAIR_is_digest_supported(const PKI_X509_KEYPAIR * k, const PKI_DIGEST_ALG * digest) {
+
+	// Input Check
+	if (!k || !k->value) return PKI_ERR;
+
+	return PKI_X509_KEYPAIR_VALUE_is_digest_supported(k->value, digest);
+}
+
+int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pkey, const PKI_DIGEST_ALG * digest) {
+
+	int def_nid = PKI_ID_UNKNOWN;
+		// Default digest ID
+
+	int algor_nid = PKI_ID_UNKNOWN;
+		// Combined algorithms ID
+
+	// Input Check
+	if (!pkey) return PKI_ERR;
+
+	// Retrieves the default digest for the PKEY
+	int digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
+
+	// Check for error condition
+	if (digestResult <= 0) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+		return PKI_ID_UNKNOWN;
+	}
+
+	// Checks if the returned default is the mandatory one
+	if (digestResult == 2 && EVP_MD_nid(digest) != def_nid) {
+		return PKI_ERR;
+	}
+
+	// Checks the combined OID existence
+	if (!OBJ_find_sigid_by_algs(&algor_nid, EVP_MD_nid(digest), EVP_PKEY_id(pkey))) {
+		// Combined Algorithm is not found
+		return PKI_ERR;
+	}
+
+	// All Done
+	return PKI_OK;
+}
+
 /*!
  * \brief Returns the default signing algorithm from a keypair value
  */
@@ -323,39 +409,12 @@ int PKI_X509_KEYPAIR_VALUE_get_size (const PKI_X509_KEYPAIR_VALUE *pKey ) {
 	};
 
 	return EVP_PKEY_bits((PKI_X509_KEYPAIR_VALUE *)pKey);
-
-/*
-	switch ( PKI_X509_KEYPAIR_VALUE_get_scheme( pKey ) ) {
-		case PKI_SCHEME_DSA:
-		case PKI_SCHEME_RSA:
-			ret = EVP_PKEY_size ( pKey );
-			break;
-
-#ifdef ENABLE_ECDSA
-		case PKI_SCHEME_ECDSA:
-			if ((order = BN_new()) != NULL) {
-				const EC_GROUP *group;
-
-				if ((group = EC_KEY_get0_group(pKey->pkey.ec)) != NULL) {
-    				if (EC_GROUP_get_order(group, order, NULL)) {
-        				ret = BN_num_bits(order);
-					};
-				};
-
-				if( order ) BN_free ( order );
-			};
-			break;
-	};
-#endif
-*/
-
-	return ret;
 }
 
 /*! \brief Returns the (unsigned char *) digest of a pubkey value */
 
 PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pkey,
-					       const PKI_DIGEST_ALG         * md) {
+					       					   const PKI_DIGEST_ALG         * md) {
 
 	X509_PUBKEY *xpk = NULL;
 	PKI_DIGEST * ret = NULL;

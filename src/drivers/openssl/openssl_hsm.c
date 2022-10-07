@@ -1,8 +1,7 @@
 /* HSM Object Management Functions */
 
-#include <strings.h>
-#include <libpki/pki.h>
-#include <libpki/hsm_st.h>
+// Single Include
+#include <libpki/drivers/openssl/openssl_hsm.h>
 
 /* Callbacks for Software OpenSSL HSM */
 const HSM_CALLBACKS openssl_hsm_callbacks = {

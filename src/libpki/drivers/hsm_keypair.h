@@ -3,6 +3,10 @@
 #ifndef _LIBPKI_HSM_MAIN_KEYPAIR_H
 #define _LIBPKI_HSM_MAIN_KEYPAIR_H
 
+#ifndef _LIBPKI_X509_KEYPAIR_HEADER_H
+#include <libpki/pki_keypair.h>
+#endif
+
 /* -------------------- Key Management Functions --------------------- */
 
 /* Generate a new Keypair */
