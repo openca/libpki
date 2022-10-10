@@ -105,7 +105,7 @@ static char *prqp_exts_services[] = {
 	"1.3.6.1.5.5.7.48.12.1", "ocspServer", "OCSP Server",
 	"1.3.6.1.5.5.7.48.12.2", "subjectCert", "Subject Certificate Retieval URI",
 	"1.3.6.1.5.5.7.48.12.3", "issuerCert", "Issuer's Certificate Retieval URI",
-	"1.3.6.1.5.5.7.48.12.4", "timeStamping", "TimeStamping Service",
+	"1.3.6.1.5.5.7.48.12.4", "timeStamp", "TimeStamping Service",
 	/* PKIX - not yet defined */
 	"1.3.6.1.5.5.7.48.12.5", "scvp", "SCVP Service",
 	"1.3.6.1.5.5.7.48.12.6", "crlDistribution", "Latest CRL URI",
@@ -147,7 +147,7 @@ static char *prqp_exts_services[] = {
 	/* CA Incident report URL */
 	"1.3.6.1.5.5.7.48.90", "caIncidentReport", "CA Incident Report URL",
 	/* Private Services */
-	"1.3.6.1.5.5.7.48.12.100", "private", "Private Service",
+	"1.3.6.1.5.5.7.48.12.100", "privateSvc", "Private Service",
 	/* Other PKI */
 	// "2.5.29.27", "deltaCrl", "Delta CRL Base Address",
 	// "2.5.29.31", "crl", "CRL Repository",

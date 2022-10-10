@@ -187,38 +187,38 @@ int PRQP_init_all_services ( void ) {
 
 	int i, ret;
 
-        i = 0;
-
-	// PKI_log_debug("PRQP_init_all_services() started!");
-
-        while( prqp_exts[i] && prqp_exts[i+1] ) {
-		// PKI_log_debug("PRQP_init_all_services():adding PRQP ext %s",
-		// 					prqp_exts[i+1] );
-                if((ret = OBJ_create(prqp_exts[i], prqp_exts[i+1], 
-				prqp_exts[i+2])) == NID_undef) {
-			PKI_log_debug("PRQP_init_all_services():Failed to add "
-				" PRQP ext %s", prqp_exts[i+1] );
-                        return 0;
-                }
-                i = i+3;
-        }
-
+	// Sets the Index
 	i = 0;
-        while( prqp_exts_services[i] && prqp_exts_services[i+1] ) {
-		// PKI_log_debug("PRQP_init_all_services():adding PRQP service %s",
-		// 				prqp_exts_services[i+1] );
-                if((ret = OBJ_create(prqp_exts_services[i], 
-			prqp_exts_services[i+1], prqp_exts_services[i+2])) 
-								== NID_undef) {
-			PKI_log_debug("PRQP_init_all_services():Failed to add "
-				" PRQP service %s", prqp_exts_services[i+1] );
-                        return 0;
-                }
-                i = i+3;
-        }
 
-        return 1;
+	// Creates the PRQP objects
+	while (prqp_exts[i] && prqp_exts[i+1]) {
+		if ((ret = OBJ_create(prqp_exts[i], 
+							  prqp_exts[i+1],
+							  prqp_exts[i+2])) == NID_undef) {
+			// Error Condition
+			PKI_ERROR(PKI_RESOURCE_TYPE_PRQP, "Failed to add PRQP ext %s", prqp_exts[i+1] );
+			return 0;
+		}
+		i = i+3;
+	}
 
+	// Resets the Index
+	i = 0;
+
+	// Creates the PRQP objects
+	while( prqp_exts_services[i] && prqp_exts_services[i+1] ) {
+		// Creates a new object
+		if((ret = OBJ_create(prqp_exts_services[i], 
+							 prqp_exts_services[i+1],
+							 prqp_exts_services[i+2])) == NID_undef) {
+			// Error Condition
+			PKI_log_debug("PRQP_init_all_services():Failed to add PRQP service %s", prqp_exts_services[i+1] );
+			return 0;
+		}
+		i = i+3;
+	}
+
+	return 1;
 }
 
 /*! \brief Generates a new CERT_IDENTIFIER to be used in a PRQP request */

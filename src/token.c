@@ -1074,8 +1074,14 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 
 	if( PKI_TOKEN_load_profiles( tk, buff ) != PKI_OK )
 	{
-		/* We should check why... */
-		if (conf_dir) PKI_DEBUG("Can not load profiles (%s)", buff);
+		// If the failure happens when we were passed
+		// a directory name, we need to inform the caller,
+		// otherwise there is no need to use an error message
+		// for the default config directory
+		if (conf_dir) {
+			/* We should check why... */
+			PKI_ERROR(PKI_ERR_CONFIG_LOAD, "Can not load profiles (%s)", buff);
+		}
 	};
 
 	/* Now let's try to load the HSM configuration file */
@@ -2892,25 +2898,22 @@ int PKI_TOKEN_load_profiles ( PKI_TOKEN *tk, char *urlStr )
 	{
 		if ((tk->profiles = PKI_STACK_X509_PROFILE_new()) == NULL)
 		{
-			URL_free (url);
+			if (url) URL_free (url);
 			return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		}
 	}
 
 	if (url->proto != URI_PROTO_FILE)
 	{
-		URL_free(url);
-		PKI_log_debug("ERROR, only file:// is currently supported for profiles loading!");
-
+		if (url) URL_free(url);
+		PKI_ERROR(PKI_ERR_CONFIG_LOAD, "only file:// is currently supported for profiles loading!");
 		return PKI_ERR;
 	}
 
 	if ((dirp = opendir(url->addr)) == NULL)
 	{
-		PKI_DEBUG("Can not open directory %s!", url->addr ? url->addr : "<null>" );
-
-		URL_free(url);
-
+		if (url) URL_free(url);
+		// return PKI_ERROR(PKI_ERR_CONFIG_LOAD, "Can not open directory %s!", url->addr ? url->addr : "<null>" );
 		return PKI_ERR;
 	}
 	else
