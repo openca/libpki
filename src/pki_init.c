@@ -76,7 +76,7 @@ static int _init_composite() {
 	//   EVP_PKEY_asn1_meth_set_XXX(composite_asn1_method, .... );
 
 	// Retrieves the COMPOSITE id
-	int composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_COMP_OID);
+	int composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
 
 	// Assigns the generated IDs
 	EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, composite_id);

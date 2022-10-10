@@ -61,6 +61,27 @@ static int oqs_sig_info_set_##ALG(X509_SIG_INFO *siginf, const X509_ALGOR *alg, 
     return 1;                                                                    \
 }
 
+// Generic ASN1 Method NID-dependent define macro
+#define DEFINE_ITEM_SIGN_AND_INFO_SET(ALG)     \
+static int oqs_item_sign_##ALG(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,\
+                         X509_ALGOR *alg1, X509_ALGOR *alg2,                   \
+                         ASN1_BIT_STRING *str)                                 \
+{                                                                              \
+    /* Set algorithm identifier */                                             \
+    X509_ALGOR_set0(alg1, OBJ_txt2obj(#ALG,0), V_ASN1_UNDEF, NULL);              \
+    if (alg2 != NULL)                                                          \
+        X509_ALGOR_set0(alg2, OBJ_txt2obj(#ALG,0), V_ASN1_UNDEF, NULL);          \
+    /* Algorithm identifier set: carry on as normal */                         \
+    return 3;                                                                  \
+}                                                                              \
+static int oqs_sig_info_set_##ALG(X509_SIG_INFO *siginf, const X509_ALGOR *alg,    \
+                            const ASN1_STRING *sig)                                \
+{                                                                                  \
+    X509_SIG_INFO_set(siginf, NID_sha512, OBJ_sn2nid(#ALG), get_oqs_security_bits(OBJ_txt2nid(#ALG)), \
+                      X509_SIG_INFO_TLS);                                          \
+    return 1;                                                                      \
+}
+
 // =================
 // ASN1 Method Tools
 // =================

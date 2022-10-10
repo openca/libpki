@@ -252,8 +252,14 @@ char* _get_oqs_alg_name(int openssl_nid)
     case NID_p384_sntrup857:
       return OQS_KEM_alg_ntruprime_sntrup857;
 ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_SIG_ALG_END
+
+    // Experimental
     default:
-      return NULL;
+      if (openssl_nid == OBJ_sn2nid("DilithiumX")) {
+        return OQS_SIG_alg_dilithium_5;
+      } else {
+        return NULL;
+      }
   }
 }
 
@@ -414,7 +420,7 @@ int get_classical_sig_len(int classical_id)
  */
 int oqs_key_init(OQS_KEY **p_oqs_key, int nid, oqs_key_type_t keytype) {
     OQS_KEY *oqs_key = NULL;
-    const char* oqs_alg_name = get_oqs_alg_name(nid);
+    const char* oqs_alg_name = _get_oqs_alg_name(nid);
 
     oqs_key = OPENSSL_zalloc(sizeof(*oqs_key));
     if (oqs_key == NULL) {
@@ -563,7 +569,7 @@ const char *OQSKEM_options(void)
     int i;
     for (i=0; i<OQS_OPENSSL_KEM_algs_length;i++) {
        const char* name = OBJ_nid2sn(oqssl_kem_nids_list[i]);
-       if (OQS_KEM_alg_is_enabled(get_oqs_alg_name(oqssl_kem_nids_list[i]))) {
+       if (OQS_KEM_alg_is_enabled(_get_oqs_alg_name(oqssl_kem_nids_list[i]))) {
            unsigned long l = strlen(name);
            memcpy(result+offset, name, l);
            if (i<OQS_OPENSSL_KEM_algs_length-1) {
@@ -599,7 +605,7 @@ const char *OQSSIG_options(void)
     int i;
     for (i=0; i<OQS_OPENSSL_SIG_algs_length;i++) {
        const char* name = OBJ_nid2sn(oqssl_sig_nids_list[i]);
-       if (OQS_SIG_alg_is_enabled(get_oqs_alg_name(oqssl_sig_nids_list[i]))) {
+       if (OQS_SIG_alg_is_enabled(_get_oqs_alg_name(oqssl_sig_nids_list[i]))) {
            size_t l = strlen(name);
            memcpy(result+offset, name, l);
            if (i<OQS_OPENSSL_SIG_algs_length-1) {

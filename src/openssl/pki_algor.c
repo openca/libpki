@@ -375,6 +375,10 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "DILITHIUM";
 		} break;
 
+		case PKI_SCHEME_DILITHIUMX: {
+			ret = "DILITHIUMX";
+		} break;
+
 		case PKI_SCHEME_SPHINCS: {
 			ret = "SPHINCS";
 		} break;
@@ -446,6 +450,8 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 #ifdef ENABLE_OQS
 		} else if (strncmp_nocase("FALCON", data, 6) == 0) {
 			return PKI_SCHEME_FALCON;
+		} else if (strncmp_nocase("DILITHIUMX", data, 10) == 0) {
+			return PKI_SCHEME_DILITHIUMX;
 		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
 			return PKI_SCHEME_DILITHIUM;
 		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
@@ -731,6 +737,20 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 
 	}
 
+#ifdef ENABLE_COMPOSITE
+	if (pkey_type == PKI_ID_get_by_name("composite")) {
+		// COMPOSITE
+		return PKI_SCHEME_COMPOSITE;
+	}
+#endif
+#ifdef ENABLE_COMBINED
+	if (pkey_type == PKI_ID_get_by_name("multikey")) {
+		// MULTIKEYS
+		return PKI_SCHEME_COMBINED;
+	}
+#endif
+
+#ifdef ENABLE_OQS
 	// Let's see if we can find the scheme via the
 	// dynamic approach:
 	if (   pkey_type == PKI_ID_get_by_name("falcon512")
@@ -743,15 +763,12 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 			   || pkey_type == PKI_ID_get_by_name("dilithium5")
 			   || pkey_type == PKI_ID_get_by_name("dilithium5-AES")) {
 		// DILITHIUM
-		return PKI_SCHEME_FALCON;
-	} else if (pkey_type == PKI_ID_get_by_name("composite")) {
-		// COMPOSITE
-		return PKI_SCHEME_COMPOSITE;
-	} else if (pkey_type == PKI_ID_get_by_name("combined")
-	           || pkey_type == PKI_ID_get_by_name("alternate")) {
-		// ALTKEYS
-		return PKI_SCHEME_COMBINED;
+		return PKI_SCHEME_DILITHIUM;
+	}  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {
+		// DILITHIUMX
+		return PKI_SCHEME_DILITHIUMX;
 	}
+#endif
 
 	// Let's check the pkey type
 	return PKI_SCHEME_UNKNOWN;
@@ -1178,6 +1195,10 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 		
 		case PKI_SCHEME_SPHINCS: {
 			ret = PKI_ALGOR_ID_LIST_SPHINCS;
+		} break;
+
+		case PKI_SCHEME_DILITHIUMX: {
+			ret = PKI_ALGOR_ID_LIST_DILITHIUM;
 		} break;
 
 #endif

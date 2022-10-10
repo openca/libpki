@@ -357,6 +357,10 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				}
 			} break;
 
+			case PKI_SCHEME_DILITHIUMX:
+				// Experimental Only
+				break;
+
 			// Combined Crypto
 			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
 			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
@@ -457,8 +461,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			fprintf(stderr, "Generating new KeyPair ... ");
 			fflush(stderr);
 		}
-
-		PKI_DEBUG("TEST");
 
 		if((PKI_TOKEN_new_keypair_url_ex (tk, kp, keyurl, profile_s)) == PKI_ERR)
 		{
@@ -1073,6 +1075,22 @@ int main (int argc, char *argv[] ) {
 			algor_opt = "EC";
 		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
 			algor_opt = "DSA";
+		} else if (strncmp_nocase(algor_opt, "DILITHIUMX", 10) == 0) {
+			algor_opt = "DILITHIUMX";
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM3", 10) == 0) {
+			algor_opt = "DILITHIUM3";
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM5", 10) == 0) {
+			algor_opt = "DILITHIUM5";
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM", 10) == 0) {
+			// Default option for Dilithium
+			algor_opt = "DILITHIUM3";
+		} else if (strncmp_nocase(algor_opt, "FALCON512", 9) == 0) {
+			algor_opt = "FALCON512";
+		} else if (strncmp_nocase(algor_opt, "FALCON1024", 10) == 0) {
+			algor_opt = "FALCON1024";
+		} else if (strncmp_nocase(algor_opt, "FALCON", 7) == 0) {
+			// Default option for Falcon
+			algor_opt = "FALCON512";
 		} else {
 			// This should be a catch all for new algos
 			fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);

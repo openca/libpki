@@ -97,16 +97,15 @@ OID_INIT_OBJ oids_table[] = {
 	{ 0, CERTIFICATE_USAGE_OID, CERTIFICATE_USAGE_NAME, CERTIFICATE_USAGE_DESC},
 #ifdef ENABLE_COMPOSITE
 	// Composite Key
-	{ 0, OPENCA_ALG_PKEY_COMP_OID, OPENCA_ALG_PKEY_COMP_NAME, OPENCA_ALG_PKEY_COMP_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_OID, OPENCA_ALG_PKEY_EXP_COMP_NAME, OPENCA_ALG_PKEY_EXP_COMP_DESC},
 #endif
 #ifdef ENABLE_COMBINED
 	// Alt Key
-	{ 0, OPENCA_ALG_PKEY_ALT_OID, OPENCA_ALG_PKEY_ALT_NAME, OPENCA_ALG_PKEY_ALT_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_ALT_OID, OPENCA_ALG_PKEY_EXP_ALT_NAME, OPENCA_ALG_PKEY_EXP_ALT_DESC},
 #endif
 #ifdef ENABLE_OQS
 	// Experimental
-	{ 0, OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID, OPENCA_ALG_PKEY_PQC_DILITHIUMX_NAME, OPENCA_ALG_PKEY_PQC_DILITHIUMX_DESC},
-	{ 0, OPENCA_ALG_PKEY_PQC_FALCONX_OID, OPENCA_ALG_PKEY_PQC_FALCONX_NAME, OPENCA_ALG_PKEY_PQC_FALCONX_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID, OPENCA_ALG_PKEY_EXP_DILITHIUMX_NAME, OPENCA_ALG_PKEY_EXP_DILITHIUMX_DESC},
 #endif
 	{ 0, NULL, NULL, NULL }
 };
@@ -156,6 +155,10 @@ OID_INIT_SIG sigs_table[] = {
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_DESC, NID_sha512, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_DESC, NID_shake128, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_DESC, NID_shake256, NID_dilithium5, 0 },
+
+	// Experimental
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_DESC, NID_undef, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_DESC, NID_sha256, 0, 0 },
 
 	// Falcon512 and Falcon1024
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_OID, OPENCA_ALG_SIGS_PQC_FALCON512_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_DESC, NID_undef, NID_falcon512, 0 },
@@ -267,15 +270,21 @@ int PKI_X509_OID_init() {
 		if (obj->nid == 0) {
 			fprintf(stderr, "ERROR: Cannot create NID for (%s)", obj->name);
 			fflush(stderr);
+			exit(1);
 			sig = &sigs_table[++index];
 			// Continue
 			continue;
 		}
+		// fprintf(stderr, "[OID] New Public Key OID [%d] (name: %s, oid: %s)\n", 
+		// 	obj->nid, obj->name, obj->oid);
+		// fflush(stderr);
+
 		obj = &oids_table[++index];
 	}
 
 	// Resets the index
 	index = 0;
+	sig = sigs_table;
 
 	// Process all the signatures
 	while (sig != NULL && sig->oid != NULL) {
@@ -296,7 +305,7 @@ int PKI_X509_OID_init() {
 				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHAKE256_OID, strlen(sig->oid))
 			   )
 			{
-				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_COMP_OID);
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
 			}
 			else if (
 				!strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_OID, strlen(sig->oid))
@@ -311,21 +320,31 @@ int PKI_X509_OID_init() {
 				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHAKE256_OID, strlen(sig->oid))
 			)
 			{
-				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_ALT_OID);
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID);
+			}
+			else if (
+				!strncmp(sig->oid, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_OID, strlen(sig->oid))
+				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_OID, strlen(sig->oid))
+			)
+			{
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID);
 			}
 			else
 			{
-				PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Cannot find the PKEY nid for %s", sig->name);
+				PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "(Index: %d) Cannot find the PKEY nid for %p", index, sig);
 				sig = &sigs_table[++index];
 				continue;
 			}
 		}
 
+		// PKI_DEBUG("Generating a new Signature NID for %s (%s)", sig->name, sig->oid);
+
 		// Generates the New Signature Object
 		sig->sig_nid = OBJ_create(sig->oid, sig->name, sig->desc);
 		if (sig->sig_nid == NID_undef) {
+			PKI_DEBUG("ERROR: Cannot create Signature Object (%s - %s)\n", sig->name, sig->oid);
 			// Error Condition, nothing to do here
-			PKI_ERROR(PKI_ERR_ALGOR_SET, "ERROR: Cannot create Signature Object (%s - %s)\n", sig->name, sig->oid);
+			PKI_ERROR(PKI_ERR_ALGOR_SET, NULL);
 		} else {
 			// Adds the Signature NID to the OpenSSL's Index (and our table)
 			if (!OBJ_add_sigid(sig->sig_nid, sig->hash_nid, sig->pkey_nid)) {

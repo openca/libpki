@@ -77,6 +77,9 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			case PKI_SCHEME_FALCON:
 				break;
 
+			case PKI_SCHEME_DILITHIUMX:
+				break;
+
 			case PKI_SCHEME_DILITHIUM: {
 				if ((tmp_s = PKI_CONFIG_get_value(prof, 
 							"/profile/keyParams/mode" )) != NULL ) {
@@ -187,6 +190,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			// Post Quantum Cryptography - Digital Signatures
 			case PKI_SCHEME_FALCON:
 			case PKI_SCHEME_DILITHIUM:
+			case PKI_SCHEME_DILITHIUMX:
 			case PKI_SCHEME_SPHINCS:
 			// Post Quantum Cryptography - Composite Crypto
 			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
@@ -333,9 +337,11 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 		case PKI_SCHEME_RSA: {
 			if (bits <= 0) { kp->bits = 2048; }
+			// Sec Bits Sizes
 			else if (bits <= 128 ) { kp->bits = 2048; }
 			else if (bits <= 192 ) { kp->bits = 3072; }
 			else if (bits <= 256 ) { kp->bits = 4096; }
+			// Classical Sizes
 			else if (bits <= 512 ) { kp->bits = 512;  }
 			else if (bits <= 756 ) { kp->bits = 756;  }
 			else if (bits <= 1024) { kp->bits = 1024; }
@@ -359,8 +365,8 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
 			// need to enable more on LibOQS
-			kp->oqs.algId = OBJ_txt2nid(OPENCA_ALG_PKEY_COMP_OID);
-			kp->bits = 128;
+			kp->oqs.algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
+			kp->bits = bits;
 		} break;
 
 # ifdef ENABLE_COMBINED
@@ -368,8 +374,8 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
 			// need to enable more on LibOQS
-			kp->oqs.algId = OBJ_txt2id(OPENCA_ALG_PKEY_ALT_OID);;
-			kp->bits = 128;
+			kp->oqs.algId = OBJ_txt2id(OPENCA_ALG_PKEY_EXP_ALT_OID);;
+			kp->bits = bits;
 		} break;
 # endif
 #endif
@@ -404,6 +410,11 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			}
 		} break;
 
+		case PKI_SCHEME_DILITHIUMX: {
+			kp->oqs.algId = OBJ_sn2nid("DilithiumX");
+			kp->bits = 256;
+		} break;
+
 		case PKI_SCHEME_SPHINCS: {
 			if (bits <= 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R;
@@ -424,7 +435,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
-			// need to enable more on libpqs
+			// need to enable more on liboqs
 			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512;
 			kp->bits = 128;
 		} break;

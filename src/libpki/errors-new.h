@@ -25,6 +25,14 @@ typedef enum {
 	PKI_ERR_PARAM_TYPE,
 	/* PKI MEM Errors */
 	PKI_ERR_MEM_,
+	// PKI DIGEST Errors
+	PKI_ERR_DIGEST_TYPE_UNKNOWN,
+	PKI_ERR_DIGEST_VALUE_NULL,
+	// PKI ALGOR Errors
+	PKI_ERR_ALGOR_UNKNOWN,
+	PKI_ERR_ALGOR_SET,
+	PKI_ERR_ALGOR_PKEY_METHOD_NEW,
+	PKI_ERR_ALGOR_PKEY_ASN1_METHOD_NEW,
 	/* URI related Errors */
 	PKI_ERR_URI_UNSUPPORTED,
 	PKI_ERR_URI_GENERAL,
@@ -145,6 +153,20 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_PARAM_TYPE, "Wrong Paramenter Type" },
 	/* PKI MEM Errors */
 	{ PKI_ERR_MEM_, "" },
+	// 	// PKI DIGEST Errors
+	{ PKI_ERR_DIGEST_TYPE_UNKNOWN, "Uknown Digest Algorithm" },
+	{ PKI_ERR_DIGEST_VALUE_NULL, "No Value in Digest" },
+	// // PKI ALGOR Errors
+	{ PKI_ERR_ALGOR_UNKNOWN, "Algorithm unknown" },
+	{ PKI_ERR_ALGOR_SET, "Cannot set the algorithm" },
+	{ PKI_ERR_ALGOR_GET, "Cannot get the algorithm" },
+	{ PKI_ERR_ALGOR_ADD, "Cannot add the new algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_METHOD_NEW, "Cannot instantiate a new Public Key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_METHOD_ADD, "Cannot add the new Public Key algorithm to the custom list" },
+	{ PKI_ERR_ALGOR_PKEY_METHOD_UKNOWN, "Uknown Public Key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_ASN1_METHOD_NEW, "Cannot instantiate the ASN1 methods for the Public Key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_ASN1_METHOD_ADD, "Cannot add the ASN1 methods to the custom list" },
+	{ PKI_ERR_ALGOR_PKEY_ASN1_METHOD_UKNOWN, "Uknown ASN1 methods for the Public Key algorithm" },
 	/* URI Related Operations */
 	{ PKI_ERR_URI_UNSUPPORTED, "Unsupported URI Schema" },
 	{ PKI_ERR_URI_GENERAL, "URI General Error" },

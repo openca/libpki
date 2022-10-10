@@ -208,6 +208,8 @@ typedef enum {
 	// Post Quantum Cryptography - Digital Signatures
 	PKI_SCHEME_FALCON,
 	PKI_SCHEME_DILITHIUM,
+	// Experimental Only - To Be Removed (DilithiumX)
+	PKI_SCHEME_DILITHIUMX,
 	PKI_SCHEME_PICNIC,
 	PKI_SCHEME_SPHINCS,
 	// OQS Composite Crypto Schemes

@@ -68,6 +68,5 @@ size_t PKI_ALGOR_ID_list_size( const PKI_ALGOR_ID * const list );
 // Get a string describing the algor
 char *PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor );
 
-
 #endif
 

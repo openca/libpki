@@ -316,10 +316,8 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
     ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
     if (!ameth) {
-       PKI_OID * obj = OBJ_nid2obj(kp->oqs.algId);
-       PKI_log_debug("[1] Algorithm %s (%s) not found (%d)", 
-           PKI_OID_get_descr(obj), PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
-       if (obj) PKI_OID_free(obj);
+       PKI_log_debug("Missing ASN1 Method for algorithm '%s' (%d)", 
+           PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
        return NULL;
     }
 
@@ -333,7 +331,7 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
     // Let's set the operation (check EVP_PKEY_CTX_ctrl function -pmeth_lib.c:432)
     // Use the EVP interface to initialize the operation (crypto/evp/pmeth_gn.c:69)
     if (EVP_PKEY_keygen_init(ctx) <= 0) {
-        PKI_log_debug("Cannot Initialize Key Generation");
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot Initialize Key Generation");
         goto err;
     }
 
