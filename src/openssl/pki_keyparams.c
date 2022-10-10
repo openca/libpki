@@ -398,7 +398,7 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		} break;
 		
 		case PKI_SCHEME_DILITHIUM: {
-			if (bits <= 128) {
+			if (bits < 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
 				kp->bits = 128;
 			} else if(bits <= 192) {

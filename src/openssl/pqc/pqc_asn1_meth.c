@@ -12,45 +12,46 @@ int oqs_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
 {
     const OQS_KEY *oqs_key = (OQS_KEY*) pkey->pkey.ptr;
     unsigned char *penc;
-    size_t pubkey_len = 0, max_classical_pubkey_len = 0, classical_pubkey_len = 0, index = 0;
+    size_t pubkey_len = 0, index = 0;
+    // size_t max_classical_pubkey_len = 0, classical_pubkey_len = 0;
     if (!oqs_key || !oqs_key->s || !oqs_key->pubkey ) {
       ECerr(EC_F_OQS_PUB_ENCODE, EC_R_KEY_NOT_SET);
       return 0;
     }
-    int is_hybrid = (oqs_key->classical_pkey != NULL);
+    // int is_hybrid = (oqs_key->classical_pkey != NULL);
 
     /* determine the length of the key */
     pubkey_len = oqs_key->s->length_public_key;
-    if (is_hybrid) {
-      max_classical_pubkey_len = (size_t) get_classical_key_len(KEY_TYPE_PUBLIC, get_classical_nid(oqs_key->nid));
-      pubkey_len += (SIZE_OF_UINT32 + max_classical_pubkey_len);
-    }
+    // if (is_hybrid) {
+    //   max_classical_pubkey_len = (size_t) get_classical_key_len(KEY_TYPE_PUBLIC, get_classical_nid(oqs_key->nid));
+    //   pubkey_len += (SIZE_OF_UINT32 + max_classical_pubkey_len);
+    // }
     penc = OPENSSL_malloc(pubkey_len);
     if (penc == NULL) {
       ECerr(EC_F_OQS_PUB_ENCODE, ERR_R_MALLOC_FAILURE);
       return 0;
     }
 
-    /* if hybrid, encode classical public key */
-    if (is_hybrid) {
-      unsigned char *classical_pubkey = penc + SIZE_OF_UINT32; /* i2d moves target pointer, so we copy into a temp var (leaving space for key len) */
-      int actual_classical_pubkey_len = i2d_PublicKey(oqs_key->classical_pkey, &classical_pubkey);
-      if (actual_classical_pubkey_len < 0 || actual_classical_pubkey_len > max_classical_pubkey_len) {
-	/* something went wrong, or we didn't allocate enough space */
-	OPENSSL_free(penc);
-        ECerr(EC_F_OQS_PUB_ENCODE, ERR_R_FATAL);
-        return 0;
-      }
-      ENCODE_UINT32(penc, actual_classical_pubkey_len);
-      classical_pubkey_len = SIZE_OF_UINT32 + (size_t) actual_classical_pubkey_len;
-      index += classical_pubkey_len;
-    }
+  //   /* if hybrid, encode classical public key */
+  //   if (is_hybrid) {
+  //     unsigned char *classical_pubkey = penc + SIZE_OF_UINT32; /* i2d moves target pointer, so we copy into a temp var (leaving space for key len) */
+  //     int actual_classical_pubkey_len = i2d_PublicKey(oqs_key->classical_pkey, &classical_pubkey);
+  //     if (actual_classical_pubkey_len < 0 || actual_classical_pubkey_len > max_classical_pubkey_len) {
+	// /* something went wrong, or we didn't allocate enough space */
+	// OPENSSL_free(penc);
+  //       ECerr(EC_F_OQS_PUB_ENCODE, ERR_R_FATAL);
+  //       return 0;
+  //     }
+  //     ENCODE_UINT32(penc, actual_classical_pubkey_len);
+  //     classical_pubkey_len = SIZE_OF_UINT32 + (size_t) actual_classical_pubkey_len;
+  //     index += classical_pubkey_len;
+  //   }
 
     /* encode the pqc public key */
     memcpy(penc + index, oqs_key->pubkey, oqs_key->s->length_public_key);
 
     /* recalculate pub key len using actual classical key len */
-    pubkey_len = classical_pubkey_len + oqs_key->s->length_public_key;
+    pubkey_len = /* classical_pubkey_len + */ oqs_key->s->length_public_key;
 
     if (!X509_PUBKEY_set0_param(pk, OBJ_nid2obj(pkey->ameth->pkey_id),
                                 V_ASN1_UNDEF, NULL, penc, (int) pubkey_len)) {
@@ -68,7 +69,7 @@ int oqs_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
     X509_ALGOR *palg;
     OQS_KEY *oqs_key = NULL;
     int id = pkey->ameth->pkey_id;
-    int is_hybrid = is_oqs_hybrid_alg(id);
+    // int is_hybrid = is_oqs_hybrid_alg(id);
     size_t index = 0;
 
     if (!X509_PUBKEY_get0_param(NULL, &p, &pklen, &palg, pubkey)) {
@@ -97,36 +98,36 @@ int oqs_pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey)
     }
 
     max_pubkey_len = (int) oqs_key->s->length_public_key;
-    if (is_hybrid) {
-      max_pubkey_len += (SIZE_OF_UINT32 + get_classical_key_len(KEY_TYPE_PUBLIC, get_classical_nid(id)));
-    }
+    // if (is_hybrid) {
+    //   max_pubkey_len += (SIZE_OF_UINT32 + get_classical_key_len(KEY_TYPE_PUBLIC, get_classical_nid(id)));
+    // }
 
     if (pklen > max_pubkey_len) {
       ECerr(EC_F_OQS_PUB_DECODE, EC_R_WRONG_LENGTH);
       goto err;
     }
 
-    /* if hybrid, decode classical public key */
-    if (is_hybrid) {
-      int classical_id = get_classical_nid(id);
-      uint32_t actual_classical_pubkey_len;
-      DECODE_UINT32(actual_classical_pubkey_len, p);
-      if (is_EC_nid(classical_id)) {
-        if (!decode_EC_key(KEY_TYPE_PUBLIC, classical_id, p + SIZE_OF_UINT32, (int) actual_classical_pubkey_len, oqs_key)) {
-          ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
-          goto err;
-        }
-      } else {
-        const unsigned char* pubkey_temp = p + SIZE_OF_UINT32;
-        oqs_key->classical_pkey = d2i_PublicKey(classical_id, &oqs_key->classical_pkey, &pubkey_temp, actual_classical_pubkey_len);
-        if (oqs_key->classical_pkey == NULL) {
-          ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
-          goto err;
-        }
-      }
+    // /* if hybrid, decode classical public key */
+    // if (is_hybrid) {
+    //   int classical_id = get_classical_nid(id);
+    //   uint32_t actual_classical_pubkey_len;
+    //   DECODE_UINT32(actual_classical_pubkey_len, p);
+    //   if (is_EC_nid(classical_id)) {
+    //     if (!decode_EC_key(KEY_TYPE_PUBLIC, classical_id, p + SIZE_OF_UINT32, (int) actual_classical_pubkey_len, oqs_key)) {
+    //       ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
+    //       goto err;
+    //     }
+    //   } else {
+    //     const unsigned char* pubkey_temp = p + SIZE_OF_UINT32;
+    //     oqs_key->classical_pkey = d2i_PublicKey(classical_id, &oqs_key->classical_pkey, &pubkey_temp, actual_classical_pubkey_len);
+    //     if (oqs_key->classical_pkey == NULL) {
+    //       ECerr(EC_F_OQS_PUB_DECODE, ERR_R_FATAL);
+    //       goto err;
+    //     }
+    //   }
 
-      index += (SIZE_OF_UINT32 + actual_classical_pubkey_len);
-    }
+    //   index += (SIZE_OF_UINT32 + actual_classical_pubkey_len);
+    // }
     /* decode PQC public key */
     memcpy(oqs_key->pubkey, (char *) (p + index), oqs_key->s->length_public_key);
 
@@ -145,15 +146,15 @@ int oqs_pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b)
     if (akey == NULL || bkey == NULL)
         return -2;
 
-    /* compare hybrid classical key if present */
-    if (akey->classical_pkey != NULL) {
-      if (bkey->classical_pkey == NULL) {
-	return 0; /* both should be hybrid or not */
-      }
-      if (!EVP_PKEY_cmp(akey->classical_pkey, bkey->classical_pkey)) {
-	return 0;
-      }
-    }
+    // /* compare hybrid classical key if present */
+    // if (akey->classical_pkey != NULL) {
+    //   if (bkey->classical_pkey == NULL) {
+	  //     return 0; /* both should be hybrid or not */
+    //   }
+    //   if (!EVP_PKEY_cmp(akey->classical_pkey, bkey->classical_pkey)) {
+	  //     return 0;
+    //   }
+    // }
 
     /* compare PQC key */
     return CRYPTO_memcmp(akey->pubkey, bkey->pubkey, akey->s->length_public_key) == 0;
@@ -167,7 +168,7 @@ int oqs_priv_decode(EVP_PKEY *pkey, const PKCS8_PRIV_KEY_INFO *p8)
     const X509_ALGOR *palg;
     OQS_KEY *oqs_key = NULL;
     int id = pkey->ameth->pkey_id;
-    int is_hybrid = is_oqs_hybrid_alg(id);
+    // int is_hybrid = is_oqs_hybrid_alg(id);
     int index = 0;
 
     if (!PKCS8_pkey_get0(NULL, &p, &plen, &palg, p8))
@@ -200,35 +201,36 @@ int oqs_priv_decode(EVP_PKEY *pkey, const PKCS8_PRIV_KEY_INFO *p8)
     }
 
     max_privkey_len = (int) (oqs_key->s->length_secret_key + oqs_key->s->length_public_key);
-    if (is_hybrid) {
-      max_privkey_len += (SIZE_OF_UINT32 + get_classical_key_len(KEY_TYPE_PRIVATE, get_classical_nid(oqs_key->nid)));
-    }
+    // if (is_hybrid) {
+    //   max_privkey_len += (SIZE_OF_UINT32 + get_classical_key_len(KEY_TYPE_PRIVATE, get_classical_nid(oqs_key->nid)));
+    // }
 
     if (plen > max_privkey_len) {
       ECerr(EC_F_OQS_PRIV_DECODE, EC_R_KEY_LENGTH_WRONG);
       goto err;
     }
 
-    /* if hybrid, decode classical private key */
-    if (is_hybrid) {
-      int classical_id = get_classical_nid(id);
-      size_t actual_classical_privkey_len;
-      DECODE_UINT32(actual_classical_privkey_len, p);
-      if (is_EC_nid(classical_id)) {
-	if (!decode_EC_key(KEY_TYPE_PRIVATE, classical_id, p + SIZE_OF_UINT32, (int)actual_classical_privkey_len, oqs_key)) {
-	  ECerr(EC_F_OQS_PRIV_DECODE, ERR_R_FATAL);
-	  goto err;
-	}
-      } else {
-	const unsigned char* privkey_temp = p + SIZE_OF_UINT32;
-	oqs_key->classical_pkey = d2i_PrivateKey(classical_id, &oqs_key->classical_pkey, &privkey_temp, (long) actual_classical_privkey_len);
-	if (oqs_key->classical_pkey == NULL) {
-	  ECerr(EC_F_OQS_PRIV_DECODE, ERR_R_FATAL);
-	  goto err;
-	}
-      }
-      index += (int)(SIZE_OF_UINT32 + actual_classical_privkey_len);
-    }
+    // /* if hybrid, decode classical private key */
+    // if (is_hybrid) {
+    //   int classical_id = get_classical_nid(id);
+    //   size_t actual_classical_privkey_len;
+    //   DECODE_UINT32(actual_classical_privkey_len, p);
+    //   if (is_EC_nid(classical_id)) {
+    //     if (!decode_EC_key(KEY_TYPE_PRIVATE, classical_id, p + SIZE_OF_UINT32, (int)actual_classical_privkey_len, oqs_key)) {
+    //       ECerr(EC_F_OQS_PRIV_DECODE, ERR_R_FATAL);
+    //       goto err;
+    //     }
+    //   } else {
+    //     const unsigned char* privkey_temp = p + SIZE_OF_UINT32;
+    //     oqs_key->classical_pkey = d2i_PrivateKey(classical_id, &oqs_key->classical_pkey, &privkey_temp, (long) actual_classical_privkey_len);
+    //     if (oqs_key->classical_pkey == NULL) {
+    //       ECerr(EC_F_OQS_PRIV_DECODE, ERR_R_FATAL);
+    //       goto err;
+    //     }
+    //   }
+    //   index += (int)(SIZE_OF_UINT32 + actual_classical_privkey_len);
+    // }
+
     /* decode private key */
     memcpy(oqs_key->privkey, (char *)(p + index), oqs_key->s->length_secret_key);
     index += (int)oqs_key->s->length_secret_key;
@@ -251,43 +253,44 @@ int oqs_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
     const OQS_KEY *oqs_key = (OQS_KEY*) pkey->pkey.ptr;
     ASN1_OCTET_STRING oct;
     unsigned char *buf = NULL, *penc = NULL;
-    uint32_t max_classical_privkey_len = 0, classical_privkey_len = 0;
     uint32_t buflen;
     int penclen, index = 0;
     int rv = 0;
+
+    // uint32_t max_classical_privkey_len = 0, classical_privkey_len = 0;
 
     if (!oqs_key || !oqs_key->s || !oqs_key->privkey ) {
       ECerr(EC_F_OQS_PRIV_ENCODE, ERR_R_FATAL);
       return rv;
     }
-    int is_hybrid = (oqs_key->classical_pkey != NULL);
+    // int is_hybrid = (oqs_key->classical_pkey != NULL);
 
     /* determine the length of key */
     buflen = (uint32_t) (oqs_key->s->length_secret_key + oqs_key->s->length_public_key);
-    if (is_hybrid) {
-      max_classical_privkey_len = (uint32_t) get_classical_key_len(KEY_TYPE_PRIVATE, get_classical_nid(oqs_key->nid));
-      buflen += (SIZE_OF_UINT32 + max_classical_privkey_len);
-    }
+    // if (is_hybrid) {
+    //   max_classical_privkey_len = (uint32_t) get_classical_key_len(KEY_TYPE_PRIVATE, get_classical_nid(oqs_key->nid));
+    //   buflen += (SIZE_OF_UINT32 + max_classical_privkey_len);
+    // }
     buf = OPENSSL_secure_malloc((size_t)buflen);
     if (buf == NULL) {
       ECerr(EC_F_OQS_PRIV_ENCODE, ERR_R_MALLOC_FAILURE);
       return rv;
     }
 
-    /* if hybrid, encode classical private key */
-    if (is_hybrid) {
-      unsigned char *classical_privkey = buf + SIZE_OF_UINT32; /* i2d moves the target pointer, so we copy into a temp var (leaving space for key len) */
-      int actual_classical_privkey_len = i2d_PrivateKey(oqs_key->classical_pkey, &classical_privkey);
-      if (actual_classical_privkey_len < 0 || (uint32_t) actual_classical_privkey_len > max_classical_privkey_len) {
-	/* something went wrong, or we didn't allocate enough space */
-	OPENSSL_free(buf);
-        ECerr(EC_F_OQS_PRIV_ENCODE, ERR_R_FATAL);
-        goto end;
-      }
-      ENCODE_UINT32(buf, actual_classical_privkey_len);
-      classical_privkey_len = SIZE_OF_UINT32 + (uint32_t) actual_classical_privkey_len;
-      index += (int) classical_privkey_len;
-    }
+    // /* if hybrid, encode classical private key */
+    // if (is_hybrid) {
+    //   unsigned char *classical_privkey = buf + SIZE_OF_UINT32; /* i2d moves the target pointer, so we copy into a temp var (leaving space for key len) */
+    //   int actual_classical_privkey_len = i2d_PrivateKey(oqs_key->classical_pkey, &classical_privkey);
+    //   if (actual_classical_privkey_len < 0 || (uint32_t) actual_classical_privkey_len > max_classical_privkey_len) {
+    //     /* something went wrong, or we didn't allocate enough space */
+    //     OPENSSL_free(buf);
+    //     ECerr(EC_F_OQS_PRIV_ENCODE, ERR_R_FATAL);
+    //     goto end;
+    //   }
+    //   ENCODE_UINT32(buf, actual_classical_privkey_len);
+    //   classical_privkey_len = SIZE_OF_UINT32 + (uint32_t) actual_classical_privkey_len;
+    //   index += (int) classical_privkey_len;
+    // }
 
     /* encode the pqc private key */
     memcpy(buf + index, oqs_key->privkey, oqs_key->s->length_secret_key);
@@ -296,8 +299,8 @@ int oqs_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
     /* encode the pqc public key */
     memcpy(buf + index, oqs_key->pubkey, oqs_key->s->length_public_key);
 
-    /* recalculate pub key len using acutal classical len */
-    buflen = classical_privkey_len + (uint32_t) (oqs_key->s->length_secret_key + oqs_key->s->length_public_key);
+    /* recalculate pub key len using actual classical len */
+    buflen = /* classical_privkey_len + */ (uint32_t) (oqs_key->s->length_secret_key + oqs_key->s->length_public_key);
 
     oct.data = buf;
     oct.length = (int) buflen;
@@ -331,10 +334,10 @@ int oqs_size(const EVP_PKEY *pkey)
         return 0;
     }
     size_t sig_len = oqs_key->s->length_signature;
-    if (is_oqs_hybrid_alg(oqs_key->nid)) {
-      int classical_nid = get_classical_nid(oqs_key->nid);
-      sig_len += (SIZE_OF_UINT32 + (size_t)get_classical_sig_len(classical_nid));
-    }
+    // if (is_oqs_hybrid_alg(oqs_key->nid)) {
+    //   int classical_nid = get_classical_nid(oqs_key->nid);
+    //   sig_len += (SIZE_OF_UINT32 + (size_t)get_classical_sig_len(classical_nid));
+    // }
     return (int)sig_len;
 }
 
@@ -342,9 +345,9 @@ int oqs_bits(const EVP_PKEY *pkey)
 {
   OQS_KEY* oqs_key = (OQS_KEY*) pkey->pkey.ptr;
   size_t pubkey_len = oqs_key->s->length_public_key;
-  if (is_oqs_hybrid_alg(oqs_key->nid)) {
-    pubkey_len += (SIZE_OF_UINT32 + (size_t) get_classical_key_len(KEY_TYPE_PUBLIC, get_classical_nid(oqs_key->nid)));
-  }
+  // if (is_oqs_hybrid_alg(oqs_key->nid)) {
+  //   pubkey_len += (SIZE_OF_UINT32 + (size_t) get_classical_key_len(KEY_TYPE_PUBLIC, get_classical_nid(oqs_key->nid)));
+  // }
   /* return size in bits */
   return (int) (CHAR_BIT * pubkey_len);
 }
@@ -369,9 +372,10 @@ int oqs_key_print(BIO *bp, const EVP_PKEY *pkey, int indent,
                          ASN1_PCTX *ctx, oqs_key_type_t keytype)
 {
     const OQS_KEY *oqs_key = (OQS_KEY*) pkey->pkey.ptr;
-    int is_hybrid = is_oqs_hybrid_alg(oqs_key->nid);
+    // int is_hybrid = is_oqs_hybrid_alg(oqs_key->nid);
     /* alg name to print, just keep the oqs part for hybrid */
-    const char *nm = OBJ_nid2ln(is_hybrid ? get_oqs_nid(oqs_key->nid) : pkey->ameth->pkey_id);
+    // const char *nm = OBJ_nid2ln(is_hybrid ? get_oqs_nid(oqs_key->nid) : pkey->ameth->pkey_id);
+    const char *nm = OBJ_nid2ln(pkey->ameth->pkey_id);
 
     if (keytype == KEY_TYPE_PRIVATE) {
         if (oqs_key == NULL || oqs_key->privkey == NULL) {
@@ -469,6 +473,7 @@ int oqs_item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,
         nid != NID_rsa3072_sphincsshake256128frobust &&
         1 /* This is just to faciliate templating. */
 ///// OQS_TEMPLATE_FRAGMENT_CHECK_IF_KNOWN_NID_END
+        && nid != OBJ_sn2nid("DilithiumX") 
     ) || ptype != V_ASN1_UNDEF) {
         ECerr(EC_F_OQS_ITEM_VERIFY, EC_R_UNKNOWN_NID);
         return 0;
@@ -481,19 +486,23 @@ int oqs_item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,
 }
 
 int oqs_ameth_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
+
    switch (op) {
-   case ASN1_PKEY_CTRL_DEFAULT_MD_NID:
-	*(int *)arg2 = NID_sha512;
-	return 1;
+
+    case ASN1_PKEY_CTRL_DEFAULT_MD_NID:
+        *(int *)arg2 = NID_sha512;
+        return 1;
+        break;
+
 #ifndef OPENSSL_NO_CMS
-   case ASN1_PKEY_CTRL_CMS_SIGN:
-      if (arg1 == 0) {
+    case ASN1_PKEY_CTRL_CMS_SIGN:
+        if (arg1 == 0) {
             int snid, hnid;
             X509_ALGOR *alg1, *alg2;
             CMS_SignerInfo_get0_algs(arg2, NULL, NULL, &alg1, &alg2);
             if (alg1 == NULL || alg1->algorithm == NULL) {
                 return -1;
-	    }
+	          }
             hnid = OBJ_obj2nid(alg1->algorithm);
             if (hnid == NID_undef) {
                 return -1;
@@ -502,32 +511,18 @@ int oqs_ameth_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
                 return -1;
             }
             X509_ALGOR_set0(alg2, OBJ_nid2obj(snid), V_ASN1_UNDEF, 0);
-      }
-
-      return 1;
+        }
+        return 1;
+        break;
 #endif
+
    }
    ECerr(EC_F_PKEY_OQS_CTRL, ERR_R_FATAL);
    return 0;
 }
 
-
-// DEFINE_OQS_ITEM_SIGN(dilithium3, NID_dilithium3)
-// DEFINE_OQS_SIGN_INFO_SET(dilithium3, NID_dilithium3)
-
 // ==================================== PKEY ======================================
 
-// ///// OQS_TEMPLATE_FRAGMENT_DEFINE_OQS_EVP_METHS_START
-// DEFINE_OQS_EVP_METHODS(DILITHIUMX, NID_dilithium3, "dilithiumX", "OpenSSL DilithiumX algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium3, NID_dilithium3, "dilithium3", "OpenSSL Dilithium3 algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium5, NID_dilithium5, "dilithium5", "OpenSSL Dilithium5 algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium2_aes, NID_dilithium2_aes, "dilithium2_aes", "OpenSSL Dilithium2_AES algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium3_aes, NID_dilithium3_aes, "dilithium3_aes", "OpenSSL Dilithium3_AES algorithm")
-// DEFINE_OQS_EVP_METHODS(dilithium5_aes, NID_dilithium5_aes, "dilithium5_aes", "OpenSSL Dilithium5_AES algorithm")
-// DEFINE_OQS_EVP_METHODS(falcon512, NID_falcon512, "falcon512", "OpenSSL Falcon-512 algorithm")
-// DEFINE_OQS_EVP_METHODS(falcon1024, NID_falcon1024, "falcon1024", "OpenSSL Falcon-1024 algorithm")
-// DEFINE_OQS_EVP_METHODS(picnic3l1, NID_picnic3l1, "picnic3l1", "OpenSSL Picnic3 L1 algorithm")
-// DEFINE_OQS_EVP_METHODS(rainbowVclassic, NID_rainbowVclassic, "rainbowVclassic", "OpenSSL Rainbow-V-Classic algorithm")
 // DEFINE_OQS_EVP_METHODS(sphincsharaka128frobust, NID_sphincsharaka128frobust, "sphincsharaka128frobust", "OpenSSL SPHINCS+-Haraka-128f-robust algorithm")
 // DEFINE_OQS_EVP_METHODS(sphincssha256128frobust, NID_sphincssha256128frobust, "sphincssha256128frobust", "OpenSSL SPHINCS+-SHA256-128f-robust algorithm")
 // DEFINE_OQS_EVP_METHODS(sphincsshake256128frobust, NID_sphincsshake256128frobust, "sphincsshake256128frobust", "OpenSSL SPHINCS+-SHAKE256-128f-robust algorithm")

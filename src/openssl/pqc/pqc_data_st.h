@@ -27,12 +27,12 @@ typedef struct
   uint8_t *pubkey;
   /* OQS private key */
   uint8_t *privkey;
-  /* Classical key pair for hybrid schemes; either a private or public key depending on context */
-  EVP_PKEY *classical_pkey;
   /* Security bits for the scheme */
   int security_bits;
-  /* digest engine for CMS: */
+  /* digest, if any was desired or EVP_md_null() */
   EVP_MD_CTX * digest;
+  /* Classical key pair for hybrid schemes; either a private or public key depending on context */
+  // EVP_PKEY *classical_pkey;
 } OQS_KEY;
 
 /*

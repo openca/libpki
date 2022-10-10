@@ -38,15 +38,15 @@ const char *_OQSKEM_options(void);
 
 const char *_OQSSIG_options(void);
 
-int is_oqs_hybrid_alg(int openssl_nid);
+// int is_oqs_hybrid_alg(int openssl_nid);
 
-int get_classical_nid(int hybrid_id);
+// int get_classical_nid(int hybrid_id);
 
 int get_oqs_nid(int hybrid_id);
 
-int get_classical_key_len(oqs_key_type_t keytype, int classical_id);
+// int get_classical_key_len(oqs_key_type_t keytype, int classical_id);
 
-int get_classical_sig_len(int classical_id);
+// int get_classical_sig_len(int classical_id);
 
 int oqs_key_init(OQS_KEY **p_oqs_key, int nid, oqs_key_type_t keytype);
 
@@ -54,9 +54,9 @@ int get_oqs_security_bits(int openssl_nid);
 
 void oqs_pkey_ctx_free(OQS_KEY* key);
 
-int is_EC_nid(int nid);
+// int is_EC_nid(int nid);
 
-int decode_EC_key(oqs_key_type_t keytype, int nid, const unsigned char* encoded_key, int key_len, OQS_KEY* oqs_key);
+// int decode_EC_key(oqs_key_type_t keytype, int nid, const unsigned char* encoded_key, int key_len, OQS_KEY* oqs_key);
 
 int oqs_int_update(EVP_MD_CTX *ctx, const void *data, size_t count);
 

@@ -263,156 +263,156 @@ char* _get_oqs_alg_name(int openssl_nid)
   }
 }
 
-int is_oqs_hybrid_alg(int openssl_nid)
-{
-  switch (openssl_nid)
-  {
-///// OQS_TEMPLATE_FRAGMENT_LIST_HYBRID_NIDS_START
-    case NID_p256_dilithium2:
-    case NID_rsa3072_dilithium2:
-    case NID_p384_dilithium3:
-    case NID_p521_dilithium5:
-    case NID_p256_dilithium2_aes:
-    case NID_rsa3072_dilithium2_aes:
-    case NID_p384_dilithium3_aes:
-    case NID_p521_dilithium5_aes:
-    case NID_p256_falcon512:
-    case NID_rsa3072_falcon512:
-    case NID_p521_falcon1024:
-    case NID_p256_picnicl1full:
-    case NID_rsa3072_picnicl1full:
-    case NID_p256_picnic3l1:
-    case NID_rsa3072_picnic3l1:
-    case NID_p521_rainbowVclassic:
-    case NID_p256_sphincsharaka128frobust:
-    case NID_rsa3072_sphincsharaka128frobust:
-    case NID_p256_sphincssha256128frobust:
-    case NID_rsa3072_sphincssha256128frobust:
-    case NID_p256_sphincsshake256128frobust:
-    case NID_rsa3072_sphincsshake256128frobust:
-///// OQS_TEMPLATE_FRAGMENT_LIST_HYBRID_NIDS_END
-      return 1;
-    default:
-      return 0;
-  }
-}
+// int is_oqs_hybrid_alg(int openssl_nid)
+// {
+//   switch (openssl_nid)
+//   {
+// ///// OQS_TEMPLATE_FRAGMENT_LIST_HYBRID_NIDS_START
+//     case NID_p256_dilithium2:
+//     case NID_rsa3072_dilithium2:
+//     case NID_p384_dilithium3:
+//     case NID_p521_dilithium5:
+//     case NID_p256_dilithium2_aes:
+//     case NID_rsa3072_dilithium2_aes:
+//     case NID_p384_dilithium3_aes:
+//     case NID_p521_dilithium5_aes:
+//     case NID_p256_falcon512:
+//     case NID_rsa3072_falcon512:
+//     case NID_p521_falcon1024:
+//     case NID_p256_picnicl1full:
+//     case NID_rsa3072_picnicl1full:
+//     case NID_p256_picnic3l1:
+//     case NID_rsa3072_picnic3l1:
+//     case NID_p521_rainbowVclassic:
+//     case NID_p256_sphincsharaka128frobust:
+//     case NID_rsa3072_sphincsharaka128frobust:
+//     case NID_p256_sphincssha256128frobust:
+//     case NID_rsa3072_sphincssha256128frobust:
+//     case NID_p256_sphincsshake256128frobust:
+//     case NID_rsa3072_sphincsshake256128frobust:
+// ///// OQS_TEMPLATE_FRAGMENT_LIST_HYBRID_NIDS_END
+//       return 1;
+//     default:
+//       return 0;
+//   }
+// }
 
+// int get_classical_nid(int hybrid_id)
+// {
+//   switch (hybrid_id)
+//   {
+// ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_CLASSICAL_NIDS_START
+//     case NID_rsa3072_dilithium2:
+//     case NID_rsa3072_dilithium2_aes:
+//     case NID_rsa3072_falcon512:
+//     case NID_rsa3072_picnicl1full:
+//     case NID_rsa3072_picnic3l1:
+//     case NID_rsa3072_sphincsharaka128frobust:
+//     case NID_rsa3072_sphincssha256128frobust:
+//     case NID_rsa3072_sphincsshake256128frobust:
+//       return NID_rsaEncryption;
+//     case NID_p256_dilithium2:
+//     case NID_p256_dilithium2_aes:
+//     case NID_p256_falcon512:
+//     case NID_p256_picnicl1full:
+//     case NID_p256_picnic3l1:
+//     case NID_p256_sphincsharaka128frobust:
+//     case NID_p256_sphincssha256128frobust:
+//     case NID_p256_sphincsshake256128frobust:
+//       return NID_X9_62_prime256v1;
+//     case NID_p384_dilithium3:
+//     case NID_p384_dilithium3_aes:
+//       return NID_secp384r1;
+//     case NID_p521_dilithium5:
+//     case NID_p521_dilithium5_aes:
+//     case NID_p521_falcon1024:
+//     case NID_p521_rainbowVclassic:
+//       return NID_secp521r1;///// OQS_TEMPLATE_FRAGMENT_ASSIGN_CLASSICAL_NIDS_END
+//     default:
+//       return 0;
+//   }
+// }
 
-int get_classical_nid(int hybrid_id)
-{
-  switch (hybrid_id)
-  {
-///// OQS_TEMPLATE_FRAGMENT_ASSIGN_CLASSICAL_NIDS_START
-    case NID_rsa3072_dilithium2:
-    case NID_rsa3072_dilithium2_aes:
-    case NID_rsa3072_falcon512:
-    case NID_rsa3072_picnicl1full:
-    case NID_rsa3072_picnic3l1:
-    case NID_rsa3072_sphincsharaka128frobust:
-    case NID_rsa3072_sphincssha256128frobust:
-    case NID_rsa3072_sphincsshake256128frobust:
-      return NID_rsaEncryption;
-    case NID_p256_dilithium2:
-    case NID_p256_dilithium2_aes:
-    case NID_p256_falcon512:
-    case NID_p256_picnicl1full:
-    case NID_p256_picnic3l1:
-    case NID_p256_sphincsharaka128frobust:
-    case NID_p256_sphincssha256128frobust:
-    case NID_p256_sphincsshake256128frobust:
-      return NID_X9_62_prime256v1;
-    case NID_p384_dilithium3:
-    case NID_p384_dilithium3_aes:
-      return NID_secp384r1;
-    case NID_p521_dilithium5:
-    case NID_p521_dilithium5_aes:
-    case NID_p521_falcon1024:
-    case NID_p521_rainbowVclassic:
-      return NID_secp521r1;///// OQS_TEMPLATE_FRAGMENT_ASSIGN_CLASSICAL_NIDS_END
-    default:
-      return 0;
-  }
-}
+// int get_classical_key_len(oqs_key_type_t keytype, int classical_id) {
+//  switch (classical_id)
+//     {
+//     case NID_rsaEncryption:
+//       return (keytype == KEY_TYPE_PRIVATE) ? 1770 : 398;
+//     case NID_X9_62_prime256v1:
+//       return (keytype == KEY_TYPE_PRIVATE) ? 121 : 65;
+//     case NID_secp384r1:
+//       return (keytype == KEY_TYPE_PRIVATE) ? 167 : 97;
+//     case NID_secp521r1:
+//       return (keytype == KEY_TYPE_PRIVATE) ? 223 : 133;
+//     default:
+//       return 0;
+//     }
+// }
 
-int get_oqs_nid(int hybrid_id)
-{
-  switch (hybrid_id)
-  {
-///// OQS_TEMPLATE_FRAGMENT_ASSIGN_OQS_NID_START
-    case NID_p256_dilithium2:
-    case NID_rsa3072_dilithium2:
-      return NID_dilithium2;
-    case NID_p384_dilithium3:
-      return NID_dilithium3;
-    case NID_p521_dilithium5:
-      return NID_dilithium5;
-    case NID_p256_dilithium2_aes:
-    case NID_rsa3072_dilithium2_aes:
-      return NID_dilithium2_aes;
-    case NID_p384_dilithium3_aes:
-      return NID_dilithium3_aes;
-    case NID_p521_dilithium5_aes:
-      return NID_dilithium5_aes;
-    case NID_p256_falcon512:
-    case NID_rsa3072_falcon512:
-      return NID_falcon512;
-    case NID_p521_falcon1024:
-      return NID_falcon1024;
-    case NID_p256_picnicl1full:
-    case NID_rsa3072_picnicl1full:
-      return NID_picnicl1full;
-    case NID_p256_picnic3l1:
-    case NID_rsa3072_picnic3l1:
-      return NID_picnic3l1;
-    case NID_p521_rainbowVclassic:
-      return NID_rainbowVclassic;
-    case NID_p256_sphincsharaka128frobust:
-    case NID_rsa3072_sphincsharaka128frobust:
-      return NID_sphincsharaka128frobust;
-    case NID_p256_sphincssha256128frobust:
-    case NID_rsa3072_sphincssha256128frobust:
-      return NID_sphincssha256128frobust;
-    case NID_p256_sphincsshake256128frobust:
-    case NID_rsa3072_sphincsshake256128frobust:
-      return NID_sphincsshake256128frobust;
-///// OQS_TEMPLATE_FRAGMENT_ASSIGN_OQS_NID_END
-    default:
-      return 0;
-  }
-}
+// int get_classical_sig_len(int classical_id)
+// {
+//  switch (classical_id)
+//     {
+//     case NID_rsaEncryption:
+//       return 384;
+//     case NID_X9_62_prime256v1:
+//       return 72;
+//     case NID_secp384r1:
+//       return 104;
+//     case NID_secp521r1:
+//       return 141;
+//     default:
+//       return 0;
+//     }
+// }
 
-int get_classical_key_len(oqs_key_type_t keytype, int classical_id) {
- switch (classical_id)
-    {
-    case NID_rsaEncryption:
-      return (keytype == KEY_TYPE_PRIVATE) ? 1770 : 398;
-    case NID_X9_62_prime256v1:
-      return (keytype == KEY_TYPE_PRIVATE) ? 121 : 65;
-    case NID_secp384r1:
-      return (keytype == KEY_TYPE_PRIVATE) ? 167 : 97;
-    case NID_secp521r1:
-      return (keytype == KEY_TYPE_PRIVATE) ? 223 : 133;
-    default:
-      return 0;
-    }
-}
+// int get_oqs_nid(int hybrid_id)
+// {
+//   switch (hybrid_id)
+//   {
+// ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_OQS_NID_START
+//     case NID_p256_dilithium2:
+//     case NID_rsa3072_dilithium2:
+//       return NID_dilithium2;
+//     case NID_p384_dilithium3:
+//       return NID_dilithium3;
+//     case NID_p521_dilithium5:
+//       return NID_dilithium5;
+//     case NID_p256_dilithium2_aes:
+//     case NID_rsa3072_dilithium2_aes:
+//       return NID_dilithium2_aes;
+//     case NID_p384_dilithium3_aes:
+//       return NID_dilithium3_aes;
+//     case NID_p521_dilithium5_aes:
+//       return NID_dilithium5_aes;
+//     case NID_p256_falcon512:
+//     case NID_rsa3072_falcon512:
+//       return NID_falcon512;
+//     case NID_p521_falcon1024:
+//       return NID_falcon1024;
+//     case NID_p256_picnicl1full:
+//     case NID_rsa3072_picnicl1full:
+//       return NID_picnicl1full;
+//     case NID_p256_picnic3l1:
+//     case NID_rsa3072_picnic3l1:
+//       return NID_picnic3l1;
+//     case NID_p521_rainbowVclassic:
+//       return NID_rainbowVclassic;
+//     case NID_p256_sphincsharaka128frobust:
+//     case NID_rsa3072_sphincsharaka128frobust:
+//       return NID_sphincsharaka128frobust;
+//     case NID_p256_sphincssha256128frobust:
+//     case NID_rsa3072_sphincssha256128frobust:
+//       return NID_sphincssha256128frobust;
+//     case NID_p256_sphincsshake256128frobust:
+//     case NID_rsa3072_sphincsshake256128frobust:
+//       return NID_sphincsshake256128frobust;
+// ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_OQS_NID_END
+//     default:
+//       return 0;
+//   }
+// }
 
-int get_classical_sig_len(int classical_id)
-{
- switch (classical_id)
-    {
-    case NID_rsaEncryption:
-      return 384;
-    case NID_X9_62_prime256v1:
-      return 72;
-    case NID_secp384r1:
-      return 104;
-    case NID_secp521r1:
-      return 141;
-    default:
-      return 0;
-    }
-}
 
 /*
  * Initializes a OQS_KEY, given an OpenSSL NID. This function only initializes
@@ -518,6 +518,10 @@ int get_oqs_security_bits(int openssl_nid)
       return 128;
 ///// OQS_TEMPLATE_FRAGMENT_GET_SIG_SECURITY_BITS_END
     default:
+      // Hack for dynamic methods
+      if (openssl_nid == OBJ_sn2nid("DilithiumX")) {
+        return 256;
+      }
       return 0;
   }
 }
@@ -540,9 +544,9 @@ void oqs_pkey_ctx_free(OQS_KEY* key) {
   if (key->pubkey) {
     OPENSSL_free(key->pubkey);
   }
-  if (key->classical_pkey) {
-    EVP_PKEY_free(key->classical_pkey);
-  }
+  // if (key->classical_pkey) {
+  //   EVP_PKEY_free(key->classical_pkey);
+  // }
   OPENSSL_free(key);
 }
 
@@ -617,58 +621,58 @@ const char *OQSSIG_options(void)
     return result;
 }
 
-int is_EC_nid(int nid) {
-  return (nid == NID_X9_62_prime256v1 || nid == NID_secp384r1 || nid == NID_secp521r1);
-}
+// int is_EC_nid(int nid) {
+//   return (nid == NID_X9_62_prime256v1 || nid == NID_secp384r1 || nid == NID_secp521r1);
+// }
 
-int decode_EC_key(oqs_key_type_t keytype, int nid, const unsigned char* encoded_key, int key_len, OQS_KEY* oqs_key) {
-  EC_GROUP *ecgroup = NULL;
-  EC_KEY *ec_key = NULL;
-  const unsigned char* p_encoded_key = encoded_key;
-  int rv = 0;
+// int decode_EC_key(oqs_key_type_t keytype, int nid, const unsigned char* encoded_key, int key_len, OQS_KEY* oqs_key) {
+//   EC_GROUP *ecgroup = NULL;
+//   EC_KEY *ec_key = NULL;
+//   const unsigned char* p_encoded_key = encoded_key;
+//   int rv = 0;
 
-  /* I can't figure out how to import the EC key with the high-level EVP API: the d2i_* functions complain
-     that the EC group is missing. If I set it manually (creating a group and using EC_KEY_set_group to set
-     it on a EC_KEY and assign it to a EVP_PKEY, the group gets erased by EVP_PKEY_set_type inside the d2i_*
-     functions. I therefore use lower-level functions for EC algs.
-  */
-  if ((ecgroup = EC_GROUP_new_by_curve_name(nid)) == NULL) {
-    ECerr(0, ERR_R_FATAL);
-    goto end;
-  }
+//   /* I can't figure out how to import the EC key with the high-level EVP API: the d2i_* functions complain
+//      that the EC group is missing. If I set it manually (creating a group and using EC_KEY_set_group to set
+//      it on a EC_KEY and assign it to a EVP_PKEY, the group gets erased by EVP_PKEY_set_type inside the d2i_*
+//      functions. I therefore use lower-level functions for EC algs.
+//   */
+//   if ((ecgroup = EC_GROUP_new_by_curve_name(nid)) == NULL) {
+//     ECerr(0, ERR_R_FATAL);
+//     goto end;
+//   }
 
-  if ((ec_key = EC_KEY_new()) == NULL ||
-      !EC_KEY_set_group(ec_key, ecgroup)){
-    ECerr(0, ERR_R_FATAL);
-    goto end;
-  }
+//   if ((ec_key = EC_KEY_new()) == NULL ||
+//       !EC_KEY_set_group(ec_key, ecgroup)){
+//     ECerr(0, ERR_R_FATAL);
+//     goto end;
+//   }
 
-  if (keytype == KEY_TYPE_PRIVATE) {
-    if (d2i_ECPrivateKey(&ec_key, &p_encoded_key, key_len) == NULL) {
-      ECerr(0, ERR_R_FATAL);
-      goto end;
-    }
-  } else {
-    if (o2i_ECPublicKey(&ec_key, &p_encoded_key, key_len) == NULL) {
-      ECerr(0, ERR_R_FATAL);
-      goto end;
-    }
-  }
+//   if (keytype == KEY_TYPE_PRIVATE) {
+//     if (d2i_ECPrivateKey(&ec_key, &p_encoded_key, key_len) == NULL) {
+//       ECerr(0, ERR_R_FATAL);
+//       goto end;
+//     }
+//   } else {
+//     if (o2i_ECPublicKey(&ec_key, &p_encoded_key, key_len) == NULL) {
+//       ECerr(0, ERR_R_FATAL);
+//       goto end;
+//     }
+//   }
 
-  if ((oqs_key->classical_pkey = EVP_PKEY_new()) == NULL ||
-      !EVP_PKEY_set_type(oqs_key->classical_pkey, NID_X9_62_id_ecPublicKey) ||
-      !EVP_PKEY_assign_EC_KEY(oqs_key->classical_pkey, ec_key)) {
-    ECerr(0, ERR_R_FATAL);
-    goto end;
-  }
+//   if ((oqs_key->classical_pkey = EVP_PKEY_new()) == NULL ||
+//       !EVP_PKEY_set_type(oqs_key->classical_pkey, NID_X9_62_id_ecPublicKey) ||
+//       !EVP_PKEY_assign_EC_KEY(oqs_key->classical_pkey, ec_key)) {
+//     ECerr(0, ERR_R_FATAL);
+//     goto end;
+//   }
 
-  rv = 1; /* success */
+//   rv = 1; /* success */
 
- end:
-  if (rv == 0 && ecgroup) EC_GROUP_free(ecgroup);
-  if (rv == 0 && ec_key) EC_KEY_free(ec_key);
-  return rv;
-}
+//  end:
+//   if (rv == 0 && ecgroup) EC_GROUP_free(ecgroup);
+//   if (rv == 0 && ec_key) EC_KEY_free(ec_key);
+//   return rv;
+// }
 
 int oqs_int_update(EVP_MD_CTX *ctx, const void *data, size_t count)
 {

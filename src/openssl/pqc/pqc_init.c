@@ -59,15 +59,15 @@ DEFINE_ITEM_SIGN_AND_INFO_SET(dilithiumX)
 
 #endif
 
-// Composite Crypto
-// #ifdef ENABLE_COMPOSITE
-// DEFINE_OQS_ITEM_SIGN(composite, OBJ_sn2nid("COMPOSITE"))
-// #endif
+// // Composite Crypto
+// // #ifdef ENABLE_COMPOSITE
+// // DEFINE_OQS_ITEM_SIGN(composite, OBJ_sn2nid("COMPOSITE"))
+// // #endif
 
-// Multikey Crypto
-#ifdef ENABLE_COMBINED
-DEFINE_OQS_ITEM_SIGN(combined, OBJ_sn2nid("MULTIKEY"))
-#endif
+// // Multikey Crypto
+// #ifdef ENABLE_COMBINED
+// DEFINE_OQS_ITEM_SIGN(combined, OBJ_sn2nid("MULTIKEY"))
+// #endif
 
 // =========
 // Functions
