@@ -677,40 +677,23 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 	PKI_OCSP_RESP *r = NULL;
 		// LibPKI's OCSP Response representation
 
-	if (!resp || !resp->value || !keypair || !keypair->value)
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ERR;
+	if (!resp || !resp->value || !keypair || !keypair->value) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
 	// Let's get the value
 	r = resp->value;
-
-	//
-	if (!r->resp)
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ERR;
-	}
-
-	// If there is no bs, no need to sign the response
-	// we do not consider this to be an error
-	if (!r->bs)
-	{
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ERR;
+	if (!r->resp || !r->bs) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
 	// Checks the certificates
-	if (!cert || !cert->value )
-	{
-		PKI_log(PKI_LOG_WARNING,"Signing an OCSP_RESP without a cert");
+	if (!cert || !cert->value ) {
+		PKI_DEBUG("Signing an OCSP_RESP without a cert");
 	}
 
-	if (!issuer || !issuer->value )
-	{
-		PKI_log( PKI_LOG_WARNING, "Signing an OCSP_RESP without the "
-			"issuer's certificate!");
+	if (!issuer || !issuer->value ) {
+		PKI_DEBUG("Signing an OCSP_RESP without the issuer's certificate!");
 	}
 
 	// Sets the Responder ID
@@ -724,16 +707,20 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 			return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set responder type to name by cert");
 		}
 	} else {
+PKI_DEBUG("[TEST]");
+
 		// Key Type
 		if (PKI_OK != PKI_X509_OCSP_RESP_set_keytype_by_key(resp, keypair)) {
 			return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set responder type to key by key");
 		}
 	}
+PKI_DEBUG("[TEST]");
 
 	// Sets the createdAt time
 	if (PKI_OK != PKI_X509_OCSP_RESP_set_createdAt(resp, 0)) {
 		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set the createdAt field");
 	}
+PKI_DEBUG("[TEST]");
 
 // #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 	
@@ -850,43 +837,65 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 
 // #endif
 
-	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new()))
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return PKI_ERR;
+	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new())) {
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the responseBytes structure");
 	}
+PKI_DEBUG("[TEST]");
 
-	if((r->resp->responseBytes->responseType = 
-			OBJ_nid2obj(NID_id_pkix_OCSP_basic)) == NULL )
-	{
-		PKI_log_debug("id-pkix-ocsp-basic OID error");
-		return PKI_ERR;
+	OCSP_RESPBYTES * r_bytes = OCSP_RESPBYTES_new();
+	if (!r_bytes) {
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the RESP");
 	}
+PKI_DEBUG("[TEST]");
+
+	PKI_OID * OCSP_basic = OBJ_nid2obj(NID_id_pkix_OCSP_basic);
+	if (!OCSP_basic) {
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the OID for responseType");
+	}
+	r_bytes->responseType = OCSP_basic;
+PKI_DEBUG("[TEST]");
+
+	r->resp->responseBytes = r_bytes;
+PKI_DEBUG("[TEST]");
+	
+	// if (!r_bytes) {
+	// 	return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the RESP")
+	// if((r->resp->responseBytes->responseType = 
+	// 		OBJ_nid2obj(NID_id_pkix_OCSP_basic)) == NULL )
+	// {
+	// 	PKI_log_debug("id-pkix-ocsp-basic OID error");
+	// 	return PKI_ERR;
+	// }
 
 	/* If there's old certs, let's clean the stack */
-	if( r->bs->certs )
-	{
+	if (r && r->bs && r->bs->certs)	{
+
+PKI_DEBUG("[TEST]");
 		PKI_X509_CERT_VALUE *tmp_cert = NULL;
-		while ( (tmp_cert = sk_X509_pop( r->bs->certs )) != NULL )
-		{
-			X509_free ( tmp_cert );
+			// Certificate Pointer
+
+		// Cycle through the list of certificates and
+		// free them after removing them from the list
+		while((tmp_cert = sk_X509_pop( r->bs->certs )) != NULL ) {
+			// Free Memory
+			X509_free(tmp_cert);
+		}
+	} else {
+PKI_DEBUG("[TEST]");
+		// Creates a new empty stack & check for errors
+		r->bs->certs = sk_X509_new_null();
+		if (r->bs->certs == NULL) {
+			return PKI_ERROR(PKI_ERR_OCSP_RESP_SIGN, "ERROR, Can not Create stack of certificate in the response");
 		}
 	}
-	else
-	{
-		if((r->bs->certs = sk_X509_new_null()) == NULL)
-		{
-			PKI_log_debug("ERROR, Can not Create stack of certs in signature!");
-			return( PKI_ERR );
-		}
-	}
+PKI_DEBUG("[TEST]");
 
 	/* Let's push the signer's certificate */
 	if ( cert ) OCSP_basic_add1_cert(r->bs, cert->value);
+PKI_DEBUG("[TEST]");
 
 	// Let's now perform the real signing operation
 	return PKI_X509_OCSP_RESP_DATA_sign(resp, keypair, digest);
-
 }
 
 /*! \brief Signs a PKI_X509_OCSP_RESP object by using a token */
