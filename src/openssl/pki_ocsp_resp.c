@@ -348,18 +348,334 @@ int PKI_X509_OCSP_RESP_DATA_sign (PKI_X509_OCSP_RESP * resp,
 	return ( PKI_OK );
 }
 
+int PKI_X509_OCSP_RESP_set_keytype_by_key_value(PKI_X509_OCSP_RESP     		 * x, 
+										  		const PKI_X509_KEYPAIR_VALUE * const key) {
+
+	// Input Checks
+	if (!x || !key) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	}
+
+	// Basic Response Checks
+	PKI_OCSP_RESP * resp = PKI_X509_get_value(x);
+	if (!resp) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Missing internal value");
+	}
+
+	OCSP_RESPDATA * data = (OCSP_RESPDATA *)OCSP_resp_get0_respdata(resp->bs);
+	if (!data) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot retrieve the respdata");
+	}
+
+	OCSP_RESPID * rid = NULL;
+
+	// Assigns the value to the response
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	rid = &(data->responderId);
+#else
+	rid = data->responderId;
+#endif
+
+	// Exports the Key into a PKI_MEM (ASN1/DER)
+	PKI_MEM * mem_der = PKI_X509_put_mem_value((void *)key, PKI_DATATYPE_X509_KEYPAIR, NULL, PKI_DATA_FORMAT_ASN1, NULL, NULL);
+	if (!mem_der) {
+		// Error Condition
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	// Calculates the digest over the DER representation
+	PKI_DIGEST * digest = PKI_DIGEST_MEM_new(PKI_DIGEST_ALG_SHA1, mem_der);
+	if (!digest) {
+		if (mem_der) PKI_MEM_free(mem_der);
+		return PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
+	}
+
+	// Free Memory
+	PKI_MEM_free(mem_der);
+	mem_der = NULL;
+
+	// Builds the value string
+	PKI_STRING * value = PKI_STRING_new(PKI_STRING_OCTET, 
+										(char *) digest->digest,
+										(ssize_t) digest->size);
+
+	// Free the Digest memory
+	if (digest) PKI_DIGEST_free(digest);
+	digest = NULL;
+
+	// Checks the result of the allocation
+	if (!value) {
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	// Assigns the value
+	rid->type = PKI_X509_OCSP_RESPID_TYPE_BY_KEYID;
+	rid->value.byKey = value;
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_X509_OCSP_RESP_set_keytype_by_key(PKI_X509_OCSP_RESP     * x, 
+										  const PKI_X509_KEYPAIR * const key) {
+
+	// Input Checks
+	if (!x || !key || !key->value) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	}
+
+	return PKI_X509_OCSP_RESP_set_keytype_by_key_value(x, (const PKI_X509_KEYPAIR_VALUE *)PKI_X509_get_value(key));
+
+// 	// Basic Response Checks
+// 	PKI_OCSP_RESP * resp = PKI_X509_get_value(x);
+// 	if (!resp) {
+// 		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Missing internal value");
+// 	}
+
+// 	OCSP_RESPDATA * data = OCSP_resp_get0_respdata(resp->bs);
+// 	if (!data) {
+// 		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot retrieve the respdata");
+// 	}
+
+// 	OCSP_RESPID * rid = NULL;
+
+// 	// Assigns the value to the response
+// #if OPENSSL_VERSION_NUMBER > 0x1010000fL
+// 	rid = &(data->responderId);
+// #else
+// 	rid = data->responderId;
+// #endif
+
+// 	// Exports the Key into a PKI_MEM (ASN1/DER)
+// 	PKI_MEM * mem_der = PKI_X509_put_mem(key, PKI_DATA_FORMAT_ASN1, NULL, NULL);
+// 	if (!mem_der) {
+// 		// Error Condition
+// 		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+// 	}
+
+// 	// Calculates the digest over the DER representation
+// 	PKI_DIGEST * digest = PKI_DIGEST_MEM_new(PKI_DIGEST_ALG_SHA1, mem_der);
+// 	if (!digest) {
+// 		if (mem_der) PKI_MEM_free(mem_der);
+// 		return PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
+// 	}
+
+// 	// Free Memory
+// 	PKI_MEM_free(mem_der);
+// 	mem_der = NULL;
+
+// 	// Builds the value string
+// 	PKI_STRING * value = PKI_STRING_new(PKI_STRING_OCTET, 
+// 										digest->digest,
+// 										digest->size);
+
+// 	// Checks the result of the allocation
+// 	if (!value) {
+// 		PKI_DIGEST_free(digest);
+// 		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+// 	}
+
+// 	// Assigns the value
+// 	rid->type = PKI_X509_OCSP_RESPID_TYPE_BY_KEYID;
+// 	rid->value.byKey = value;
+
+// 	// All Done
+// 	return PKI_OK;
+}
+
+int PKI_X509_OCSP_RESP_set_keytype_by_cert(PKI_X509_OCSP_RESP  * x,
+										   const PKI_X509_CERT * const cert) {
+
+	unsigned char dst_buffer[EVP_MAX_MD_SIZE];
+		// Output buffer for digest calculation
+
+	OCSP_RESPID * rid = NULL;
+		// Pointer to the internal responder Id
+
+	// Input Checks
+	if (!x || !cert || !cert->value) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	}
+
+	// Basic Response Checks
+	PKI_OCSP_RESP * resp = PKI_X509_get_value(x);
+	if (!resp) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Missing internal value");
+	}
+
+	OCSP_RESPDATA * data = (OCSP_RESPDATA *)OCSP_resp_get0_respdata(resp->bs);
+	if (!data) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot retrieve the respdata");
+	}
+
+	// Let's extract the key
+	PKI_BIT_STRING * key = (PKI_BIT_STRING *)PKI_X509_CERT_get_data(cert, PKI_X509_DATA_PUBKEY_BITSTRING);
+	if (!key) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot extract the key from the certificate");
+	}
+
+	if (PKI_OK != PKI_DIGEST_new_value((unsigned char **)&dst_buffer,
+									   PKI_DIGEST_ALG_SHA1, 
+									   key->data, 
+									   (size_t) key->length)) {
+        return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot calculate the key identifier");
+	}
+
+	// Builds the value string
+	PKI_STRING * value = PKI_STRING_new(PKI_STRING_OCTET, 
+										(char *) dst_buffer,
+										EVP_MD_size(PKI_DIGEST_ALG_SHA1));
+
+	// Checks the result of the allocation
+	if (!value) {
+		// Error Condition
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
+
+	// Assigns the value to the response
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	rid = &(data->responderId);
+#else
+	rid = data->responderId;
+#endif
+
+	// Assigns the value
+	rid->type = PKI_X509_OCSP_RESPID_TYPE_BY_KEYID;
+	rid->value.byKey = value;
+
+	// All Done
+	return PKI_OK;
+
+}
+
+int PKI_X509_OCSP_RESP_set_nametype_by_cert(PKI_X509_OCSP_RESP * x,
+											const PKI_X509     * const cert) {
+	
+	// Input Checks
+	if (!x || !cert || !cert->value) 
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	OCSP_RESPID * rid = NULL;
+		// Pointer to the internal responder Id
+
+	// Basic Response Checks
+	PKI_OCSP_RESP * resp = PKI_X509_get_value(x);
+	if (!resp) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Missing internal value");
+	}
+
+	// Gets the OCSP response data
+	OCSP_RESPDATA * data = (OCSP_RESPDATA *)OCSP_resp_get0_respdata(resp->bs);
+	if (!data) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot retrieve the respdata");
+	}
+
+	// Assigns the value to the response
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	rid = &(data->responderId);
+#else
+	rid = data->responderId;
+#endif
+
+	// Sets the Name
+	if (!X509_NAME_set(&rid->value.byName, (PKI_X509_NAME *)PKI_X509_CERT_get_data(cert, PKI_X509_DATA_SUBJECT))) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot extract the name from the signer's certificate");
+	}
+
+	// Sets the Responder Type
+	rid->type = PKI_X509_OCSP_RESPID_TYPE_BY_NAME;
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_X509_OCSP_RESP_set_nametype_by_name(PKI_X509_OCSP_RESP  * x, 
+											const PKI_X509_NAME * const name) {
+
+	// Input Checks
+	if (!x || !name) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	OCSP_RESPID * rid = NULL;
+		// Pointer to the internal responder Id
+
+	// Basic Response Checks
+	PKI_OCSP_RESP * resp = PKI_X509_get_value(x);
+	if (!resp) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Missing internal value");
+	}
+
+	// Gets the OCSP response data
+	OCSP_RESPDATA * data = (OCSP_RESPDATA *)OCSP_resp_get0_respdata(resp->bs);
+	if (!data) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot retrieve the respdata");
+	}
+
+	// Assigns the value to the response
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	rid = &(data->responderId);
+#else
+	rid = data->responderId;
+#endif
+
+	// Sets the Name
+	if (!X509_NAME_set(&rid->value.byName, (PKI_X509_NAME *)name)) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot extract the name from the signer's certificate");
+	}
+
+	// Sets the Responder Type
+	rid->type = PKI_X509_OCSP_RESPID_TYPE_BY_NAME;
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_X509_OCSP_RESP_set_createdAt(PKI_X509_OCSP_RESP * x, int offset) {
+
+	// Input Checks
+	if (!x) return PKI_ERR;
+
+	PKI_TIME * time = NULL;
+		// Time String
+
+	// Basic Response Checks
+	PKI_OCSP_RESP * resp = PKI_X509_get_value(x);
+	if (!resp) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Missing internal value");
+	}
+
+	// Gets the OCSP response data
+	OCSP_RESPDATA * data = (OCSP_RESPDATA *)OCSP_resp_get0_respdata(resp->bs);
+	if (!data) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot retrieve the respdata");
+	}
+
+	// Assigns the value to the response
+#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	time = data->producedAt;
+#else
+	time = data->producedAt;
+#endif
+
+	// Adjust the offset (0) to the GMT time
+	if (X509_gmtime_adj(time, 0) == NULL) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set the createdAt time");
+	}
+
+	// All Done
+	return PKI_OK;
+}
+
 /*! \brief Signs a PKI_X509_OCSP_RESP, for a simpler API use PKI_X509_OCSP_RESP_sign_tk */
 int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp, 
-			    PKI_X509_KEYPAIR          * keypair,
-			    PKI_X509_CERT             * cert, 
-			    PKI_X509_CERT             * issuer,
-			    PKI_X509_CERT_STACK       * otherCerts,
-			    PKI_DIGEST_ALG            * digest,
-			    PKI_X509_OCSP_RESPID_TYPE   respidType) {
+							PKI_X509_KEYPAIR          * keypair,
+							PKI_X509_CERT             * cert, 
+							PKI_X509_CERT             * issuer,
+							PKI_X509_CERT_STACK       * otherCerts,
+							PKI_DIGEST_ALG            * digest,
+							PKI_X509_OCSP_RESPID_TYPE   respidType) {
 
-	OCSP_RESPID *rid = NULL;
 	PKI_OCSP_RESP *r = NULL;
-	ASN1_GENERALIZEDTIME * time = NULL;
+		// LibPKI's OCSP Response representation
 
 	if (!resp || !resp->value || !keypair || !keypair->value)
 	{
@@ -397,167 +713,142 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 			"issuer's certificate!");
 	}
 
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
-	
-	// Let's get the responderId
-	rid = &(r->bs->tbsResponseData.responderId);
-
-	// Set the appropriate by name or by key
+	// Sets the Responder ID
 	if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME) {
-
+		// Name is required
 		if (!cert) {
-			return PKI_ERROR(PKI_ERR, 
-			"PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
+			return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Signer's certificate is required for name respID types");
 		}
-
-		if (1 != OCSP_RESPID_set_by_name(rid, cert->value)) {
-			return PKI_ERROR(PKI_ERR, "Can not set RESPID by name");
+		// Name Type
+		if (PKI_OK != PKI_X509_OCSP_RESP_set_nametype_by_cert(resp, cert)) {
+			return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set responder type to name by cert");
 		}
-
 	} else {
-
-		if (1 != OCSP_RESPID_set_by_key(rid, cert->value)) {
-			return PKI_ERROR(PKI_ERR, "Can not set RESPID by key");
+		// Key Type
+		if (PKI_OK != PKI_X509_OCSP_RESP_set_keytype_by_key(resp, keypair)) {
+			return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set responder type to key by key");
 		}
 	}
 
-	if ((time = X509_gmtime_adj(r->bs->tbsResponseData.producedAt, 0)) == 0)
-		PKI_log_err("Error adding signed time to response");
-
-	// if (!r->bs->tbsResponseData.producedAt)
-	//	r->bs->tbsResponseData.producedAt = time;
-
-#else
-
-	// Gets the responderId
-	rid = r->bs->tbsResponseData->responderId;
-
-	// Only if we do have a certificate we might want
-	// to set the ResponderID
-	if (!cert) {
-		// We can not add the responder's ID because
-		// there is no signer's certificate
-		PKI_log_err("Can not set the responder ID (missing signer's cert) [RID Type: %d (%s)]",
-			respidType, respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME ? "name" : "keyid");
-		// Failed
-		return PKI_ERR;
+	// Sets the createdAt time
+	if (PKI_OK != PKI_X509_OCSP_RESP_set_createdAt(resp, 0)) {
+		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set the createdAt field");
 	}
 
-	// Sets the responderId
-	if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME)
-	{
-		char * parsed = PKI_X509_CERT_get_parsed(cert, PKI_X509_DATA_SUBJECT);
-		PKI_log_debug("RESPONDER BY NAME => BY NAME [%s]", parsed);
-		PKI_Free(parsed);
-		parsed = NULL;
+// #if OPENSSL_VERSION_NUMBER > 0x1010000fL
+	
+// 	if (PKI_OK != PKI_X509_OCSP_RESP_set_keytype_by_cert(resp, cert)) {
+// 		return PKI_ERROR(PKI_ERR_OCSP_RESP_ENCODE, "Cannot set responder type to key");
+// 	}
 
-		if (!cert) {
-			PKI_log_err("PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
-			return PKI_ERR;
-		}
+// 	// // Let's get the responderId
+// 	// rid = &(r->bs->tbsResponseData.responderId);
 
-		if (!X509_NAME_set(&rid->value.byName, X509_get_subject_name(cert->value)))
-		{
-			PKI_log_err("Internal Error");
-			return PKI_ERR;
-		}
+// 	// // Set the appropriate by name or by key
+// 	// if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME) {
 
-		rid->type = V_OCSP_RESPID_NAME;
+// 	// 	if (!cert) {
+// 	// 		return PKI_ERROR(PKI_ERR, 
+// 	// 		"PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
+// 	// 	}
 
-	}
-	else if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_KEYID)
-	{
-		PKI_MEM * mem_buf = PKI_MEM_new_data(SHA_DIGEST_LENGTH, NULL);
+// 	// 	if (1 != OCSP_RESPID_set_by_name(rid, cert->value)) {
+// 	// 		return PKI_ERROR(PKI_ERR, "Can not set RESPID by name");
+// 	// 	}
 
-		if (1 != X509_pubkey_digest(cert->value, EVP_sha1(), mem_buf->data, NULL)) {
-			PKI_log_err("Can not get the ResponderID (SHA1 of PublicKey)"
-					" from the server's certificate, aborting.");
-			return PKI_ERR;
-		}
+// 	// } else {
 
-		// TODO: Remove this Debugging Info
-		/*
-		unsigned char tmphash[SHA_DIGEST_LENGTH];
-		X509_pubkey_digest(cert->value, EVP_sha1(), tmphash, NULL);
+// 	// 	if (1 != OCSP_RESPID_set_by_key(rid, cert->value)) {
+// 	// 		return PKI_ERROR(PKI_ERR, "Can not set RESPID by key");
+// 	// 	}
+// 	// }
 
-                URL_put_data_raw("ossl_expected_sha1_value.bin",
-                                 tmphash,
-                                 SHA_DIGEST_LENGTH,
-                                 NULL,
-                                 NULL,
-                                 0,
-                                 0,
-                                 NULL);
+// 	if ((time = X509_gmtime_adj(r->bs->tbsResponseData.producedAt, 0)) == 0)
+// 		PKI_log_err("Error adding signed time to response");
 
-		printf("[DEBUG] Cert Key Bit String:\n");
-		ASN1_BIT_STRING *key = X509_get0_pubkey_bitstr(cert->value);
-		for (int i = 0; i < key->length; i++) {
-                        uint8_t c;
-                        c = key->data[i];
-                        printf("%2.2X",c);
-                        if (i < key->length) printf(":");
-			if (i > 0 && (i+1) % 20 == 0) printf("\n");
-                } printf("\n");
+// 	// if (!r->bs->tbsResponseData.producedAt)
+// 	//	r->bs->tbsResponseData.producedAt = time;
 
-		// TODO: Remove this Debugging
-		URL_put_data_raw("ossl_X509_get0_pubkey_bitstr.der",
-                     		 key->data,
-                    		 key->length,
-				 NULL,
-				 NULL,
-				 0,
-				 0,
-				 NULL);
+// #else
 
-		// Calculates the responder ID
-		PKI_DIGEST *dgst = PKI_DIGEST_new_(keypair, PKI_DIGEST_ALG_SHA1);
+// 	// Gets the responderId
+// 	rid = r->bs->tbsResponseData->responderId;
 
-		if (!dgst) {
-			PKI_log_err("Can not get Keypair SHA1 value!");
-			return PKI_ERR;
-		}
+// 	// Only if we do have a certificate we might want
+// 	// to set the ResponderID
+// 	if (!cert) {
+// 		// We can not add the responder's ID because
+// 		// there is no signer's certificate
+// 		PKI_log_err("Can not set the responder ID (missing signer's cert) [RID Type: %d (%s)]",
+// 			respidType, respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME ? "name" : "keyid");
+// 		// Failed
+// 		return PKI_ERR;
+// 	}
 
-		printf("OPENSSL Calculated ResponderID: ");
-		for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
-			uint8_t c;
-			c = tmphash[i];
-			printf("%2.2X",c);
-			if (i < SHA_DIGEST_LENGTH) printf(":");
-		} printf("\n");
-		*/
+// 	// Sets the responderId
+// 	if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_NAME)
+// 	{
+// 		char * parsed = PKI_X509_CERT_get_parsed(cert, PKI_X509_DATA_SUBJECT);
+// 		PKI_log_debug("RESPONDER BY NAME => BY NAME [%s]", parsed);
+// 		PKI_Free(parsed);
+// 		parsed = NULL;
 
-		rid->type = V_OCSP_RESPID_KEY;
-		if ((rid->value.byKey = ASN1_OCTET_STRING_new()) == NULL)
-		{
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-			PKI_MEM_free(mem_buf);
-			return PKI_ERR;
-		}
+// 		if (!cert) {
+// 			PKI_log_err("PKI_OCSP_RESPID_TYPE_BY_NAME requires signer's certificate");
+// 			return PKI_ERR;
+// 		}
 
-		if (!ASN1_OCTET_STRING_set(rid->value.byKey, mem_buf->data, (int) mem_buf->size))
-		{
-			PKI_log_err("Can not assign Responder Id by Key (Internal Error!)");
-			PKI_MEM_free(mem_buf);
-			return PKI_ERR;
-		}
+// 		if (!X509_NAME_set(&rid->value.byName, X509_get_subject_name(cert->value)))
+// 		{
+// 			PKI_log_err("Internal Error");
+// 			return PKI_ERR;
+// 		}
 
-		// All done here.
-		PKI_MEM_free(mem_buf);
-	}
-	else
-	{
-		// Error, we have a value we do not recognize
-		PKI_log_err("ResponderID Type NOT recognized, skipped.");
-	}
+// 		rid->type = V_OCSP_RESPID_NAME;
+
+// 	}
+// 	else if (respidType == PKI_X509_OCSP_RESPID_TYPE_BY_KEYID)
+// 	{
+// 		PKI_MEM * mem_buf = PKI_MEM_new_data(SHA_DIGEST_LENGTH, NULL);
+
+// 		if (1 != X509_pubkey_digest(cert->value, EVP_sha1(), mem_buf->data, NULL)) {
+// 			PKI_log_err("Can not get the ResponderID (SHA1 of PublicKey)"
+// 					" from the server's certificate, aborting.");
+// 			return PKI_ERR;
+// 		}
+
+// 		rid->type = V_OCSP_RESPID_KEY;
+// 		if ((rid->value.byKey = ASN1_OCTET_STRING_new()) == NULL)
+// 		{
+// 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+// 			PKI_MEM_free(mem_buf);
+// 			return PKI_ERR;
+// 		}
+
+// 		if (!ASN1_OCTET_STRING_set(rid->value.byKey, mem_buf->data, (int) mem_buf->size))
+// 		{
+// 			PKI_log_err("Can not assign Responder Id by Key (Internal Error!)");
+// 			PKI_MEM_free(mem_buf);
+// 			return PKI_ERR;
+// 		}
+
+// 		// All done here.
+// 		PKI_MEM_free(mem_buf);
+// 	}
+// 	else
+// 	{
+// 		// Error, we have a value we do not recognize
+// 		PKI_log_err("ResponderID Type NOT recognized, skipped.");
+// 	}
 
 
-	if ((time = X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0)) == 0)
-		PKI_log_err("Error adding signed time to response");
+// 	if ((time = X509_gmtime_adj(r->bs->tbsResponseData->producedAt, 0)) == 0)
+// 		PKI_log_err("Error adding signed time to response");
 
-	// if (!r->bs->tbsResponseData->producedAt)
-	//	r->bs->tbsResponseData->producedAt = time;
+// 	// if (!r->bs->tbsResponseData->producedAt)
+// 	//	r->bs->tbsResponseData->producedAt = time;
 
-#endif
+// #endif
 
 	if (!(r->resp->responseBytes = OCSP_RESPBYTES_new()))
 	{

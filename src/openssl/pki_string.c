@@ -10,10 +10,6 @@ PKI_STRING * PKI_STRING_new_null ( int type ) {
 	return( PKI_STRING_new( type, NULL, 0 ));
 }
 
-/*! \brief Returns a new PKI_STRING of type and contents set from the passed
- *         parameters 
- */
-
 PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size ) {
 	PKI_STRING *ret = NULL;
 

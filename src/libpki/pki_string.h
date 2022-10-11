@@ -32,9 +32,18 @@ typedef enum {
 	PKI_STRING_UNIVERSAL = V_ASN1_UNIVERSALSTRING,
 } PKI_STRING_DATATYPE;
 
-/* Manipulating functions */
+/// @brief Allocates and returns a new empty PKI_STRING
+/// @param type The type of the string (e.g., PKI_STRING_OCTET, etc.)
+/// @return The pointer to the allocated PKI_STRING if successful, NULL otherwise.
 PKI_STRING * PKI_STRING_new_null ( int type );
+
+/// @brief Allocates and returns a new PKI_STRING and copies the passed data
+/// @param type The type of the string (e.g., PKI_STRING_OCTET, etc.)
+/// @param val The pointer to the buffer with the data to be copied
+/// @param size The size of the data to be copied into the string
+/// @return The pointer to the new PKI_STRING if successful, NULL in case of errors
 PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size );
+
 PKI_STRING * PKI_STRING_dup ( const PKI_STRING *a );
 void PKI_STRING_free( PKI_STRING *s );
 
