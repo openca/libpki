@@ -1,18 +1,12 @@
 
 #include <libpki/pki.h>
 
-int gen_RSA_PKey( void );
-
 /* Function Prototypes */
-int test_gen_PKeys(int scheme);
-int gen_X509_Req(int scheme, int bits, char *file );
+int sign_ocsp_response();
 
-/* File_names */
-char *sc_list[] = {
-	"rsa",
-	"dsa",
-	"ecdsa"
-};
+// ====
+// Main
+// ====
 
 int main (int argc, char *argv[] ) {
 
@@ -22,178 +16,85 @@ int main (int argc, char *argv[] ) {
 
 	PKI_init_all();
 
-	if(( PKI_log_init (PKI_LOG_TYPE_SYSLOG, PKI_LOG_NOTICE, NULL,
-			PKI_LOG_FLAGS_ENABLE_DEBUG, NULL )) == PKI_ERR ) {
+	if(( PKI_log_init (PKI_LOG_TYPE_STDERR, 
+					   PKI_LOG_ALWAYS,
+					   NULL,
+					   PKI_LOG_FLAGS_ENABLE_DEBUG,
+					   NULL )) == PKI_ERR ) {
 		exit(1);
 	}
 
-	test_gen_PKeys( PKI_SCHEME_RSA );
-	test_gen_PKeys( PKI_SCHEME_DSA );
-	test_gen_PKeys( PKI_SCHEME_ECDSA );
-
-	PKI_log_end();
-
-	gen_X509_Req(PKI_SCHEME_RSA, 2048, "req_rsa.pem");
-	gen_X509_Req(PKI_SCHEME_DSA, 2048, "req_dsa.pem");
-	gen_X509_Req(PKI_SCHEME_ECDSA, 256, "req_ecdsa.pem");
+	if (sign_ocsp_response() != PKI_OK) {
+		printf("\nERROR: Cannot sign OCSP responses without a certificate.\n\n");
+		exit(1);
+	}
 
 	printf("Done.\n\n");
 
 	return (0);
 }
 
-int gen_X509_Req(int scheme, int bits, char *file ) {
+int sign_ocsp_response() {
 
-	PKI_X509_KEYPAIR *p = NULL;
-	PKI_X509_REQ *r = NULL;
-	char *sc = NULL;
-	char buf[256];
-	int i;
-	size_t list_size = 0;
+	PKI_KEYPARAMS * kp = PKI_KEYPARAMS_new(PKI_SCHEME_RSA, NULL);
 
-	const PKI_ALGOR_ID * algs = NULL;
+	PKI_X509_KEYPAIR * k = PKI_X509_KEYPAIR_new_kp(kp, NULL, NULL, NULL);
+	if (!k) return 0;
 
-	switch (scheme) {
-		case PKI_SCHEME_RSA:
-			printf("Generating RSA Key:\n");
-			sc="RSA";
-			break;
-		case PKI_SCHEME_DSA:
-			printf("Generating DSA Key:\n");
-			sc="DSA";
-			break;
-		case PKI_SCHEME_ECDSA:
-			printf("Generating ECDSA Key:\n");
-			sc="ECDSA";
-			break;
-		default:
-			printf("Unrecognized format!\n");
-			return (0);
+	PKI_X509_OCSP_RESP * resp = PKI_X509_OCSP_RESP_new();
+	if (!resp) {
+		if (k) PKI_X509_free(k);
+		return 0;
 	}
-	printf("  * %d bits ... ", bits);
-
-	if ((algs = PKI_ALGOR_ID_list((scheme))) == NULL) {
-		/* No supported Digests for this alg ??? */
-		printf("No supported Digests for this scheme!\n");
-		return(1);
+	PKI_X509_OCSP_REQ * req = PKI_X509_get("tmp/ocsp-req.der", PKI_DATATYPE_X509_OCSP_REQ, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL);
+	if (!req) {
+		if (k) PKI_X509_free(k);
+		if (resp) PKI_X509_free(resp);
+		return 0;
 	}
 
-	p = PKI_X509_KEYPAIR_new( scheme, bits, NULL, NULL, NULL );
-	if( !p ) {
-		printf("ERROR::Can not generate keypair!\n");
-		return (0);
-	}
-	printf("Ok.\n");
-
-	sprintf( buf, "results/t1_%s_key.pem", sc);
-
-	PKI_X509_KEYPAIR_put( p, PKI_DATA_FORMAT_PEM, buf,  NULL, NULL );
-
-	list_size = PKI_ALGOR_ID_list_size(algs);
-
-	for( i=0; i < list_size ; i++ ) {
-
-		PKI_DIGEST_ALG *dgst = NULL;
-		PKI_X509_ALGOR_VALUE * algor = NULL;
-
-		printf("    - Generating REQ (%s) ... " ,
-					PKI_ALGOR_ID_txt (algs[i]));
-
-		if ((algor = PKI_X509_ALGOR_VALUE_get(algs[i])) == NULL) {
-			printf("ERROR, can not get the algorithm pointer!\n");
-			return 0;
-		}
-
-		if ((dgst = PKI_X509_ALGOR_VALUE_get_digest(algor)) == NULL) {
-			printf("ERROR, can not get the digest from the algorithm!\n");
-			return 0;
-		}
-
-		sprintf( buf, "results/t1_%s_req.pem", 
-					PKI_ALGOR_ID_txt ( algs[i]) );
-
-		PKI_log_debug ("New Req (Alg=%s)", PKI_DIGEST_ALG_get_parsed(dgst));
-
-		r = PKI_X509_REQ_new ( p, NULL, NULL, NULL, dgst, NULL );
+	for (int i = 0; i < PKI_X509_OCSP_REQ_elements(req); i++) {
 		
-		if( !r ) {
-			if (p) PKI_X509_KEYPAIR_free( p );
-			printf("ERROR::Can not generate new request!\n");
-			return (0);
-		}
-	
-		printf("Ok\n");
+		OCSP_CERTID * cid = PKI_X509_OCSP_REQ_get_cid(req, i);
+		PKI_TIME * thisUpdate = PKI_TIME_new(- PKI_VALIDITY_ONE_DAY);
+		PKI_TIME * nextUpdate = PKI_TIME_new(PKI_VALIDITY_ONE_MONTH);
+		PKI_TIME * revocationDate = NULL; // PKI_TIME_new(- PKI_VALIDITY_ONE_YEAR);
 
-		printf("    - Wiriting REQ (%s) ... " , buf );
-			
-		if(!PKI_X509_REQ_put ( r, PKI_DATA_FORMAT_PEM, buf, 
-							NULL, NULL, NULL)) {
-			fprintf( stderr, "<file write error %s>\n", buf);
-		} else {
-			printf("Ok.\n");
-		}
+		PKI_X509_OCSP_RESP_add(resp, cid, PKI_OCSP_CERTSTATUS_GOOD, revocationDate, thisUpdate, nextUpdate, PKI_X509_CRL_REASON_UNSPECIFIED, NULL);
 
-		PKI_X509_REQ_free ( r );
+		if (thisUpdate) PKI_TIME_free(thisUpdate);
+		if (nextUpdate) PKI_TIME_free(nextUpdate);
+		if (revocationDate) PKI_TIME_free(revocationDate);
 	}
 
-	PKI_X509_KEYPAIR_free( p );
+	if (PKI_X509_OCSP_REQ_has_nonce(req))	{
+		if (PKI_X509_OCSP_RESP_copy_nonce(resp, req) == PKI_ERR) {
+			printf("Error while copying the NONCE");
+			exit(1);
+		}
+	}
 
-	printf("Done.\n\n");
+	PKI_OCSP_RESP * r = PKI_X509_get_value(resp);
+	if (!r) {
+		printf("Internal Pointer Error");
+		exit(1);
+	}
+
+	if (PKI_OK != PKI_X509_OCSP_RESP_sign(resp,
+											k,
+											NULL,
+											NULL,
+											NULL,
+											PKI_DIGEST_ALG_SHA256,
+											PKI_X509_OCSP_RESPID_TYPE_BY_KEYID)) {
+		printf("Error while signing the response\n\n");
+		exit(1);
+	}
+
+	if (req) PKI_X509_free(req);
+	if (resp) PKI_X509_free(resp);
+	if (k) PKI_X509_free(k);
 
 	return 1;
-}
-
-
-int test_gen_PKeys(int scheme) {
-
-	PKI_X509_KEYPAIR *p = NULL;
-	int i = 0;
-	int sizes[3][5]  = { {1024, 2048, 3072, 4096,  0},
-			     {2048,    0,    0,    0,  0},
-			     { 256,  384,  512,    0,  0}  };
-	char buf[256];
-	int row = 0;
-	char *sc_name = NULL;
-
-	switch(scheme) {
-		case PKI_SCHEME_RSA:
-			printf( "Generating RSA Keys:\n" );
-			sc_name = sc_list[0];
-			row = 0;
-			break;
-		case PKI_SCHEME_DSA:
-			printf( "Generating DSA Keys:\n" );
-			sc_name = sc_list[1];
-			row = 1;
-			break;
-		case PKI_SCHEME_ECDSA:
-			printf( "Generating ECDSA Keys:\n" );
-			sc_name = sc_list[2];
-			row = 2;
-			break;
-		default:
-			return(0);
-	}
-
-	for( i = 0; i < sizeof(sizes[row])/sizeof(int) ; i++ ) {
-		if( sizes[row][i] < 1 ) continue;
-		printf("  * %d bits ... " , sizes[row][i] );
-		if( (p = PKI_X509_KEYPAIR_new(scheme,sizes[row][i], 
-					NULL, NULL, NULL)) == NULL ) {
-			printf("ERROR!\n");
-		} else {
-			printf("Ok\n");
-			bzero(buf, sizeof(buf));
-			sprintf(buf, "%s/%s_%d.pem", "results", sc_name, 
-					sizes[row][i]);
-			if(!PKI_X509_KEYPAIR_put ( p, PKI_DATA_FORMAT_PEM, 
-					buf, NULL, NULL )) {
-				printf("<file write error %s>\n", buf);
-			}
-			if( p ) PKI_X509_KEYPAIR_free( p );
-		}
-	}
-	printf("\n");
-	return (1);
 }
 

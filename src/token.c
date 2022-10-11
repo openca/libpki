@@ -1309,11 +1309,67 @@ int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
 	return PKI_OK;
 }
 
-int PKI_TOKEN_set_digest_id(PKI_TOKEN * tk, PKI_ALGOR_ID digest_id);
-int PKI_TOKEN_set_digest_by_name(PKI_TOKEN * tk, const char * digest_name);
-const PKI_DIGEST_ALG * PKI_TOKEN_get_digest(PKI_TOKEN * tk);
-int PKI_TOKEN_get_digest_id(PKI_TOKEN * tk);
-const char * PKI_TOKEN_get_digest_name(PKI_TOKEN * tk);
+int PKI_TOKEN_set_digest_id(PKI_TOKEN * tk, PKI_ALGOR_ID digest_id) {
+
+	const PKI_DIGEST_ALG * digest = NULL;
+
+	// Input Checks
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Retrieves the digest
+	digest = EVP_get_digestbynid(digest_id);
+	if (!digest) {
+		return PKI_ERROR(PKI_ERR_DIGEST_TYPE_UNKNOWN, NULL);
+	}
+	
+	// Sets the new digest
+	tk->digest = (PKI_DIGEST_ALG *)digest;
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_TOKEN_set_digest_by_name(PKI_TOKEN * tk, const char * digest_name) {
+
+	// Input Checks
+	if (!tk || !digest_name) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Gets the ID from the name
+	int digest_id = OBJ_sn2nid(digest_name);
+
+	// Let's return the final result
+	return PKI_TOKEN_set_digest_id(tk, digest_id); 
+}
+
+const PKI_DIGEST_ALG * PKI_TOKEN_get_digest(PKI_TOKEN * tk) {
+
+	// Input Checks
+	if (!tk) return NULL;
+
+	// Returns the pointer
+	return tk->digest;
+
+}
+int PKI_TOKEN_get_digest_id(PKI_TOKEN * tk) {
+
+	// Input Checks
+	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+
+	// Returns the ID of the digest, if any
+	if (tk->digest == NULL) return PKI_ID_UNKNOWN;
+
+	// All done
+	return EVP_MD_nid(tk->digest);
+}
+
+const char * PKI_TOKEN_get_digest_name(PKI_TOKEN * tk) {
+
+	// Input checks
+	if (!tk) return NULL;
+
+	// Converts the digest' NID into text
+	return OBJ_nid2sn(EVP_MD_nid(tk->digest));
+}
 
 
 /*!

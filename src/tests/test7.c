@@ -78,7 +78,7 @@ int main (int argc, char *argv[] ) {
 
 	char *url[] = { 
 		"file://COPYING",
-		"http://www.apache.org",
+		"https://www.apache.org",
 		// "ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?cACertificate;binary",
 		// "mysql://openca:openca@localhost/openca/certificate/?data"
         };

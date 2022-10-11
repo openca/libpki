@@ -15,7 +15,7 @@ int main (int argc, char *argv[] ) {
 	printf("(c) 2006 by Massimiliano Pala and OpenCA Project\n");
 	printf("OpenCA Licensed Software\n\n");
 
-	if(( PKI_log_init (PKI_LOG_TYPE_STDERR, PKI_LOG_NOTICE, NULL,
+	if(( PKI_log_init (PKI_LOG_TYPE_STDERR, PKI_LOG_ALWAYS, NULL,
 			PKI_LOG_FLAGS_ENABLE_DEBUG, NULL )) == PKI_ERR ) {
 		exit(1);
 	}
@@ -30,26 +30,28 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	if((PKI_TOKEN_set_algor ( tk, PKI_ALGOR_RSA_SHA256 )) == PKI_ERR ) {
-                printf("ERROR, can not set the RSA crypto scheme!\n");
-                return (0);
-        }
+	if ((PKI_TOKEN_set_digest_id(tk, PKI_ALGOR_ID_SHA256)) == PKI_ERR ) {
+		printf("ERROR, can not set the RSA crypto scheme!\n");
+		return (0);
+	}
 
-        if((PKI_TOKEN_new_keypair ( tk, 1024, NULL )) == PKI_ERR) {
-                printf("ERROR, can not generate new keypair!\n");
-                return (0);
-        }
+	if((PKI_TOKEN_new_keypair ( tk, 1024, NULL )) == PKI_ERR) {
+			printf("ERROR, can not generate new keypair!\n");
+			return (0);
+	}
 
 	printf("* Self Signing certificate .... ");
-        if((PKI_TOKEN_self_sign( tk, NULL, "23429", 24*3600, "User" )) == PKI_ERR ) {
-                printf("ERROR, can not self sign certificate!\n");
-                return(0);
-        }
+	if((PKI_TOKEN_self_sign( tk, NULL, "23429", 24*3600, "User" )) == PKI_ERR ) {
+			printf("ERROR, can not self sign certificate!\n");
+			return(0);
+	}
 
 	printf("Generating a new CRL ENTRY ... ");
-	if((entry = PKI_X509_CRL_ENTRY_new_serial ( "12345678", 
-			CRL_REASON_KEY_COMPROMISE, NULL, NULL )) 
-								== NULL ) {
+	if((entry = PKI_X509_CRL_ENTRY_new_serial("12345678", 
+											  CRL_REASON_KEY_COMPROMISE,
+											  NULL,
+											  NULL,
+											  NULL)) == NULL ) {
 		printf("ERROR!\n");
 		exit(1);
 	}
@@ -59,8 +61,13 @@ int main (int argc, char *argv[] ) {
 	PKI_STACK_X509_CRL_ENTRY_push( sk, entry );
 
 	printf("Generating new CRL ... ");
-	if((crl = PKI_TOKEN_issue_crl (tk, "3", 
-				PKI_VALIDITY_ONE_WEEK, sk, "crl")) == NULL ) {
+	if((crl = PKI_TOKEN_issue_crl (tk, 
+								   "3", 
+								   0,
+								   PKI_VALIDITY_ONE_WEEK,
+								   sk,
+								   NULL,
+								   "crl")) == NULL ) {
 		printf("ERROR, can not generate new CRL!\n");
 		exit(1);
 	}

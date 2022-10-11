@@ -37,7 +37,7 @@ int main (int argc, char *argv[] ) {
 		printf("    - %s (%d)\n" , PKI_ALGOR_ID_txt (algs[i]),
 						algs[i]);
 	}
-	printf("Certificate Generation testsuite.\n\n");
+	printf("Certificate Generation testsuite (list size: %lu).\n\n", list_size);
 
 	gen_X509_Cert(PKI_SCHEME_RSA, 2048, "results/cert_rsa.pem");
 	gen_X509_Cert(PKI_SCHEME_DSA, 2048, "results/cert_dsa.pem");
@@ -82,7 +82,7 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 	}
 	printf("  * %d bits ... ", bits);
 
-	p = PKI_X509_KEYPAIR_new( scheme, bits, NULL, NULL, NULL );
+	p = PKI_X509_KEYPAIR_new((PKI_SCHEME_ID)scheme, bits, NULL, NULL, NULL );
 
 	if( !p ) {
 		printf("ERROR::Can not generate a new KeyPair!\n");
@@ -97,7 +97,7 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 
 	printf(" Ok.\n");
 
-	if ((algs = PKI_ALGOR_ID_list(scheme)) == NULL) {
+	if ((algs = PKI_ALGOR_ID_list((PKI_SCHEME_ID)scheme)) == NULL) {
 		/* No supported Digests for this alg ??? */
 		printf("No supported Digests for this scheme!\n");
 		return(1);
