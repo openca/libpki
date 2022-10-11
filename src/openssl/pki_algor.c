@@ -662,7 +662,7 @@ const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE
 	}
 
 	// Gets the MD and PKEY components
-	if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
+	if (!OBJ_find_sigid_algs(id, &digest_id, &pkey_id)) {
 		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot break the signign algorithm (%d) into PKEY and MD.", id);
 		return NULL;
 	}
@@ -670,8 +670,15 @@ const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE
 	// If nothing was found, let's return nothing
 	if (digest_id == NID_undef) return EVP_md_null();
 
+	// Let's get the digest
+	PKI_DIGEST_ALG * ret = (PKI_DIGEST_ALG *)EVP_get_digestbynid(digest_id);
+	if (!ret) {
+		PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, "Cannot retrieve Digest Algorithm (NID: %d, NAME: %s)",
+			digest_id, OBJ_nid2sn(digest_id));
+	}
+
 	// If we found the digest, let's get it
-	return EVP_get_digestbynid(digest_id);
+	return ret;
 }
 
 /*! \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR */
