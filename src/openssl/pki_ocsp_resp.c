@@ -366,23 +366,11 @@ int PKI_X509_OCSP_RESP_set_keytype_by_key_value(PKI_X509_OCSP_RESP     		 * x,
 	rid = data->responderId;
 #endif
 
-	// Exports the Key into a PKI_MEM (ASN1/DER)
-	PKI_MEM * mem_der = PKI_X509_put_mem_value((void *)key, PKI_DATATYPE_X509_KEYPAIR, NULL, PKI_DATA_FORMAT_ASN1, NULL, NULL);
-	if (!mem_der) {
-		// Error Condition
-		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-	}
-
 	// Calculates the digest over the DER representation
-	PKI_DIGEST * digest = PKI_DIGEST_MEM_new(PKI_DIGEST_ALG_SHA1, mem_der);
+	PKI_DIGEST * digest = PKI_X509_KEYPAIR_VALUE_pub_digest(key, PKI_DIGEST_ALG_SHA1);
 	if (!digest) {
-		if (mem_der) PKI_MEM_free(mem_der);
 		return PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
 	}
-
-	// Free Memory
-	PKI_MEM_free(mem_der);
-	mem_der = NULL;
 
 	// Builds the value string
 	PKI_STRING * value = PKI_STRING_new(PKI_STRING_OCTET, 
@@ -414,8 +402,7 @@ int PKI_X509_OCSP_RESP_set_keytype_by_key(PKI_X509_OCSP_RESP     * x,
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-	return PKI_X509_OCSP_RESP_set_keytype_by_key_value(
-				x, (const PKI_X509_KEYPAIR_VALUE *)PKI_X509_get_value(key));
+	return PKI_X509_OCSP_RESP_set_keytype_by_key_value(x, key->value);
 }
 
 int PKI_X509_OCSP_RESP_set_keytype_by_cert(PKI_X509_OCSP_RESP  * x,
