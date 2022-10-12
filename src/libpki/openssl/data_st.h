@@ -891,21 +891,45 @@ typedef enum {
 } PKI_X509_NAME_TYPE;
 
 // PKI_X509_NAME_RDN - useful when getting specific parts of a DN only
-
 typedef struct pki_x509_name_rdn {
 	PKI_X509_NAME_TYPE type;
 	char * value;
 } PKI_X509_NAME_RDN;
 
-// PKI_X509_EXTENSION
+/// @brief Internal Value for LibPKI extensions
+#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
 
+// Missing definition from OpenSSL (x509v3.h)
+typedef STACK_OF(ACCESS_DESCRIPTION) SUBJECT_INFO_ACCESS;
+
+/// @brief LibPKI Extension's Generic Data Structure
 typedef struct pki_x509_extension_st {
-	PKI_OID *oid;
+	int type;
 	int critical;
-	void *value;
+	PKI_OID *oid;
+	union {
+		void * ptr;
+		PKI_X509_EXTENSION_VALUE * x509_ext;
+		BASIC_CONSTRAINTS * basicConstraints;
+		PKEY_USAGE_PERIOD * usagePeriod;
+		ASN1_OCTET_STRING * subjectKeyIdentifier;
+		AUTHORITY_INFO_ACCESS * authorityInfoAccess;
+		SUBJECT_INFO_ACCESS * subjectInfoAccess;
+		EXTENDED_KEY_USAGE * extendedKeyUsage;
+		CRL_DIST_POINTS * crlDistributionPoints;
+		AUTHORITY_KEYID * authorityKeyIdentifier;
+		OTHERNAME * otherName;
+		POLICY_CONSTRAINTS * policyConstraints;
+		POLICY_MAPPING * policyMapping;
+		STACK_OF(GENERAL_NAMES *) subjectAltNames; 
+		NAME_CONSTRAINTS * nameConstraints; 
+		ASN1_INTEGER * inhibitAnyPolicy;
+		CRL_DIST_POINTS * freshestCRL;
+		ASN1_INTEGER * crlNumber;
+		ISSUING_DIST_POINT * issuingDistributionPoint; // CRLs
+	} value;
 } PKI_X509_EXTENSION;
 
-#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
 
 // Typedef for EC Form
 typedef point_conversion_form_t PKI_EC_KEY_FORM;

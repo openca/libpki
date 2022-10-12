@@ -2,6 +2,10 @@
 
 #include <libpki/pki.h>
 
+#ifndef _LIBPKI_X509_EXTENSION_H
+#include <libpki/pki_x509_extension.h>
+#endif
+
 static char *ext_txt_db [] = {
 	/* Tags */
 	"permitted",
@@ -55,6 +59,10 @@ static char *ext_txt_db [] = {
 	NULL
 };
 
+			// ================
+			// Static Functions
+			// ================
+
 static char * _ext_txt ( unsigned char * str ) {
 
 	char ** pnt = NULL;
@@ -73,16 +81,27 @@ static char * _ext_txt ( unsigned char * str ) {
 	return ( (char *) str );
 }
 
+
+			// ====================
+			// Extensions Functions
+			// ====================
+
 PKI_X509_EXTENSION *PKI_X509_EXTENSION_new( void ) {
+	
 	PKI_X509_EXTENSION *ret = NULL;
+		// Memory Pointer
 
+	// Allocates the memory
 	ret = (PKI_X509_EXTENSION *) PKI_Malloc ( sizeof( PKI_X509_EXTENSION ));
-	if( !ret ) return (NULL);
+	if (ret) {
+		// Generates a new generic extension
+		ret->value.ptr = X509_EXTENSION_new();
+		if(ret->value.ptr == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "X509_EXTENSION_new()");
+		}
+	}
 
-	ret->value = X509_EXTENSION_new();
-	if( !ret->value ) return (NULL);
-
-	return (ret);
+	return ret;
 }
 
 void PKI_X509_EXTENSION_free_void ( void *ext ) {
@@ -91,8 +110,8 @@ void PKI_X509_EXTENSION_free_void ( void *ext ) {
 
 void PKI_X509_EXTENSION_free ( PKI_X509_EXTENSION *ext ) {
 
-	if( ext ) {
-		if( ext->value ) X509_EXTENSION_free ( ext->value );
+	if (ext) {
+		if (ext->value.ptr) X509_EXTENSION_free (ext->value.ptr);
 		PKI_Free (ext);
 	}
 
@@ -327,7 +346,7 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 		return NULL;
 	}
 
-	ret->value = ext;
+	ret->value.x509_ext = ext;
 	ret->oid = X509_EXTENSION_get_object(ext);
 
 err:
@@ -340,45 +359,70 @@ err:
 	return ( ret );
 }
 
-PKI_X509_EXTENSION_STACK *PKI_X509_EXTENSION_get_list(void          * x, 
-						      PKI_X509_DATA   type ) {
+PKI_X509_EXTENSION_STACK *PKI_X509_CERT_VALUE_ext_list(PKI_X509_CERT_VALUE * x) {
 
 	PKI_X509_EXTENSION_STACK *ret = NULL;
+		// Return Stack
 
 	int i = 0;
 	int ext_count = 0;
 
+	// Input checks
 	if (!x) return NULL;
 
+	// Gets the number of extensions
 	if ((ext_count = X509_get_ext_count (x)) <= 0 ) return NULL;
 
+	// Builds the LibPKI wrapper
 	if(( ret = PKI_STACK_X509_EXTENSION_new()) == NULL ) return NULL;
 
+	// Process all extensions
 	for ( i=0; i < ext_count; i++ ) {
-		PKI_X509_EXTENSION_VALUE *ext = NULL;
+
 		PKI_X509_EXTENSION *pki_ext = NULL;
+			// LibPKI extension
+
+		PKI_X509_EXTENSION_VALUE *ext = NULL;
+			// Crypto Layer extension
 		
-		if((ext = X509_get_ext ( x, i )) == NULL ) {
+		// Recovers the i-th extension from the certificate
+		if ((ext = X509_get_ext(x, i)) == NULL) {
 			continue;
 		}
 
+		// Allocates the LibPKI wrapper
 		if((pki_ext = PKI_X509_EXTENSION_new()) == NULL ) {
 			PKI_log_err ( "Memory Allocation");
 			continue;
 		}
 
-
+		// Sets the fields in the LibPKI's Extension
 		pki_ext->oid = X509_EXTENSION_get_object(ext);
+		pki_ext->type = OBJ_obj2nid(pki_ext->oid);
 		pki_ext->critical = X509_EXTENSION_get_critical(ext);
 
-		if((pki_ext->value = X509V3_EXT_d2i ( ext )) == NULL ) {
-			PKI_log_debug( "Extension %d -- not parsable", i);
-			PKI_X509_EXTENSION_free ( pki_ext );
+		// Parses the extension into the generic pointer
+		if ((pki_ext->value.ptr = X509V3_EXT_d2i(ext)) == NULL) {
+			PKI_ERROR(PKI_ERR_GENERAL, "Could not parse Extension Num. %d", i);
+			PKI_X509_EXTENSION_free(pki_ext);
 			continue;
 		}
 
+		// Push the extension to the return list
 		PKI_STACK_X509_EXTENSION_push ( ret, pki_ext );
 	}
 
+	// All Done
 	return ret;
+}
+
+PKI_X509_EXTENSION_STACK *PKI_X509_CERT_ext_list(PKI_X509_CERT * x) {
+
+	// Input Checks
+	if (!x || !x->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	return PKI_X509_CERT_VALUE_ext_list(x->value);
 }

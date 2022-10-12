@@ -650,7 +650,7 @@ PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new_serial(const char                   
     }
 
     // Adds the entry to the entry's extensions
-    if (!X509_REVOKED_add_ext(entry, ext->value, -1)) {
+    if (!X509_REVOKED_add_ext(entry, ext->value.x509_ext, -1)) {
       PKI_ERROR(PKI_ERR_X509_CRL_REVOCATION_ENTRY_EXTENSION, NULL);
       goto err;
     }
@@ -849,13 +849,19 @@ const PKI_X509_CRL_ENTRY * PKI_X509_CRL_lookup_long(const PKI_X509_CRL *x,
 int PKI_X509_CRL_add_extension(const PKI_X509_CRL       * x,
                                const PKI_X509_EXTENSION * ext) {
 
-  if( !x || !x->value || !ext || !ext->value )
-    return (PKI_ERR);
+  // Input Checks
+  if (!x || !x->value || !ext || !ext->value.ptr) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
 
-  if (!X509_CRL_add_ext((X509_CRL *)x->value, ext->value, -1)) 
-    return (PKI_ERR);
+  // Adds the Extension to the CRL
+  if (!X509_CRL_add_ext((X509_CRL *)x->value, ext->value.x509_ext, -1)) {
+    return PKI_ERR;
+  }
 
-  return (PKI_OK);
+  // All Done
+  return PKI_OK;
 }
 
 /*! \brief Adds a stack of extensions to a CRL object.
@@ -865,8 +871,11 @@ int PKI_X509_CRL_add_extension_stack(const PKI_X509_CRL             * x,
                                      const PKI_X509_EXTENSION_STACK * ext) {
 
   // Input Check
-  if( !x || !ext ) return (PKI_ERR);
+  if( !x || !x->value || !ext ) {
+    return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+  }
 
+  // Cycles through the stack elements
   for(int i = 0; i < PKI_STACK_X509_EXTENSION_elements(ext); i++ ) {
 
     PKI_X509_EXTENSION *ossl_ext = NULL;
@@ -877,9 +886,9 @@ int PKI_X509_CRL_add_extension_stack(const PKI_X509_CRL             * x,
     if (!ossl_ext ) continue;
 
     // Adds the extension value to the list of extensions
-    if(!X509_CRL_add_ext ( (X509_CRL *) x->value, ossl_ext->value, -1 )) {
-      PKI_log_err("Adding Extension::%s", ERR_error_string(ERR_get_error(), NULL));
-      return ( PKI_ERR );
+    if (!X509_CRL_add_ext((X509_CRL *)x->value, ossl_ext->value.x509_ext, -1)) {
+      return PKI_ERROR(PKI_ERR_GENERAL, 
+        "Cannot Add CRL Extension::%s", ERR_error_string(ERR_get_error(), NULL));
     }
   }
 

@@ -10,14 +10,17 @@ PKI_STRING * PKI_STRING_new_null ( int type ) {
 	return( PKI_STRING_new( type, NULL, 0 ));
 }
 
+
 PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size ) {
 	PKI_STRING *ret = NULL;
 
 	switch ( type ) {
 		case PKI_STRING_IA5:
+		case PKI_STRING_NUMERIC:
 			ret = ASN1_IA5STRING_new();
 			break;
 		case PKI_STRING_UTF8:
+		case PKI_STRING_PRINTABLE:
 			ret = ASN1_UTF8STRING_new();
 			break;
 		case PKI_STRING_BMP:
@@ -38,8 +41,7 @@ PKI_STRING * PKI_STRING_new( int type, char * val, ssize_t size ) {
 		case PKI_STRING_UNIVERSAL:
 			ret = ASN1_UNIVERSALSTRING_new();
 			break;
-		case PKI_STRING_PRINTABLE:
-		case PKI_STRING_NUMERIC:
+
 		case PKI_STRING_T61:
 		default:
 			PKI_log_debug( "PKI STRING type %d not implemented",
@@ -109,8 +111,10 @@ int PKI_STRING_get_type(const PKI_STRING *s )
 		case PKI_STRING_T61:
 		case PKI_STRING_OCTET:
 		case PKI_STRING_BIT:
+		case PKI_STRING_PRINTABLE:
 			ret = type;
 			break;
+
 		default:
 			ret = PKI_STRING_UNKNOWN;
 	}
@@ -131,6 +135,7 @@ int PKI_STRING_set_type(PKI_STRING * s, int type) {
 		case PKI_STRING_T61:
 		case PKI_STRING_OCTET:
 		case PKI_STRING_BIT:
+		case PKI_STRING_PRINTABLE:
 			break;
 
 		default:
@@ -147,27 +152,33 @@ int PKI_STRING_set_type(PKI_STRING * s, int type) {
 
 /*! \brief Returns the parsed value (char *) of the PKI_STRING (in UTF-8) */
 
-char * PKI_STRING_get_parsed (const PKI_STRING *s )
-{
+char * PKI_STRING_get_parsed (const PKI_STRING *s) {
+
 	char * ret = NULL;
 	unsigned short data;
 	int size, i, type, count;
 
-	if ( !s || !s->data || !s->length ) return NULL;
+	// Input Checks
+	if (!s || !s->data || !s->length) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
 
+	// Gets the Type
 	type = PKI_STRING_get_type ( s );
 
+	// Checks the type
 	switch (type)
 	{
 		case PKI_STRING_IA5:
 		case PKI_STRING_UTF8:
 		case PKI_STRING_BMP:
 		case PKI_STRING_T61:
+		case PKI_STRING_PRINTABLE: {
 			ret = PKI_STRING_get_utf8( s );
-			break;
+		} break;
 
-		case PKI_STRING_OCTET:
-		case PKI_STRING_BIT:
+		default: {
 			size = s->length * 3;
 			if ((ret = PKI_Malloc((size_t) size + 1)) == NULL)
 			{
@@ -182,9 +193,10 @@ char * PKI_STRING_get_parsed (const PKI_STRING *s )
 				count += 3;
 			};
 			ret[count] = '\x0';
-			break;
+		};
 	}
 
+	// All Done
 	return ret;
 }
 

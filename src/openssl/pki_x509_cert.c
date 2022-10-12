@@ -641,44 +641,63 @@ int PKI_X509_CERT_sign_tk ( PKI_X509_CERT *cert, PKI_TOKEN *tk,
 /*! \brief Adds a specific extension to a certificate
  */
 
-int PKI_X509_CERT_add_extension(PKI_X509_CERT *x, 
-				const PKI_X509_EXTENSION *ext) {
+int PKI_X509_CERT_add_extension(PKI_X509_CERT            * x, 
+				                        const PKI_X509_EXTENSION * ext) {
 
   PKI_X509_CERT_VALUE *val = NULL;
+    // LibPKI certificate pointer
 
-  if( !x || !x->value || !ext || !ext->value ) return (PKI_ERR);
+  // Input Checks
+  if (!x || !x->value || !ext || !ext->value.ptr) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
 
+  // Retrieves the crypto layer pointer
   val = x->value;
 
-  if (!X509_add_ext(val, ext->value, -1)) return (PKI_ERR);
+  // Adds the extension to the certificate (-1 => any position)
+  if (!X509_add_ext(val, ext->value.x509_ext, -1)) return (PKI_ERR);
 
-  return (PKI_OK);
+  // All Done
+  return PKI_OK;
 }
 
 /*! \brief Adds a stack of extensions to a certificate object
  */
 
-int PKI_X509_CERT_add_extension_stack(PKI_X509_CERT *x, 
-          			      const PKI_X509_EXTENSION_STACK *ext) {
+int PKI_X509_CERT_add_extension_stack(PKI_X509_CERT                  * x, 
+          			                      const PKI_X509_EXTENSION_STACK * sk_ext) {
 
-  int i = 0;
-  PKI_X509_EXTENSION *ossl_ext = NULL;
+  PKI_X509_EXTENSION * ossl_ext = NULL;
+    // LibPKI Extension Pointer
 
-  if( !x || !x->value || !ext ) return (PKI_ERR);
+  // Input Checks
+  if (!x || !x->value || !sk_ext ) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
 
-  for( i = 0; i < PKI_STACK_X509_EXTENSION_elements(ext); i++ ) {
+  // Cycle through the entire stack
+  for(int i = 0; i < PKI_STACK_X509_EXTENSION_elements(sk_ext); i++) {
     
-    ossl_ext = PKI_STACK_X509_EXTENSION_get_num( ext, i);
-    if( !ossl_ext ) continue;
+    // Gets the crypto layer's extension
+    ossl_ext = PKI_STACK_X509_EXTENSION_get_num(sk_ext, i);
+    if (!ossl_ext) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot retrieve the %d-th extension from the certificate", i);
+      continue;
+    }
 
-    if(!X509_add_ext ((X509 *) x->value, ossl_ext->value, -1 )) {
-      PKI_log_err ( "Adding Extensions::%s", 
-        ERR_error_string( ERR_get_error(), NULL ) );
-      return ( PKI_ERR );
+    // Adds the extension to the certificate
+    if (!X509_add_ext((X509 *) x->value, ossl_ext->value.x509_ext, -1)) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Could Not Add Extension %d: %s", 
+        i, ERR_error_string( ERR_get_error(), NULL ));
+      return PKI_ERR;
     };
   }
 
-  return (PKI_OK);
+  // All Done
+  return PKI_OK;
 }
 
 /*! \brief Returns the size of the certificate public key
@@ -1290,8 +1309,8 @@ PKI_X509_CERT_TYPE PKI_X509_CERT_get_type(const PKI_X509_CERT *x) {
   }
 
   if((ext = PKI_X509_CERT_get_extension_by_id ( x, 
-          NID_basic_constraints)) != NULL ) {
-    if(( bs = ext->value )) {
+                                                NID_basic_constraints)) != NULL ) {
+    if(( bs = ext->value.basicConstraints )) {
       if ( bs->ca ) ret |= PKI_X509_CERT_TYPE_CA;
       BASIC_CONSTRAINTS_free ( bs );
     }
@@ -1400,94 +1419,158 @@ PKI_STACK * PKI_X509_CERT_get_email (const PKI_X509_CERT *x ) {
   return sk;
 }
 
-PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_id(const PKI_X509_CERT  *x, 
-                				       PKI_ID num ) {
+PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_id(const PKI_X509_CERT  * x, 
+                				                               PKI_ID                 num ) {
+
+  PKI_OID *oid = NULL;
+    // Object Identifier
+
+  // Input checks
+  if (!x || !x->value) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return NULL;
+  }
+
+  // Retrieves the OID associated with the provided id
+  if ((oid = PKI_OID_new_id(num)) == NULL) {
+    return NULL;
+  }
+
+  // Return the result based on the retrieved OID
+  return PKI_X509_CERT_get_extension_by_oid(x, oid);
+}
+
+PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_name(const PKI_X509_CERT  * x,
+                					                               const char           * name ) {
+
   PKI_OID *oid = NULL;
 
-  oid = PKI_OID_new_id ( num );
+  // Input checks
+  if (!x || !x->value || !name ) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return NULL;
+  }
 
-  if( !x || !oid ) return NULL;
+  // Retrieves the OID from the name
+  if ((oid = PKI_OID_new_text(name)) == NULL)
+    return NULL;
 
+  // Returns based on the OID search
   return PKI_X509_CERT_get_extension_by_oid ( x, oid );
 }
 
-PKI_X509_EXTENSION * PKI_X509_CERT_get_extension_by_name(const PKI_X509_CERT *x,
-                					 const char * name ) {
 
-  PKI_OID *oid = NULL;
+PKI_X509_EXTENSION *PKI_X509_CERT_get_extension_by_oid(const PKI_X509_CERT  * x, 
+                				                               const PKI_OID        * id ) {
 
-  if ( !x || !name ) return NULL;
-
-  if ((oid = PKI_OID_new_text(name)) == NULL ) return NULL;
-
-  return PKI_X509_CERT_get_extension_by_oid ( x, oid );
-}
-
-
-PKI_X509_EXTENSION *PKI_X509_CERT_get_extension_by_oid(const PKI_X509_CERT  *x, 
-                				       const PKI_OID *id ) {
   PKI_ID nid = PKI_ID_UNKNOWN;
+    // Identifier for the extension
+
   PKI_X509_EXTENSION *ext = NULL;
+    // LibPKI container for an extension
 
-  if ( !x || !id ) return NULL;
-
-  if((nid = PKI_OID_get_id ( id )) == PKI_ID_UNKNOWN ) {
+  // Input Check
+  if (!x || !x->value || !id ) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, !x ? "x" : (!x->value ? "x->value" : (!id ? "id" : "<none>")));
     return NULL;
   }
 
-  if(( ext = PKI_X509_EXTENSION_new()) == NULL ) {
+  // Checks we have a valid ID
+  if ((nid = PKI_OID_get_id(id)) == PKI_ID_UNKNOWN) {
+    // No valid ID
     return NULL;
   }
 
-  if((ext->value = X509_get_ext_d2i ( x->value, nid, 
-            NULL, NULL )) == NULL ) {
-    PKI_X509_EXTENSION_free ( ext );
-    return ( NULL );
+  // Generates a new extension
+  if ((ext = PKI_X509_EXTENSION_new()) == NULL) {
+    // No extension to extract
+    return NULL;
   }
-  
+
+  // Extracts the internal
+  if((ext->value.x509_ext = X509_get_ext_d2i(x->value, 
+                                             nid, 
+                                             &ext->critical, 
+                                             NULL)) == NULL) {
+    // Cannot extract the value of the extension
+    PKI_X509_EXTENSION_free(ext);
+    return NULL;
+  }
+
+  // Sets the OID and NID
+  ext->oid = PKI_OID_dup(id);
+  ext->type = nid;
+
+  // Here we are ready to return the extension
   return ext;
 }
 
 PKI_X509_EXTENSION_STACK *PKI_X509_CERT_get_extensions(const PKI_X509_CERT *x) {
 
   PKI_X509_EXTENSION_STACK *ret = NULL;
+    // Return data structure
 
-  int i = 0;
   int ext_count = 0;
 
-  if (!x) return NULL;
-
-  if ((ext_count = X509_get_ext_count (x->value)) <= 0 ) return NULL;
-
-  for ( i=0; i < ext_count; i++ ) {
-    LIBPKI_X509_EXTENSION *ext = NULL;
-    // PKI_X509_EXTENSION_VALUE *ext = NULL;
-    PKI_X509_EXTENSION *pki_ext = NULL;
-    
-    if((ext = X509_get_ext ( x->value, i )) == NULL ) {
-      continue;
-    }
-
-    if((pki_ext = PKI_X509_EXTENSION_new()) == NULL ) {
-      PKI_log_err ( "Memory Allocation");
-      continue;
-    }
-
-    if( ext->object == NULL ) {
-      PKI_X509_EXTENSION_free ( pki_ext );
-      continue;
-    }
-
-    pki_ext->oid = PKI_OID_dup ( ext->object );
-    pki_ext->critical = ext->critical;
-
-    if((pki_ext->value = X509V3_EXT_d2i ( ext )) == NULL ) {
-      PKI_log_debug( "Extension %d -- not parsable", i);
-      PKI_X509_EXTENSION_free ( pki_ext );
-      continue;
-    }
+  // Input Checks
+  if (!x || !x->value) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return NULL;
   }
 
+  // Retrieves the number of Extensions
+  ext_count = X509_get_ext_count (x->value);
+
+  // All done if we do not have any extensions
+  if (ext_count <= 0) return NULL;
+
+  // Cycles through the extensions
+  for (int i = 0; i < ext_count; i++) {
+
+    PKI_X509_EXTENSION_VALUE * ext_value = NULL;
+      // Crypto Layer extension
+
+    PKI_X509_EXTENSION *pki_ext = NULL;
+      // Libpki Extension wrapper
+    
+    // Retrieves the crypto-layer extension
+    if ((ext_value = X509_get_ext(x->value, i)) == NULL) {
+      // Error Condition
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot extract the %d-th extension", i);
+      return NULL;
+    }
+
+    // Allocates the LibPKI wrapper
+    if((pki_ext = PKI_X509_EXTENSION_new()) == NULL ) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      X509_EXTENSION_free(ext_value);
+      continue;
+    }
+
+    if (X509_EXTENSION_get_object(ext_value) == NULL ) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      if (pki_ext) PKI_X509_EXTENSION_free(pki_ext);
+      continue;
+    }
+
+    // Sets the LibPKI internals
+    pki_ext->oid = PKI_OID_dup(X509_EXTENSION_get_object(ext_value));
+    pki_ext->critical = ext_value->critical;
+    pki_ext->type = OBJ_obj2nid(pki_ext->oid);
+
+    // Retrieves and parses the extension
+    if ((pki_ext->value.x509_ext = X509V3_EXT_d2i(ext_value)) == NULL) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot parse a certificate extension");
+      if (pki_ext) PKI_X509_EXTENSION_free(pki_ext);
+      continue;
+    }
+
+    // Now we need to push it to the stack
+    if (!ret) ret = PKI_STACK_X509_EXTENSION_new();
+    PKI_STACK_X509_EXTENSION_push(ret, pki_ext);
+  }
+
+  // All Done.
   return ret;
 }
 

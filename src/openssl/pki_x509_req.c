@@ -253,54 +253,67 @@ err:
 
 /*! \brief Adds an extension to a Certificate Request */
 
-int PKI_X509_REQ_add_extension( PKI_X509_REQ *x, PKI_X509_EXTENSION *ext) {
+int PKI_X509_REQ_add_extension(PKI_X509_REQ * x, PKI_X509_EXTENSION * ext) {
 
 	STACK_OF(X509_EXTENSION) *sk = NULL;
+		// Stack of Crypto-Layer Extensions
+
 	PKI_X509_REQ_VALUE *val = NULL;
+		// Crypto Layer REQ pointer
+		
 	int *nid_list = NULL;
 	int i = -1;
 
-	if( !x || !ext || !x->value || !ext->value ) return (PKI_ERR);
-
-	val = x->value;
-
-	if(( sk = X509_REQ_get_extensions( val )) == NULL ) {
-		if((sk = sk_X509_EXTENSION_new_null()) == NULL ) {
-			PKI_log_err ( "Memory Failure");
-			return PKI_ERR;
-		}
-	}
-
-	if ( !sk_X509_EXTENSION_push ( sk, ext->value ) ) {
-		sk_X509_EXTENSION_free ( sk );
+	// Input Checks
+	if (!x || !x->value || !ext || !ext->value.ptr ) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
 	}
 
+	// Gets the Internal Value
+	val = x->value;
+
+	// Gets the crypto-layer stack of extensions
+	if ((sk = X509_REQ_get_extensions(val)) == NULL) {
+		// If none is available, let's build one
+		if ((sk = sk_X509_EXTENSION_new_null()) == NULL ) {
+			return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		}
+	}
+
+	// Pushes the crypto-layer extension to the stack
+	if (!sk_X509_EXTENSION_push(sk, ext->value.x509_ext)) {
+		// Error Condition
+		sk_X509_EXTENSION_free ( sk );
+		return PKI_ERROR(PKI_ERR_GENERAL, "Cannot Add Extension to the request's stack");
+	}
+
+	// Gets the list of NIDs
 	nid_list = X509_REQ_get_extension_nids();
 	for ( i = 0; ; i++ ) {
+
 		PKI_ID nid = -1;
+		
+		// Retrieves the i-th NID
 		if((nid = nid_list[i]) == NID_undef ) {
 			break;
 		};
 
-		// PKI_log_debug("NID => %d (%d)", i, nid_list[i] );
-
-		PKI_X509_REQ_delete_attribute ( x, nid_list[i] );
-
-		//if(PKI_X509_REQ_delete_attribute ( x, nid_list[i] ) == PKI_ERR ) {
-		//	PKI_log_debug(":::[%d] CAN NOT DELETE EXTS ATTRIBUTE!", i);
-		//} else {
-		//	PKI_log_debug(":::[%d] DELETE EXTS ATTRIBUTE!", i);
-		//}
+		// Removes the attribute
+		PKI_X509_REQ_delete_attribute(x, nid_list[i]);
 	}
 
-	if( !X509_REQ_add_extensions(val, sk ))  {
-		sk_X509_EXTENSION_free ( sk );
-		return (PKI_ERR);
+	// Let's now add all the extensions
+	if( !X509_REQ_add_extensions(val, sk))  {
+		// Error Condition
+		sk_X509_EXTENSION_free(sk);
+		return PKI_ERROR(PKI_ERR_GENERAL, "Cannot add the set of extensions to the request");
 	}
 
+	// Free the Stack of Extensions
 	sk_X509_EXTENSION_free ( sk );
 
+	// All Done
 	return PKI_OK;
 
 	/*
@@ -321,29 +334,65 @@ int PKI_X509_REQ_add_extension( PKI_X509_REQ *x, PKI_X509_EXTENSION *ext) {
 
 /*! \brief Adds a stack of extensions to a Certificate Request */
 
-int PKI_X509_REQ_add_extension_stack(PKI_X509_REQ *x, 
-					PKI_X509_EXTENSION_STACK *ext) {
+int PKI_X509_REQ_add_extension_stack(PKI_X509_REQ 			  * x, 
+									 PKI_X509_EXTENSION_STACK * sk_ext) {
 
 	STACK_OF(X509_EXTENSION) *sk = NULL;
+		// Crypto layer stack of extensions
+
 	int i = 0;
 
-	if( !x || !x->value || !ext ) return (PKI_ERR);
-
-	if((sk = sk_X509_EXTENSION_new_null()) == NULL ) return (PKI_ERR);
-
-	for( i = 0; i < PKI_STACK_X509_EXTENSION_elements(ext); i++ ) {
-		PKI_X509_EXTENSION *tmp_e = NULL;
-
-		tmp_e = PKI_STACK_X509_EXTENSION_get_num ( ext, i );
-		sk_X509_EXTENSION_push( sk, tmp_e->value );
+	// Input Checks
+	if (!x || !x->value || !sk_ext) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-	if( !X509_REQ_add_extensions((X509_REQ *)x->value, sk )) 
-							return (PKI_ERR);
+	// Generates a new Crypto-Layer Stack of extensions
+	if((sk = sk_X509_EXTENSION_new_null()) == NULL ) {
+		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	}
 
-	if( sk ) sk_X509_EXTENSION_pop_free ( sk, X509_EXTENSION_free );
+	// Cycles through the LibPKI's stack of extensions and
+	// adds them to the crypto-layer's stack
+	for( i = 0; i < PKI_STACK_X509_EXTENSION_elements(sk_ext); i++ ) {
 
-	return (PKI_OK);
+		PKI_X509_EXTENSION *tmp_e = NULL;
+			// LibPKI extensions' pointer
+		
+		// Retrieves the i-th LibPKI extension
+		tmp_e = PKI_STACK_X509_EXTENSION_get_num(sk_ext, i);
+
+		// Checks for errors
+		if (!tmp_e) {
+			// Free the crypto-layer stack
+			while (sk && sk_X509_EXTENSION_num(sk) > 0) {
+				sk_X509_EXTENSION_pop_free(sk, X509_EXTENSION_free);
+			} sk_X509_EXTENSION_free(sk);
+			// Error Condition
+			return PKI_ERROR(PKI_ERR_GENERAL, "Cannot retrieve the i-th extension from the stack");
+		}
+
+		// Pushes the extension to the crypto layer's stack
+		sk_X509_EXTENSION_push(sk, tmp_e->value.x509_ext);
+	}
+
+	// Let's now add all the extensions at once
+	if (!X509_REQ_add_extensions((X509_REQ *)x->value, sk)) {
+		// Free the crypto-layer stack
+		while (sk && sk_X509_EXTENSION_num(sk) > 0) {
+			sk_X509_EXTENSION_pop_free(sk, X509_EXTENSION_free);
+		} sk_X509_EXTENSION_free(sk);
+		// Error Condition
+		return PKI_ERROR(PKI_ERR_GENERAL, "Cannot Add the Stack of Crypto-Layer Extensions to the request");
+	}
+
+	// Free Allocated Memory
+	while (sk && sk_X509_EXTENSION_num(sk) > 0) {
+		sk_X509_EXTENSION_pop_free(sk, X509_EXTENSION_free);
+	} sk_X509_EXTENSION_free(sk);
+
+	// All Done
+	return PKI_OK;
 }
 
 /*! \brief Returns the size of the public key in the Certificate Request
