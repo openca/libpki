@@ -348,6 +348,8 @@ PKI_X509_EXTENSION *PKI_X509_EXTENSION_value_new_profile (
 
 	ret->value.x509_ext = ext;
 	ret->oid = X509_EXTENSION_get_object(ext);
+	ret->type = OBJ_obj2nid(ret->oid);
+	ret->critical = crit == 1 ? 1 : 0;
 
 err:
 	if( name_s ) xmlFree ( name_s );
