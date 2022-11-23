@@ -517,10 +517,29 @@ int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 			}
 		} break;
 
-		default: {
-			PKI_DEBUG("Trying to set OQS param [%d] on a non-OQS algorithm [%d]",
-				algParam, kp->scheme);
+		case PKI_SCHEME_FALCON: {
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_FALCON512;
+			} else {
+				kp->oqs.algId = PKI_ALGOR_ID_FALCON1024;
+			}
+		} break;
 
+		case PKI_SCHEME_SPHINCS: {
+			if (algParam != PKI_ALGOR_OQS_PARAM_SPHINCS_SHAKE) {
+				return PKI_ERROR(PKI_ERR_GENERAL, 
+					"Sphincs only supports the SHAKE parameter");
+			};
+			if (kp->bits <= 128) {
+				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R;
+			} else {
+				PKI_DEBUG("SPHINCS+ WITH SHAKE only supports 128 bits of security.");
+				return PKI_ERR;
+			}
+		} break;
+
+		default: {
+			PKI_DEBUG("Trying to set OQS param [%d] on a non-OQS algorithm [%d]", algParam, kp->scheme);
 			return PKI_ERR;
 		}
 	}
@@ -542,6 +561,7 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 	if (!kp) return
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
+#ifdef ENABLE_COMPOSITE
 	if (kp->scheme != PKI_SCHEME_COMPOSITE
 # ifdef ENABLE_COMBINED
 		&& kp->scheme != PKI_SCHEME_COMBINED
@@ -549,8 +569,11 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 											) {
 		return PKI_ERROR(PKI_ERR_GENERAL, 
 			"Error while adding keys to non-composite scheme");
-
 	}
+#endif
+
+	// Checks we have a good stack
+	
 
 	if (0 >= PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key)) {
 		return PKI_ERROR(PKI_ERR_GENERAL, 

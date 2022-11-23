@@ -31,7 +31,7 @@
 #include <openssl/ec.h>
 #endif
 
-// #ifndef OPENSSL_COMPOSITE_LOCAL_H
+// #ifndef _LIBPKI_COMPOSITE_LOCAL_H
 // #include <libpki/composite/composite_internals.h>
 // #endif
 

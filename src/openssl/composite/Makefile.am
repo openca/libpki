@@ -1,5 +1,5 @@
 ## OpenCA Makefile - by Massimiliano Pala
-## (c) 1999-2007 by Massimiliano Pala and OpenCA Project
+## (c) 1999-2022 by Massimiliano Pala and OpenCA Project
 ## All Rights Reserved
 
 TOP     = ../..
@@ -14,7 +14,8 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-OPENSSL_INTERNAL_SRCS = 
+OPENSSL_INTERNAL_SRCS = \
+	composite_ossl_internals.h
 
 nobase_include_HEADERS = 
 
@@ -22,7 +23,7 @@ COMPOSITE_SRCS = \
 	composite_ameth.c \
 	composite_pmeth.c \
 	composite_err.c \
-	composite_ossl_internals.h \
+	composite_utils.c \
 	$(OPENSSL_INTERNAL_SRCS)
 
 noinst_LTLIBRARIES = libpki-composite.la

@@ -326,7 +326,7 @@ int oqs_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey)
     return rv;
 }
 
-int oqs_size(const EVP_PKEY *pkey)
+int oqs_size_lcl(const EVP_PKEY *pkey)
 {
     const OQS_KEY *oqs_key = (OQS_KEY*) pkey->pkey.ptr;
     if (oqs_key == NULL || oqs_key->s == NULL) {

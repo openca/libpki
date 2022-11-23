@@ -521,19 +521,21 @@ int PKI_X509_sign(PKI_X509               * x,
 
 	// Let's Get The signing OID
 	int sig_nid = -1;
-	if (1 != OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_nid(digest), EVP_PKEY_id(pkey))) {
+	int pkey_nid = EVP_PKEY_id(pkey);
+	int digest_nid = EVP_MD_nid(digest);
+
+	if (1 != OBJ_find_sigid_by_algs(&sig_nid, digest_nid, pkey_nid)) {
 		PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
-			PKI_ID_get_txt(EVP_PKEY_id(pkey)), digest ? PKI_ID_get_txt(EVP_MD_nid(digest)) : "NULL");
+			PKI_ID_get_txt(pkey_nid), digest ? PKI_ID_get_txt(digest_nid) : "NULL");
 	} else {
 		// If the find routine returns 1 it was successful, however
 		// for PQC it seems to return NID_undef for the sig_nid, this fixes it
 		if (sig_nid == NID_undef) sig_nid = EVP_PKEY_id(pkey);
-
-		// Debugging Information
-		PKI_DEBUG("Signing Algorithm Should be: %s", PKI_ID_get_txt(sig_nid));
 	}
 
-	PKI_DEBUG("Digest Signing Algorithm: %s", digest == NULL ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
+	// Debugging Information
+	PKI_DEBUG("Signing Algorithm Should be: %s", PKI_ID_get_txt(sig_nid));
+	PKI_DEBUG("Digest Signing Algorithm: %s", PKI_ID_get_txt(digest_nid));
 
 	// Sets the right OID for the signature
 	ASN1_item_sign(x->it, 

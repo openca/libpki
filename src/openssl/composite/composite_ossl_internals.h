@@ -6,8 +6,8 @@
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 
-#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
-#define OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
+#ifndef _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H
+#define _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fL
 # include "../internal/ossl_1_1_1/refcount.h"

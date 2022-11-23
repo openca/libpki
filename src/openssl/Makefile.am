@@ -16,7 +16,7 @@ AM_CPPFLAGS = -I$(TOP) \
 
 if ENABLE_COMPOSITE
 	COMPOSITE_SUBDIR = composite
-	COMPOSITE_OBJ =composite/libpki-composite.la
+	COMPOSITE_OBJ = composite/libpki-composite2.la
 else
 	COMPOSITE_SUBDIR =
 	COMPOSITE_OBJ =
@@ -37,14 +37,12 @@ SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 NOINST_SRCS = \
 	internal/ossl_1_0_x/*.h \
 	internal/ossl_1_1_0/*.h \
-	internal/ossl_1_1_1/*.h
-
-OPENSSL_INTERNAL_SRCS = \
-        internal/x509_data_st.h
+	internal/ossl_1_1_1/*.h \
+	internal/x509_data_st.h \
+	internal/ossl_lcl.h
 
 OPENSSL_SRCS = \
 	${NOINST_SRCS} \
-    $(OPENSSL_INTERNAL_SRCS) \
 	pthread_init.c \
 	pki_id.c \
 	pki_oid.c \

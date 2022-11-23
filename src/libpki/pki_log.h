@@ -1,10 +1,16 @@
 
+#ifndef _LIBPKI_LOG_H
+#define _LIBPKI_LOG_H
+
+#ifndef _LIBPKI_COMPAT_H
+#include <libpki/compat.h> 
+#endif
+
+BEGIN_C_DECLS
+
 #ifndef _LIBPKI_TOKEN_HEADERS_H
 # include <libpki/token.h>
 #endif
-
-#ifndef _LIBPKI_LOG_H
-#define _LIBPKI_LOG_H
 
 typedef enum {
 	PKI_LOG_TYPE_STDOUT = 0,
@@ -101,5 +107,7 @@ int PKI_log_end( void );
 #define PKI_DEBUG(a, args...) \
 	PKI_log_debug_simple((const char *)"[%s:%d] [%s()] [DEBUG]: " a, \
 			     __FILE__, __LINE__, __func__, ## args)
+
+END_C_DECLS
 
 #endif

@@ -287,8 +287,8 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 	PKI_X509_ALGOR_VALUE *ret = NULL;
 	int p_type = 0;
 
-	int size = -1;
-	int algId = -1;
+	int size = 0;
+	int algId = NID_undef;
 
 	size = PKI_X509_KEYPAIR_VALUE_get_size(pVal);
 	if (size <= 0) PKI_ERROR(PKI_ERR_GENERAL, "Key size is 0!");
@@ -298,6 +298,8 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 #else
 	p_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
 #endif
+
+	fprintf(stderr, "***************** p_type = %d *************\n\n", p_type);
 
 	switch (p_type)
 	{
@@ -357,14 +359,14 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 
 	// Address the dynamic methods
 #ifdef ENABLE_COMPOSITE
-	if (algId == NID_undef && p_type == OBJ_txt2nid("composite")) {
-		algId = p_type;
+	if (algId <= NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_COMP_SHA512_OID);
 	}
 #endif
 
 #ifdef ENABLE_COMBINED
-	if (algId == NID_undef && p_type == OBJ_txt2nid("combined")) {
-		algId = p_type;
+	if (algId == NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_ALT_SHA512_OID);
 	}
 #endif
 

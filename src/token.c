@@ -187,11 +187,6 @@ PKI_TOKEN *PKI_TOKEN_new_null( void )
 	// Sets the credentials status
 	tk->isCredSet = 0;
 
-	// It seems it is not needed as the PKI_TOKEN_init() will set the
-	// algorithm already - do we want to keep it or not ?
-	if (tk->algor) X509_ALGOR_free(tk->algor);
-	tk->algor = NULL;
-
 	return ( tk );
 }
 
@@ -1039,19 +1034,13 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 		tk->config_dir = NULL;
 	}
 
-	if (conf_dir)
-	{
+	if (conf_dir) {
 		/* Set the new Config Dir */
 		tk->config_dir = strdup ( conf_dir );
-	}
-	else
-	{
-		if ((homedir = getenv("HOME")) != NULL)
-		{
+	} else {
+		if ((homedir = getenv("HOME")) != NULL) {
 			snprintf( buff, sizeof( buff), "%s/.libpki", homedir);
-		}
-		else
-		{
+		} else {
 			snprintf( buff, sizeof( buff ), "%s", PKI_DEFAULT_CONF_DIR );
 		}
 
@@ -1063,17 +1052,13 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 		PKI_DEFAULT_CONF_OID_FILE);
 
 	/* Load the external object Identifiers file */
-	if((oids = PKI_CONFIG_load( buff )) != NULL)
-	{
-		tk->oids = oids;
-	}
+	if ((oids = PKI_CONFIG_load( buff )) != NULL) tk->oids = oids;
 
 	/* Load Configuration Files */
 	snprintf( buff, BUFF_MAX_SIZE, "%s/%s", tk->config_dir, 
 		PKI_DEFAULT_PROFILE_DIR);
 
-	if( PKI_TOKEN_load_profiles( tk, buff ) != PKI_OK )
-	{
+	if (PKI_TOKEN_load_profiles( tk, buff ) != PKI_OK) {
 		// If the failure happens when we were passed
 		// a directory name, we need to inform the caller,
 		// otherwise there is no need to use an error message
@@ -1082,31 +1067,21 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 			/* We should check why... */
 			PKI_ERROR(PKI_ERR_CONFIG_LOAD, "Can not load profiles (%s)", buff);
 		}
-	};
+	}
 
 	/* Now let's try to load the HSM configuration file */
-	if (tk_name)
-	{
-		if(( PKI_TOKEN_load_config( tk, tk_name )) != PKI_OK)
-		{
+	if (tk_name) {
+		if ((PKI_TOKEN_load_config(tk, tk_name)) != PKI_OK)	{
 			return PKI_ERROR ( PKI_ERR_TOKEN_PROFILE_LOAD, tk_name );
 		}
-
 	}
 
 	/* This sets the algorithm */
-	if (!tk->algor) 
-	{
-		if ((PKI_TOKEN_set_algor(tk, PKI_ALGOR_DEFAULT)) != PKI_OK)
-		{
-#ifdef ENABLE_SHA256
-			if ((PKI_TOKEN_set_algor(tk, PKI_ALGOR_RSA_SHA256)) != PKI_OK)
-#else
-			if ((PKI_TOKEN_set_algor(tk, PKI_ALGOR_RSA_SHA1)) != PKI_OK)
-#endif
-			{
-				return PKI_ERROR ( PKI_ERR_TOKEN_SET_ALGOR, NULL );
-			}
+	if (!tk->algor) {
+		// We set the algorithm only if we have a key, otherwise
+		// we would get an error
+		if (PKI_TOKEN_set_algor(tk, PKI_ALGOR_DEFAULT) != PKI_OK) {
+			return PKI_ERROR ( PKI_ERR_TOKEN_SET_ALGOR, NULL );
 		}
 	}
 

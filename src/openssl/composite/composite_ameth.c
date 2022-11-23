@@ -11,7 +11,7 @@
 // Data Structures
 // ===============
 
-#ifndef OPENSSL_COMPOSITE_OPENSSL_LOCAL_H
+#ifndef _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H
 #include "composite_ossl_internals.h"
 #endif
 
@@ -24,20 +24,6 @@
     fprintf(stderr, ## args) ; fprintf(stderr,"\n") ; fflush(stderr); }
 
 #ifdef ENABLE_COMPOSITE
-
-int EVP_PKEY_asn1_meth_set_id(EVP_PKEY_ASN1_METHOD * pkey_ameth, int pkey_id) {
-
-  // Input Check
-  if (!pkey_ameth || pkey_id <= 0) return 0;
-
-  // Assigns the generated IDs
-	pkey_ameth->pkey_id = pkey_id;
-	pkey_ameth->pkey_base_id = pkey_id;
-	pkey_ameth->pkey_id = pkey_id;
-
-  // All Done
-  return 1;
-};
 
 // Returns a COPY of the stack
 STACK_OF(EVP_PKEY) * COMPOSITE_KEY_sk_get1(COMPOSITE_KEY * key) {
@@ -960,8 +946,6 @@ void pkey_free(EVP_PKEY *pk) {
 
   // Purpose: free the algorithm-specific
   // data structure
-
-
   COMPOSITE_KEY * comp_key = NULL;
     // Composite Key Pointer
 
@@ -969,15 +953,13 @@ void pkey_free(EVP_PKEY *pk) {
   if (!pk || !pk->ameth) return;
 
   // Gets the Key Bytes
-  if ((comp_key = EVP_PKEY_get0(pk)) == NULL) {
-    DEBUG("ERROR: Cannot get the Key Inner Structure");
+  if ((comp_key = pk->pkey.ptr /* EVP_PKEY_get0(pk) */ ) == NULL) {
     return;
   }
 
-  DEBUG("ERROR: MUST CHECK THIS LINE -- MEMORY ERROR!");
-  DEBUG("ERROR: When properly running COMPOSITE_KEY_free() we got a memory issue, deferring.");
   // Clears the Key and Frees the memory
-  // COMPOSITE_KEY_free(comp_key);
+  COMPOSITE_KEY_free(comp_key);
+  pk->pkey.ptr = NULL;
 
   // All Done.
   return;
@@ -995,41 +977,35 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
   # define ASN1_PKEY_CTRL_CMS_RI_TYPE      0x8
   */
 
-  DEBUG("ASN1 METHOD: PKEY CTRL - EVP_PKEY is HERE.");
-
   switch (op) {
 
     case ASN1_PKEY_CTRL_PKCS7_SIGN:
     case ASN1_PKEY_CTRL_CMS_SIGN: {
-      DEBUG("Signing Operation (%d)", op);
+      PKI_DEBUG("Signing Operation (%d) - Not handled", op);
     } break;
 
     case ASN1_PKEY_CTRL_PKCS7_ENCRYPT:
     case ASN1_PKEY_CTRL_CMS_ENVELOPE: {
-      DEBUG("Encryption Operation (%d)", op);
+      PKI_DEBUG("Encryption Operation (%d) - Not handled", op);
     } break;
 
     case ASN1_PKEY_CTRL_CMS_RI_TYPE: {
-      DEBUG("Other CMS Operations (%d)", op);
+      PKI_DEBUG("Other CMS Operations (%d) - Not Handled", op);
     } break;
 
     case ASN1_PKEY_CTRL_DEFAULT_MD_NID: {
-      DEBUG("AMETH::Default MD NID (%d) (arg1 = %ld, arg2 = %d)",
-        op, arg1, *(int *)arg2);
-      DEBUG("Returning NID_sha512 as default");
-
       // Let's return NID_sha512 as default
       *(int *)arg2 = NID_sha512;
     } break;
 
     default: {
-      DEBUG("Unknown Operation [%d] (arg1 = %ld)", op, arg1);
+      PKI_DEBUG("Unknown Operation [%d] (arg1 = %ld)", op, arg1);
       return 0;
     }
 
   }
 
-  DEBUG("Not implemented, yet.");
+  // All Done
   return 1;
 }
 
@@ -1039,13 +1015,13 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
 // Not Implemented
 int old_priv_decode(EVP_PKEY *pkey, const unsigned char **pder, int derlen) {
-  DEBUG("Not implemented, yet.");
+  PKI_DEBUG("Not implemented, yet.");
   return 0;
 }
 
 // Not Implemented
 int old_priv_encode(const EVP_PKEY *pkey, unsigned char **pder) {
-  DEBUG("Not implemented, yet.");
+  PKI_DEBUG("Not implemented, yet.");
   return 0;
 }
 
@@ -1055,7 +1031,7 @@ int old_priv_encode(const EVP_PKEY *pkey, unsigned char **pder) {
 
 // Implemented
 int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, ASN1_BIT_STRING *sig, EVP_PKEY *pkey) {
-  DEBUG("Not implemented, yet.");
+  PKI_DEBUG("Not implemented, yet.");
   return 0;
 }
 
@@ -1072,21 +1048,44 @@ int item_sign(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *alg1,
   * See ASN1_item_sign_ctx() at OPENSSL/crypto/asn1/a_sign.c:140
   */
 
-#ifdef ENABLE_COMPOSITE
-  int NID_composite = OBJ_txt2nid("composite");
+  EVP_PKEY_CTX * pkey_ctx = EVP_MD_CTX_pkey_ctx(ctx);
+    // Public Key CTX
   
+  EVP_PKEY * pkey = pkey_ctx ? EVP_PKEY_CTX_get0_pkey(pkey_ctx) : NULL;
+    // Public Key
+
+  int signature_id = -1;
+  int digest_id = -1;
+  int pkey_id = -1;
+
+  // Input checks
+  if (!pkey || !pkey_ctx) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Missing PKEY or PKEY context");
+    return -1;
+  }
+
+  // Retrieves the Digest
+  const EVP_MD * md = EVP_MD_CTX_md(ctx);
+  
+  // Gets the ID for the algorithm components
+  digest_id = md != NULL ? EVP_MD_nid(md) : PKI_DIGEST_ALG_ID_DEFAULT;
+  pkey_id = EVP_PKEY_id(pkey);
+
+  // int NID_composite = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
+  
+  // Search for the Algorithm ID
+  if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
+      digest_id, pkey_id);
+    return -1;
+  }
+
+  // Sets the Algorithm IDs
   if (alg1 != NULL)
-    X509_ALGOR_set0(alg1, OBJ_nid2obj(NID_composite), V_ASN1_UNDEF, NULL);
+    X509_ALGOR_set0(alg1, OBJ_nid2obj(signature_id), V_ASN1_UNDEF, NULL);
 
   if (alg2 != NULL)
-      X509_ALGOR_set0(alg2, OBJ_nid2obj(NID_composite), V_ASN1_UNDEF, NULL);
-#else
-  // This situation is because we are porting the COMPOSITE support from the
-  // original approach of patching OpenSSL to providing a dynamic ameth/pmeth
-  // that is injected at runtime
-  DEBUG("Workaround for composite implementation (transitioning from OSSL to LibPKI)");
-  return -1;
-#endif
+      X509_ALGOR_set0(alg2, OBJ_nid2obj(signature_id), V_ASN1_UNDEF, NULL);
 
   // Algorithm identifier set: carry on as normal
   return 3;

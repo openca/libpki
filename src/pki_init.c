@@ -16,11 +16,11 @@
 
 #ifdef ENABLE_COMPOSITE
 
-# ifndef OPENSSL_COMPOSITE_PKEY_METH_H
+# ifndef _LIBPKI_COMPOSITE_PKEY_METH_H
 #  include <libpki/composite/composite_pmeth.h>
 # endif
 
-#ifndef OPENSSL_COMPOSITE_ASN1_METH_H
+#ifndef _LIBPKI_COMPOSITE_ASN1_METH_H
 #include <libpki/composite/composite_ameth.h>
 #endif
 
@@ -78,59 +78,25 @@ static int _init_composite() {
 	// Retrieves the COMPOSITE id
 	int composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
 
+	fprintf(stderr, "[DEBUG][%s:%d] composite_id = %d\n", __FILE__, __LINE__, composite_id);
+
 	// Assigns the generated IDs
 	EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, composite_id);
+
+	// Assigns the PKEY ID
+	EVP_PKEY_meth_set_id(&composite_pkey_meth, composite_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
 
 	// We also Need to initialize the PKEY method for the algorithm
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
 	if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
 
+	fprintf(stderr, "[DEBUG][%s:%d] added pkey method = %d\n", __FILE__, __LINE__, composite_id);
+
 	// We Need to initialize the ASN1 conversion method
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
 	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
 	
-	// All Done, Success.
-	return 1;
-}
-#endif
-
-#ifdef ENABLE_OQS
-int _init_pqc() {
-
-	// TODO:
-	// =====
-	//
-	// Update the way we add the composite ASN1 method. Currently we use the
-	// auxillary function (see composite_ameth.c) to set the method's pkey id.
-	//
-	// The Right way to add a new method would be to first generate a new
-	// one and then set the different callbacks, such as:
-	//
-	//   composite_asn1_method = EVP_PKEY_asn1_meth_new(NID_composite);
-	//   EVP_PKEY_asn1_meth_set_XXX(composite_asn1_method, .... );
-
-	// // Retrieves the COMPOSITE id
-	// int dilithiumX_id = OBJ_txt2nid(OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
-
-	// // Assigns the generated IDs
-	// EVP_PKEY_asn1_meth_set_id(&dilithiumX_asn1_meth, dilithiumX_id);
-
-	// // We also Need to initialize the PKEY method for the algorithm
-	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
-	// if (!EVP_PKEY_meth_add0(&dilithiumX_pkey_meth)) return 0;
-
-	// // We Need to initialize the ASN1 conversion method
-	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
-	// if (!EVP_PKEY_asn1_add0(&dilithiumX_asn1_meth)) return 0;
-	
-	// EVP_PKEY_asn1_meth_set_id(&DILITHIUMX_ASN1_METH, OBJ_txt2nid(OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
-	// if (EVP_PKEY_meth_add0(&DILITHIUMX_PKEY_METH)) 
-	// 	{ EVP_PKEY_asn1_add0(&DILITHIUMX_ASN1_METH); }   
-	// else { PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot add PKEY method"); }
-
-	PKI_PQC_init();
-
-	// REGISTER_PKEY_METH(DILITHIUMX, OPENCA_ALG_PKEY_PQC_DILITHIUMX_OID);
+	fprintf(stderr, "[DEBUG][%s:%d] added ASN1 method\n", __FILE__, __LINE__);
 
 	// All Done, Success.
 	return 1;
@@ -209,7 +175,7 @@ int PKI_init_all( void ) {
 
 #ifdef ENABLE_OQS
 		// Post-Quantum Crypto Implementation
-		_init_pqc();
+		PKI_PQC_init();
 #endif
 #ifdef ENABLE_COMPOSITE
 		// Composite Crypto (multi-keys AND)

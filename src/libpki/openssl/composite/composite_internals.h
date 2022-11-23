@@ -3,6 +3,9 @@
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 
+#ifndef _LIBPKI_COMPOSITE_LOCAL_H
+#define _LIBPKI_COMPOSITE_LOCAL_H
+
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 
@@ -10,12 +13,19 @@
 #include <libpki/openssl/pki_oid_defs.h>
 #endif
 
-#ifndef OPENSSL_COMPOSITE_LOCAL_H
-#define OPENSSL_COMPOSITE_LOCAL_H
-
-#ifdef  __cplusplus
-extern "C" {
+#ifndef _LIBPKI_COMPAT_H
+#include <libpki/compat.h>
 #endif
+
+#ifndef _LIBPKI_LOG_H
+#include <libpki/pki_log.h>
+#endif
+
+#ifndef _LIBPKI_ERRORS_H
+#include <libpki/pki_err.h>
+#endif
+
+BEGIN_C_DECLS
 
 // ========================
 // Composite Crypto Support
@@ -46,21 +56,6 @@ extern "C" {
 # define EVP_PKEY_CTRL_COMPOSITE_ADD     0x203
 # define EVP_PKEY_CTRL_COMPOSITE_DEL     0x204
 # define EVP_PKEY_CTRL_COMPOSITE_CLEAR   0x205
-
-// Declares the assign function, we can not use the
-// define mechanism because the EVP_PKEY_COMPOSITE is
-// not defined at compile time
-// #ifdef ENABLE_COMPOSITE
-// # define EVP_PKEY_assign_COMPOSITE(pkey,comp_key)
-//     EVP_PKEY_assign((pkey),EVP_PKEY_COMPOSITE, (char *)(comp_key))
-// # endif
-
-inline int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
-  // Retrieves the composite ID
-  int composite_id = OBJ_txt2nid("composite");
-  // Assigns the internal key
-  return EVP_PKEY_assign(pkey, composite_id, comp_key);
-};
 
 // ==============================
 // Declarations & Data Structures
@@ -143,24 +138,6 @@ DEFINE_STACK_OF(ASN1_OCTET_STRING)
 
 #define COMPOSITE_KEY_dup(key)             sk_EVP_PKEY_deep_copy(key, EVP_PKEY_dup, EVP_PKEY_free)
   // Duplicates (deep copy) the key
-
-// Free all components of the key
-static inline void COMPOSITE_KEY_clear(COMPOSITE_KEY *key) {
-
-  if (!key) return;
-
-  while (sk_EVP_PKEY_num(key) > 0) { 
-    sk_EVP_PKEY_pop_free(key, EVP_PKEY_free); 
-  }
-}
-
-static inline void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
-  
-  if (!key) return;
-
-  COMPOSITE_KEY_clear(key);
-  OPENSSL_free(key);
-}
 
 // COMPOSITE_CTX_ITEM: Prototypes
 // ------------------------------
@@ -253,10 +230,8 @@ int COMPOSITE_KEY_bits(COMPOSITE_KEY * bits);
 // among the key components
 int COMPOSITE_KEY_security_bits(COMPOSITE_KEY * sec_bits);
 
+END_C_DECLS
 
-#ifdef  __cplusplus
-}
-#endif
 #endif
 
 /* END: composite_local.h */

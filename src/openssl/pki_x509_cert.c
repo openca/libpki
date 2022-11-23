@@ -459,10 +459,21 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
           break;
 
         default:
-          // Nothing to do
-          PKI_ERROR(PKI_ERR_GENERAL, "Signing Scheme Uknown %d!", kParams->scheme);
+
+#ifdef ENABLE_OQS
+
+          // We should check for dynamic
+          // ones - like the PQC or Composite
+          PKI_DEBUG("Unhandled Scheme: %d", scheme);
           break;
-      }
+
+#else
+         // Nothing to do
+          PKI_DEBUG("Signing Scheme Uknown %d!", kParams->scheme);
+          break;
+
+#endif
+       }
     }
   }
 

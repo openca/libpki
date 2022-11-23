@@ -103,7 +103,7 @@ int oqs_priv_decode(EVP_PKEY *pkey, const PKCS8_PRIV_KEY_INFO *p8);
 
 int oqs_priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pkey);
 
-int oqs_size(const EVP_PKEY *pkey);
+int oqs_size_lcl(const EVP_PKEY *pkey);
 
 int oqs_bits(const EVP_PKEY *pkey);
 

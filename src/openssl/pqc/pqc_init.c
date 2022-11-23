@@ -164,7 +164,7 @@ EVP_PKEY_ASN1_METHOD * PKI_PQC_PKEY_ASN1_METH_new(int                nid,
                            oqs_pub_encode,
                            oqs_pub_cmp,
                            oqs_pub_print,
-                           oqs_size,
+                           oqs_size_lcl,
                            oqs_bits
                           );
 
