@@ -1096,7 +1096,7 @@ int siginf_set(X509_SIG_INFO *siginf, const X509_ALGOR *alg, const ASN1_STRING *
   // X509_SIG_INFO_set(siginf, NID_sha512, NID_ALG, get_composite_pkey_security_bits(NID_ALG),
   //                    X509_SIG_INFO_TLS);                                        
   // return 1;
-  DEBUG("*** CHECK OUT THIS FUNCTION and X509_SIG_INFO_set(). Body Not implemented, yet.");
+  PKI_DEBUG("*** CHECK OUT THIS FUNCTION and X509_SIG_INFO_set(). Body Not implemented, yet.");
   return 0;
 }
 
@@ -1108,20 +1108,23 @@ int pkey_check(const EVP_PKEY *pkey) {
 
   COMPOSITE_KEY * comp_key = NULL;
 
+  // Input Checks
   if (!pkey) return 0;
 
-  if ((comp_key = EVP_PKEY_get0(pkey)) == NULL)
-    return 0;
+  // Retrieves the Composite Key internal structure
+  if ((comp_key = EVP_PKEY_get0(pkey)) == NULL) return 0;
 
-  if (COMPOSITE_KEY_num(comp_key) < 1)
-    return 0;
+  // Checks we have at least one component
+  if (COMPOSITE_KEY_num(comp_key) < 1) return 0;
 
+  // Process each component
   for (int i = 0; i < COMPOSITE_KEY_num(comp_key); i++) {
+
     EVP_PKEY * tmp_pkey = NULL;
+      // Pointer to the individual component
 
     // If we cannot get any component, we have a problem
-    if ((tmp_pkey = COMPOSITE_KEY_get0(comp_key, i)) == NULL)
-      return 0;
+    if ((tmp_pkey = COMPOSITE_KEY_get0(comp_key, i)) == NULL) return 0;
 
     // We need an ASN1 method
     if (!tmp_pkey->ameth) return 0;
@@ -1129,15 +1132,13 @@ int pkey_check(const EVP_PKEY *pkey) {
     // If the component has the check, let's perform
     // it on the single component and return 0 if any
     // of these fail at the component level
-    if (tmp_pkey->ameth->pkey_check) {
-      if (tmp_pkey->ameth->pkey_check(tmp_pkey) == 0) {
-        DEBUG("ERROR: Key Check failed for"
-            "Composite Key Component #%d", i)
-        return 0;
-      }
+    if (tmp_pkey->ameth->pkey_check && tmp_pkey->ameth->pkey_check(tmp_pkey) == 0) {
+      PKI_DEBUG("ERROR: Key Check failed for Composite Key Component #%d", i);
+      return 0;
     }
   }
 
+  // All Done
   return 1;
 }
 

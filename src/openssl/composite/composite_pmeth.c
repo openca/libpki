@@ -966,15 +966,15 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
   COMPOSITE_CTX * comp_ctx = ctx ? ctx->data : NULL;
     // Pointer to the Composite CTX
 
-  COMPOSITE_KEY * comp_pkey = ctx && ctx->pkey ? EVP_PKEY_get0(ctx->pkey) : NULL;
-    // Pointer to the Composite Key
-
-  EVP_PKEY * pkey = NULL;
+  EVP_PKEY * pkey = ctx && ctx->pkey ? ctx->pkey : NULL;;
     // Pointer to the PKEY to add/del
+
+  COMPOSITE_KEY * comp_pkey = pkey ? EVP_PKEY_get0(pkey) : NULL;
+    // Pointer to the Composite Key
 
   // Input checks
   if (!comp_ctx || !comp_pkey) {
-    PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing CTX or PKEY");
+    PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing CTX (%p) or PKEY (%p)", comp_ctx, comp_pkey);
     return 0;
   }
 
@@ -987,9 +987,11 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
     // OpenSSL CTRL Values
     // ===================
 
-    case EVP_PKEY_CTRL_MD: {
+    case EVP_PKEY_CTRL_GET_MD: {
+      PKI_DEBUG("[ PMETH ] ======= EVP_PKEY_CTRL_GET_MD (Val: 1) ========== ");
+    } break;
 
-      PKI_DEBUG("[ PMETH ] ======= EVP_PKEY_CTRL_MD ========== ");
+    case EVP_PKEY_CTRL_MD: {
 
       // Here we need to allocate the digest for each key in the
       // stack (if not there, let's allocate the memory and
@@ -1004,6 +1006,70 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
       //
       // NEED TO CHECK:
       //     EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX)
+
+      // Input checks
+      if (!value) return 0;
+
+      // const EVP_MD * digest = (EVP_MD *)value;
+      //   // Digest to use
+
+      // NOTE: Here we need to create the stack of contexts with the right
+      //       EVP_PKEY_CTX and EVP_MD_CTX for each of the components. Let's
+      //       work through the stack of keys to create the corresponding
+      //       stack of contexts
+
+      for (int i = 0; i < COMPOSITE_KEY_num(comp_pkey); i++) {
+
+        // COMPOSITE_CTX_ITEM * comp_ctx_item = NULL;
+        //   // Composite CTX
+
+        EVP_MD_CTX * md_ctx = NULL;
+        EVP_PKEY_CTX * pkey_ctx = NULL;
+          // Components of the Composite CTX item
+
+        EVP_PKEY * pkey = NULL;
+          // Individual Component
+
+        // Retrieve the i-th component
+        pkey = COMPOSITE_KEY_value(comp_pkey, i);
+        if (pkey == NULL) {
+          PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot retrieve the %d key component", i);
+          return 0;
+        }
+
+        // We want to generate a new PKEY and MD contexts
+        pkey_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_id(pkey), NULL);
+        if (pkey_ctx == NULL) {
+          PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new PKEY CTX for component %d", i);
+          return 0;
+        }
+
+        // We also want to duplicate the MD context
+        md_ctx = EVP_MD_CTX_new();
+        if (md_ctx == NULL) {
+          PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new MD CTX for component %d", i);
+          if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+          return 0;
+        }
+
+        // Sets the PKEY CTX
+        EVP_MD_CTX_set_pkey_ctx(md_ctx, pkey_ctx);
+
+        // Assigns the contexts to the composite item and
+        // push the new item to the stack of contexts
+        if (PKI_OK != COMPOSITE_CTX_push(comp_ctx, pkey_ctx, md_ctx)) {
+          PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot add the new context for component %d", i);
+          if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+          if (md_ctx) EVP_MD_CTX_free(md_ctx);
+          return 0;
+        }
+      }
+
+      // Debugging
+      PKI_DEBUG("[ PMETH ] Added %d contexts for signature creation", COMPOSITE_KEY_num(comp_pkey));
+
+      // All Done
+      return 1;
 
     } break;
 

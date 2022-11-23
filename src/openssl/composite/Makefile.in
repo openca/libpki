@@ -852,8 +852,6 @@ uninstall-am: uninstall-nobase_includeHEADERS
 .PRECIOUS: Makefile
 
 include $(TOP)/global-vars
-# libpki_composite_la_LDFLAGS = $(BUILD_LIBPKI_LDFLAGS)
-# libpki_composite_la_LIBADD = $(BUILD_LIBPKI_LDADD)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -18,11 +18,10 @@ AM_CPPFLAGS = \
 OPENSSL_INTERNAL_SRCS = 
 
 LIBPKI_INTERNAL_SRCS = \
-	pqc_init.h               \
-	pqc_tools.h              \
-	pqc_pkey_meth.h          \
-	pqc_asn1_meth.h          \
-	pqc_local.h
+	pqc_tools.h        \
+	pqc_pkey_meth.h    \
+	pqc_asn1_meth.h    \
+	pqc_data_st.h
 
 nobase_include_HEADERS =
 
@@ -38,6 +37,4 @@ noinst_LTLIBRARIES = libpki-pqc.la
 
 libpki_pqc_la_SOURCES = $(PQC_SRCS)
 libpki_pqc_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
-# libpki_composite_la_LDFLAGS = $(BUILD_LIBPKI_LDFLAGS)
-# libpki_composite_la_LIBADD = $(BUILD_LIBPKI_LDADD)
 

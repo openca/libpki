@@ -472,11 +472,10 @@ AM_CPPFLAGS = \
 
 OPENSSL_INTERNAL_SRCS = 
 LIBPKI_INTERNAL_SRCS = \
-	pqc_init.h               \
-	pqc_tools.h              \
-	pqc_pkey_meth.h          \
-	pqc_asn1_meth.h          \
-	pqc_local.h
+	pqc_tools.h        \
+	pqc_pkey_meth.h    \
+	pqc_asn1_meth.h    \
+	pqc_data_st.h
 
 nobase_include_HEADERS = 
 PQC_SRCS = \
@@ -856,8 +855,6 @@ uninstall-am: uninstall-nobase_includeHEADERS
 .PRECIOUS: Makefile
 
 include $(TOP)/global-vars
-# libpki_composite_la_LDFLAGS = $(BUILD_LIBPKI_LDFLAGS)
-# libpki_composite_la_LIBADD = $(BUILD_LIBPKI_LDADD)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

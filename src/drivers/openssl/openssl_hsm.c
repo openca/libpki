@@ -368,13 +368,20 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// that is equiv to a CTRL call (see <openssl/evp.h> for more details)
 	if (digest != NULL && digest != EVP_md_null()) {
 
-		// DEBUG
-		PKI_DEBUG("Setting the MD for the signing: %d (%s)", 
-			EVP_MD_nid(digest), PKI_DIGEST_ALG_get_parsed(digest));
+		int ossl_ret = -1;
 
-		// Sets the Digest to use when calculating the signature
-		EVP_PKEY_CTX_set_signature_md(pctx, digest);
-
+		// Sets the Digest to use when calculating the signature,
+		// this is a MACRO for EVP_PKEY_CTX_ctrl() with the sign
+		// operation (EVP_PKEY_OP_TYPE_SIG) and the type (EVP_PKEY_CTRL_MD)
+		// to set the desired EVP_MD (digest)
+		ossl_ret = EVP_PKEY_CTX_set_signature_md(pctx, digest);
+		if (ossl_ret == -2) {
+			PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Signing operation not supported");
+			return NULL;
+		} else if (ossl_ret <= 0) {
+			PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Invalid Operation");
+			return NULL;
+		}
 	} else {
 
 		// This is a hack to accommodate for the issue with OQS where

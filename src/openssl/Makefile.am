@@ -14,21 +14,13 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-if ENABLE_COMPOSITE
-	COMPOSITE_SUBDIR = composite
-	COMPOSITE_OBJ = composite/libpki-composite2.la
-else
-	COMPOSITE_SUBDIR =
-	COMPOSITE_OBJ =
-endif
+# Composite Support
+COMPOSITE_SUBDIR = composite
+COMPOSITE_OBJ = composite/libpki-composite.la
 
-if ENABLE_OQS
-	PQC_SUBDIR = pqc
-	PQC_OBJ = pqc/libpki-pqc.la
-else
-	PQC_SUBDIR =
-	PQC_OBJ =
-endif
+# OQS Support
+PQC_SUBDIR = pqc
+PQC_OBJ = pqc/libpki-pqc.la
 
 OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
 

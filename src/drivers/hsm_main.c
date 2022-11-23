@@ -542,8 +542,8 @@ int PKI_X509_sign(PKI_X509               * x,
 	               PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
                    PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
                    NULL,
-				   NULL, 
-                   pkey, 
+				   NULL,
+                   pkey,
 				   ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
 	// Retrieves the DER representation of the data to be signed

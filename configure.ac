@@ -1780,9 +1780,9 @@ AC_CONFIG_FILES(
 	src/drivers/engine/Makefile
 	src/drivers/pkcs11/Makefile
 	src/drivers/kmf/Makefile
-	src/openssl/Makefile
 	src/openssl/composite/Makefile
 	src/openssl/pqc/Makefile
+	src/openssl/Makefile
 	src/io/Makefile
 	src/net/Makefile
 	src/est/Makefile

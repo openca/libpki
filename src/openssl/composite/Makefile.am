@@ -30,6 +30,4 @@ noinst_LTLIBRARIES = libpki-composite.la
 
 libpki_composite_la_SOURCES = $(COMPOSITE_SRCS)
 libpki_composite_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
-# libpki_composite_la_LDFLAGS = $(BUILD_LIBPKI_LDFLAGS)
-# libpki_composite_la_LIBADD = $(BUILD_LIBPKI_LDADD)
 

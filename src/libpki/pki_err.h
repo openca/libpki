@@ -16,11 +16,14 @@
 // ------------------------- Useful Macros --------------------------- //
 
 // Second Argument is a const char *
-#define PKI_ERROR(a,b,args...) __pki_error(__FILE__, __LINE__, a, b, ## args)
+#define PKI_ERROR(a,b,args...) \
+  __pki_error(__FILE__, __LINE__, a, b, ## args)
 
-#define PKI_ERROR_crypto_get_errno() HSM_get_errno(NULL)
+#define PKI_ERROR_crypto_get_errno() \
+  HSM_get_errno(NULL)
 
-#define PKI_ERROR_crypto_get_errdesc() HSM_get_errdesc(HSM_get_errno(NULL),NULL)
+#define PKI_ERROR_crypto_get_errdesc() \
+  HSM_get_errdesc(HSM_get_errno(NULL),NULL)
 
 // --------------------- Function Prototypes ------------------------- //
 
