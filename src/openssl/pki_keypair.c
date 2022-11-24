@@ -291,15 +291,13 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 	int algId = NID_undef;
 
 	size = PKI_X509_KEYPAIR_VALUE_get_size(pVal);
-	if (size <= 0) PKI_ERROR(PKI_ERR_GENERAL, "Key size is 0!");
+	// PKI_DEBUG("Detected a 0 Key size");
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	p_type = EVP_PKEY_type(pVal->type);
 #else
 	p_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
 #endif
-
-	fprintf(stderr, "***************** p_type = %d *************\n\n", p_type);
 
 	switch (p_type)
 	{

@@ -443,8 +443,15 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 #ifdef ENABLE_ECDSA
 		if (kp->scheme == PKI_SCHEME_ECDSA) {
-			fprintf(stderr, "  - Point Type......: %d\n", kp->ec.form );
+			fprintf(stderr, "  - Point Type .....: %d\n", kp->ec.form );
 		}
+#endif
+
+#ifdef ENABLE_COMPOSITE
+	if (kp->scheme == PKI_SCHEME_COMPOSITE) {
+		fprintf(stderr, "  - Number of Keys..: %d\n", 
+			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
+	}
 #endif
 
 		fprintf(stderr, "  - Output .........: %s\n", keyurl->url_s );

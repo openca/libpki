@@ -20,6 +20,10 @@
 #include <libpki/openssl/composite/composite_internals.h>
 #endif
 
+#ifndef HEADER_ENVELOPE_H
+#include <openssl/evp.h>
+#endif
+
 #ifndef _LIBPKI_COMPAT_H
 #include <libpki/compat.h>
 #endif

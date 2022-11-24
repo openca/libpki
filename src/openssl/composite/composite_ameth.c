@@ -1265,18 +1265,22 @@ EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     pub_encode,               // int (*pub_encode) (X509_PUBKEY *pub, const EVP_PKEY *pk);
     pub_cmp,                  // int (*pub_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
     pub_print,                // int (*pub_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
+
     priv_decode,              // int (*priv_decode) (EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8inf);
     priv_encode,              // int (*priv_encode) (PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk);
     priv_print,               // int (*priv_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
+    
     pkey_size,                // int (*pkey_size) (const EVP_PKEY *pk);
     pkey_bits,                // int (*pkey_bits) (const EVP_PKEY *pk);
     pkey_security_bits,       // int (*pkey_security_bits) (const EVP_PKEY *pk);
+    
     param_decode,             // int (*param_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
     param_encode,             // int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
     param_missing,            // int (*param_missing) (const EVP_PKEY *pk);
     param_copy,               // int (*param_copy) (EVP_PKEY *to, const EVP_PKEY *from);
     param_cmp,                // int (*param_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
     param_print,              // int (*param_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
+    
     sig_print,                // int (*sig_print) (BIO *out, const X509_ALGOR *sigalg, const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx);
     pkey_free,                // void (*pkey_free) (EVP_PKEY *pkey);
     pkey_ctrl,                // int (*pkey_ctrl) (EVP_PKEY *pkey, int op, long arg1, void *arg2);

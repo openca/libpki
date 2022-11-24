@@ -279,8 +279,8 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	EVP_MD_CTX *ctx = NULL;
 		// Digest's context
 
-	EVP_PKEY_CTX * pctx = NULL;
-		// Signing's PKEY context
+	// EVP_PKEY_CTX * pctx = NULL;
+	// 	// Signing's PKEY context
 
 	size_t out_size = 0;
 	// size_t ossl_ret = 0;
@@ -354,43 +354,43 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// Initializes the Context
 	EVP_MD_CTX_init(ctx);
 
-	// Builds the PKEY CTX structure
-	pctx = EVP_PKEY_CTX_new(pkey, NULL);
-	if (!pctx) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the PKEY CTX");
-		goto err;
-	}
+	// // Builds the PKEY CTX structure
+	// pctx = EVP_PKEY_CTX_new(pkey, NULL);
+	// if (!pctx) {
+	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the PKEY CTX");
+	// 	goto err;
+	// }
 
-	// Sets the PKEY CTX in the MD CTX
-	EVP_MD_CTX_set_pkey_ctx(ctx, pctx);
+	// // Sets the PKEY CTX in the MD CTX
+	// EVP_MD_CTX_set_pkey_ctx(ctx, pctx);
 
-	// Sets the Digest to be used when calculating the signature
-	// that is equiv to a CTRL call (see <openssl/evp.h> for more details)
-	if (digest != NULL && digest != EVP_md_null()) {
+	// // Sets the Digest to be used when calculating the signature
+	// // that is equiv to a CTRL call (see <openssl/evp.h> for more details)
+	// if (digest != NULL && digest != EVP_md_null()) {
 
-		int ossl_ret = -1;
+	// 	int ossl_ret = -1;
 
-		// Sets the Digest to use when calculating the signature,
-		// this is a MACRO for EVP_PKEY_CTX_ctrl() with the sign
-		// operation (EVP_PKEY_OP_TYPE_SIG) and the type (EVP_PKEY_CTRL_MD)
-		// to set the desired EVP_MD (digest)
-		ossl_ret = EVP_PKEY_CTX_set_signature_md(pctx, digest);
-		if (ossl_ret == -2) {
-			PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Signing operation not supported");
-			return NULL;
-		} else if (ossl_ret <= 0) {
-			PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Invalid Operation");
-			return NULL;
-		}
-	} else {
+	// 	// Sets the Digest to use when calculating the signature,
+	// 	// this is a MACRO for EVP_PKEY_CTX_ctrl() with the sign
+	// 	// operation (EVP_PKEY_OP_TYPE_SIG) and the type (EVP_PKEY_CTRL_MD)
+	// 	// to set the desired EVP_MD (digest)
+	// 	ossl_ret = EVP_PKEY_CTX_set_signature_md(pctx, digest);
+	// 	if (ossl_ret == -2) {
+	// 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Signing operation not supported");
+	// 		return NULL;
+	// 	} else if (ossl_ret <= 0) {
+	// 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Invalid Operation");
+	// 		return NULL;
+	// 	}
+	// } else {
 
-		// This is a hack to accommodate for the issue with OQS where
-		// when we use the EVP_md_null() they apply the use of the MD
-		// to only the classic part of the key, until we use our own
-		// implementation to fix this issue, we need to set the digest
-		// to NULL or we get a segfault(11).
-		digest = NULL;
-	}
+	// 	// This is a hack to accommodate for the issue with OQS where
+	// 	// when we use the EVP_md_null() they apply the use of the MD
+	// 	// to only the classic part of the key, until we use our own
+	// 	// implementation to fix this issue, we need to set the digest
+	// 	// to NULL or we get a segfault(11).
+	// 	digest = NULL;
+	// }
 
 	// DEBUG
 	PKI_DEBUG("MD (digest) in DigestSignInit: %d (%s)", 
@@ -409,6 +409,9 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Update EVP_DigestSignUpdate()");
 		goto err;
 	}
+
+	// Finalize the MD
+	EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_FINALISE);
 
 	// Finalizes the Signature calculation and saves it in the output buffer
 	if (EVP_DigestSignFinal(ctx,
