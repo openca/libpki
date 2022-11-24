@@ -678,12 +678,6 @@ static int sign(EVP_PKEY_CTX        * ctx,
     return 1;
   }
 
-  // // Input Checks -> Destination Buffer Size
-  // if ((size_t)signature_size > (*siglen)) {
-  //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Destination signature buffer is too small");
-  //   return 0;
-  // }
-
   // Allocates the Stack for the signatures
   if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the stack of signature");
@@ -692,10 +686,6 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
   // Retrieves the set digest for the signature
   pmd = (EVP_MD *) (comp_ctx->md ? comp_ctx->md : PKI_DIGEST_ALG_DEFAULT);
-
-  // if (!EVP_PKEY_CTX_get_signature_md(ctx, &pmd)) {
-  //   pmd = PKI_DIGEST_ALG_DEFAULT;
-  // }
 
   // Allocates a new digest context
   // for the operation
@@ -739,54 +729,13 @@ static int sign(EVP_PKEY_CTX        * ctx,
       goto err;
     }
 
-    // // Initializes the CTX by setting the pkey_ctx->operation
-    // // to EVP_PKEY_OP_SIGN
-    // EVP_PKEY_sign_init(pkey_ctx);
-
-    // if (!EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen)) {
-    //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot retrieve the size of signature's %d component", i);
-    //   goto err;
-    // }
-
-    // // Let's get the correct size for the component signature's buffer
-    // if (!EVP_DigestSign(md_ctx, NULL, (size_t *)&buff_len, tbs, tbslen)) {
-    //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot retrieve the size of signature's %d component", i);
-    //   goto err;
-    // }
-
-    // // Builds a new PKEY context
-    // if ((pkey_ctx = EVP_PKEY_CTX_new(evp_pkey, evp_pkey->engine)) == NULL) {
-    //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new EVP_PKEY_CTX for signature component %d", i);
-    //   return 0;
-    // };
-
-    // // Sets the Operation
-    // pkey_ctx->operation = EVP_PKEY_OP_SIGN;
-
-    // // Setting the digest algorithm to use
-    // if (EVP_PKEY_CTX_set_signature_md(pkey_ctx, pmd) <= 0) {
-    //   PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, "Error setting the signature digest");
-    //   goto err;
-    // }
-
-    // // Let's get the size of the single signature
-    // if (EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen) != 1) {
-    //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Error while retrieving the size for component signature #%d", i);
-    //   goto err;
-    // }
-
     // Allocate the buffer for the single signature
     if ((pnt = buff = OPENSSL_malloc((size_t)buff_len)) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d-th component signature's buffer");
       goto err;
     }
 
-    // // Actually performs the signature
-    // if (EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen) != 1) {
-    //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot generate signature's #%d component", i);
-    //   goto err;
-    // }
-
+    // Performs the Signature and Finalizes it
     if (!EVP_DigestSign(md_ctx, pnt, (size_t *)&buff_len, tbs, tbslen)) {
       PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot create signature %d component", i);
       goto err;
@@ -808,16 +757,6 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
     // This sets the internal pointers
     ASN1_STRING_set0(oct_string, pnt, buff_len);
-
-    {
-      i2d_ASN1_OCTET_STRING(oct_string, &buff);
-      char filename[256];
-      snprintf(filename, sizeof(filename), "%d_signature.der", i);
-      FILE * f = fopen(filename, "w");
-      fwrite(pnt, buff_len, 1, f);
-      fclose(f);
-    }
-
     pnt = NULL; buff_len = 0;
 
     // Resets the pointer and length after ownership transfer
@@ -843,19 +782,19 @@ static int sign(EVP_PKEY_CTX        * ctx,
     aType = NULL;
   }
 
-  if ((buff_len = i2d_ASN1_SEQUENCE_ANY(sk, &buff)) <= 0) {
+  if ((*siglen = i2d_ASN1_SEQUENCE_ANY(sk, &sig)) <= 0) {
     PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, "Cannot generate DER representation of the sequence of signatures");
     goto err;
   }
 
   {
     FILE * f = fopen("comp_signature.der", "w");
-    fwrite(buff, buff_len, 1, f);
+    fwrite(sig, *siglen, 1, f);
     fclose(f);
   }
 
   // Reporting the total size
-  PKI_DEBUG("Total Signature Size: %d (estimated: %d)", total_size, signature_size);
+  PKI_DEBUG("Total Signature Size: %d (estimated: %d)", *siglen, signature_size);
 
   // Free the stack's memory
   while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
@@ -863,10 +802,6 @@ static int sign(EVP_PKEY_CTX        * ctx,
   }
   sk_ASN1_TYPE_free(sk);
   sk = NULL;
-
-  // Sets the output buffer
-  sig = buff;
-  *siglen = (size_t) buff_len;
 
   // Success
   return 1;

@@ -82,6 +82,8 @@ typedef enum {
 	PKI_ERR_X509_KEYPAIR_SIZE_SHORT,
 	PKI_ERR_X509_KEYPAIR_SIZE_LONG,
 	PKI_ERR_X509_KEYPAIR_GENERATION,
+	PKI_ERR_X509_KEYPAIR_DECODE,
+	PKI_ERR_X509_KEYPAIR_ENCODE,
 	PKI_ERR_X509_KEYPAIR_,
 	/* Certificate Operations */
 	PKI_ERR_X509_CERT_CREATE,
@@ -216,6 +218,8 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_KEYPAIR_SIZE_SHORT, "Key Size smaller than allowed minimum" },
 	{ PKI_ERR_X509_KEYPAIR_SIZE_LONG, "Key Size longer than supported maximum" },
 	{ PKI_ERR_X509_KEYPAIR_GENERATION, "Can not create new key material" },
+	{ PKI_ERR_X509_KEYPAIR_ENCODE, "Can not encode the key material" },
+	{ PKI_ERR_X509_KEYPAIR_DECODE, "Can not decode the key material" },
 	{ PKI_ERR_X509_KEYPAIR_, "" },
 	/* Certificate Operations */
 	{ PKI_ERR_X509_CERT_CREATE, "Can not create a certificate object" },
