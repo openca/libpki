@@ -279,9 +279,6 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	EVP_MD_CTX *ctx = NULL;
 		// Digest's context
 
-	// EVP_PKEY_CTX * pctx = NULL;
-	// 	// Signing's PKEY context
-
 	size_t out_size = 0;
 	// size_t ossl_ret = 0;
 

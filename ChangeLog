@@ -1,3 +1,8 @@
+* Nov 23 2022 Massimiliano Pala <madwolf@openca.org>
+- Refactored Composite CTX structure to better handling signing
+- Fixed several memory leaks that affected the multi-key signatures
+- Initial support for alternative keys together with composite ones
+
 * Sep 28 2022 Massimiliano Pala <madwolf@openca.org>
 - Full reorganization for library initialization (OID)
 - Added PKI_TOKEN_set_hsm() function to update Token's HSM
