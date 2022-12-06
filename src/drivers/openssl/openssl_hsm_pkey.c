@@ -638,76 +638,88 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
 
 EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 {
-    EVP_PKEY *ret = NULL;
-
-    if(!kVal) return NULL;
-
-    if ((ret = EVP_PKEY_new()) == NULL) return NULL;
-
-    if (!EVP_PKEY_copy_parameters(ret, kVal)) return NULL;
-
-    switch (EVP_PKEY_type(EVP_PKEY_id(kVal)))
-    {
-
-        case EVP_PKEY_RSA: {
-            RSA *rsa = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-            if (((rsa = EVP_PKEY_get0_RSA(kVal)) == NULL) ||
-#else
-            if (((rsa = (RSA *)EVP_PKEY_get0(kVal)) == NULL) ||
-#endif
-                                   (!EVP_PKEY_set1_RSA(ret, rsa))) {
-                return NULL;
-            }
-        } break;
-
-        case EVP_PKEY_DH: {
-            DH *dh = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-            if ( ((dh = EVP_PKEY_get0_DH(kVal)) == NULL) ||
-#else
-            if ( ((dh = (DH *)EVP_PKEY_get0(kVal)) == NULL) ||
-#endif
-                                   (!EVP_PKEY_set1_DH(ret, dh))) {
-                return NULL;
-            }
-        } break;
-
-#ifdef ENABLE_ECDSA
-        case EVP_PKEY_EC: {
-            EC_KEY * ec = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-            if (((ec = EVP_PKEY_get0_EC_KEY(kVal)) == NULL) ||
-#else
-            if (((ec = (EC_KEY *)EVP_PKEY_get0(kVal)) == NULL) ||
-#endif
-                                 (!EVP_PKEY_set1_EC_KEY(ret, ec))) {
-                return NULL;
-            }
-        } break;
-#endif
-
-#ifdef ENABLE_DSA
-        case EVP_PKEY_DSA: {
-            DSA *dsa = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-            if ( ((dsa = EVP_PKEY_get0_DSA(kVal)) == NULL) ||
-#else
-            if ( ((dsa = (DSA *)EVP_PKEY_get0(kVal)) == NULL) ||
-#endif
-                                 (!EVP_PKEY_set1_DSA(ret, dsa))) {
-                return NULL;
-            }
-        } break;
-#endif
-
-        default: {
-            PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-            return NULL;
-        } break;
+    // Input checks
+    if (!kVal) {
+        PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+        return NULL;
     }
 
-    return ret;
+    // Update the reference for the PKEY
+    if (!EVP_PKEY_up_ref(kVal)) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot update PKEY references");
+        return NULL;
+    }
+
+    // All Done
+    return kVal;
+
+
+//     if ((ret = EVP_PKEY_new()) == NULL) return NULL;
+
+//     if (!EVP_PKEY_copy_parameters(ret, kVal)) return NULL;
+
+//     switch (EVP_PKEY_type(EVP_PKEY_id(kVal)))
+//     {
+
+//         case EVP_PKEY_RSA: {
+//             RSA *rsa = NULL;
+// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+//             if (((rsa = EVP_PKEY_get0_RSA(kVal)) == NULL) ||
+// #else
+//             if (((rsa = (RSA *)EVP_PKEY_get0(kVal)) == NULL) ||
+// #endif
+//                                    (!EVP_PKEY_set1_RSA(ret, rsa))) {
+//                 return NULL;
+//             }
+//         } break;
+
+//         case EVP_PKEY_DH: {
+//             DH *dh = NULL;
+// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+//             if ( ((dh = EVP_PKEY_get0_DH(kVal)) == NULL) ||
+// #else
+//             if ( ((dh = (DH *)EVP_PKEY_get0(kVal)) == NULL) ||
+// #endif
+//                                    (!EVP_PKEY_set1_DH(ret, dh))) {
+//                 return NULL;
+//             }
+//         } break;
+
+// #ifdef ENABLE_ECDSA
+//         case EVP_PKEY_EC: {
+//             EC_KEY * ec = NULL;
+// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+//             if (((ec = EVP_PKEY_get0_EC_KEY(kVal)) == NULL) ||
+// #else
+//             if (((ec = (EC_KEY *)EVP_PKEY_get0(kVal)) == NULL) ||
+// #endif
+//                                  (!EVP_PKEY_set1_EC_KEY(ret, ec))) {
+//                 return NULL;
+//             }
+//         } break;
+// #endif
+
+// #ifdef ENABLE_DSA
+//         case EVP_PKEY_DSA: {
+//             DSA *dsa = NULL;
+// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+//             if ( ((dsa = EVP_PKEY_get0_DSA(kVal)) == NULL) ||
+// #else
+//             if ( ((dsa = (DSA *)EVP_PKEY_get0(kVal)) == NULL) ||
+// #endif
+//                                  (!EVP_PKEY_set1_DSA(ret, dsa))) {
+//                 return NULL;
+//             }
+//         } break;
+// #endif
+
+//         default: {
+//             PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+//             return NULL;
+//         } break;
+//     }
+
+    // return ret;
 
 
 };

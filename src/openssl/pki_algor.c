@@ -626,6 +626,7 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 	if (!algor || !algor->algorithm) return PKI_ALGOR_ID_UNKNOWN;
 
 	PKI_DEBUG("Need to update the procedure to use X509_ALGOR_get0");
+	
 	// // Returns the algorithm's ID
 	// ret = X509_ALGOR_get0(algor);
 	// if (ret == PKI_ALGOR_ID_UKNOWN)

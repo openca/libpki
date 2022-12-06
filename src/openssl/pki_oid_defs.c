@@ -8,6 +8,10 @@
 # include <openssl/objects.h>
 #endif
 
+#ifndef HEADER_ERR_H
+#include <openssl/err.h>
+#endif
+
 #ifndef HEADER_OBJECTS_MAC_H
 # define HEADER_OBJECTS_MAC_H
 # include <openssl/obj_mac.h>
@@ -27,6 +31,10 @@
 
 #ifndef _LIBPKI_OID_H
 # include <libpki/pki_oid.h>
+#endif
+
+#ifndef _LIBPKI_HSM_MAIN_H
+# include <libpki/drivers/hsm_main.h>
 #endif
 
 // Default
@@ -54,18 +62,23 @@ typedef struct sigs_init_table_st {
 	int sig_nid;
 } OID_INIT_SIG;
 
-typedef struct obj_alias_st {
+typedef struct libpki_obj_alias_st {
 	int nid;
 	const char *name;
 	const char *oid;
 } LIBPKI_OBJ_ALIAS;
+
+typedef struct obj_alias_st {
+	char * oid_new;
+	char * oid_current;
+} OID_ALIAS;
 
 // =============================
 // Objects and Signatures Tables
 // =============================
 
 #ifdef ENABLE_ECDSA
-static struct obj_alias_st nist_curves_alias[] = {
+static LIBPKI_OBJ_ALIAS nist_curves_alias[] = {
 	/* prime field curves */
 	{ NID_P192, "P192", "1.2.840.10045.3.1.1" },
 	{ NID_P224, "P224", "1.3.132.0.33" },
@@ -96,8 +109,19 @@ OID_INIT_OBJ oids_table[] = {
 	{ 0, LEVEL_OF_ASSURANCE_OID, LEVEL_OF_ASSURANCE_NAME, LEVEL_OF_ASSURANCE_DESC},
 	{ 0, CERTIFICATE_USAGE_OID, CERTIFICATE_USAGE_NAME, CERTIFICATE_USAGE_DESC},
 #ifdef ENABLE_COMPOSITE
-	// Composite Key
+	// Composite Key - OpenCA OID
 	{ 0, OPENCA_ALG_PKEY_EXP_COMP_OID, OPENCA_ALG_PKEY_EXP_COMP_NAME, OPENCA_ALG_PKEY_EXP_COMP_DESC},
+	// Composite Key Explicit
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_DESC },
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_ECDSA_P521_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_ECDSA_P521_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_ECDSA_P521_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_RSA_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_RSA_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_RSA_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256R_ECDSA_P256_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256R_ECDSA_P256_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256R_ECDSA_P256_DESC},
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256F_RSA_OID, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256F_RSA_NAME, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256F_RSA_DESC},
+	// Composite Key Alias - Entrust
+	{ 0, OPENCA_ALG_PKEY_EXP_COMP_OID_ENTRUST, OPENCA_ALG_PKEY_EXP_COMP_NAME_ENTRUST, OPENCA_ALG_PKEY_EXP_COMP_DESC_ENTRUST},
 #endif
 #ifdef ENABLE_COMBINED
 	// Alt Key
@@ -146,6 +170,9 @@ OID_INIT_SIG sigs_table[] = {
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA256_DESC, NID_sha256, NID_dilithium3, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA384_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA384_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA384_DESC, NID_sha384, NID_dilithium3, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA512_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA512_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA512_DESC, NID_sha512, NID_dilithium3, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_256_DESC, NID_sha3_256, NID_dilithium3, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_384_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_384_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_384_DESC, NID_sha3_384, NID_dilithium3, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_512_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_512_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHA3_512_DESC, NID_sha3_512, NID_dilithium3, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHAKE128_DESC, NID_shake128, NID_dilithium3, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM3_SHAKE256_DESC, NID_shake256, NID_dilithium3, 0 },
 
@@ -153,6 +180,9 @@ OID_INIT_SIG sigs_table[] = {
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA256_DESC, NID_sha256, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA384_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA384_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA384_DESC, NID_sha384, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA512_DESC, NID_sha512, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_256_DESC, NID_sha3_256, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_384_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_384_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_384_DESC, NID_sha3_384, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_512_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_512_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHA3_512_DESC, NID_sha3_512, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE128_DESC, NID_shake128, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_DESC, NID_shake256, NID_dilithium5, 0 },
 
@@ -165,6 +195,9 @@ OID_INIT_SIG sigs_table[] = {
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA256_DESC, NID_sha256, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA384_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA384_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA384_DESC, NID_sha384, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA512_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA512_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA512_DESC, NID_sha512, NID_falcon512, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_256_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_256_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_256_DESC, NID_sha3_256, NID_falcon512, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_384_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_384_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_384_DESC, NID_sha3_384, NID_falcon512, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_512_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_512_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHA3_512_DESC, NID_sha3_512, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE128_DESC, NID_shake128, NID_falcon512, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_SHAKE256_DESC, NID_shake256, NID_falcon512, 0 },
 
@@ -172,10 +205,29 @@ OID_INIT_SIG sigs_table[] = {
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA256_DESC, NID_sha256, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA384_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA384_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA384_DESC, NID_sha384, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA512_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA512_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA512_DESC, NID_sha512, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_256_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_256_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_256_DESC, NID_sha3_256, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_384_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_384_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_384_DESC, NID_sha3_384, NID_dilithium5, 0 },
+	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_512_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_512_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHA3_512_DESC, NID_sha3_512, NID_dilithium5, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE128_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE128_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE128_DESC, NID_shake128, NID_falcon1024, 0 },
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_FALCON1024_SHAKE256_DESC, NID_shake256, NID_falcon1024, 0 },
 #endif
 	{ 0, NULL, NULL, NULL, 0, 0, 0 }
+};
+
+OID_ALIAS alias_table[] = {
+	// { nid, oid, alias_oid }
+	// Entrust (to) <- LibPKI (from) 
+	{ OPENCA_ALG_PKEY_EXP_COMP_OID_ENTRUST, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	// Explicit as Aliases to Generic Composite
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_ECDSA_P521_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON1024_RSA_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256R_ECDSA_P256_OID, OPENCA_ALG_PKEY_EXP_COMP_OID },
+	{ OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256F_RSA_OID, OPENCA_ALG_PKEY_EXP_COMP_OID  },
+	{ NULL, NULL }
 };
 
 // ================
@@ -230,6 +282,7 @@ int PKI_X509_OID_init() {
 
 	OID_INIT_OBJ * obj = oids_table;
 	OID_INIT_SIG * sig = sigs_table;
+	OID_ALIAS * alias = alias_table;
 	int index = 0;
 
 #ifdef ENABLE_ECDSA
@@ -252,7 +305,7 @@ int PKI_X509_OID_init() {
 		if( __create_object_with_id (buf,
 									 nist_curves_alias[i].name, 
 									 nist_curves_alias[i].name, 
-									nist_curves_alias[i].nid ) == 0 ) {
+									 nist_curves_alias[i].nid ) == 0 ) {
 				// Error while adding "easy" names for NIST curves
 				PKI_DEBUG("Cannot add NIST curve alias %s", nist_curves_alias[i].name);
 		}
@@ -263,22 +316,37 @@ int PKI_X509_OID_init() {
 	// Process all the objects/items
 	while (obj != NULL && obj->oid != NULL) {
 
+		// Checks if the OID already exists
+		if (OBJ_txt2nid(obj->oid) != NID_undef) {
+			PKI_DEBUG("OID value (%s) is already defined as %s (%s), skipping",
+				obj->oid, OBJ_nid2sn(OBJ_txt2nid(obj->oid)), OBJ_nid2ln(OBJ_txt2nid(obj->oid)));
+			obj = &oids_table[++index];
+			continue;
+		}
+
+		// Checks if the OID already exists
+		if (OBJ_txt2nid(obj->name) != NID_undef) {
+			PKI_DEBUG("OID Name (%s) is already defined as %s (%s), skipping",
+				obj->name, OBJ_nid2sn(OBJ_txt2nid(obj->name)), OBJ_nid2ln(OBJ_txt2nid(obj->name)));
+			obj = &oids_table[++index];
+			continue;
+		}
+
+		// Resets the Error
+		ERR_clear_error();
+
 		// Generate the object
 		obj->nid = OBJ_create(obj->oid, obj->name, obj->desc);
 
 		// Verify the results
 		if (obj->nid == 0) {
-			fprintf(stderr, "ERROR: Cannot create NID for (%s)", obj->name);
+			int err_number = HSM_get_errno(NULL);
+			PKI_DEBUG("Cannot create NID for %s (%s) (Crypto Error: %s)", 
+				obj->name, obj->oid, HSM_get_errdesc(err_number, NULL));
 			fflush(stderr);
-			exit(1);
-			sig = &sigs_table[++index];
-			// Continue
-			continue;
 		}
-		// fprintf(stderr, "[OID] New Public Key OID [%d] (name: %s, oid: %s)\n", 
-		// 	obj->nid, obj->name, obj->oid);
-		// fflush(stderr);
 
+		// Next Entry
 		obj = &oids_table[++index];
 	}
 
@@ -337,8 +405,6 @@ int PKI_X509_OID_init() {
 			}
 		}
 
-		// PKI_DEBUG("Generating a new Signature NID for %s (%s)", sig->name, sig->oid);
-
 		// Generates the New Signature Object
 		sig->sig_nid = OBJ_create(sig->oid, sig->name, sig->desc);
 		if (sig->sig_nid == NID_undef) {
@@ -353,11 +419,49 @@ int PKI_X509_OID_init() {
 			}
 		}
 
-		// fprintf(stderr, "[OID] New Signature OID [%d] (name: %s, oid: %s, hash: %d, pkey: %d)\n", 
-		// 	sig->sig_nid, sig->name, sig->oid, sig->hash_nid, sig->pkey_nid);
-		// fflush(stderr);
-	
 		sig = &sigs_table[++index];
+	}
+
+	// Resets the index
+	index = 0;
+	alias = &alias_table[index];
+
+	// Process all the aliases
+	while (alias != NULL && alias->oid_new != NULL && alias->oid_current != NULL) {
+
+		int from = -1, to = -1;
+			// Identifiers for the OIDs
+
+		// Resets the Crypto Layer Error
+		ERR_clear_error();
+
+		// Gets the NIDs we need
+		from = OBJ_txt2nid(alias->oid_new);
+		to = OBJ_txt2nid(alias->oid_current);
+
+		// Checks the NIDs
+		if (from == NID_undef || to == NID_undef) {
+			PKI_DEBUG("(%d) Cannot add a new alias %s (%s) for the existing %s (%s). Either the new (%d) or the existing (%d) OIDs are not defined (Crypto Error: %s)", 
+				index, OBJ_nid2sn(OBJ_txt2nid(alias->oid_new)), alias->oid_new, OBJ_nid2sn(OBJ_txt2nid(alias->oid_current)), alias->oid_current,
+				from, to, HSM_get_errdesc(HSM_get_errno(NULL), NULL));
+			alias = &alias_table[++index];
+			continue;
+		}
+
+		// Creates the alias
+		if (!EVP_PKEY_asn1_add_alias(to, from)) {
+			PKI_DEBUG("(%d) Cannot add Alias (%s) for Algorithm (%s) (Crypto Error: %s)", 
+				index, alias->oid_new, alias->oid_current, HSM_get_errdesc(HSM_get_errno(NULL), NULL));
+			alias = &alias_table[++index];
+			continue;
+		}
+
+		// PKI_DEBUG("(%d) Created New OID Alias (%s) %s -> %s (%s)", 
+		// 	index, OBJ_nid2sn(OBJ_txt2nid(alias->oid_new)), alias->oid_new,
+		// 	OBJ_nid2sn(OBJ_txt2nid(alias->oid_current)), alias->oid_current);
+
+		// Advances the index
+		alias = &alias_table[++index];
 	}
 
 	// All Done

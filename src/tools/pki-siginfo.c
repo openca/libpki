@@ -14,7 +14,9 @@ void usage() {
 	printf("  Where options are:\n");
 	printf("  -signer <URI>    Key source for sig verification (cert or key file\n");
 	printf("  -in <URI>        Input object file (cert, req, crl, etc.)\n");
-	printf("  -v               Verbose\n");
+	printf("  -d | -debug      Enables Debugging Info\n");
+	printf("  -v | -verbose    Enables Verbose Output\n");
+	printf("  -h | -help       Prints this help text\n");
 	printf("\n");
 
 	exit(1);
@@ -35,6 +37,13 @@ int main(int argc, char *argv[])
 	char *pnt = NULL;
 	char *sigName = NULL;
 	char *kName = NULL;
+
+	int print = 0;
+	int verbose = 0;
+	int debug = 0;
+
+	int log_level = PKI_LOG_NONE;
+	PKI_LOG_FLAGS log_flags = PKI_LOG_FLAGS_NONE;
 
 	int nid = 0;
 
@@ -57,7 +66,19 @@ int main(int argc, char *argv[])
 			if( ++argv == NULL ) usage();
 			kName = *argv;
 			argc--;
+		} else if ( strcmp_nocase(pnt, "-print") == 0) {
+			print = 1;
+		} else if ( strcmp_nocase(pnt, "-verbose") == 0) {
+			verbose = 1;
+		} else if ( strcmp_nocase(pnt, "-v") == 0) {
+			verbose = 1;
+		} else if ( strcmp_nocase(pnt, "-debug") == 0) {
+			debug = 1;
+		} else if ( strcmp_nocase(pnt, "-d") == 0) {
+			debug = 1;
 		} else if ( strcmp_nocase(pnt, "-h") == 0 ) {
+			usage();
+		} else if ( strcmp_nocase(pnt, "-help") == 0 ) {
 			usage();
 		} else {
 			fprintf(stderr, "\n    ERROR: unknown param %s\n\n", pnt);
@@ -74,6 +95,18 @@ int main(int argc, char *argv[])
 
 	// Init LibPKI
 	PKI_init_all();
+
+	if( verbose ) log_level = PKI_LOG_INFO;
+	if( debug ) log_flags |= PKI_LOG_FLAGS_ENABLE_DEBUG;
+
+	if(( PKI_log_init (PKI_LOG_TYPE_STDERR, 
+					   log_level, 
+					   NULL,
+                       log_flags, 
+					   NULL )) == PKI_ERR ) {
+		fprintf(stderr, "\n     ERROR: Cannot initialize LibPKI, aborting.\n\n");
+		exit(1);
+	}
 
 	// Loads the Signer's Object
 	obj = PKI_X509_get( kName, PKI_DATATYPE_ANY, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL);
@@ -140,10 +173,13 @@ int main(int argc, char *argv[])
 			printf("RSA\n");
 			break;
 
+#ifdef ENABLE_DSA
 		case PKI_SCHEME_DSA:
 			printf("DSA\n");
 			break;
+#endif
 
+#ifdef ENABLE_ECDSA
 		case PKI_SCHEME_ECDSA:
 			printf("ECDSA\n");
 			nid = PKI_X509_KEYPAIR_get_curve ( kp );
@@ -152,10 +188,92 @@ int main(int argc, char *argv[])
 				PKI_OID_free ( oid );
 			};
 			break;
+#endif
+
+#ifdef ENABLE_OQS
+			// Post Quantum Digital Signature Switches
+			case PKI_SCHEME_FALCON: {
+				printf("Falcon\n");
+			} break;
+			
+			case PKI_SCHEME_PICNIC: {
+				printf("PicNic\n");
+			} break;
+
+			case PKI_SCHEME_SPHINCS: {
+				// Needs to check for each algorithm
+				printf("Sphincs+\n");
+			} break;
+
+			case PKI_SCHEME_DILITHIUM: {
+				printf("Dilithium\n");
+			} break;
+
+			case PKI_SCHEME_DILITHIUMX: {
+				// Experimental Only
+				printf("DilithiumX\n");
+			} break;
+
+			// Combined Crypto
+			case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
+				printf("OQS Hybrid (RSA with Falcon)\n");
+			} break;
+			
+			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON: {
+				printf("OQS Hybrid (ECDSA with Falcon)\n");
+			} break;
+			
+			case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:{
+				printf("OQS Hybrid (RSA with Dilithium)\n");
+			} break;
+			
+			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM: {
+				printf("OQS Hybrid (ECDSA with Dilithium)\n");
+			} break;
+
+			case PKI_SCHEME_NTRU_PRIME: {
+				printf("NTRU Prime\n");
+			} break;
+			
+			case PKI_SCHEME_SIKE:{
+				printf("SIKE\n");
+			} break;
+
+			case PKI_SCHEME_BIKE:{
+				printf("BIKE\n");
+			} break;
+			
+			case PKI_SCHEME_FRODOKEM: {
+				printf("Frodo KEM\n");
+			} break;
+
+			case PKI_SCHEME_DH: {
+				printf("Diffie-Hellman\n");
+			} break;
+
+			// case PKI_SCHEME_UNKNOWN: {
+			// 	PKI_DEBUG("Scheme Not Supported (PKEY ID: %d)", EVP_PKEY_id((EVP_PKEY *)kp->value));
+			// 	return PKI_ERR;
+			// } break;
+#endif
 
 		default:
-			printf("Unknown!\n");
-			exit(1);
+#ifdef ENABLE_COMPOSITE
+			if (EVP_PKEY_id((EVP_PKEY *)kp->value) == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+				printf("Composite\n");
+			} 
+#endif
+
+# ifdef ENABLE_COMBINED
+			else if (EVP_PKEY_id((EVP_PKEY *)kp->value) == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+				printf("Multikey\n");
+			}
+#endif
+			else {
+				printf("Unknown!\n\n");
+				fprintf(stderr, "\n    ERROR: Unsupported signing scheme, aborted.\n\n");
+				exit(1);
+			}
 	};
 
 	printf("        Key Size: %d\n", PKI_X509_KEYPAIR_get_size( kp ));
@@ -168,6 +286,17 @@ int main(int argc, char *argv[])
 	};
 
 	printf("Self Signed: %d\n", PKI_X509_CERT_is_selfsigned(sigObj));
+	printf("\n");
+
+	if (print == 1) {
+
+		if (PKI_X509_put(sigObj, PKI_DATA_FORMAT_PEM, "stdout", NULL, NULL, NULL) == PKI_ERR) {
+			printf("\n    ERROR: Cannot print the signer object, aborting.\n\n");
+		}
+
+	}
+
+	// All Done
 	printf("\n");
 
 	return 0;

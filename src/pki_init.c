@@ -78,8 +78,6 @@ static int _init_composite() {
 	// Retrieves the COMPOSITE id
 	int composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
 
-	fprintf(stderr, "[DEBUG][%s:%d] composite_id = %d\n", __FILE__, __LINE__, composite_id);
-
 	// Assigns the generated IDs
 	EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, composite_id);
 
@@ -90,14 +88,10 @@ static int _init_composite() {
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
 	if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
 
-	fprintf(stderr, "[DEBUG][%s:%d] added pkey method = %d\n", __FILE__, __LINE__, composite_id);
-
 	// We Need to initialize the ASN1 conversion method
 	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
 	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
 	
-	fprintf(stderr, "[DEBUG][%s:%d] added ASN1 method\n", __FILE__, __LINE__);
-
 	// All Done, Success.
 	return 1;
 }

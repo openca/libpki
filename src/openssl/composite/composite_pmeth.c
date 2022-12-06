@@ -539,18 +539,18 @@ static void cleanup(EVP_PKEY_CTX * ctx) {
   return;
 }
 
-// Not Implemented
-static int paramgen_init(EVP_PKEY_CTX * ctx) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int paramgen_init(EVP_PKEY_CTX * ctx) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-static int paramgen(EVP_PKEY_CTX * ctx,
-                    EVP_PKEY     * pkey) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int paramgen(EVP_PKEY_CTX * ctx,
+//                     EVP_PKEY     * pkey) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
 // Implemented
 static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
@@ -641,7 +641,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
   EVP_MD_CTX * md_ctx = NULL;
     // Digest Context
 
-  const int signature_size = EVP_PKEY_size(ctx->pkey) /* This does not account for extra space for parameters */;
+  const int signature_size = EVP_PKEY_size(ctx->pkey); /* WARN: This does not account for extra space for parameters */
     // The total signature size
 
   STACK_OF(ASN1_TYPE) *sk = NULL;
@@ -829,11 +829,11 @@ err:
   return 0;
 }
 
-// Implemented
-static int verify_init(EVP_PKEY_CTX *ctx) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int verify_init(EVP_PKEY_CTX *ctx) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
 // Implemented
 static int verify(EVP_PKEY_CTX        * ctx,
@@ -841,25 +841,119 @@ static int verify(EVP_PKEY_CTX        * ctx,
                   size_t                siglen,
                   const unsigned char * tbs,
                   size_t                tbslen) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+
+  // NOTE: The passed CTX (ctx->data) is not the same as when the key
+  // was created or loaded. This means that the comp_ctx that is
+  // available here is actually empty. We need to reconstruct the
+  // different EVP_PKEY_CTX here.
+
+  // COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+  //   // Pointer to inner key structure
+
+  // COMPOSITE_CTX * comp_ctx = ctx->data;
+  //   // Pointer to algorithm specific CTX
+
+  // EVP_PKEY_CTX * pkey_ctx = NULL;
+  // EVP_PKEY * evp_pkey = NULL;
+  //   // The keypair and context references
+
+  // EVP_MD * pmd = NULL;
+  //   // Digest Algorithm to use for the signature
+
+  // EVP_MD_CTX * md_ctx = NULL;
+  //   // Digest Context
+
+  STACK_OF(ASN1_TYPE) *sk = NULL;
+    // Stack of ASN1_OCTET_STRINGs
+
+  // ASN1_OCTET_STRING * oct_string = NULL;
+  //   // Output Signature to be added
+  //   // to the stack of signatures
+
+  ASN1_TYPE * aType = NULL;
+    // ASN1 generic wrapper
+
+  // int comp_key_num = 0;
+  //   // Number of components
+
+  // unsigned char * buff = NULL;
+  // unsigned char * pnt  = NULL;
+  // int buff_len =  0;
+  //   // Temp Pointers
+
+  // int total_size = 0;
+  //   // Total Signature Size
+
+  PKI_DEBUG("Verify!");
+
+  ASN1_OCTET_STRING aOctetStr;
+    // Temp Octet Pointer
+
+  // Let's use the aOctetStr to avoid the internal
+  // p8 pointers to be modified
+  aOctetStr.data = (unsigned char *)sig;
+  aOctetStr.length = siglen;
+
+  // Gets the Sequence from the data itself, error if
+  // it is not a sequence of ASN1_OCTET_STRING
+  if ((sk = d2i_ASN1_SEQUENCE_ANY(NULL, 
+                                  (const unsigned char **)&aOctetStr.data,
+                                  aOctetStr.length)) <= 0) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Cannot decode the composite signature.");
+    return 0;
+  }
+
+  // Debugging
+  PKI_DEBUG("Signature Sequence is Unpacked (Num: %d)!", sk_ASN1_TYPE_num(sk));
+
+  // Process the internal components
+  for (int i = 0; i < sk_ASN1_TYPE_num(sk); i++) {
+
+    // Gets the single values
+    if ((aType = sk_ASN1_TYPE_value(sk, i)) == NULL) {
+      PKI_DEBUG("Cannot get the ASN1_TYPE for signature #%d", i);
+      return 0;
+    }
+
+    // Checks we got the right type
+    if ((aType->type != V_ASN1_OCTET_STRING) || (aType->value.sequence == NULL)) {
+      PKI_DEBUG("Decoding error on signature component #%d (type: %d, value: %p)", 
+        i, aType->type, aType->value.sequence);
+      return 0;
+    }
+
+  }
+
+  PKI_DEBUG("PMETH: Freeing the stack memory");
+
+  // Free the stack memory
+  while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
+    ASN1_TYPE_free(aType);
+  } sk_ASN1_TYPE_free(sk);
+  sk = NULL; // Safety
+
+  // Debugging
+  PKI_DEBUG("PMETH Verify Ok!");
+
+  // All Done.
+  return 1;
 }
 
-// Not Implemented
-static int verify_recover_init(EVP_PKEY_CTX *ctx) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int verify_recover_init(EVP_PKEY_CTX *ctx) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-static int verify_recover(EVP_PKEY_CTX        * ctx,
-                          unsigned char       * rout,
-                          size_t              * routlen,
-                          const unsigned char * sig,
-                          size_t                siglen) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int verify_recover(EVP_PKEY_CTX        * ctx,
+//                           unsigned char       * rout,
+//                           size_t              * routlen,
+//                           const unsigned char * sig,
+//                           size_t                siglen) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
 // Implemented
 // static int signctx_init(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {

@@ -389,12 +389,16 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// 	digest = NULL;
 	// }
 
+	PKI_DEBUG("MD (digest) = %p (EVP_md_null = %p) (EVP_md_null() ==> %d)", 
+		digest, EVP_md_null, EVP_md_null() == digest);
+
 	// DEBUG
 	PKI_DEBUG("MD (digest) in DigestSignInit: %d (%s)", 
 		digest ? EVP_MD_nid(digest) : NID_undef, digest ? PKI_DIGEST_ALG_get_parsed(digest) : "<NULL>");
 
-	// Initializes the Digest
-	if (!EVP_DigestSignInit(ctx, NULL /* &pctx */, digest, NULL, pkey)) {
+	// Initializes the Digest and does special processing for when the 
+	// EVP_md_null() is used to indicate that the NO HASH was requested
+	if (!EVP_DigestSignInit(ctx, NULL /* &pctx */, EVP_md_null() == digest ? NULL : digest, NULL, pkey)) {
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Initialize EVP_DigestSignInit()");
 		goto err;
 	}

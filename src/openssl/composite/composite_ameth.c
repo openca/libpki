@@ -903,43 +903,54 @@ int pkey_security_bits(const EVP_PKEY *pk) {
 
 // Not Implemented
 int param_decode(EVP_PKEY *pkey, const unsigned char **pder, int derlen) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+  // There are no parameters to decode, always succeed
+  return 1;
 }
 
 // Not Implemented
 int param_encode(const EVP_PKEY *pkey, unsigned char **pder) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+  // There are no parameters to encode, always succeed
+  return 1;
 }
 
 // Not Implemented
 int param_missing(const EVP_PKEY *pk) {
-  PKI_DEBUG("Not implemented, yet.");
+  // There are no parameters, we return 1 for
+  // indicating there are no missing parameters
+  // (error condition is 0)
+  // return 1;
+
+  // Weird: returning 1 creates an error in
+  // openssl's p_lib.c:85 where if the function
+  // exists, it shall return 0 for success
   return 0;
 }
 
 // Not Implemented
 int param_copy(EVP_PKEY *to, const EVP_PKEY *from) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+  // There are no parameters, we return 1 for
+  // indicating there are no missing parameters
+  // (error condition is 0)
+  return 1;
 }
 
 // Implemented
 int param_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+  // Since we do not have any parameters, we always
+  // return 1 to avoid errors in the p_lib.c:90
+  // (EVP_PKEY_copy_parameters() function)
+  return 1;
 }
 
 // Not Implemented
 int param_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+  // There are no parameters to print, nothing to do
+  return 1;
 }
 
 // Not Implemented
 int sig_print(BIO *out, const X509_ALGOR *sigalg, const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx) {
-  PKI_DEBUG("Not implemented, yet.");
+  BIO_printf(out, "<Composite Signature Bits>\n");
   return 0;
 }
 

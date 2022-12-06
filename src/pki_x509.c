@@ -81,8 +81,7 @@ const ASN1_ITEM * _get_ossl_item(PKI_DATATYPE type) {
 		} break;
 
 		default: {
-			PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, 
-				  "Not Supported Datatype [%d]", type);
+			PKI_DEBUG("Datatype Not Supported (Type: %d)", type);
 			return NULL;
 		}
 	}
@@ -322,7 +321,7 @@ PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type,
 	}
 
 	if ((ret->value = ret->cb->dup((void *)value)) == NULL) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Can not duplicate internal value");
+		PKI_DEBUG("Can not duplicate internal value (type: %d)", type);
 		PKI_X509_free(ret);
 		return NULL;
 	};

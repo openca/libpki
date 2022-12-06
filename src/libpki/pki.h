@@ -364,6 +364,10 @@ typedef enum {
 #include <libpki/pki_x509_p12.h>
 #include <libpki/pki_x509_cms.h>
 
+#ifdef ENABLE_COMPOSITE
+#include <libpki/openssl/pki_oid_defs.h>
+#endif
+
 /* OCSP support */
 
 typedef enum {
