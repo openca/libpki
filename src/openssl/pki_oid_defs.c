@@ -187,8 +187,15 @@ OID_INIT_SIG sigs_table[] = {
 	{ 0, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_OID, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_NAME, OPENCA_ALG_SIGS_PQC_DILITHIUM5_SHAKE256_DESC, NID_shake256, NID_dilithium5, 0 },
 
 	// Experimental
-	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_DESC, NID_undef, 0, 0 },
-	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_DESC, NID_sha256, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_DESC, NID_undef, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA256_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA256_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA256_DESC, NID_sha256, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA384_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA384_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA384_DESC, NID_sha384, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA512_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA512_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA512_DESC, NID_sha512, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_256_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_256_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_256_DESC, NID_sha3_256, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_384_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_384_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_384_DESC, NID_sha3_384, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_512_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_512_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHA3_512_DESC, NID_sha3_512, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHAKE128_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHAKE128_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHAKE128_DESC, NID_shake128, 0, 0 },
+	{ 0, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHAKE256_OID, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHAKE256_NAME, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_SHAKE256_DESC, NID_shake256, 0, 0 },
 
 	// Falcon512 and Falcon1024
 	{ 0, OPENCA_ALG_SIGS_PQC_FALCON512_OID, OPENCA_ALG_SIGS_PQC_FALCON512_NAME, OPENCA_ALG_SIGS_PQC_FALCON512_DESC, NID_undef, NID_falcon512, 0 },
@@ -360,46 +367,36 @@ int PKI_X509_OID_init() {
 		// Checks if we need to get the OID of the PKEY
 		if (sig->pkey_nid == NID_undef) {
 
-			// Try the dynamic methods
-			if (!strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA1_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA256_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA384_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA512_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA3_256_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA3_384_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHA3_512_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHAKE128_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_SHAKE256_OID, strlen(sig->oid))
-			   )
-			{
+			// Try the dynamic methods, matches the prefix of the
+			// signature. For example, all COMPOSITE signatures are
+			// captured by checking that the OID is under the
+			// OPENCA_ALG_SIGS_COMP_OID arc.
+
+			// Composite
+			if (!strncmp(sig->oid, OPENCA_ALG_SIGS_COMP_OID, strlen(OPENCA_ALG_SIGS_COMP_OID))) {
 				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
-			}
-			else if (
-				!strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA1_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA256_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA384_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA512_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA3_256_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA3_384_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHA3_512_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHAKE128_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_SHAKE256_OID, strlen(sig->oid))
-			)
-			{
+			// Alternative
+			} else if (!strncmp(sig->oid, OPENCA_ALG_SIGS_ALT_OID, strlen(OPENCA_ALG_SIGS_ALT_OID))) {
 				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID);
-			}
-			else if (
-				!strncmp(sig->oid, OPENCA_ALG_SIGS_EXP_DILITHIUMX_NULL_OID, strlen(sig->oid))
-				|| !strncmp(sig->oid, OPENCA_ALG_SIGS_EXP_DILITHIUMX_SHA256_OID, strlen(sig->oid))
-			)
-			{
-				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID);
+			// Dilithium3
+			} else if (!strncmp(sig->oid, OPENCA_ALG_SIGS_PQC_DILITHIUM3_OID, strlen(OPENCA_ALG_SIGS_PQC_DILITHIUM3_OID))) {
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_SIGS_PQC_DILITHIUM3_OID);
+			// Dilithium5
+			} else if (!strncmp(sig->oid, OPENCA_ALG_SIGS_PQC_DILITHIUM5_OID, strlen(OPENCA_ALG_SIGS_PQC_DILITHIUM5_OID))) {
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_SIGS_PQC_DILITHIUM5_OID);
+			// Experimental - Dilithium3X
+			} else if (!strncmp(sig->oid, OPENCA_ALG_SIGS_EXP_DILITHIUMX3_OID, strlen(OPENCA_ALG_SIGS_EXP_DILITHIUMX3_OID))) {
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_SIGS_EXP_DILITHIUMX3_OID);
+			// Falcon512
+			} else if (!strncmp(sig->oid, OPENCA_ALG_SIGS_PQC_FALCON512_OID, strlen(OPENCA_ALG_SIGS_PQC_FALCON512_OID))) {
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_SIGS_PQC_FALCON512_OID);
+			// Falcon1024
+			} else if (!strncmp(sig->oid, OPENCA_ALG_SIGS_PQC_FALCON1024_OID, strlen(OPENCA_ALG_SIGS_PQC_FALCON1024_OID))) {
+				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_SIGS_PQC_FALCON1024_OID);
 			}
 			else
 			{
-				PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "(Index: %d) Cannot find the PKEY nid for %p", index, sig);
+				PKI_DEBUG("(%d) Cannot find the PKEY nid for signature type (%s)", index, sig->oid);
 				sig = &sigs_table[++index];
 				continue;
 			}

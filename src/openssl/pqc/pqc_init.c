@@ -282,7 +282,7 @@ int PKI_PQC_ALG_new(const char * name, int flags) {
     return PKI_ERR;
   }
 
-  // Checks that the new method is addedd correctly
+  // Checks that the new method is added correctly
   const EVP_PKEY_METHOD * tmp_p_meth = EVP_PKEY_meth_find(nid);
   if (!tmp_p_meth) {
     PKI_ERROR(PKI_ERR_ALGOR_PKEY_ASN1_METHOD_NEW, "Cannot find the PKEY method just added (%d)!\n", nid);
