@@ -16,7 +16,7 @@
 #include <libpki/openssl/composite/composite_utils.h>
 #endif
 
-#ifndef _LIBPKI_COMPOSITE_LOCAL_H
+#ifndef _LIBPKI_COMPOSITE_INTERNALS_H
 #include <libpki/openssl/composite/composite_internals.h>
 #endif
 

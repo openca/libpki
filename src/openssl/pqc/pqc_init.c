@@ -221,8 +221,8 @@ EVP_PKEY_ASN1_METHOD * PKI_PQC_PKEY_ASN1_METH_new(int                nid,
   } else if (OBJ_sn2nid("falcon1024") == nid) {
     fnc_item_sign = oqs_item_sign_falcon1024;
     fnc_set_siginfo = oqs_sig_info_set_falcon1024;
-  } else if (OBJ_sn2nid("DilithiumX") == nid ||
-             OBJ_sn2nid("dilithiumX") == nid) {
+  } else if (OBJ_sn2nid("DilithiumX3") == nid ||
+             OBJ_sn2nid("dilithiumX3") == nid) {
     fnc_item_sign = oqs_item_sign_dilithiumX;
     fnc_set_siginfo = oqs_sig_info_set_dilithiumX;
   } else {
@@ -258,7 +258,7 @@ int PKI_PQC_ALG_new(const char * name, int flags) {
   // Retrieves the NID associated with the algorithm
   int nid = OBJ_sn2nid(name);
   if (nid == NID_undef) {
-    PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot find the ID for %s algorithm", name);
+    PKI_DEBUG("Cannot find the ID for %s algorithm", name);
     return PKI_ERR;
   }
 
@@ -314,14 +314,11 @@ int PKI_PQC_ALG_new(const char * name, int flags) {
 int PKI_PQC_init() {
 
   // Let's initialize our own implementation of Dilithium5
-  // that we call "DilithiumX" (Test for initialization of
+  // that we call "DilithiumX3" (Test for initialization of
   // Post-Quantum cryptography from our own pool)
-  if (PKI_PQC_ALG_new("DilithiumX", -1) == PKI_OK) {
+  if (PKI_PQC_ALG_new("DilithiumX3", -1) == PKI_ERR) {
     // Reports the Error
-    PKI_ERROR(PKI_ERR_ALGOR_ADD, "DilithiumX");
-  } else {
-    // Debugging
-    PKI_DEBUG("PQC Algorithm Added: DilithiumX");
+    PKI_DEBUG("Cannot add PQC Dynamic Algorithm: DilithiumX3 (dilithium3 native implementation)");
   }
 
   // All Done

@@ -209,25 +209,25 @@ int main(int argc, char *argv[])
 				printf("Dilithium\n");
 			} break;
 
-			case PKI_SCHEME_DILITHIUMX: {
+			case PKI_SCHEME_DILITHIUMX3: {
 				// Experimental Only
 				printf("DilithiumX\n");
 			} break;
 
 			// Combined Crypto
-			case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
+			case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
 				printf("OQS Hybrid (RSA with Falcon)\n");
 			} break;
 			
-			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON: {
+			case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
 				printf("OQS Hybrid (ECDSA with Falcon)\n");
 			} break;
 			
-			case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:{
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:{
 				printf("OQS Hybrid (RSA with Dilithium)\n");
 			} break;
 			
-			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM: {
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
 				printf("OQS Hybrid (ECDSA with Dilithium)\n");
 			} break;
 
@@ -269,9 +269,12 @@ int main(int argc, char *argv[])
 				printf("Multikey\n");
 			}
 #endif
-			else {
+			else if (EVP_PKEY_id((EVP_PKEY *)kp->value) != NID_undef) {
+				printf("PQC: %s\n", OBJ_nid2sn(EVP_PKEY_id((EVP_PKEY*)kp->value)));
+			} else {
 				printf("Unknown!\n\n");
-				fprintf(stderr, "\n    ERROR: Unsupported signing scheme, aborted.\n\n");
+				fprintf(stderr, "\n    ERROR: Unsupported signing scheme (Key Type: %d), aborted.\n\n",
+					EVP_PKEY_id((EVP_PKEY *)kp->value));
 				exit(1);
 			}
 	};

@@ -182,19 +182,34 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 	PKI_X509_KEYPAIR_STACK * tmp_stack = NULL;
 	PKI_X509_KEYPAIR * tmp_key = NULL;
 
-	if (!kp || !url) return 0;
+	if (!kp || !url) {
+		PKI_DEBUG("ERROR: Missing Key Parameter (%p) or URL (%p)", kp, url);
+		return 0;
+	}
 
 	if (kp->scheme != PKI_SCHEME_COMPOSITE
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_P256
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_RSA
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_ED25519
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
+		&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
 #ifdef ENABLE_COMBINED
 		&& kp->scheme != PKI_SCHEME_COMBINED
 #endif
-		) return 0;
+		) {
+		PKI_DEBUG("ERROR while adding a component key to a non-composite algorithm (%d)", kp->scheme);
+		return 0;
+	}
 
-	PKI_log_debug("Adding Key from %s", url);
+	// Debugging Info
+	PKI_DEBUG("Adding Key from %s", url);
 
 	if ((tmp_stack = PKI_X509_KEYPAIR_STACK_get(url, 
 						PKI_DATA_FORMAT_UNKNOWN, cred, hsm)) == NULL) {
 		// Nothing was loaded
+		PKI_DEBUG("No key to load (URL: %s)", url);
 		return 0;
 	}
 
@@ -263,7 +278,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	// Output can not write to stdin, so, if that was specified, 
 	// let's re-route to stdout instead
 	if (!url_s || strcmp_nocase(url_s, "stdin") == 0) url_s = "stdout";
-	PKI_log_debug("Output URL: %s", url_s);
+	// PKI_log_debug("Output URL: %s", url_s);
 
 	keyurl = URL_new( url_s );
 
@@ -300,6 +315,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		fprintf(stderr, "ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme);
 		exit(1);
 	}
+
+	// Updates the bits
+	if (bits <= 0 && kp->bits > 0) bits = kp->bits;
 
 #ifdef ENABLE_OQS
 	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme, bits);
@@ -357,16 +375,20 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				}
 			} break;
 
-			case PKI_SCHEME_DILITHIUMX:
+			case PKI_SCHEME_DILITHIUMX3:
 				// Experimental Only
 				break;
 
-			// Combined Crypto
-			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
-			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
-			case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:
-			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM:
+#ifdef ENABLE_COMPOSITE
+			// Explicit Composite Crypto Combinations
+			case PKI_SCHEME_COMPOSITE_FALCON512_RSA:
+			case PKI_SCHEME_COMPOSITE_FALCON512_P256:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA:
 				break;
+#endif
 
 			case PKI_SCHEME_NTRU_PRIME:
 			case PKI_SCHEME_SIKE:
@@ -386,11 +408,12 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #endif
 
 #ifdef ENABLE_COMPOSITE
-			case PKI_SCHEME_COMPOSITE:
-# ifdef ENABLE_COMBINED
-			case PKI_SCHEME_COMBINED:
+			case PKI_SCHEME_COMPOSITE: {
+			} break;
 #endif
-				break;
+# ifdef ENABLE_COMBINED
+			case PKI_SCHEME_COMBINED: {
+			} break;
 #endif
 			default: {
 				fprintf(stderr, "ERROR: Scheme not supported (%d)\n\n", kp->scheme);
@@ -402,6 +425,13 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #ifdef ENABLE_COMPOSITE
 
 	if (kp->scheme == PKI_SCHEME_COMPOSITE
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_RSA
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
 #ifdef ENABLE_COMBINED
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
 #endif
@@ -416,7 +446,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 			if (verbose) {
 				PKI_DEBUG("Loading key component [%s]", url);
-				fflush(stderr);
 			}
 					
 			if (0 == add_comp_stack(kp, url, tk->cred, tk->hsm)) {
@@ -425,9 +454,11 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			}
 
 			// Move the Index
-			if (i < comp_keys_num) { i++; }
-			else { break; }
-
+			if (i < comp_keys_num) {
+				 i++;
+			} else { 
+				break; 
+			}
 		}
 	}
 #endif
@@ -448,7 +479,18 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #endif
 
 #ifdef ENABLE_COMPOSITE
-	if (kp->scheme == PKI_SCHEME_COMPOSITE) {
+	if (kp->scheme == PKI_SCHEME_COMPOSITE
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_RSA
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
+#ifdef ENABLE_COMBINED
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
+#endif
+	 ) {
 		fprintf(stderr, "  - Number of Keys..: %d\n", 
 			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
 	}
@@ -1074,28 +1116,59 @@ int main (int argc, char *argv[] ) {
 
 		PKI_TOKEN_login( tk );
 
+		// Algor Option (default)
 		if (!algor_opt) {
 			algor_opt = "RSA";
+		// RSA Option
 		} else if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
 			algor_opt = "RSA";
+		// EC Option
 		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
 			algor_opt = "EC";
+		// DSA
 		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
 			algor_opt = "DSA";
-		} else if (strncmp_nocase(algor_opt, "DILITHIUMX", 10) == 0) {
-			algor_opt = "DILITHIUMX";
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM3", 10) == 0) {
+		// Explicit Composite - DILITHIUM3-ECDSA-P256
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM3-P256", 15) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM3-EC", 13) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM-P256", 14) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM-EC", 12) == 0) {
+			algor_opt = "DILITHIUM3-P256";
+		// Explicit Composite - DILITHIUM3-RSA
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM3-RSA", 14) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM-RSA", 13) == 0) {
+			algor_opt = "DILITHIUM3-RSA";
+		// Explicit Composite - FALCON512-ECDSA-P256
+		} else if (strncmp_nocase(algor_opt, "FALCON512-EC", 12) == 0 || 
+				   strncmp_nocase(algor_opt, "FALCON512-P256", 14) == 0 || 
+				   strncmp_nocase(algor_opt, "FALCON-EC", 9) == 0 || 
+				   strncmp_nocase(algor_opt, "FALCON-P256", 11) == 0) {
+			algor_opt = "FALCON512-P256";
+		// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-P521
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM5-FALCON1024-P521", 26) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM-FALCON-EC", 19) == 0) {
+			algor_opt = "DILITHIUM5-FALCON1024-P521";
+		} else if (strncmp_nocase(algor_opt, "DILITHIUMX3", 11) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUMX3")) {
+			algor_opt = "DILITHIUMX3";
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM3", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM3")) {
 			algor_opt = "DILITHIUM3";
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM5", 10) == 0) {
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM5", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM5")) {
 			algor_opt = "DILITHIUM5";
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM", 10) == 0) {
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM")) {
 			// Default option for Dilithium
 			algor_opt = "DILITHIUM3";
-		} else if (strncmp_nocase(algor_opt, "FALCON512", 9) == 0) {
+		} else if (strncmp_nocase(algor_opt, "FALCON512", 9) == 0
+				   && strlen(algor_opt) == strlen("FALCON512")) {
 			algor_opt = "FALCON512";
-		} else if (strncmp_nocase(algor_opt, "FALCON1024", 10) == 0) {
+		} else if (strncmp_nocase(algor_opt, "FALCON1024", 10) == 0
+				   && strlen(algor_opt) == strlen("FALCON1024")) {
 			algor_opt = "FALCON1024";
-		} else if (strncmp_nocase(algor_opt, "FALCON", 7) == 0) {
+		} else if (strncmp_nocase(algor_opt, "FALCON", 7) == 0
+				   && strlen(algor_opt) == strlen("FALCON")) {
 			// Default option for Falcon
 			algor_opt = "FALCON512";
 		} else {

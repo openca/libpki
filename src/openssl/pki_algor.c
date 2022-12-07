@@ -375,8 +375,8 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "DILITHIUM";
 		} break;
 
-		case PKI_SCHEME_DILITHIUMX: {
-			ret = "DILITHIUMX";
+		case PKI_SCHEME_DILITHIUMX3: {
+			ret = "DILITHIUMX3";
 		} break;
 
 		case PKI_SCHEME_SPHINCS: {
@@ -387,22 +387,29 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 		// Composite (PQ) Crypto
 		// =====================
 
-		case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
-			ret = "COMP_RSA_FALCON";
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
+			ret = "DILITHIUM3-P256";
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_ECDSA_FALCON: {
-			ret = "COMP_ECDSA_FALCON";
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
+			ret = "DILITHIUM3-RSA";
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM: {
-			ret = "COMP_RSA_DILITHIUM";
+		case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
+			ret = "FALCON512-P256";
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM: {
-			ret = "COMP_ECDSA_DILITHIUM";
+		case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
+			ret = "FALCON512-RSA";
 		} break;
 
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521: {
+			ret = "DILITHIUM5-FALCON1024-P521";
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+			ret = "DILITHIUM5-FALCON1024-RSA";
+		} break;
 #endif
 
 		// =================
@@ -417,7 +424,7 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 
 #ifdef ENABLE_COMBINED
 		case PKI_SCHEME_COMPOSITE_OR: {
-			ret = "COMPOSITE_OR";
+			ret = "MULTIKEY";
 		} break;
 #endif
 
@@ -448,34 +455,38 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 			return PKI_SCHEME_ECDSA;
 #endif
 #ifdef ENABLE_OQS
+# ifdef ENABLE_COMPOSITE
+		// Explicit Composite
+		} else if (strncmp_nocase("DILITHIUM3-P256", data, 15) == 0) {
+			return PKI_SCHEME_COMPOSITE_DILITHIUM3_P256;
+		} else if (strncmp_nocase("DILITHIUM3-RSA", data, 14) == 0) {
+			return PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA;
+		} else if (strncmp_nocase("FALCON512-P256", data, 14) == 0) {
+			return PKI_SCHEME_COMPOSITE_FALCON512_P256;
+		} else if (strncmp_nocase("FALCON512-RSA", data, 13) == 0) {
+			return PKI_SCHEME_COMPOSITE_FALCON512_RSA;
+		} else if (strncmp_nocase("DILITHIUM5-FALCON1024-P521", data, 26) == 0) {
+			return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521;
+		} else if (strncmp_nocase("DILITHIUM5-FALCON1024-RSA", data, 25) == 0) {
+			return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA;
+# endif
+		// Experimental: LibPKI PQC Native
+		} else if (strncmp_nocase("DILITHIUMX3", data, 11) == 0) {
+			return PKI_SCHEME_DILITHIUMX3;
+		// OQS Post-Quantum
 		} else if (strncmp_nocase("FALCON", data, 6) == 0) {
 			return PKI_SCHEME_FALCON;
-		} else if (strncmp_nocase("DILITHIUMX", data, 10) == 0) {
-			return PKI_SCHEME_DILITHIUMX;
 		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
 			return PKI_SCHEME_DILITHIUM;
 		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
 			return PKI_SCHEME_SPHINCS;
-		} else if (strncmp_nocase("COMP_RSA_FALCON", data, 15) == 0) {
-			return PKI_SCHEME_COMPOSITE_RSA_FALCON;
-		} else if (strncmp_nocase("COMP_ECDSA_FALCON", data, 17) == 0) {
-			return PKI_SCHEME_COMPOSITE_ECDSA_FALCON;
-		} else if (strncmp_nocase("COMP_RSA_DILITHIUM", data, 18) == 0) {
-			return PKI_SCHEME_COMPOSITE_RSA_DILITHIUM;
-		} else if (strncmp_nocase("COMP_ECDSA_DILITHIUM", data, 19) == 0) {
-			return PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM;
 #endif
 #ifdef ENABLE_COMPOSITE
-		} else if (strncmp_nocase("MULTIKEY_OR", data, 11) == 0) {
-			return PKI_SCHEME_COMPOSITE;
-		} else if (strncmp_nocase("COMPOSITE_OR", data, 11) == 0) {
-			return PKI_SCHEME_COMPOSITE;
+		// Generic Composite
 		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
 			return PKI_SCHEME_COMPOSITE;
 #ifdef ENABLE_COMBINED
 		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
-			return PKI_SCHEME_COMBINED;
-		} else if (strncmp_nocase("COMBINED", data, 9) == 0) {
 			return PKI_SCHEME_COMBINED;
 #endif
 #endif
@@ -774,7 +785,7 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		return PKI_SCHEME_DILITHIUM;
 	}  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {
 		// DILITHIUMX
-		return PKI_SCHEME_DILITHIUMX;
+		return PKI_SCHEME_DILITHIUMX3;
 	}
 #endif
 
@@ -1205,7 +1216,7 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 			ret = PKI_ALGOR_ID_LIST_SPHINCS;
 		} break;
 
-		case PKI_SCHEME_DILITHIUMX: {
+		case PKI_SCHEME_DILITHIUMX3: {
 			ret = PKI_ALGOR_ID_LIST_DILITHIUM;
 		} break;
 

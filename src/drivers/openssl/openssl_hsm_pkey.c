@@ -459,7 +459,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     }
 
     switch (type) {
-        case PKI_SCHEME_RSA:
+        case PKI_SCHEME_RSA: {
             if((rsa = _pki_rsakey_new( kp )) == NULL ) {
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
                 return NULL;
@@ -470,9 +470,9 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
                 return NULL;
             };
-            break;
+        } break;
 
-        case PKI_SCHEME_DSA:
+        case PKI_SCHEME_DSA: {
             if((dsa = _pki_dsakey_new( kp )) == NULL ) {
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
                 return(NULL);
@@ -489,11 +489,11 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
                 return NULL;
             }
             dsa=NULL;
-            break;
+        } break;
 
 #ifdef ENABLE_ECDSA
 
-        case PKI_SCHEME_ECDSA:
+        case PKI_SCHEME_ECDSA: {
             if((ec = _pki_ecdsakey_new( kp )) == NULL ) {
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
                 return(NULL);
@@ -505,15 +505,27 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
                 return NULL;
             }
             ec=NULL;
-            break;
+        } break;
 
 #ifdef ENABLE_COMPOSITE
+
+        // Generic Composite
         case PKI_SCHEME_COMPOSITE:
+        // Explicit Composite
+        case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
+        case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
+        case PKI_SCHEME_COMPOSITE_FALCON512_P256:
+        case PKI_SCHEME_COMPOSITE_FALCON512_ED25519:
+        case PKI_SCHEME_COMPOSITE_FALCON512_RSA:
+        case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
+        case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+            
             if ((composite = _pki_composite_new(kp)) == NULL) {
                 if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not initiate keypair generation");
                 return NULL;
-            };
+            }
+
             if (!EVP_PKEY_assign_COMPOSITE(ret->value, composite)) {
                 if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign COMPOSITE key");
@@ -521,7 +533,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
                 return NULL;
             }
             composite=NULL;
-            break;
+        } break;
 #endif
 
 #ifdef ENABLE_COMBINED

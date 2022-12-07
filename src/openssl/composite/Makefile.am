@@ -15,7 +15,8 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(COND_INCLUDES)
 
 OPENSSL_INTERNAL_SRCS = \
-	composite_ossl_internals.h
+	composite_ossl_internals.h \
+	composite_ameth.h
 
 nobase_include_HEADERS = 
 
@@ -24,6 +25,7 @@ COMPOSITE_SRCS = \
 	composite_pmeth.c \
 	composite_err.c \
 	composite_utils.c \
+	composite_init.c \
 	$(OPENSSL_INTERNAL_SRCS)
 
 noinst_LTLIBRARIES = libpki-composite.la

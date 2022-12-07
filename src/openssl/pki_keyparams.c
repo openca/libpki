@@ -31,8 +31,8 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 #endif
 
-	if (prof)
-	{
+	if (prof) {
+		
 		PKI_X509_ALGOR_VALUE *alg = NULL;
 		char *tmp_s = NULL;
 
@@ -77,9 +77,6 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			case PKI_SCHEME_FALCON:
 				break;
 
-			case PKI_SCHEME_DILITHIUMX:
-				break;
-
 			case PKI_SCHEME_DILITHIUM: {
 				if ((tmp_s = PKI_CONFIG_get_value(prof, 
 							"/profile/keyParams/mode" )) != NULL ) {
@@ -91,6 +88,10 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 					PKI_Free (tmp_s);
 				};
+			} break;
+
+			case PKI_SCHEME_DILITHIUMX3: {
+				kp->bits = 128;
 			} break;
 
 #endif // ENABLE OQS
@@ -108,14 +109,14 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 #endif // ENABLE_COMPOSITE
 
 #ifdef ENABLE_ECDSA
-			case PKI_SCHEME_ECDSA:
+			case PKI_SCHEME_ECDSA: {
 				
 				// Sets the standard defaults
 				kp->ec.asn1flags = PKI_EC_KEY_ASN1_DEFAULT;
 				kp->ec.form = PKI_EC_KEY_FORM_DEFAULT;
 
-				if(( tmp_s = PKI_CONFIG_get_value(prof, 
-							"/profile/keyParams/curveName" )) != NULL ) {
+				if ((tmp_s = PKI_CONFIG_get_value(prof, 
+							"/profile/keyParams/curveName" )) != NULL) {
 					PKI_OID *oid = NULL;
 
 					if((oid = PKI_OID_get( tmp_s )) != NULL) {
@@ -157,14 +158,15 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 				} else {
 					kp->ec.asn1flags = -1;
 				};
-				break;
+			} break;
 #endif
 
-				default:
-					if ( kp ) PKI_KEYPARAMS_free ( kp );
-					PKI_log(PKI_LOG_ERR, "Error: scheme %d is not supported!", kp->scheme);
-					return NULL;
-			};
+			default:
+				if ( kp ) PKI_KEYPARAMS_free ( kp );
+				PKI_log(PKI_LOG_ERR, "Error: scheme %d is not supported!", kp->scheme);
+				return NULL;
+		}
+
 	} else {
 		
 		if ( scheme <= 0 ) {
@@ -173,64 +175,79 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			kp->scheme = scheme;
 		};
 
-		switch ( kp->scheme ) {
+		PKI_DEBUG("Checking Bits for SCHEME %d", kp->scheme);
+
+		switch(kp->scheme) {
 
 			// Classic or Modern Cryptography - Digital Signatures
 			case PKI_SCHEME_RSA:
-			case PKI_SCHEME_DSA:
+			case PKI_SCHEME_DSA: {
 				kp->bits = -1;
-				break;
+			} break;
 
 #ifdef ENABLE_OQS
 			// Post Quantum Cryptography - KEMS
 			case PKI_SCHEME_NTRU_PRIME:
 			case PKI_SCHEME_SIKE:
 			case PKI_SCHEME_BIKE:
-			case PKI_SCHEME_FRODOKEM:
+			case PKI_SCHEME_FRODOKEM: {
+				kp->bits = -1;
+			} break;
+
 			// Post Quantum Cryptography - Digital Signatures
 			case PKI_SCHEME_FALCON:
 			case PKI_SCHEME_DILITHIUM:
-			case PKI_SCHEME_DILITHIUMX:
-			case PKI_SCHEME_SPHINCS:
-			// Post Quantum Cryptography - Composite Crypto
-			case PKI_SCHEME_COMPOSITE_RSA_FALCON:
-			case PKI_SCHEME_COMPOSITE_ECDSA_FALCON:
-			case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM:
-			case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM:
+			case PKI_SCHEME_DILITHIUMX3:
+			case PKI_SCHEME_SPHINCS: {
 				kp->bits = 128;
-				break;
+			} break;
+
+# ifdef ENABLE_COMPOSITE
+			// Post Quantum Cryptography - Composite Crypto
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
+			case PKI_SCHEME_COMPOSITE_FALCON512_P256:
+			case PKI_SCHEME_COMPOSITE_FALCON512_ED25519:
+			case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
+				kp->bits = 128;
+			} break;
+
+			case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+				kp->bits = 256;
+			} break;
+# endif
 #endif // ENABLE_OQS
 
 #ifdef ENABLE_COMPOSITE
-
-			case PKI_SCHEME_COMPOSITE:
-				kp->bits = 128;
-				break;
-
-#ifdef ENABLE_COMBINED
-			case PKI_SCHEME_COMBINED:
-				kp->bits = 128;
-				break;
-#endif
-
+			case PKI_SCHEME_COMPOSITE: {
+				kp->bits = -1;
+			} break;
 #endif // ENABLE_COMPOSITE
 
+#ifdef ENABLE_COMBINED
+			case PKI_SCHEME_COMBINED: {
+				kp->bits = 128;
+			} break;
+#endif // ENABLE_COMBINED
+
 #ifdef ENABLE_ECDSA
-			case PKI_SCHEME_ECDSA:
+			case PKI_SCHEME_ECDSA: {
 				kp->bits 		= -1;
 				kp->ec.curve 	= -1;
 				kp->ec.form 	= PKI_EC_KEY_FORM_UNKNOWN;
 				kp->ec.asn1flags = -1;
-#endif
-				break;
+			} break;
+#endif // ENABLE_ECDSA
 
 			default:
-				if ( kp ) PKI_KEYPARAMS_free ( kp );
+				if (kp) PKI_KEYPARAMS_free(kp);
 				PKI_log(PKI_LOG_ERR, "Error: scheme %d is not supported!", kp->scheme);
-				return PKI_ERR;
-		};
-	};
+				return NULL;
+		}
+	}
 
+	// All Done
 	return kp;
 };
 
@@ -368,8 +385,9 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			kp->oqs.algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
 			kp->bits = bits;
 		} break;
+#endif
 
-# ifdef ENABLE_COMBINED
+#ifdef ENABLE_COMBINED
 		case PKI_SCHEME_COMBINED: {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
@@ -377,7 +395,6 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			kp->oqs.algId = OBJ_txt2id(OPENCA_ALG_PKEY_EXP_ALT_OID);;
 			kp->bits = bits;
 		} break;
-# endif
 #endif
 
 #ifdef ENABLE_OQS
@@ -398,21 +415,18 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		} break;
 		
 		case PKI_SCHEME_DILITHIUM: {
-			if (bits < 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
-				kp->bits = 128;
-			} else if(bits <= 192) {
+			if (bits <= 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
-				kp->bits = 192;
+				kp->bits = 128;
 			} else {
 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5;
 				kp->bits = 256;
 			}
 		} break;
 
-		case PKI_SCHEME_DILITHIUMX: {
-			kp->oqs.algId = OBJ_sn2nid("DilithiumX");
-			kp->bits = 256;
+		case PKI_SCHEME_DILITHIUMX3: {
+			kp->oqs.algId = OBJ_sn2nid("DilithiumX3");
+			kp->bits = 128;
 		} break;
 
 		case PKI_SCHEME_SPHINCS: {
@@ -428,49 +442,48 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			}
 		} break;
 
-		// ==========================
-		// OQS Composite Cryptography
-		// ==========================
+# ifdef ENABLE_COMPOSITE
+		// ===============================
+		// Explicit Composite Combinations
+		// ===============================
 
-		case PKI_SCHEME_COMPOSITE_RSA_FALCON: {
+		case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
 			// Unfortunately we do not have many
 			// options in terms of composite, we might
 			// need to enable more on liboqs
-			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512;
+			// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512;
+			kp->oqs.algId = OBJ_txt2nid("FALCON512-RSA");
 			kp->bits = 128;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_ECDSA_FALCON: {
-			if (kp->bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512;
-				kp->bits = 128;
-			} else {
-				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024;
-				kp->bits = 256;
-			}
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_RSA_DILITHIUM: {
-			// Unfortunately we do not have many
-			// options in terms of composite, we might
-			// need to enable more on LibOQS
-			kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2;
+		case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
+			// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512;
+			kp->oqs.algId = OBJ_txt2nid("FALCON512-P256");
 			kp->bits = 128;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM: {
-			if (kp->bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2;
-				kp->bits = 128;
-			} else if (kp->bits <= 192) {
-				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3;
-				kp->bits = 192;
-			} else {
-				kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5;
-				kp->bits = 256;
-			}
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
+			// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2;
+			kp->oqs.algId = OBJ_txt2nid("DILITHIUM3-P256");
+			kp->bits = 128;
 		} break;
 
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
+			kp->oqs.algId = OBJ_txt2nid("DILITHIUM3-RSA");
+			kp->bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521: {
+			kp->oqs.algId = OBJ_txt2nid("DILITHIUM5-FALCON1024-P521");
+			kp->bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+			kp->oqs.algId = OBJ_txt2nid("DILITHIUM5-FALCON1024-RSA");
+			kp->bits = 128;
+		} break;
+
+# endif // ENABLE_COMPOSITE
 #endif // ENABLE_OQS
 
 		default: {
@@ -558,24 +571,29 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 	PKI_DEBUG("Adding a Key To Composite Key...");
 
 	// Input Checks
-	if (!kp) return
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	if (!kp || !kp->comp.k_stack) 
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 #ifdef ENABLE_COMPOSITE
-	if (kp->scheme != PKI_SCHEME_COMPOSITE
+		if (   kp->scheme != PKI_SCHEME_COMPOSITE
+		    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+			&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+			&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_P256
+			&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_RSA
+			&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_ED25519
+			&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
+			&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
 # ifdef ENABLE_COMBINED
-		&& kp->scheme != PKI_SCHEME_COMBINED
+			&& kp->scheme != PKI_SCHEME_COMBINED
 # endif
-											) {
-		return PKI_ERROR(PKI_ERR_GENERAL, 
-			"Error while adding keys to non-composite scheme");
-	}
+												) {
+			return PKI_ERROR(PKI_ERR_GENERAL, 
+				"Error while adding keys to non-composite scheme");
+		}
 #endif
 
 	// Checks we have a good stack
-	
-
-	if (0 >= PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key)) {
+	if (PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key) <= 0) {
 		return PKI_ERROR(PKI_ERR_GENERAL, 
 			"Error while adding a component key to a composite one");
 	}

@@ -368,6 +368,20 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 	}
 #endif
 
+	// Checks for the Explicit Composite Crypto combinations
+	if (algId <= NID_undef && (
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID) ||
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID) ||
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID) || 
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_OID) || 
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID) ||
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_ECDSA_P521_OID) ||
+			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_OID))) {
+		// Sets the default algorithm ID to be the same as the key ID
+		// (no hash support for now for explicit)
+		algId = p_type;
+	}
+
 	if( algId > 0 ) {
 		ret = PKI_X509_ALGOR_VALUE_get(algId);
 	} else {

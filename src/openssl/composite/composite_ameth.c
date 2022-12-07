@@ -1,11 +1,12 @@
 /* BEGIN: composite_amenth.c */
 
-#pragma GCC diagnostic ignored "-Wunused-function"
-
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 
-#include <libpki/openssl/composite/composite_ameth.h>
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+// Local Include
+#include "composite_ameth.h"
 
 // ===============
 // Data Structures
@@ -706,7 +707,7 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   }
 
   // Free the stack's memory
-  while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
+  while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
     ASN1_TYPE_free(aType);
   }
   sk_ASN1_TYPE_free(sk);
