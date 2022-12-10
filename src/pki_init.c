@@ -105,40 +105,43 @@ static int _init_explicit_composite() {
 	// Here we initialize PKEYs to handle the explicit
 	// composite combinations
 
-	char * methods_oids[] = {
-		OPENCA_ALG_PKEY_EXP_COMP_OID,
-	    OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID,
-		OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID,
-		OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID,
-		OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_OID,
-		OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_ECDSA_P521_OID,
-		OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_OID,
-		NULL,
-	};
-	
-	for (int i = 0; methods_oids[i] != NULL; i++ ) {
+	// Debugging
+	// PKI_DEBUG("TODO: Add Explicit Composite Combinations.");
 
-		// Retrieves the ID for the Explicit PKEY
-		int explicit_comp_id = OBJ_txt2nid(methods_oids[i]);
+	// char * methods_oids[] = {
+	// 	OPENCA_ALG_PKEY_EXP_COMP_OID,
+	//  OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_ECDSA_P521_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_OID,
+	// 	NULL,
+	// };
 
-		// Debugging
-		PKI_DEBUG("Adding Explicit Composite Combination %d (%s)", 
-			explicit_comp_id, methods_oids[i]);
+	// for (int i = 0; methods_oids[i] != NULL; i++ ) {
 
-		// // Assigns the generated IDs
-		// EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, explicit_comp_id);
+	// 	// Retrieves the ID for the Explicit PKEY
+	// 	int explicit_comp_id = OBJ_txt2nid(methods_oids[i]);
 
-		// // Assigns the PKEY ID
-		// EVP_PKEY_meth_set_id(&composite_pkey_meth, explicit_comp_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
+	// 	// Debugging
+	// 	PKI_DEBUG("Adding Explicit Composite Combination %d (%s)", 
+	// 		explicit_comp_id, methods_oids[i]);
 
-		// // We also Need to initialize the PKEY method for the algorithm
-		// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
-		// if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+	// 	// // Assigns the generated IDs
+	// 	// EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, explicit_comp_id);
 
-		// // We Need to initialize the ASN1 conversion method
-		// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
-		// if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
-	}
+	// 	// // Assigns the PKEY ID
+	// 	// EVP_PKEY_meth_set_id(&composite_pkey_meth, explicit_comp_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
+
+	// 	// // We also Need to initialize the PKEY method for the algorithm
+	// 	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	// 	// if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+
+	// 	// // We Need to initialize the ASN1 conversion method
+	// 	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	// 	// if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+	// }
 	
 	// All Done, Success.
 	return 1;

@@ -358,17 +358,25 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			else if (bits <= 128 ) { kp->bits = 2048; }
 			else if (bits <= 192 ) { kp->bits = 3072; }
 			else if (bits <= 256 ) { kp->bits = 4096; }
+			else if (bits <= 384 ) { kp->bits = 8192; }
+			else if (bits <= 521 ) { kp->bits = 16384; }
 			// Classical Sizes
 			else if (bits <= 512 ) { kp->bits = 512;  }
 			else if (bits <= 756 ) { kp->bits = 756;  }
 			else if (bits <= 1024) { kp->bits = 1024; }
 			else if (bits <= 2048) { kp->bits = 2048; }
+			else if (bits <= 4096) { kp->bits = 4096; }
+			else if (bits <= 8192) { kp->bits = 8192; }
+			else if (bits <= 16384) { kp->bits = 16384; }
+			else { kp->bits = bits; }
 		} break;
 
 		case PKI_SCHEME_ECDSA: {
-			if (bits <= 256) { kp->bits = 256; } 
+			if (bits <= 224) { kp->bits = 224; } 
+			else if (bits <= 256) { kp->bits = 256; } 
 			else if (bits <= 384) { kp->bits = 384; }
 			else if (bits <= 521) { kp->bits = 521; }
+			else { kp->bits = bits; }
 		} break;
 
 
@@ -416,19 +424,29 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		
 		case PKI_SCHEME_DILITHIUM: {
 			if (bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
 				kp->bits = 128;
+			} else if (bits <= 192) {
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
+				kp->bits = 192;
 			} else {
 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5;
 				kp->bits = 256;
 			}
 		} break;
 
+		// Experimental: We want to provide a separate
+		//               implementation for PQC / Dilithium
+		//               to show the use of a single OID
+		//               for family of algorithms
 		case PKI_SCHEME_DILITHIUMX3: {
 			kp->oqs.algId = OBJ_sn2nid("DilithiumX3");
 			kp->bits = 128;
 		} break;
 
+		// TODO: We need to change from the robust to the
+		//       fast implementations as the robust is not
+		//       going to be standardized
 		case PKI_SCHEME_SPHINCS: {
 			if (bits <= 128) {
 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R;
