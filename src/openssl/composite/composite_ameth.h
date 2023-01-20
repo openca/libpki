@@ -11,23 +11,28 @@
 
 #include <stdio.h>
 
-// #include "internal/cryptlib.h"
+#ifndef HEADER_X509_H
 #include <openssl/x509.h>
+#endif
+
+#ifndef HEADER_EC_H
 #include <openssl/ec.h>
+#endif
 
+#ifndef HEADER_ENVELOPE_H
 #include <openssl/evp.h>
-#include <openssl/asn1.h>
-#include <openssl/opensslv.h>
+#endif
 
-// #include "crypto/asn1.h"
-// #include "crypto/evp.h"
+#ifndef HEADER_ASN1_H
+#include <openssl/asn1.h>
+#endif
+
+#ifndef HEADER_OPENSSLV_H
+#include <openssl/opensslv.h>
+#endif
 
 #ifndef _LIBPKI_COMPOSITE_UTILS_H
 #include <libpki/openssl/composite/composite_utils.h>
-#endif
-
-#ifndef _LIBPKI_COMPOSITE_LOCAL_H
-#include <libpki/openssl/composite/composite_internals.h>
 #endif
 
 #ifndef _LIBPKI_COMPAT_H
