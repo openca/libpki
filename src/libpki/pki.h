@@ -100,14 +100,12 @@ BEGIN_C_DECLS
 #endif
 
 #ifdef ENABLE_COMPOSITE
-#include <libpki/openssl/composite/composite_ameth.h>
 #include <libpki/openssl/composite/composite_pmeth.h>
 #endif
 
-#ifdef ENABLE_COMBINED
-#include <libpki/composite/combined_ameth.h>
-#include <libpki/composite/combined_pmeth.h>
-#endif
+// #ifdef ENABLE_COMBINED
+// #include <libpki/openssl/combined/combined_pmeth.h>
+// #endif
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 
