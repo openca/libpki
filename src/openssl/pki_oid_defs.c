@@ -370,7 +370,7 @@ int PKI_X509_OID_init() {
 
 		// Verify the results
 		if (obj->nid == 0) {
-			int err_number = HSM_get_errno(NULL);
+			size_t err_number = HSM_get_errno(NULL);
 			PKI_DEBUG("Cannot create NID for %s (%s) (Crypto Error: %s)", 
 				obj->name, obj->oid, HSM_get_errdesc(err_number, NULL));
 			fflush(stderr);

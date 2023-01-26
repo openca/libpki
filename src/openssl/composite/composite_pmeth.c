@@ -782,7 +782,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     aType = NULL;
   }
 
-  if ((*siglen = i2d_ASN1_SEQUENCE_ANY(sk, &sig)) <= 0) {
+  if ((*siglen = (size_t) i2d_ASN1_SEQUENCE_ANY(sk, &sig)) <= 0) {
     PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, "Cannot generate DER representation of the sequence of signatures");
     goto err;
   }
@@ -813,7 +813,7 @@ err:
   // Free allocated memory
   if (md_ctx) EVP_MD_CTX_free(md_ctx);
   if (oct_string) ASN1_OCTET_STRING_free(oct_string);
-  if (buff && buff_len) PKI_ZFree(buff, buff_len);
+  if (buff && buff_len) PKI_ZFree(buff, (size_t) buff_len);
   if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
   if (evp_pkey) EVP_PKEY_free(evp_pkey);
 
@@ -892,7 +892,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
   // Let's use the aOctetStr to avoid the internal
   // p8 pointers to be modified
   aOctetStr.data = (unsigned char *)sig;
-  aOctetStr.length = siglen;
+  aOctetStr.length = (int) siglen;
 
   // Gets the Sequence from the data itself, error if
   // it is not a sequence of ASN1_OCTET_STRING
