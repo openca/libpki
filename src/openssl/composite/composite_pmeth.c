@@ -628,15 +628,9 @@ static int sign(EVP_PKEY_CTX        * ctx,
   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
     // Pointer to inner key structure
 
-  COMPOSITE_CTX * comp_ctx = ctx->data;
-    // Pointer to algorithm specific CTX
-
   EVP_PKEY_CTX * pkey_ctx = NULL;
   EVP_PKEY * evp_pkey = NULL;
     // The keypair and context references
-
-  EVP_MD * pmd = NULL;
-    // Digest Algorithm to use for the signature
 
   EVP_MD_CTX * md_ctx = NULL;
     // Digest Context
@@ -662,6 +656,9 @@ static int sign(EVP_PKEY_CTX        * ctx,
   int buff_len =  0;
     // Temp Pointers
 
+  int ret_code = 0;
+    // Return Code for external calls
+
   int total_size = 0;
     // Total Signature Size
 
@@ -684,50 +681,24 @@ static int sign(EVP_PKEY_CTX        * ctx,
     goto err;
   }
 
-  // Retrieves the set digest for the signature
-  pmd = (EVP_MD *) (comp_ctx->md ? comp_ctx->md : PKI_DIGEST_ALG_DEFAULT);
-
-  // Allocates a new digest context
-  // for the operation
-  md_ctx = EVP_MD_CTX_new();
-  if (!md_ctx) {
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new digest context");
-    goto err;
-  }
-
   // Generates Each Signature Independently
-  for (int i = 0; i < comp_key_num; i++) {
-
-    // Initializes the MD
-    EVP_MD_CTX_init(md_ctx);
+  for (int idx = 0; idx < comp_key_num; idx++) {
 
     // Retrieves the i-th component
-    if ((evp_pkey = COMPOSITE_KEY_get0(comp_key, i)) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component from Key", i);
+    if ((evp_pkey = COMPOSITE_KEY_get0(comp_key, idx)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component from Key", idx);
       goto err;
     }
 
     // Let's build a PKEY CTX and assign it to the MD CTX
     pkey_ctx = EVP_PKEY_CTX_new(evp_pkey, NULL);
     if (!pkey_ctx) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d PKEY CTX component", i);
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d PKEY CTX component", idx);
       goto err;
     }
 
-    // Sets the PKEY CTX (needed for the DigestSign function)
-    EVP_MD_CTX_set_pkey_ctx(md_ctx, pkey_ctx);
-
-    // Initializes the Signature
-    if (!EVP_DigestSignInit(md_ctx, NULL, pmd, NULL, evp_pkey)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot initialize signature for %d component", i);
-      goto err;
-    }
-
-    // Let's get the correct size for the component signature's buffer
-    if (!EVP_DigestSign(md_ctx, NULL, (size_t *)&buff_len, tbs, tbslen)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot retrieve the size of signature's %d component", i);
-      goto err;
-    }
+    // Gets the Signature's Max Size
+    buff_len = EVP_PKEY_size(evp_pkey);
 
     // Allocate the buffer for the single signature
     if ((pnt = buff = OPENSSL_malloc((size_t)buff_len)) == NULL) {
@@ -735,23 +706,43 @@ static int sign(EVP_PKEY_CTX        * ctx,
       goto err;
     }
 
-    // Performs the Signature and Finalizes it
-    if (!EVP_DigestSign(md_ctx, pnt, (size_t *)&buff_len, tbs, tbslen)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot create signature %d component", i);
+    // Initializes the Signing process
+    ret_code = EVP_PKEY_sign_init(pkey_ctx);
+    if (ret_code != 1) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
+        "Cannot initialize %d component signature (EVP_PKEY_sign_init code %d)", 
+        idx, ret_code);
       goto err;
     }
 
-    // Resets the digest context
-    EVP_MD_CTX_reset(md_ctx);
+    // Signature's generation
+    ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen);
+    if (ret_code != 1) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
+        "Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", 
+        idx, ret_code);
+      goto err;
+    }
+
+    // Removes the reference to the key. This is
+    // needed because we otherwise will have memory
+    // issue when calling EVP_PKEY_CTX_free()
+    pkey_ctx->pkey = NULL;
+
+    // Free the PKEY context
+    if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+    pkey_ctx = NULL; // Safety
 
     // Updates the overall real size
     total_size += buff_len;
 
-    PKI_DEBUG("Generated Signature for Component #%d Successfully (size: %d)", i, buff_len);
+    PKI_DEBUG("Generated Signature for Component #%d Successfully (size: %d)", idx, buff_len);
     PKI_DEBUG("Signature Total Size [So Far] ... %d", total_size);
 
     if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the wrapping OCTET STRING for signature's %d component", i);
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 
+                "Cannot allocate the wrapping OCTET STRING for signature's %d component",
+                idx);
       goto err;
     }
 
@@ -774,7 +765,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
     // Adds the component to the stack
     if (!sk_ASN1_TYPE_push(sk, aType)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot push the signature's %d component", i);
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot push the signature's %d component", idx);
       goto err;
     }
 
@@ -787,20 +778,13 @@ static int sign(EVP_PKEY_CTX        * ctx,
     goto err;
   }
 
-  {
-    FILE * f = fopen("comp_signature.der", "w");
-    fwrite(sig, *siglen, 1, f);
-    fclose(f);
-  }
-
   // Reporting the total size
   PKI_DEBUG("Total Signature Size: %d (estimated: %d)", *siglen, signature_size);
 
   // Free the stack's memory
   while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
     ASN1_TYPE_free(aType);
-  }
-  sk_ASN1_TYPE_free(sk);
+  } sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
   // Success
@@ -814,8 +798,11 @@ err:
   if (md_ctx) EVP_MD_CTX_free(md_ctx);
   if (oct_string) ASN1_OCTET_STRING_free(oct_string);
   if (buff && buff_len) PKI_ZFree(buff, (size_t) buff_len);
-  if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
-  if (evp_pkey) EVP_PKEY_free(evp_pkey);
+  if (pkey_ctx) {
+    pkey_ctx->pkey = NULL;
+    EVP_PKEY_CTX_free(pkey_ctx);
+  }
+  // if (evp_pkey) EVP_PKEY_free(evp_pkey);
 
   // Handles the stack of signatures
   if (sk) {
@@ -842,52 +829,34 @@ static int verify(EVP_PKEY_CTX        * ctx,
                   const unsigned char * tbs,
                   size_t                tbslen) {
 
-  // NOTE: The passed CTX (ctx->data) is not the same as when the key
-  // was created or loaded. This means that the comp_ctx that is
-  // available here is actually empty. We need to reconstruct the
-  // different EVP_PKEY_CTX here.
-
-  // COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
-  //   // Pointer to inner key structure
-
-  // COMPOSITE_CTX * comp_ctx = ctx->data;
-  //   // Pointer to algorithm specific CTX
-
-  // EVP_PKEY_CTX * pkey_ctx = NULL;
-  // EVP_PKEY * evp_pkey = NULL;
-  //   // The keypair and context references
-
-  // EVP_MD * pmd = NULL;
-  //   // Digest Algorithm to use for the signature
-
-  // EVP_MD_CTX * md_ctx = NULL;
-  //   // Digest Context
+  COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+    // Pointer to inner key structure
 
   STACK_OF(ASN1_TYPE) *sk = NULL;
     // Stack of ASN1_OCTET_STRINGs
 
-  // ASN1_OCTET_STRING * oct_string = NULL;
-  //   // Output Signature to be added
-  //   // to the stack of signatures
-
   ASN1_TYPE * aType = NULL;
     // ASN1 generic wrapper
 
-  // int comp_key_num = 0;
-  //   // Number of components
+  int ret_code = 0;
+    // OSSL return code
 
-  // unsigned char * buff = NULL;
-  // unsigned char * pnt  = NULL;
-  // int buff_len =  0;
-  //   // Temp Pointers
-
-  // int total_size = 0;
-  //   // Total Signature Size
-
-  PKI_DEBUG("Verify!");
+  int comp_key_num = 0;
+    // Number of components
 
   ASN1_OCTET_STRING aOctetStr;
     // Temp Octet Pointer
+
+  EVP_PKEY_CTX * pkey_ctx = NULL;
+  EVP_PKEY * evp_pkey = NULL;
+    // The keypair and context references
+
+  // Input Checks
+  comp_key_num = COMPOSITE_KEY_num(comp_key);
+  if (comp_key_num <= 0) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the Composite key inner structure");
+    return 0;
+  }
 
   // Let's use the aOctetStr to avoid the internal
   // p8 pointers to be modified
@@ -906,6 +875,14 @@ static int verify(EVP_PKEY_CTX        * ctx,
   // Debugging
   PKI_DEBUG("Signature Sequence is Unpacked (Num: %d)!", sk_ASN1_TYPE_num(sk));
 
+  // Checks we have the right number of components
+  if (sk_ASN1_TYPE_num(sk) != comp_key_num) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, 
+      "Wrong number of signature's components (%d instead of %d)",
+      sk_ASN1_TYPE_num(sk), comp_key_num);
+    goto err;
+  }
+
   // Process the internal components
   for (int i = 0; i < sk_ASN1_TYPE_num(sk); i++) {
 
@@ -922,6 +899,52 @@ static int verify(EVP_PKEY_CTX        * ctx,
       return 0;
     }
 
+    // Retrieves the i-th component
+    if ((evp_pkey = COMPOSITE_KEY_get0(comp_key, i)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component from Key", i);
+      goto err;
+    }
+
+    // Let's build a PKEY CTX and assign it to the MD CTX
+    pkey_ctx = EVP_PKEY_CTX_new(evp_pkey, NULL);
+    if (!pkey_ctx) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d PKEY CTX component", i);
+      goto err;
+    }
+
+    // Initializes the Verify operation
+    ret_code = EVP_PKEY_verify_init(pkey_ctx);
+    if (ret_code != 1) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
+        "Cannot initialize %d component signature (EVP_PKEY_verify_init code %d)", 
+        i, ret_code);
+      goto err;
+    }
+
+    // Verifies the individual signature
+    ret_code = EVP_PKEY_verify(pkey_ctx, 
+                               aType->value.sequence->data,
+                               aType->value.sequence->length,
+                               tbs,
+                               tbslen);
+    
+    // Checks the results of the verify
+    if (ret_code != 1) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
+        "Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", 
+        i, ret_code);
+      goto err;
+    }
+
+    // Removes the reference to the pkey. This is needed
+    // because the EVP_PKEY_CTX_free() will otherwise
+    // try to free the memory of the pkey
+    pkey_ctx->pkey = NULL;
+
+    // Free the EVP_PKEY_CTX
+    if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+    pkey_ctx = NULL; // Safety
+
   }
 
   PKI_DEBUG("PMETH: Freeing the stack memory");
@@ -937,6 +960,22 @@ static int verify(EVP_PKEY_CTX        * ctx,
 
   // All Done.
   return 1;
+
+err:
+  // Free the stack memory
+  if (sk != NULL) {
+    while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
+      ASN1_TYPE_free(aType);
+    } sk_ASN1_TYPE_free(sk);
+    sk = NULL; // Safety
+  }
+
+  // Free other memory objects
+  if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+  if (evp_pkey) EVP_PKEY_free(evp_pkey);
+
+  // Error
+  return 0;
 }
 
 // // Not Implemented

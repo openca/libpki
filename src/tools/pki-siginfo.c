@@ -286,10 +286,12 @@ int main(int argc, char *argv[])
 		printf("Ok\n");
 	} else {
 		printf("ERROR!\n");
-	};
+	}
 
-	printf("Self Signed: %d\n", PKI_X509_CERT_is_selfsigned(sigObj));
-	printf("\n");
+	if (PKI_X509_get_type(sigObj) == PKI_DATATYPE_X509_CERT) {
+		printf("Self Signed: %d\n", PKI_X509_CERT_is_selfsigned(sigObj));
+		printf("\n");
+	}
 
 	if (print == 1) {
 

@@ -1,3 +1,8 @@
+* Feb  3 2023 Massimiliano Pala <madwolf@openca.org>
+- Fixed signature generation for Composite by removing the double hashing
+- Added signature verify for Composite by completing the verify() in composite_pmeth.c
+- Fixed pki-siginfo tool by restricting the self-signed checks when certificates are used as input for the signer.
+
 * Feb  2 2023 Massimiliano Pala <madwolf@openca.org>
 - Added new pki-oid tool for OIDs and NIDs lookup
 - Fixed inverted digest/pkey ID retrieval in PKI_X509_ALGOR_VALUE_get_scheme()
