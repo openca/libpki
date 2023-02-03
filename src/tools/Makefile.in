@@ -91,7 +91,7 @@ host_triplet = @host@
 target_triplet = @target@
 bin_PROGRAMS = pki-tool$(EXEEXT) url-tool$(EXEEXT) pki-xpair$(EXEEXT) \
 	pki-query$(EXEEXT) pki-request$(EXEEXT) pki-cert$(EXEEXT) \
-	pki-crl$(EXEEXT) pki-siginfo$(EXEEXT)
+	pki-crl$(EXEEXT) pki-siginfo$(EXEEXT) pki-oid$(EXEEXT)
 subdir = src/tools
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -127,43 +127,50 @@ pki_crl_DEPENDENCIES = $(MYLDADD)
 pki_crl_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(pki_crl_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_3 = pki_query-pki-query.$(OBJEXT)
-am_pki_query_OBJECTS = $(am__objects_3)
+am__objects_3 = pki_oid-pki-oid.$(OBJEXT)
+am_pki_oid_OBJECTS = $(am__objects_3)
+pki_oid_OBJECTS = $(am_pki_oid_OBJECTS)
+pki_oid_DEPENDENCIES = $(MYLDADD)
+pki_oid_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(pki_oid_LDFLAGS) $(LDFLAGS) -o $@
+am__objects_4 = pki_query-pki-query.$(OBJEXT)
+am_pki_query_OBJECTS = $(am__objects_4)
 pki_query_OBJECTS = $(am_pki_query_OBJECTS)
 pki_query_DEPENDENCIES = $(MYLDADD)
 pki_query_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(pki_query_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_4 = pki_request-pki-request.$(OBJEXT)
-am_pki_request_OBJECTS = $(am__objects_4)
+am__objects_5 = pki_request-pki-request.$(OBJEXT)
+am_pki_request_OBJECTS = $(am__objects_5)
 pki_request_OBJECTS = $(am_pki_request_OBJECTS)
 pki_request_DEPENDENCIES = $(MYLDADD)
 pki_request_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(pki_request_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_5 = pki_siginfo-pki-siginfo.$(OBJEXT)
-am_pki_siginfo_OBJECTS = $(am__objects_5)
+am__objects_6 = pki_siginfo-pki-siginfo.$(OBJEXT)
+am_pki_siginfo_OBJECTS = $(am__objects_6)
 pki_siginfo_OBJECTS = $(am_pki_siginfo_OBJECTS)
 pki_siginfo_DEPENDENCIES = $(MYLDADD)
 pki_siginfo_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(pki_siginfo_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_6 = pki_tool-pki-tool.$(OBJEXT)
-am_pki_tool_OBJECTS = $(am__objects_6)
+am__objects_7 = pki_tool-pki-tool.$(OBJEXT)
+am_pki_tool_OBJECTS = $(am__objects_7)
 pki_tool_OBJECTS = $(am_pki_tool_OBJECTS)
 pki_tool_DEPENDENCIES = $(MYLDADD)
 pki_tool_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(pki_tool_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_7 = pki_xpair-pki-xpair.$(OBJEXT)
-am_pki_xpair_OBJECTS = $(am__objects_7)
+am__objects_8 = pki_xpair-pki-xpair.$(OBJEXT)
+am_pki_xpair_OBJECTS = $(am__objects_8)
 pki_xpair_OBJECTS = $(am_pki_xpair_OBJECTS)
 pki_xpair_DEPENDENCIES = $(MYLDADD)
 pki_xpair_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(pki_xpair_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_8 = url_tool-url-tool.$(OBJEXT)
-am_url_tool_OBJECTS = $(am__objects_8)
+am__objects_9 = url_tool-url-tool.$(OBJEXT)
+am_url_tool_OBJECTS = $(am__objects_9)
 url_tool_OBJECTS = $(am_url_tool_OBJECTS)
 url_tool_DEPENDENCIES = $(MYLDADD)
 url_tool_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -185,7 +192,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/pki_cert-pki-cert.Po \
-	./$(DEPDIR)/pki_crl-pki-crl.Po \
+	./$(DEPDIR)/pki_crl-pki-crl.Po ./$(DEPDIR)/pki_oid-pki-oid.Po \
 	./$(DEPDIR)/pki_query-pki-query.Po \
 	./$(DEPDIR)/pki_request-pki-request.Po \
 	./$(DEPDIR)/pki_siginfo-pki-siginfo.Po \
@@ -211,11 +218,12 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(pki_cert_SOURCES) $(pki_crl_SOURCES) $(pki_query_SOURCES) \
-	$(pki_request_SOURCES) $(pki_siginfo_SOURCES) \
-	$(pki_tool_SOURCES) $(pki_xpair_SOURCES) $(url_tool_SOURCES)
-DIST_SOURCES = $(pki_cert_SOURCES) $(pki_crl_SOURCES) \
+SOURCES = $(pki_cert_SOURCES) $(pki_crl_SOURCES) $(pki_oid_SOURCES) \
 	$(pki_query_SOURCES) $(pki_request_SOURCES) \
+	$(pki_siginfo_SOURCES) $(pki_tool_SOURCES) \
+	$(pki_xpair_SOURCES) $(url_tool_SOURCES)
+DIST_SOURCES = $(pki_cert_SOURCES) $(pki_crl_SOURCES) \
+	$(pki_oid_SOURCES) $(pki_query_SOURCES) $(pki_request_SOURCES) \
 	$(pki_siginfo_SOURCES) $(pki_tool_SOURCES) \
 	$(pki_xpair_SOURCES) $(url_tool_SOURCES)
 am__can_run_installinfo = \
@@ -544,6 +552,11 @@ pki_siginfo_SOURCES = $(PKI_SIGINFO)
 pki_siginfo_CPPFLAGS = $(LIBPKI_MYCFLAGS)
 pki_siginfo_LDADD = $(MYLDADD)
 pki_siginfo_LDFLAGS = $(LIBPKI_MYLDFLAGS)
+PKI_OID = pki-oid.c
+pki_oid_SOURCES = $(PKI_OID)
+pki_oid_CPPFLAGS = $(LIBPKI_MYCFLAGS)
+pki_oid_LDADD = $(MYLDADD)
+pki_oid_LDFLAGS = $(LIBPKI_MYLDFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -635,6 +648,10 @@ pki-crl$(EXEEXT): $(pki_crl_OBJECTS) $(pki_crl_DEPENDENCIES) $(EXTRA_pki_crl_DEP
 	@rm -f pki-crl$(EXEEXT)
 	$(AM_V_CCLD)$(pki_crl_LINK) $(pki_crl_OBJECTS) $(pki_crl_LDADD) $(LIBS)
 
+pki-oid$(EXEEXT): $(pki_oid_OBJECTS) $(pki_oid_DEPENDENCIES) $(EXTRA_pki_oid_DEPENDENCIES) 
+	@rm -f pki-oid$(EXEEXT)
+	$(AM_V_CCLD)$(pki_oid_LINK) $(pki_oid_OBJECTS) $(pki_oid_LDADD) $(LIBS)
+
 pki-query$(EXEEXT): $(pki_query_OBJECTS) $(pki_query_DEPENDENCIES) $(EXTRA_pki_query_DEPENDENCIES) 
 	@rm -f pki-query$(EXEEXT)
 	$(AM_V_CCLD)$(pki_query_LINK) $(pki_query_OBJECTS) $(pki_query_LDADD) $(LIBS)
@@ -667,6 +684,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pki_cert-pki-cert.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pki_crl-pki-crl.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pki_oid-pki-oid.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pki_query-pki-query.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pki_request-pki-request.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pki_siginfo-pki-siginfo.Po@am__quote@ # am--include-marker
@@ -731,6 +749,20 @@ pki_crl-pki-crl.obj: pki-crl.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki-crl.c' object='pki_crl-pki-crl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(pki_crl_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pki_crl-pki-crl.obj `if test -f 'pki-crl.c'; then $(CYGPATH_W) 'pki-crl.c'; else $(CYGPATH_W) '$(srcdir)/pki-crl.c'; fi`
+
+pki_oid-pki-oid.o: pki-oid.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(pki_oid_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pki_oid-pki-oid.o -MD -MP -MF $(DEPDIR)/pki_oid-pki-oid.Tpo -c -o pki_oid-pki-oid.o `test -f 'pki-oid.c' || echo '$(srcdir)/'`pki-oid.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/pki_oid-pki-oid.Tpo $(DEPDIR)/pki_oid-pki-oid.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki-oid.c' object='pki_oid-pki-oid.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(pki_oid_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pki_oid-pki-oid.o `test -f 'pki-oid.c' || echo '$(srcdir)/'`pki-oid.c
+
+pki_oid-pki-oid.obj: pki-oid.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(pki_oid_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pki_oid-pki-oid.obj -MD -MP -MF $(DEPDIR)/pki_oid-pki-oid.Tpo -c -o pki_oid-pki-oid.obj `if test -f 'pki-oid.c'; then $(CYGPATH_W) 'pki-oid.c'; else $(CYGPATH_W) '$(srcdir)/pki-oid.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/pki_oid-pki-oid.Tpo $(DEPDIR)/pki_oid-pki-oid.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki-oid.c' object='pki_oid-pki-oid.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(pki_oid_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pki_oid-pki-oid.obj `if test -f 'pki-oid.c'; then $(CYGPATH_W) 'pki-oid.c'; else $(CYGPATH_W) '$(srcdir)/pki-oid.c'; fi`
 
 pki_query-pki-query.o: pki-query.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(pki_query_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pki_query-pki-query.o -MD -MP -MF $(DEPDIR)/pki_query-pki-query.Tpo -c -o pki_query-pki-query.o `test -f 'pki-query.c' || echo '$(srcdir)/'`pki-query.c
@@ -950,6 +982,7 @@ clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/pki_cert-pki-cert.Po
 	-rm -f ./$(DEPDIR)/pki_crl-pki-crl.Po
+	-rm -f ./$(DEPDIR)/pki_oid-pki-oid.Po
 	-rm -f ./$(DEPDIR)/pki_query-pki-query.Po
 	-rm -f ./$(DEPDIR)/pki_request-pki-request.Po
 	-rm -f ./$(DEPDIR)/pki_siginfo-pki-siginfo.Po
@@ -1003,6 +1036,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/pki_cert-pki-cert.Po
 	-rm -f ./$(DEPDIR)/pki_crl-pki-crl.Po
+	-rm -f ./$(DEPDIR)/pki_oid-pki-oid.Po
 	-rm -f ./$(DEPDIR)/pki_query-pki-query.Po
 	-rm -f ./$(DEPDIR)/pki_request-pki-request.Po
 	-rm -f ./$(DEPDIR)/pki_siginfo-pki-siginfo.Po

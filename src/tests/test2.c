@@ -108,6 +108,7 @@ int gen_X509_Cert(int scheme, int bits, char *file ) {
 
 		printf("    - Generating CERT (%s) ... " ,
 					PKI_ALGOR_ID_txt (algs[i]));
+		fflush(stdout);
 
 		r = PKI_X509_CERT_new ( NULL, p, NULL, NULL, NULL, 
 				PKI_VALIDITY_ONE_HOUR, 

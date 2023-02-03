@@ -333,7 +333,7 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   }
 
   // Free the stack's memory
-  while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
+  while ((sk != NULL) && (sk_ASN1_TYPE_num(sk) > 0) && ((aType = sk_ASN1_TYPE_pop(sk)) != NULL)) {
     ASN1_TYPE_free(aType);
   }
   sk_ASN1_TYPE_free(sk);

@@ -28,7 +28,8 @@ int main (int argc, char *argv[] ) {
 	gen_X509_tk(PKI_SCHEME_RSA, 1024, "results/cert_rsa_1024.pem");
 	gen_X509_tk(PKI_SCHEME_RSA, 2048, "results/cert_rsa_2048.pem");
 	gen_X509_tk(PKI_SCHEME_RSA, 4096, "results/cert_rsa_4096.pem");
-	gen_X509_tk(PKI_SCHEME_DSA, 2048,"results/cert_dsa_2048.pem");
+	gen_X509_tk(PKI_SCHEME_ECDSA, 128,"results/cert_ecdsa_128.pem");
+	gen_X509_tk(PKI_SCHEME_ECDSA, 192,"results/cert_ecdsa_192.pem");
 	gen_X509_tk(PKI_SCHEME_ECDSA, 256, "results/cert_ecdsa_256.pem");
 
 	PKI_log_end();
@@ -89,6 +90,7 @@ int gen_X509_tk(int scheme, int bits, char *file ) {
 	printf("Ok.\n");
 
 	printf("    - generating a self-signed cert ... " );
+	fflush(stdout);
 	if((PKI_TOKEN_self_sign( tk, NULL, "01", 24*3600, NULL )) == PKI_ERR ) {
 		printf("ERROR::Can not generate a new self-signed cert!\n\n");
 		return(0);
@@ -114,9 +116,9 @@ int gen_X509_tk(int scheme, int bits, char *file ) {
 	// if( r ) PKI_X509_CERT_free ( r );
 	// if( p ) PKI_KEYPAIR_free( p );
 
-	printf("\n");
-
+	printf("    - Freeing Token ... ");
 	if( tk ) PKI_TOKEN_free ( tk );
+	printf("Ok\n\n");
 
 	return 1;
 }

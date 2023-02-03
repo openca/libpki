@@ -22,7 +22,8 @@ bin_PROGRAMS   = \
 	pki-request \
 	pki-cert \
 	pki-crl \
-	pki-siginfo
+	pki-siginfo \
+	pki-oid
 
 #	pki-derenc
 
@@ -79,4 +80,10 @@ pki_siginfo_SOURCES = $(PKI_SIGINFO)
 pki_siginfo_CPPFLAGS = $(LIBPKI_MYCFLAGS)
 pki_siginfo_LDADD = $(MYLDADD)
 pki_siginfo_LDFLAGS = $(LIBPKI_MYLDFLAGS)
+
+PKI_OID = pki-oid.c
+pki_oid_SOURCES = $(PKI_OID)
+pki_oid_CPPFLAGS = $(LIBPKI_MYCFLAGS)
+pki_oid_LDADD = $(MYLDADD)
+pki_oid_LDFLAGS = $(LIBPKI_MYLDFLAGS)
 

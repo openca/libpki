@@ -722,7 +722,8 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		return PKI_SCHEME_UNKNOWN;
 
 	// Gets the MD and PKEY components
-	if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
+	// if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
+	if (!OBJ_find_sigid_algs(id, &digest_id, &pkey_id)) {
 		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot break the signing algorithm (%d) into PKEY and MD.", id);
 		return PKI_SCHEME_UNKNOWN;
 	}
