@@ -39,230 +39,6 @@
 
 #ifdef ENABLE_COMPOSITE
 
-// ==================
-// Internal Functions
-// ==================
-
-
-// COMPOSITE_CTX_ITEM * COMPOSITE_CTX_ITEM_new_null() {
-//   return OPENSSL_zalloc(sizeof(COMPOSITE_CTX_ITEM));
-// }
-
-// // Frees the memory associated with a CTX item
-// void COMPOSITE_CTX_ITEM_free(COMPOSITE_CTX_ITEM * it) {
-
-//   if (!it) return;
-
-//   // Handles the EVP_PKEY_CTX (if any)
-//   if (it->pkey_ctx) EVP_PKEY_CTX_free(it->pkey_ctx);
-
-//   // Handles the EVP_MD_CTX (if any)
-//   if (it->md_ctx != NULL) EVP_MD_CTX_free(it->md_ctx);
-
-//   // Free Allocated Memory
-//   OPENSSL_free(it);
-
-//   // All Done
-//   return;
-// }
-
-// // Free all components of the CTX (not the CTX itself)
-// void COMPOSITE_CTX_clear(COMPOSITE_CTX *ctx) {
-
-//   // Simple Check
-//   if (!ctx) return;
-
-//   // Free all items in the stack
-//   while (sk_COMPOSITE_CTX_ITEM_num(ctx) > 0) { 
-//     sk_COMPOSITE_CTX_ITEM_pop_free(ctx, COMPOSITE_CTX_ITEM_free); 
-//   }
-// }
-
-// void COMPOSITE_CTX_free(COMPOSITE_CTX * ctx) {
-
-//   // Simple Check
-//   if (!ctx) return;
-
-//   // Clears all Items in the Stack
-//   COMPOSITE_CTX_clear(ctx);
-
-//   // Frees the stack's memory
-//   OPENSSL_free(ctx);
-// }
-
-// int COMPOSITE_CTX_add(COMPOSITE_CTX * comp_ctx,
-//                       EVP_PKEY_CTX  * pkey_ctx, 
-//                       EVP_MD_CTX    * md_ctx,
-//                       int             index) {
-
-//   COMPOSITE_CTX_ITEM * it = NULL;
-//     // Internal Structure for the CTX stack
-
-//   // NOTE: pkey_ctx is needed, md_ctx is optional
-//   if (!comp_ctx || !pkey_ctx) return 0;
-
-//   if ((it = COMPOSITE_CTX_ITEM_new_null()) != NULL) {
-//     // Adds the component to the stack 
-//     if (COMPOSITE_CTX_add_item(comp_ctx, it, index) != 0) {
-//       // Transfer ownership of the PKEY ctx to the stacked item
-//       it->pkey_ctx = pkey_ctx;
-//       it->md_ctx = md_ctx;
-//     } else {
-//       PKI_DEBUG("ERROR: Cannot add key to position %d", index);
-//       COMPOSITE_CTX_ITEM_free(it);
-//       return 0;
-//     }
-//   } else {
-//     PKI_DEBUG("ERROR: Cannot create new CTX item");
-//     return 0;
-//   }
-
-//   return 1;
-// }
-
-// int COMPOSITE_CTX_add_pkey(COMPOSITE_CTX * comp_ctx, 
-//                            EVP_PKEY      * pkey,
-//                            int             index) {
-
-//   EVP_PKEY_CTX * pkey_ctx = NULL;
-//     // New Context container
-
-//   // Input Check
-//   if (!comp_ctx || !pkey) return 0;
-
-//   if ((pkey_ctx = EVP_PKEY_CTX_new_id(pkey->type, NULL)) == NULL) {
-//     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot Generate a new COMPOSITE CTX");
-//     return 0;
-//   }
-
-//   // Adds the component
-//   if (!COMPOSITE_CTX_add(comp_ctx, pkey_ctx, NULL, index)) {
-//     EVP_PKEY_CTX_free(pkey_ctx);
-//     return 0;
-//   }
-
-//   // Assigns the EVP_PKEY to the CTX
-//   pkey_ctx->pkey = pkey;
-
-//   // All Done
-//   return 1;
-// }
-
-// int COMPOSITE_CTX_push(COMPOSITE_CTX * comp_ctx,
-//                        EVP_PKEY_CTX  * pkey_ctx,
-//                        EVP_MD_CTX    * md_ctx) {
-
-//   // Input Check
-//   if (!comp_ctx || !pkey_ctx) return 0;
-
-//     // Adds the component
-//   if (COMPOSITE_CTX_add(comp_ctx, pkey_ctx, md_ctx,
-//                         COMPOSITE_CTX_num(comp_ctx)) == 0) {
-//     EVP_PKEY_CTX_free(pkey_ctx);
-//     return 0;
-//   }
-//   // All Done
-//   return 1;
-// }
-
-
-// int COMPOSITE_CTX_push_pkey(COMPOSITE_CTX * comp_ctx,
-//                             EVP_PKEY      * pkey) {
-
-//   EVP_PKEY_CTX * pkey_ctx = NULL;
-//     // New Context container
-
-//   // Input Check
-//   if (!comp_ctx || !pkey) return PKI_ERR;
-
-//   // Creates a new EVP_PKEY_CTX
-//   if ((pkey_ctx = EVP_PKEY_CTX_new_id(pkey->type, NULL)) == NULL) {
-//     PKI_DEBUG("ERROR: Cannot Generate a New CTX for key Type %d", pkey->type);
-//     return PKI_ERR;
-//   }
-  
-//   if (!COMPOSITE_CTX_push(comp_ctx, pkey_ctx, NULL)) {
-//     EVP_PKEY_CTX_free(pkey_ctx);
-//     return PKI_ERR;
-//   }
-
-//   // Assigns the EVP_PKEY to the CTX
-//   pkey_ctx->pkey = pkey;
-
-//   // All Done
-//   return PKI_OK;
-
-// }
-
-// int COMPOSITE_CTX_pkey_get0(COMPOSITE_CTX  * comp_ctx,
-//                             EVP_PKEY      ** pkey_ctx,
-//                             int              index) {
-
-//   COMPOSITE_CTX_ITEM * it = COMPOSITE_CTX_value(comp_ctx, index);
-//     // Pointer to the internal structure
-//     // for the CTX of individual keys
-
-//   // Simple validation
-//   if (!it) return PKI_ERR;
-
-//   if (!it->pkey_ctx || !it->pkey_ctx->pkey) return PKI_ERR;
-
-//   *pkey_ctx = it->pkey_ctx->pkey;
-
-//   // All done
-//   return PKI_OK;
-// }
-
-// int COMPOSITE_CTX_get0(COMPOSITE_CTX  * comp_ctx,
-//                        int              index,
-//                        EVP_PKEY_CTX  ** pkey_ctx,
-//                        EVP_MD_CTX    ** md_ctx) {
-
-//   COMPOSITE_CTX_ITEM * it = COMPOSITE_CTX_value(comp_ctx, index);
-//     // Pointer to the internal structure
-//     // for the CTX of individual keys
-
-//   // Simple validation
-//   if (!it) return PKI_ERR;
-
-//   // Copies references
-//   pkey_ctx = &it->pkey_ctx;
-//   md_ctx = &it->md_ctx;
-
-//   // All done
-//   return PKI_OK;
-// }
-
-// int COMPOSITE_CTX_pop(COMPOSITE_CTX * comp_ctx,
-//                       EVP_PKEY_CTX  ** pkey_ctx,
-//                       EVP_MD_CTX    ** md_ctx) {
-
-//   COMPOSITE_CTX_ITEM * it = NULL;
-
-//   int ctx_num = COMPOSITE_CTX_num(comp_ctx);
-
-//   if (ctx_num <= 0) return PKI_ERR;
-
-//   if ((it = COMPOSITE_CTX_get_item(comp_ctx, ctx_num)) == NULL) {
-//     PKI_DEBUG("ERROR: Cannot pop component CTX from composite context");
-//     return PKI_ERR;
-//   }
-
-//   // Copies the references
-//   *pkey_ctx = it->pkey_ctx;
-//   *md_ctx = it->md_ctx;
-
-//   // Transfers Ownership
-//   it->pkey_ctx = NULL;
-//   it->md_ctx = NULL;
-
-//   // Free the item memory
-//   COMPOSITE_CTX_ITEM_free(it);
-
-//   // All done
-//   return PKI_OK;
-// }
-
 // =======================
 // COMPOSITE_KEY Functions
 // =======================
@@ -641,7 +417,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
   STACK_OF(ASN1_TYPE) *sk = NULL;
     // Stack of ASN1_OCTET_STRINGs
 
-  ASN1_OCTET_STRING * oct_string = NULL;
+  ASN1_BIT_STRING * bit_string = NULL;
     // Output Signature to be added
     // to the stack of signatures
 
@@ -739,7 +515,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     PKI_DEBUG("Generated Signature for Component #%d Successfully (size: %d)", idx, buff_len);
     PKI_DEBUG("Signature Total Size [So Far] ... %d", total_size);
 
-    if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
+    if ((bit_string = ASN1_BIT_STRING_new()) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 
                 "Cannot allocate the wrapping OCTET STRING for signature's %d component",
                 idx);
@@ -747,7 +523,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // This sets the internal pointers
-    ASN1_STRING_set0(oct_string, pnt, buff_len);
+    ASN1_STRING_set0(bit_string, pnt, buff_len);
     pnt = NULL; buff_len = 0;
 
     // Resets the pointer and length after ownership transfer
@@ -760,8 +536,8 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // Transfer Ownership to the aType structure
-    ASN1_TYPE_set(aType, V_ASN1_OCTET_STRING, oct_string);
-    oct_string = NULL;
+    ASN1_TYPE_set(aType, V_ASN1_BIT_STRING, bit_string);
+    bit_string = NULL;
 
     // Adds the component to the stack
     if (!sk_ASN1_TYPE_push(sk, aType)) {
@@ -796,7 +572,7 @@ err:
 
   // Free allocated memory
   if (md_ctx) EVP_MD_CTX_free(md_ctx);
-  if (oct_string) ASN1_OCTET_STRING_free(oct_string);
+  if (bit_string) ASN1_OCTET_STRING_free(bit_string);
   if (buff && buff_len) PKI_ZFree(buff, (size_t) buff_len);
   if (pkey_ctx) {
     pkey_ctx->pkey = NULL;
@@ -844,8 +620,8 @@ static int verify(EVP_PKEY_CTX        * ctx,
   int comp_key_num = 0;
     // Number of components
 
-  ASN1_OCTET_STRING aOctetStr;
-    // Temp Octet Pointer
+  ASN1_BIT_STRING aBitStr;
+    // Temp Bit String
 
   EVP_PKEY_CTX * pkey_ctx = NULL;
   EVP_PKEY * evp_pkey = NULL;
@@ -860,14 +636,14 @@ static int verify(EVP_PKEY_CTX        * ctx,
 
   // Let's use the aOctetStr to avoid the internal
   // p8 pointers to be modified
-  aOctetStr.data = (unsigned char *)sig;
-  aOctetStr.length = (int) siglen;
+  aBitStr.data = (unsigned char *)sig;
+  aBitStr.length = (int) siglen;
 
   // Gets the Sequence from the data itself, error if
   // it is not a sequence of ASN1_OCTET_STRING
   if ((sk = d2i_ASN1_SEQUENCE_ANY(NULL, 
-                                  (const unsigned char **)&aOctetStr.data,
-                                  aOctetStr.length)) <= 0) {
+                                  (const unsigned char **)&aBitStr.data,
+                                  aBitStr.length)) <= 0) {
     PKI_ERROR(PKI_ERR_GENERAL, "Cannot decode the composite signature.");
     return 0;
   }
@@ -893,7 +669,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
     }
 
     // Checks we got the right type
-    if ((aType->type != V_ASN1_OCTET_STRING) || (aType->value.sequence == NULL)) {
+    if ((aType->type != V_ASN1_BIT_STRING) || (aType->value.sequence == NULL)) {
       PKI_DEBUG("Decoding error on signature component #%d (type: %d, value: %p)", 
         i, aType->type, aType->value.sequence);
       return 0;
