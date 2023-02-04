@@ -924,9 +924,9 @@ static int verify(EVP_PKEY_CTX        * ctx,
     // Verifies the individual signature
     ret_code = EVP_PKEY_verify(pkey_ctx, 
                                aType->value.sequence->data,
-                               aType->value.sequence->length,
+                               (size_t)aType->value.sequence->length,
                                tbs,
-                               tbslen);
+                               (size_t)tbslen);
     
     // Checks the results of the verify
     if (ret_code != 1) {
@@ -1274,213 +1274,213 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
   return 1;
 }
 
-// Not Implemented
-static int ctrl_str(EVP_PKEY_CTX *ctx, const char *type, const char *value) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int ctrl_str(EVP_PKEY_CTX *ctx, const char *type, const char *value) {
+//   DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
 // ===================
 // OpenSSL 1.1.x+ Only
 // ===================
 
-// Implemented
-static int digestsign(EVP_MD_CTX          * ctx,
-                      unsigned char       * sig,
-                      size_t              * siglen,
-                      const unsigned char * tbs,
-                      size_t                tbslen) {
+// // Implemented
+// static int digestsign(EVP_MD_CTX          * ctx,
+//                       unsigned char       * sig,
+//                       size_t              * siglen,
+//                       const unsigned char * tbs,
+//                       size_t                tbslen) {
   
-  PKI_DEBUG("Not Implemented, yet.");
+//   PKI_DEBUG("Not Implemented, yet.");
 
-  // return sign(ctx, sig, siglen, tbs, tbslen);
+//   // return sign(ctx, sig, siglen, tbs, tbslen);
 
-  return 0;
-  /*
-  COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
-    // Pointer to inner key structure
+//   return 0;
+//   /*
+//   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+//     // Pointer to inner key structure
 
-  COMPOSITE_CTX * comp_ctx = ctx->data;
-    // Pointer to algorithm specific CTX
+//   COMPOSITE_CTX * comp_ctx = ctx->data;
+//     // Pointer to algorithm specific CTX
 
-  const int signature_size = EVP_PKEY_size(ctx->pkey);
-    // The total signature size
+//   const int signature_size = EVP_PKEY_size(ctx->pkey);
+//     // The total signature size
 
-  STACK_OF(ASN1_TYPE) *sk = NULL;
-    // Stack of ASN1_OCTET_STRINGs
+//   STACK_OF(ASN1_TYPE) *sk = NULL;
+//     // Stack of ASN1_OCTET_STRINGs
 
-  ASN1_OCTET_STRING * oct_string = NULL;
-    // Output Signature to be added
-    // to the stack of signatures
+//   ASN1_OCTET_STRING * oct_string = NULL;
+//     // Output Signature to be added
+//     // to the stack of signatures
 
-  ASN1_TYPE * aType = NULL;
-    // ASN1 generic wrapper
+//   ASN1_TYPE * aType = NULL;
+//     // ASN1 generic wrapper
 
-  int comp_key_num = 0;
-    // Number of components
+//   int comp_key_num = 0;
+//     // Number of components
 
-  unsigned char * buff = NULL;
-  unsigned char * pnt  = NULL;
-  int buff_len =  0;
-    // Temp Pointers
+//   unsigned char * buff = NULL;
+//   unsigned char * pnt  = NULL;
+//   int buff_len =  0;
+//     // Temp Pointers
 
-  int total_size = 0;
-    // Total Signature Size
+//   int total_size = 0;
+//     // Total Signature Size
 
-  if ((comp_key == NULL) || 
-      ((comp_key_num = COMPOSITE_KEY_num(comp_key)) <= 0)) {
-    DEBUG("ERROR: Cannot get the Composite key inner structure");
-    return 0;
-  }
+//   if ((comp_key == NULL) || 
+//       ((comp_key_num = COMPOSITE_KEY_num(comp_key)) <= 0)) {
+//     DEBUG("ERROR: Cannot get the Composite key inner structure");
+//     return 0;
+//   }
 
-  if (sig == NULL) {
-    *siglen = (size_t)signature_size;
-    return 1;
-  }
+//   if (sig == NULL) {
+//     *siglen = (size_t)signature_size;
+//     return 1;
+//   }
 
-  if ((size_t)signature_size > (*siglen)) {
-    DEBUG("ERROR: Buffer is too small");
-    return 0;
-  }
+//   if ((size_t)signature_size > (*siglen)) {
+//     DEBUG("ERROR: Buffer is too small");
+//     return 0;
+//   }
 
-  if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
-    DEBUG("ERROR: Memory Allocation");
-    return 0;
-  }
+//   if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
+//     DEBUG("ERROR: Memory Allocation");
+//     return 0;
+//   }
 
-  for (int i = 0; i < comp_key_num; i++) {
+//   for (int i = 0; i < comp_key_num; i++) {
 
-    EVP_PKEY_CTX * pkey_ctx = NULL;
+//     EVP_PKEY_CTX * pkey_ctx = NULL;
 
-    EVP_MD_CTX * md_ctx = NULL;
+//     EVP_MD_CTX * md_ctx = NULL;
 
-    if (!COMPOSITE_CTX_get0(comp_ctx, i, &pkey_ctx, &md_ctx)) {
-      DEBUG("ERROR: Cannot get %d-th component from CTX", i);
-      return 0;
-    }
+//     if (!COMPOSITE_CTX_get0(comp_ctx, i, &pkey_ctx, &md_ctx)) {
+//       DEBUG("ERROR: Cannot get %d-th component from CTX", i);
+//       return 0;
+//     }
 
-    DEBUG("Determining Signature Size for Component #%d", i);
+//     DEBUG("Determining Signature Size for Component #%d", i);
 
-    // Let's get the size of the single signature
-    if (EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen) != 1) {
-      DEBUG("ERROR: Null Size reported from Key Component #%d", i);
-      goto err;
-    }
+//     // Let's get the size of the single signature
+//     if (EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen) != 1) {
+//       DEBUG("ERROR: Null Size reported from Key Component #%d", i);
+//       goto err;
+//     }
 
-    // Allocate the buffer for the single signature
-    if ((pnt = buff = OPENSSL_malloc(buff_len)) == NULL) {
-      DEBUG("ERROR: Memory Allocation");
-      goto err;
-    }
+//     // Allocate the buffer for the single signature
+//     if ((pnt = buff = OPENSSL_malloc(buff_len)) == NULL) {
+//       DEBUG("ERROR: Memory Allocation");
+//       goto err;
+//     }
 
-    DEBUG("PNT = %p, BUFF = %p", pnt, buff);
+//     DEBUG("PNT = %p, BUFF = %p", pnt, buff);
 
-    // Generates the single signature
-    if (EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen) != 1) {
-      DEBUG("ERROR: Component #%d cannot generate signatures", i);
-      goto err;
-    }
+//     // Generates the single signature
+//     if (EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen) != 1) {
+//       DEBUG("ERROR: Component #%d cannot generate signatures", i);
+//       goto err;
+//     }
 
-    DEBUG("PNT = %p, BUFF = %p", pnt, buff);
+//     DEBUG("PNT = %p, BUFF = %p", pnt, buff);
 
-    // Updates the overall real size
-    total_size += buff_len;
+//     // Updates the overall real size
+//     total_size += buff_len;
 
-    DEBUG("Generated Signature for Component #%d Successfully (size: %d)", i, buff_len);
-    DEBUG("Signature Total Size [So Far] ... %d", total_size);
+//     DEBUG("Generated Signature for Component #%d Successfully (size: %d)", i, buff_len);
+//     DEBUG("Signature Total Size [So Far] ... %d", total_size);
 
-    if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
-      DEBUG("ERROR: Memory Allocation");
-      goto err;
-    }
+//     if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
+//       DEBUG("ERROR: Memory Allocation");
+//       goto err;
+//     }
 
-    // This sets the internal pointers
-    ASN1_STRING_set0(oct_string, buff, buff_len);
+//     // This sets the internal pointers
+//     ASN1_STRING_set0(oct_string, buff, buff_len);
 
-    // Resets the pointer and length after ownership transfer
-    buff = NULL; buff_len = 0;
+//     // Resets the pointer and length after ownership transfer
+//     buff = NULL; buff_len = 0;
 
-    // Let's now generate the ASN1_TYPE and add it to the stack
-    if ((aType = ASN1_TYPE_new()) == NULL) {
-      DEBUG("ERROR: Memory Allocation");
-      goto err;
-    }
+//     // Let's now generate the ASN1_TYPE and add it to the stack
+//     if ((aType = ASN1_TYPE_new()) == NULL) {
+//       DEBUG("ERROR: Memory Allocation");
+//       goto err;
+//     }
 
-    // Transfer Ownership to the aType structure
-    ASN1_TYPE_set(aType, V_ASN1_OCTET_STRING, oct_string);
-    oct_string = NULL;
+//     // Transfer Ownership to the aType structure
+//     ASN1_TYPE_set(aType, V_ASN1_OCTET_STRING, oct_string);
+//     oct_string = NULL;
 
-    // Adds the component to the stack
-    if (!sk_ASN1_TYPE_push(sk, aType)) {
-      DEBUG("ERROR: Cannot push the new Type");
-      goto err;
-    }
+//     // Adds the component to the stack
+//     if (!sk_ASN1_TYPE_push(sk, aType)) {
+//       DEBUG("ERROR: Cannot push the new Type");
+//       goto err;
+//     }
 
-    // Transfers ownership
-    aType = NULL;
-  }
+//     // Transfers ownership
+//     aType = NULL;
+//   }
 
-  if ((buff_len = i2d_ASN1_SEQUENCE_ANY(sk, &buff)) <= 0) {
-    DEBUG("ERROR: Cannot ASN1 encode the Overall Composite Key");
-    goto err;
-  }
+//   if ((buff_len = i2d_ASN1_SEQUENCE_ANY(sk, &buff)) <= 0) {
+//     DEBUG("ERROR: Cannot ASN1 encode the Overall Composite Key");
+//     goto err;
+//   }
 
-  // Reporting the total size
-  DEBUG("Total Signature Size: %d (reported: %d)", total_size, EVP_PKEY_size(ctx->pkey))
+//   // Reporting the total size
+//   DEBUG("Total Signature Size: %d (reported: %d)", total_size, EVP_PKEY_size(ctx->pkey))
 
-  // Free the stack's memory
-  while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
-    ASN1_TYPE_free(aType);
-  }
-  sk_ASN1_TYPE_free(sk);
-  sk = NULL;
+//   // Free the stack's memory
+//   while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
+//     ASN1_TYPE_free(aType);
+//   }
+//   sk_ASN1_TYPE_free(sk);
+//   sk = NULL;
 
-  // Sets the output buffer
-  sig = buff;
-  *siglen = buff_len;
+//   // Sets the output buffer
+//   sig = buff;
+//   *siglen = buff_len;
 
-  // All Done
-  return 1;
+//   // All Done
+//   return 1;
 
-err:
+// err:
 
-  DEBUG("ERROR: Signing failed");
+//   DEBUG("ERROR: Signing failed");
 
-  // Here we need to cleanup the memory
+//   // Here we need to cleanup the memory
 
-  return 0;
-  */
-}
+//   return 0;
+//   */
+// }
 
-// Implemented
-static int digestverify(EVP_MD_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Implemented
+// static int digestverify(EVP_MD_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-static int check(EVP_PKEY *pkey) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int check(EVP_PKEY *pkey) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-static int public_check(EVP_PKEY *pkey) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int public_check(EVP_PKEY *pkey) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-static int param_check(EVP_PKEY *pkey) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// static int param_check(EVP_PKEY *pkey) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-static int digest_custom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
-  PKI_DEBUG("Not implemented, yet. Returning Ok anyway.");
-  return 1;
-}
+// // Not Implemented
+// static int digest_custom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
+//   PKI_DEBUG("Not implemented, yet. Returning Ok anyway.");
+//   return 1;
+// }
 
 // ======================
 // PKEY Method Definition
@@ -1530,13 +1530,13 @@ EVP_PKEY_METHOD composite_pkey_meth = {
     0,              // derive_init,    // int (*derive_init) (EVP_PKEY_CTX *ctx);
     0,              // derive,         // int (*derive) (EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen);
     ctrl,           // int (*ctrl) (EVP_PKEY_CTX *ctx, int type, int p1, void *p2);
-    ctrl_str,       // int (*ctrl_str) (EVP_PKEY_CTX *ctx, const char *type, const char *value);
+    0,              // int (*ctrl_str) (EVP_PKEY_CTX *ctx, const char *type, const char *value);
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
     // These are only available on OpenSSL v1.1.X+ //
     0, // digestsign,     // int (*digestsign) (EVP_MD_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen);
     0, // digestverify,   // int (*digestverify) (EVP_MD_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen);
-    check,          // int (*check) (EVP_PKEY *pkey);
-    public_check,   // int (*public_check) (EVP_PKEY *pkey);
+    0,                    // int (*check) (EVP_PKEY *pkey);
+    0,                    // int (*public_check) (EVP_PKEY *pkey);
     0, // param_check,    // int (*param_check) (EVP_PKEY *pkey);
     0, // digest_custom   // int (*digest_custom) (EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx);
 #endif
