@@ -61,14 +61,20 @@ PKI_OID_STACK * search_oid(const char * filter) {
 	PKI_OID_STACK * ret_sk = NULL;
 	PKI_OID * oid_pnt = NULL;
 
-	// Upper Bound
-	const int OID_UPPER_BOUND_MAX = 65535;
+	int filter_len = 0;
+		// Length of the filter string
 
-	// Buffer for text
+	const int OID_UPPER_BOUND_MAX = 65535;
+		// Upper Bound
+
 	char buffer[512] = { 0x0 };
+		// Buffer for text
 
 	// Memory Allocation
 	if ((ret_sk = PKI_STACK_OID_new()) == NULL) return NULL;
+
+	// Let's get the filter's length
+	filter_len = (int) strlen(filter);
 
 	// Search through all the OIDs
 	for (int idx = 1; idx < OID_UPPER_BOUND_MAX; idx++) {
@@ -76,10 +82,22 @@ PKI_OID_STACK * search_oid(const char * filter) {
 		// Get the idx-th entry in the table
 		if ((oid_pnt = OBJ_nid2obj(idx)) == NULL) continue;
 
+		// Checks the "short" name string
+		if (snprintf(buffer, sizeof(buffer), "%s", OBJ_nid2sn(OBJ_obj2nid(oid_pnt))) > 0) {
+			// Checks the length, if smaller than the filter, skip it
+			if (strnlen(buffer, sizeof(buffer)) >= filter_len &&
+			    	strncmp_nocase(buffer, filter, (int)strlen(filter)) == 0) {
+				// Here we should have a match, let's add it to the queue
+				PKI_STACK_OID_push(ret_sk, oid_pnt);
+				continue;
+			}
+		}
+
 		// Checks the Name
 		if (OBJ_obj2txt(buffer, sizeof(buffer), oid_pnt, 0)) {
-			// Compares the name and continues if no match
-			if (strncmp_nocase(buffer, filter, (int)strlen(filter)) == 0) {
+			// Checks the length, if smaller than the filter, skip it
+			if (strnlen(buffer, sizeof(buffer)) >= filter_len &&
+					strncmp_nocase(buffer, filter, (int)strlen(filter)) == 0) {
 				// Here we should have a match, let's add it to the queue
 				PKI_STACK_OID_push(ret_sk, oid_pnt);
 				continue;
@@ -88,8 +106,9 @@ PKI_OID_STACK * search_oid(const char * filter) {
 
 		// Checks the OID representation
 		if (OBJ_obj2txt(buffer, sizeof(buffer), oid_pnt, 1)) {
-			// Compares the OID and continues if not match
-			if (strncmp_nocase(buffer, filter, (int)strlen(buffer)) == 0) {
+			// Checks the length, if smaller than the filter, skip it
+			if (strnlen(buffer, sizeof(buffer)) >= filter_len &&
+					strncmp_nocase(buffer, filter, (int)strlen(buffer)) == 0) {
 				// Here we should have a match, let's add it to the queue
 				PKI_STACK_OID_push(ret_sk, oid_pnt);
 				continue;
@@ -108,21 +127,28 @@ void print_oid_info (const PKI_OID * oid, const int idx) {
 
 	char buff[256];
 
-	printf("  - [%d] ", idx);
+	// printf("  - [%3.3d]", idx + 1);
+	printf("  - ");
 
 	if (!OBJ_obj2txt(buff, sizeof(buff), oid, 0)) {
-		printf("<ERROR::Cannot Retrieve OID name>");
+		printf(" <ERROR::Cannot Retrieve OID name>");
 	} else {
-		printf("%s: ", buff);
+		printf(" %s", buff);
+	}
+
+	if (snprintf(buff, sizeof(buff), "%s", OBJ_nid2sn(OBJ_obj2nid(oid))) <= 0) {
+		printf(" (<ERROR: Cannot Retrieve the short name) ");
+	} else {
+		printf(" (ID: %s,", buff);
 	}
 
 	if (!OBJ_obj2txt(buff, sizeof(buff), oid, 1)) {
-		printf("<ERROR: Cannot Retrieve the Dotted Notation> ");
+		printf(" <ERROR: Cannot Retrieve the Dotted Notation>\n");
 	} else {
-		printf("%s ", buff);
+		printf(" OID: %s,", buff);
 	}
 
-	printf("(OpenSSL NID: %d)\n", OBJ_obj2nid(oid));
+	printf(" NID: %d)\n", OBJ_obj2nid(oid));
 }
 
 void print_oid_stack(PKI_OID_STACK * oid_sk) {
