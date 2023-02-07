@@ -91,7 +91,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			} break;
 
 			case PKI_SCHEME_DILITHIUMX3: {
-				kp->bits = 128;
+				kp->bits = 192;
 			} break;
 
 #endif // ENABLE OQS
@@ -205,7 +205,10 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 # ifdef ENABLE_COMPOSITE
 			// Post Quantum Cryptography - Composite Crypto
 			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
-			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
+			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
+				kp->bits = 192;
+			} break;
+
 			case PKI_SCHEME_COMPOSITE_FALCON512_P256:
 			case PKI_SCHEME_COMPOSITE_FALCON512_ED25519:
 			case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
@@ -470,20 +473,16 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
 		case PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256:
 		case PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519: {
-			if (bits > 128) {
-				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
-					"Only 128 sec bits supported by this scheme.");
+			if (bits > 192) {
+				PKI_DEBUG("Only 128 sec bits supported by this scheme (%d).", kp->scheme);
+				return PKI_ERR;
 			}
-			kp->bits = 128;
+			kp->bits = 192;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_DILITHIUM5_P384:
 		case PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384:
 		case PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448: {
-			if (bits < 256) {
-				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
-					"Only 256 sec bits supported by this scheme.");
-			}
 			kp->bits = 256;
 		} break;
 
@@ -503,10 +502,6 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
 		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
-			if (bits < 256) {
-				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
-					"Only 256 sec bits supported by this scheme.");
-			}
 			kp->bits = 256;
 		} break;
 
@@ -631,8 +626,6 @@ int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 /*! \brief Sets the bits size for key generation */
 int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
-	PKI_DEBUG("Adding a Key To Composite Key...");
-
 	int add_key_id = -1;
 	int last_key_id = -1;
 	int next_required_id = -1;
@@ -659,10 +652,6 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 			"Missing Type for the new key component");
 	}
 	
-	// Debugging Info
-	PKI_DEBUG("PKI_KEYPARAMS: Adding New Key (Key Scheme: %d, New Key Type: %d)",
-		kp->scheme, add_key_id);
-
 	// Let's check if we have any key in the stack already
 	if ((key_sk_elements = PKI_STACK_X509_KEYPAIR_elements(key_sk)) > 0) {
 
@@ -672,17 +661,14 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		// Let's get the ID from the latest key on the stack
 		evp_pkey = PKI_X509_get_value(PKI_STACK_X509_KEYPAIR_get_num(key_sk, key_sk_elements - 1));
 		if (!evp_pkey) {
-			return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
-				"Cannot verify the type of key component #%d", key_sk_elements);
+			PKI_DEBUG("Cannot verify the type of key component #%d", key_sk_elements);
+			return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
 		}
 
 		// Gets the Last Key's ID
 		last_key_id = EVP_PKEY_id(evp_pkey);
 	}
 
-	// Debugging Info
-	PKI_DEBUG("Last Key ID: %d", last_key_id);
-	
 	// Checks ID requirements (explicit composite only)	
 	switch (kp->scheme) {
 
@@ -864,8 +850,8 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
 	// Checks we have a good stack
 	if (PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key) <= 0) {
-		return PKI_ERROR(PKI_ERR_GENERAL, 
-			"Error while adding a component key to a composite one");
+		PKI_DEBUG("Cannot add a component key to the composite one");
+		return PKI_ERR;
 	}
 
 	// All Done

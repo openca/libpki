@@ -321,19 +321,23 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	// Let's now generate the new key parameters
 	if ((kp = PKI_KEYPARAMS_new(scheme, prof)) == NULL)
 	{
-		fprintf(stderr, "ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme);
+		fprintf(stderr, "\n    ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme);
 		exit(1);
 	}
 
 	// Updates the bits
 	if (bits <= 0 && kp->bits > 0) bits = kp->bits;
 
+	// Checks that the bits value is not negative (at least!)
+	if (PKI_KEYPARAMS_set_bits(kp, bits) != PKI_OK) {
+		fprintf(stderr, "\n    ERROR, requested security bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
+			bits, PKI_SCHEME_ID_get_parsed(scheme), kp->bits);
+		exit(1);
+	}
+
 #ifdef ENABLE_OQS
 	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme, bits);
 #endif
-
-	// Checks that the bits value is not negative (at least!)
-	PKI_KEYPARAMS_set_bits(kp, bits);
 
 	// Checks for Parameters for Key Generation
 	if (param_s != NULL) {
@@ -434,11 +438,19 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #ifdef ENABLE_COMPOSITE
 
 	if (kp->scheme == PKI_SCHEME_COMPOSITE
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_RSA
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
 #ifdef ENABLE_COMBINED
