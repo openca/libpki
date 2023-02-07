@@ -24,6 +24,11 @@ int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
   PKI_ID composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_NAME);
     // Composite ID
 
+  PKI_DEBUG("Composite_ID: %d", composite_id);
+
+  PKI_DEBUG("COMPOSITE: Assign Key of Type (Id: %d - %s)", 
+      EVP_PKEY_id(pkey), OBJ_nid2sn(EVP_PKEY_id(pkey)));
+
   // Checks that the crypto library understands the composite
   // algorithm (dynamic)
   if (composite_id == NID_undef) {

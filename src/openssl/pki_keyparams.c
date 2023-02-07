@@ -465,41 +465,86 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		// Explicit Composite Combinations
 		// ===============================
 
+		// Explicit Composite Crypto Schemes
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519: {
+			if (bits > 128) {
+				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
+					"Only 128 sec bits supported by this scheme.");
+			}
+			kp->bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_P384:
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384:
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448: {
+			if (bits < 256) {
+				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
+					"Only 256 sec bits supported by this scheme.");
+			}
+			kp->bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_FALCON512_P256:
+		case PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_FALCON512_ED25519:
+		case PKI_SCHEME_COMPOSITE_SPHINCS256_P256:
+		case PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519:		
 		case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
-			// Unfortunately we do not have many
-			// options in terms of composite, we might
-			// need to enable more on liboqs
-			// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512;
-			kp->oqs.algId = OBJ_txt2nid("FALCON512-RSA");
+			if (bits > 128) {
+				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
+					"Only 128 sec bits supported by this scheme.");
+			}
 			kp->bits = 128;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
-			// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512;
-			kp->oqs.algId = OBJ_txt2nid("FALCON512-P256");
-			kp->bits = 128;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
-			// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2;
-			kp->oqs.algId = OBJ_txt2nid("DILITHIUM3-P256");
-			kp->bits = 128;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
-			kp->oqs.algId = OBJ_txt2nid("DILITHIUM3-RSA");
-			kp->bits = 128;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521: {
-			kp->oqs.algId = OBJ_txt2nid("DILITHIUM5-FALCON1024-P521");
-			kp->bits = 128;
-		} break;
-
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
 		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
-			kp->oqs.algId = OBJ_txt2nid("DILITHIUM5-FALCON1024-RSA");
-			kp->bits = 128;
+			if (bits < 256) {
+				return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
+					"Only 256 sec bits supported by this scheme.");
+			}
+			kp->bits = 256;
 		} break;
+
+		// case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
+		// 	// Unfortunately we do not have many
+		// 	// options in terms of composite, we might
+		// 	// need to enable more on liboqs
+		// 	// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512;
+		// 	kp->oqs.algId = OBJ_txt2nid("FALCON512-RSA");
+		// 	kp->bits = 128;
+		// } break;
+
+		// case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
+		// 	// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512;
+		// 	kp->oqs.algId = OBJ_txt2nid("FALCON512-P256");
+		// 	kp->bits = 128;
+		// } break;
+
+		// case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
+		// 	// kp->oqs.algId = PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2;
+		// 	kp->oqs.algId = OBJ_txt2nid("DILITHIUM3-P256");
+		// 	kp->bits = 128;
+		// } break;
+
+		// case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
+		// 	kp->oqs.algId = OBJ_txt2nid("DILITHIUM3-RSA");
+		// 	kp->bits = 128;
+		// } break;
+
+		// case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521: {
+		// 	kp->oqs.algId = OBJ_txt2nid("DILITHIUM5-FALCON1024-P521");
+		// 	kp->bits = 128;
+		// } break;
+
+		// case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+		// 	kp->oqs.algId = OBJ_txt2nid("DILITHIUM5-FALCON1024-RSA");
+		// 	kp->bits = 128;
+		// } break;
 
 # endif // ENABLE_COMPOSITE
 #endif // ENABLE_OQS
@@ -540,11 +585,11 @@ int PKI_KEYPARAMS_set_oqs(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
 					"Dilithium only supports the AES parameter");
 			};
 			if (kp->bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2_AES;
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
 			} else if (kp->bits <= 192) {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3_AES;
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
 			} else {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5_AES;
+				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5;
 			}
 		} break;
 
@@ -588,35 +633,240 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
 	PKI_DEBUG("Adding a Key To Composite Key...");
 
-	// Input Checks
-	if (!kp || !kp->comp.k_stack) 
-		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	int add_key_id = -1;
+	int last_key_id = -1;
+	int next_required_id = -1;
+		// Adding, Last, and Next Key Types
 
-#ifdef ENABLE_COMPOSITE
-		if (   kp->scheme != PKI_SCHEME_COMPOSITE
-		    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
-			&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
-			&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_P256
-			&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_RSA
-			&& kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-			&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
-			&& kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
-# ifdef ENABLE_COMBINED
-			&& kp->scheme != PKI_SCHEME_COMBINED
-# endif
-												) {
-			return PKI_ERROR(PKI_ERR_GENERAL, 
-				"Error while adding keys to non-composite scheme");
+	int key_sk_elements = 0;
+		// Number of components for the key
+
+	PKI_X509_KEYPAIR_STACK * key_sk = NULL;
+		// Pointer to the stack of components for the key
+
+	// Input Checks
+	if (!kp || !kp->comp.k_stack) {
+		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	}
+
+	// Let's set the key stack
+	key_sk = kp->comp.k_stack;
+
+	// Let's get the ID for the that is being added
+	add_key_id = EVP_PKEY_id((EVP_PKEY *)key->value);
+	if (add_key_id <= NID_undef) {
+		return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
+			"Missing Type for the new key component");
+	}
+	
+	// Debugging Info
+	PKI_DEBUG("PKI_KEYPARAMS: Adding New Key (Key Scheme: %d, New Key Type: %d)",
+		kp->scheme, add_key_id);
+
+	// Let's check if we have any key in the stack already
+	if ((key_sk_elements = PKI_STACK_X509_KEYPAIR_elements(key_sk)) > 0) {
+
+		const PKI_X509_KEYPAIR_VALUE * evp_pkey;
+			// Pointer to the OSSL key pointer
+	
+		// Let's get the ID from the latest key on the stack
+		evp_pkey = PKI_X509_get_value(PKI_STACK_X509_KEYPAIR_get_num(key_sk, key_sk_elements - 1));
+		if (!evp_pkey) {
+			return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
+				"Cannot verify the type of key component #%d", key_sk_elements);
 		}
-#endif
+
+		// Gets the Last Key's ID
+		last_key_id = EVP_PKEY_id(evp_pkey);
+	}
+
+	// Debugging Info
+	PKI_DEBUG("Last Key ID: %d", last_key_id);
+	
+	// Checks ID requirements (explicit composite only)	
+	switch (kp->scheme) {
+
+		case PKI_SCHEME_COMPOSITE: {
+			next_required_id = 0; // No Required ID (any can work)
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
+
+			// NID_dilithium3
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium3;
+			// NID_rsaEncryption
+			} else if (last_key_id == NID_dilithium3) {
+				next_required_id = NID_rsaEncryption;
+			}
+			
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256: {
+			// NID_dilithium3
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium3;
+			// NID_brainpoolP256r1
+			} else if (last_key_id == NID_dilithium3) {
+				next_required_id = NID_brainpoolP256r1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519: {
+			// NID_dilithium3
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium3;
+			// NID_secp256v1
+			} else if (last_key_id == NID_dilithium3) {
+				next_required_id = NID_ED25519;
+				next_required_id = NID_X9_62_prime256v1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_P384: {
+			// NID_dilithium5
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium5;
+			// NID_secp384r1
+			} else if (last_key_id == NID_dilithium5) {
+				next_required_id = NID_secp384r1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384: {
+			// NID_dilithium5
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium5;
+			// NID_brainpoolP384r1
+			} else if (last_key_id == NID_dilithium5) {
+				next_required_id = NID_brainpoolP384r1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448: {
+			// NID_dilithium5
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium5;
+			// NID_ED448
+			} else if (last_key_id == NID_dilithium5) {
+				next_required_id = NID_ED448;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
+			// NID_falcon512
+			if (last_key_id <= 0) {
+				next_required_id = NID_falcon512;
+			// NID_X9_62_prime256v1
+			} else if (last_key_id == NID_falcon512) {
+				next_required_id = NID_X9_62_prime256v1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256: {
+			// NID_falcon512
+			if (last_key_id <= 0) {
+				next_required_id = NID_falcon512;
+			// NID_brainpoolP256r1
+			} else if (last_key_id == NID_falcon512) {
+				next_required_id = NID_brainpoolP256r1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_FALCON512_ED25519: {
+			// NID_falcon512
+			if (last_key_id <= 0) {
+				next_required_id = NID_falcon512;
+			// NID_ED25519
+			} else if (last_key_id == NID_falcon512) {
+				next_required_id = NID_ED25519;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_SPHINCS256_P256: {
+			// NID_sphincssha256128frobust
+			if (last_key_id <= 0) {
+				next_required_id = NID_sphincssha256128frobust;
+			// NID_prime256v1
+			} else if (last_key_id == NID_sphincssha256128frobust) {
+				next_required_id = NID_X9_62_prime256v1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256: {
+			// NID_sphincssha256128frobust
+			if (last_key_id <= 0) {
+				next_required_id = NID_sphincssha256128frobust;
+			// NID_brainpoolP256r1
+			} else if (last_key_id == NID_sphincssha256128frobust) {
+				next_required_id = NID_brainpoolP256r1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519: {
+			// NID_sphincssha256128frobust
+			if (last_key_id <= 0) {
+				next_required_id = NID_sphincssha256128frobust;
+			// NID_ED25519
+			} else if (last_key_id == NID_sphincssha256128frobust) {
+				next_required_id = NID_ED25519;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
+			// NID_falcon512
+			if (last_key_id <= 0) {
+				next_required_id = NID_falcon512;
+			// NID_rsaEncryption
+			} else if (last_key_id == NID_falcon512) {
+				next_required_id = NID_rsaEncryption;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521: {
+			// NID_dilithium5
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium5;
+			// NID_falcon1024
+			} else if (last_key_id == NID_dilithium5) {
+				next_required_id = NID_falcon1024;
+			// NID_secp521r1
+			} else if (last_key_id == NID_falcon1024) {
+				next_required_id = NID_secp521r1;
+			}
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+			// NID_dilithium5
+			if (last_key_id <= 0) {
+				next_required_id = NID_dilithium5;
+			// NID_falcon1024
+			} else if (last_key_id == NID_dilithium5) {
+				next_required_id = NID_falcon1024;
+			// NID_rsaEncryption
+			} else if (last_key_id == NID_falcon1024) {
+				next_required_id = NID_rsaEncryption;
+			}
+		} break;
+
+		default: {
+			// Not Handled
+			next_required_id = -1;
+		}
+
+	} 
+
+	if (next_required_id > 0 && next_required_id != add_key_id) {
+		PKI_DEBUG("Key type (%d) is not the right one (expected: %d)",
+				add_key_id, next_required_id);
+		return PKI_ERR;
+	}
 
 	// Checks we have a good stack
 	if (PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key) <= 0) {
 		return PKI_ERROR(PKI_ERR_GENERAL, 
 			"Error while adding a component key to a composite one");
 	}
-
-	PKI_DEBUG("Key Added Successfully.");
 
 	// All Done
 	return PKI_OK;

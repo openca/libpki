@@ -1,3 +1,6 @@
+* Feb  6 2023 Massimiliano Pala <madwolf@openca.org>
+- Aligned OID usage with IETF/Hackathon repo (https://github.com/IETF-Hackathon/pqc-certificates/blob/master/docs/oid_mapping.md)
+
 * Feb  3 2023 Massimiliano Pala <madwolf@openca.org>
 - Fixed signature generation for Composite by removing the double hashing
 - Added signature verify for Composite by completing the verify() in composite_pmeth.c
