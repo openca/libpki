@@ -357,16 +357,12 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 
 	// Address the dynamic methods
 #ifdef ENABLE_COMPOSITE
-	if (algId <= NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
-		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_COMP_SHA512_OID);
-	}
-#endif
 
-#ifdef ENABLE_COMBINED
-	if (algId == NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
-		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_ALT_SHA512_OID);
+	if (algId <= NID_undef) {
+		if (algId <= NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+			algId = OBJ_txt2nid(OPENCA_ALG_SIGS_COMP_SHA512_OID);
+		}
 	}
-#endif
 
 	// Checks for the Explicit Composite Crypto combinations
 	if (algId <= NID_undef && (
@@ -396,13 +392,30 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 		// (no hash support for now for explicit)
 		algId = p_type;
 	}
+#endif
 
+#ifdef ENABLE_COMBINED
+	if (algId == NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_ALT_SHA512_OID);
+	}
+#endif
+
+	// Experimental - Native PQC implementation
+	if (algId <= 0) {
+		if (p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID)) {
+			algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID);
+		}
+	}
+
+	// Final checks
 	if( algId > 0 ) {
 		ret = PKI_X509_ALGOR_VALUE_get(algId);
 	} else {
 		PKI_DEBUG("Algorithm not found in dynamic methods [%d]", p_type);
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 	}
 
+	// All Done
 	return ret;
 };
 

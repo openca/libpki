@@ -26,6 +26,14 @@
 #include "pqc_data_st.h"
 #endif
 
+#ifndef _LIBPKI_LOG_H
+#include <libpki/pki_log.h>
+#endif
+
+#ifndef _LIBPKI_OID_DEFS_H
+#include <libpki/openssl/pki_oid_defs.h>
+#endif
+
 BEGIN_C_DECLS
 
 int* _get_oqssl_sig_nids(void);

@@ -556,25 +556,16 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 			return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_NAME, data, 25) == 0) {
 			return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA ;
-		// } else if (strncmp_nocase("DILITHIUM3-P256", data, 15) == 0) {
-		// 	return PKI_SCHEME_COMPOSITE_DILITHIUM3_P256;
-		// } else if (strncmp_nocase("DILITHIUM3-RSA", data, 14) == 0) {
-		// 	return PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA;
-		// } else if (strncmp_nocase("FALCON512-P256", data, 14) == 0) {
-		// 	return PKI_SCHEME_COMPOSITE_FALCON512_P256;
-		// } else if (strncmp_nocase("FALCON512-RSA", data, 13) == 0) {
-		// 	return PKI_SCHEME_COMPOSITE_FALCON512_RSA;
-		// } else if (strncmp_nocase("DILITHIUM5-FALCON1024-P521", data, 26) == 0) {
-		// 	return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521;
-		// } else if (strncmp_nocase("DILITHIUM5-FALCON1024-RSA", data, 25) == 0) {
-		// 	return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA;
 # endif
+		// Dilithium Algorithm
 		// Experimental: LibPKI PQC Native
+		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_EXP_DILITHIUMX_NAME, data, 11) == 0) {
+			return PKI_SCHEME_DILITHIUMX3;
+		// OQS Post-Quantum
 		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME, data, 11) == 0
 					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME, data, 11) == 0
 					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME, data, 11) == 0) {
-			return PKI_SCHEME_DILITHIUMX3;
-		// OQS Post-Quantum
+			return PKI_SCHEME_DILITHIUM;
 		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON512_NAME, data, 9) == 0
 					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME, data, 10) == 0) {
 			return PKI_SCHEME_FALCON;

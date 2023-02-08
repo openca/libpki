@@ -26,30 +26,28 @@ int oqssl_sig_nids_list[] = {
         NID_rsa3072_falcon512,
         NID_falcon1024,
         NID_p521_falcon1024,
-        NID_picnicl1full,
-        NID_p256_picnicl1full,
-        NID_rsa3072_picnicl1full,
-        NID_picnic3l1,
-        NID_p256_picnic3l1,
-        NID_rsa3072_picnic3l1,
-        NID_rainbowVclassic,
-        NID_p521_rainbowVclassic,
         NID_sphincsharaka128frobust,
         NID_p256_sphincsharaka128frobust,
         NID_rsa3072_sphincsharaka128frobust,
+        NID_sphincsharaka128fsimple,
+        NID_p256_sphincsharaka128fsimple,
+        NID_rsa3072_sphincsharaka128fsimple,
         NID_sphincssha256128frobust,
         NID_p256_sphincssha256128frobust,
         NID_rsa3072_sphincssha256128frobust,
-        NID_sphincsshake256128frobust,
-        NID_p256_sphincsshake256128frobust,
-        NID_rsa3072_sphincsshake256128frobust,
+        NID_sphincssha256128ssimple,
+        NID_p256_sphincssha256128ssimple,
+        NID_rsa3072_sphincssha256128ssimple,
+        NID_sphincsshake256128fsimple,
+        NID_p256_sphincsshake256128fsimple,
+        NID_rsa3072_sphincsshake256128fsimple,
 /////// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_NIDS_END
 };
 #ifdef OQS_OPENSSL_SIG_algs_length
 #undef OQS_OPENSSL_SIG_algs_length
 #endif
 
-#define OQS_OPENSSL_SIG_algs_length 36
+#define OQS_OPENSSL_SIG_algs_length 34
 
 int oqssl_kem_nids_list[] = {
 ///// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_KEM_NIDS_START
@@ -62,25 +60,14 @@ int oqssl_kem_nids_list[] = {
         NID_kyber512,
         NID_kyber768,
         NID_kyber1024,
-        NID_ntru_hps2048509,
-        NID_ntru_hps2048677,
-        NID_ntru_hps4096821,
-        NID_ntru_hrss701,
-        NID_lightsaber,
-        NID_saber,
-        NID_firesaber,
+        NID_bikel1,
+        NID_bikel3,
         NID_kyber90s512,
         NID_kyber90s768,
         NID_kyber90s1024,
         NID_hqc128,
         NID_hqc192,
         NID_hqc256,
-        NID_ntrulpr653,
-        NID_ntrulpr761,
-        NID_ntrulpr857,
-        NID_sntrup653,
-        NID_sntrup761,
-        NID_sntrup857,
 /////// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_KEM_NIDS_END
 };
 
@@ -89,8 +76,7 @@ int oqssl_kem_nids_list[] = {
 #undef OQS_OPENSSL_KEM_algs_length
 #endif
 
-#define OQS_OPENSSL_KEM_algs_length 28
-
+#define OQS_OPENSSL_KEM_algs_length 17
 
 int* sig_nid_list = NULL;
 int* kem_nid_list = NULL;
@@ -146,29 +132,26 @@ char* _get_oqs_alg_name(int openssl_nid)
     case NID_falcon1024:
     case NID_p521_falcon1024:
       return OQS_SIG_alg_falcon_1024;
-    case NID_picnicl1full:
-    case NID_p256_picnicl1full:
-    case NID_rsa3072_picnicl1full:
-      return OQS_SIG_alg_picnic_L1_full;
-    case NID_picnic3l1:
-    case NID_p256_picnic3l1:
-    case NID_rsa3072_picnic3l1:
-      return OQS_SIG_alg_picnic3_L1;
-    case NID_rainbowVclassic:
-    case NID_p521_rainbowVclassic:
-      return OQS_SIG_alg_rainbow_V_classic;
     case NID_sphincsharaka128frobust:
     case NID_p256_sphincsharaka128frobust:
     case NID_rsa3072_sphincsharaka128frobust:
       return OQS_SIG_alg_sphincs_haraka_128f_robust;
+    case NID_sphincsharaka128fsimple:
+    case NID_p256_sphincsharaka128fsimple:
+    case NID_rsa3072_sphincsharaka128fsimple:
+      return OQS_SIG_alg_sphincs_haraka_128f_simple;
     case NID_sphincssha256128frobust:
     case NID_p256_sphincssha256128frobust:
     case NID_rsa3072_sphincssha256128frobust:
       return OQS_SIG_alg_sphincs_sha256_128f_robust;
-    case NID_sphincsshake256128frobust:
-    case NID_p256_sphincsshake256128frobust:
-    case NID_rsa3072_sphincsshake256128frobust:
-      return OQS_SIG_alg_sphincs_shake256_128f_robust;
+    case NID_sphincssha256128ssimple:
+    case NID_p256_sphincssha256128ssimple:
+    case NID_rsa3072_sphincssha256128ssimple:
+      return OQS_SIG_alg_sphincs_sha256_128s_simple;
+    case NID_sphincsshake256128fsimple:
+    case NID_p256_sphincsshake256128fsimple:
+    case NID_rsa3072_sphincsshake256128fsimple:
+      return OQS_SIG_alg_sphincs_shake256_128f_simple;
     case NID_frodo640aes:
     case NID_p256_frodo640aes:
       return OQS_KEM_alg_frodokem_640_aes;
@@ -196,27 +179,12 @@ char* _get_oqs_alg_name(int openssl_nid)
     case NID_kyber1024:
     case NID_p521_kyber1024:
       return OQS_KEM_alg_kyber_1024;
-    case NID_ntru_hps2048509:
-    case NID_p256_ntru_hps2048509:
-      return OQS_KEM_alg_ntru_hps2048509;
-    case NID_ntru_hps2048677:
-    case NID_p384_ntru_hps2048677:
-      return OQS_KEM_alg_ntru_hps2048677;
-    case NID_ntru_hps4096821:
-    case NID_p521_ntru_hps4096821:
-      return OQS_KEM_alg_ntru_hps4096821;
-    case NID_ntru_hrss701:
-    case NID_p384_ntru_hrss701:
-      return OQS_KEM_alg_ntru_hrss701;
-    case NID_lightsaber:
-    case NID_p256_lightsaber:
-      return OQS_KEM_alg_saber_lightsaber;
-    case NID_saber:
-    case NID_p384_saber:
-      return OQS_KEM_alg_saber_saber;
-    case NID_firesaber:
-    case NID_p521_firesaber:
-      return OQS_KEM_alg_saber_firesaber;
+    case NID_bikel1:
+    case NID_p256_bikel1:
+      return OQS_KEM_alg_bike_l1;
+    case NID_bikel3:
+    case NID_p384_bikel3:
+      return OQS_KEM_alg_bike_l3;
     case NID_kyber90s512:
     case NID_p256_kyber90s512:
       return OQS_KEM_alg_kyber_512_90s;
@@ -235,183 +203,24 @@ char* _get_oqs_alg_name(int openssl_nid)
     case NID_hqc256:
     case NID_p521_hqc256:
       return OQS_KEM_alg_hqc_256;
-    case NID_ntrulpr653:
-    case NID_p256_ntrulpr653:
-      return OQS_KEM_alg_ntruprime_ntrulpr653;
-    case NID_ntrulpr761:
-      return OQS_KEM_alg_ntruprime_ntrulpr761;
-    case NID_ntrulpr857:
-    case NID_p384_ntrulpr857:
-      return OQS_KEM_alg_ntruprime_ntrulpr857;
-    case NID_sntrup653:
-    case NID_p256_sntrup653:
-      return OQS_KEM_alg_ntruprime_sntrup653;
-    case NID_sntrup761:
-      return OQS_KEM_alg_ntruprime_sntrup761;
-    case NID_sntrup857:
-    case NID_p384_sntrup857:
-      return OQS_KEM_alg_ntruprime_sntrup857;
 ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_SIG_ALG_END
 
     // Experimental
-    default:
-      if (openssl_nid == OBJ_sn2nid("DilithiumX")) {
-        return OQS_SIG_alg_dilithium_5;
-      } else {
-        return NULL;
+    default: {
+      int custom_nids[1] = { 0 };
+      custom_nids[0] = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_NAME);
+      
+      // Checks the custom nids
+      if (openssl_nid == custom_nids[0]) {
+        return OQS_SIG_alg_dilithium_2;
       }
+
+      // Not Found - Error
+      return NULL;
+    }
   }
+
 }
-
-// int is_oqs_hybrid_alg(int openssl_nid)
-// {
-//   switch (openssl_nid)
-//   {
-// ///// OQS_TEMPLATE_FRAGMENT_LIST_HYBRID_NIDS_START
-//     case NID_p256_dilithium2:
-//     case NID_rsa3072_dilithium2:
-//     case NID_p384_dilithium3:
-//     case NID_p521_dilithium5:
-//     case NID_p256_dilithium2_aes:
-//     case NID_rsa3072_dilithium2_aes:
-//     case NID_p384_dilithium3_aes:
-//     case NID_p521_dilithium5_aes:
-//     case NID_p256_falcon512:
-//     case NID_rsa3072_falcon512:
-//     case NID_p521_falcon1024:
-//     case NID_p256_picnicl1full:
-//     case NID_rsa3072_picnicl1full:
-//     case NID_p256_picnic3l1:
-//     case NID_rsa3072_picnic3l1:
-//     case NID_p521_rainbowVclassic:
-//     case NID_p256_sphincsharaka128frobust:
-//     case NID_rsa3072_sphincsharaka128frobust:
-//     case NID_p256_sphincssha256128frobust:
-//     case NID_rsa3072_sphincssha256128frobust:
-//     case NID_p256_sphincsshake256128frobust:
-//     case NID_rsa3072_sphincsshake256128frobust:
-// ///// OQS_TEMPLATE_FRAGMENT_LIST_HYBRID_NIDS_END
-//       return 1;
-//     default:
-//       return 0;
-//   }
-// }
-
-// int get_classical_nid(int hybrid_id)
-// {
-//   switch (hybrid_id)
-//   {
-// ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_CLASSICAL_NIDS_START
-//     case NID_rsa3072_dilithium2:
-//     case NID_rsa3072_dilithium2_aes:
-//     case NID_rsa3072_falcon512:
-//     case NID_rsa3072_picnicl1full:
-//     case NID_rsa3072_picnic3l1:
-//     case NID_rsa3072_sphincsharaka128frobust:
-//     case NID_rsa3072_sphincssha256128frobust:
-//     case NID_rsa3072_sphincsshake256128frobust:
-//       return NID_rsaEncryption;
-//     case NID_p256_dilithium2:
-//     case NID_p256_dilithium2_aes:
-//     case NID_p256_falcon512:
-//     case NID_p256_picnicl1full:
-//     case NID_p256_picnic3l1:
-//     case NID_p256_sphincsharaka128frobust:
-//     case NID_p256_sphincssha256128frobust:
-//     case NID_p256_sphincsshake256128frobust:
-//       return NID_X9_62_prime256v1;
-//     case NID_p384_dilithium3:
-//     case NID_p384_dilithium3_aes:
-//       return NID_secp384r1;
-//     case NID_p521_dilithium5:
-//     case NID_p521_dilithium5_aes:
-//     case NID_p521_falcon1024:
-//     case NID_p521_rainbowVclassic:
-//       return NID_secp521r1;///// OQS_TEMPLATE_FRAGMENT_ASSIGN_CLASSICAL_NIDS_END
-//     default:
-//       return 0;
-//   }
-// }
-
-// int get_classical_key_len(oqs_key_type_t keytype, int classical_id) {
-//  switch (classical_id)
-//     {
-//     case NID_rsaEncryption:
-//       return (keytype == KEY_TYPE_PRIVATE) ? 1770 : 398;
-//     case NID_X9_62_prime256v1:
-//       return (keytype == KEY_TYPE_PRIVATE) ? 121 : 65;
-//     case NID_secp384r1:
-//       return (keytype == KEY_TYPE_PRIVATE) ? 167 : 97;
-//     case NID_secp521r1:
-//       return (keytype == KEY_TYPE_PRIVATE) ? 223 : 133;
-//     default:
-//       return 0;
-//     }
-// }
-
-// int get_classical_sig_len(int classical_id)
-// {
-//  switch (classical_id)
-//     {
-//     case NID_rsaEncryption:
-//       return 384;
-//     case NID_X9_62_prime256v1:
-//       return 72;
-//     case NID_secp384r1:
-//       return 104;
-//     case NID_secp521r1:
-//       return 141;
-//     default:
-//       return 0;
-//     }
-// }
-
-// int get_oqs_nid(int hybrid_id)
-// {
-//   switch (hybrid_id)
-//   {
-// ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_OQS_NID_START
-//     case NID_p256_dilithium2:
-//     case NID_rsa3072_dilithium2:
-//       return NID_dilithium2;
-//     case NID_p384_dilithium3:
-//       return NID_dilithium3;
-//     case NID_p521_dilithium5:
-//       return NID_dilithium5;
-//     case NID_p256_dilithium2_aes:
-//     case NID_rsa3072_dilithium2_aes:
-//       return NID_dilithium2_aes;
-//     case NID_p384_dilithium3_aes:
-//       return NID_dilithium3_aes;
-//     case NID_p521_dilithium5_aes:
-//       return NID_dilithium5_aes;
-//     case NID_p256_falcon512:
-//     case NID_rsa3072_falcon512:
-//       return NID_falcon512;
-//     case NID_p521_falcon1024:
-//       return NID_falcon1024;
-//     case NID_p256_picnicl1full:
-//     case NID_rsa3072_picnicl1full:
-//       return NID_picnicl1full;
-//     case NID_p256_picnic3l1:
-//     case NID_rsa3072_picnic3l1:
-//       return NID_picnic3l1;
-//     case NID_p521_rainbowVclassic:
-//       return NID_rainbowVclassic;
-//     case NID_p256_sphincsharaka128frobust:
-//     case NID_rsa3072_sphincsharaka128frobust:
-//       return NID_sphincsharaka128frobust;
-//     case NID_p256_sphincssha256128frobust:
-//     case NID_rsa3072_sphincssha256128frobust:
-//       return NID_sphincssha256128frobust;
-//     case NID_p256_sphincsshake256128frobust:
-//     case NID_rsa3072_sphincsshake256128frobust:
-//       return NID_sphincsshake256128frobust;
-// ///// OQS_TEMPLATE_FRAGMENT_ASSIGN_OQS_NID_END
-//     default:
-//       return 0;
-//   }
-// }
 
 
 /*
@@ -493,28 +302,25 @@ int get_oqs_security_bits(int openssl_nid)
     case NID_falcon1024:
     case NID_p521_falcon1024:
       return 256;
-    case NID_picnicl1full:
-    case NID_p256_picnicl1full:
-    case NID_rsa3072_picnicl1full:
-      return 128;
-    case NID_picnic3l1:
-    case NID_p256_picnic3l1:
-    case NID_rsa3072_picnic3l1:
-      return 128;
-    case NID_rainbowVclassic:
-    case NID_p521_rainbowVclassic:
-      return 256;
     case NID_sphincsharaka128frobust:
     case NID_p256_sphincsharaka128frobust:
     case NID_rsa3072_sphincsharaka128frobust:
+      return 128;
+    case NID_sphincsharaka128fsimple:
+    case NID_p256_sphincsharaka128fsimple:
+    case NID_rsa3072_sphincsharaka128fsimple:
       return 128;
     case NID_sphincssha256128frobust:
     case NID_p256_sphincssha256128frobust:
     case NID_rsa3072_sphincssha256128frobust:
       return 128;
-    case NID_sphincsshake256128frobust:
-    case NID_p256_sphincsshake256128frobust:
-    case NID_rsa3072_sphincsshake256128frobust:
+    case NID_sphincssha256128ssimple:
+    case NID_p256_sphincssha256128ssimple:
+    case NID_rsa3072_sphincssha256128ssimple:
+      return 128;
+    case NID_sphincsshake256128fsimple:
+    case NID_p256_sphincsshake256128fsimple:
+    case NID_rsa3072_sphincsshake256128fsimple:
       return 128;
 ///// OQS_TEMPLATE_FRAGMENT_GET_SIG_SECURITY_BITS_END
     default:

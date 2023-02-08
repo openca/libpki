@@ -454,23 +454,21 @@ int oqs_item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn,
         nid != NID_rsa3072_falcon512 &&
         nid != NID_falcon1024 &&
         nid != NID_p521_falcon1024 &&
-        nid != NID_picnicl1full &&
-        nid != NID_p256_picnicl1full &&
-        nid != NID_rsa3072_picnicl1full &&
-        nid != NID_picnic3l1 &&
-        nid != NID_p256_picnic3l1 &&
-        nid != NID_rsa3072_picnic3l1 &&
-        nid != NID_rainbowVclassic &&
-        nid != NID_p521_rainbowVclassic &&
         nid != NID_sphincsharaka128frobust &&
         nid != NID_p256_sphincsharaka128frobust &&
         nid != NID_rsa3072_sphincsharaka128frobust &&
+        nid != NID_sphincsharaka128fsimple &&
+        nid != NID_p256_sphincsharaka128fsimple &&
+        nid != NID_rsa3072_sphincsharaka128fsimple &&
         nid != NID_sphincssha256128frobust &&
         nid != NID_p256_sphincssha256128frobust &&
         nid != NID_rsa3072_sphincssha256128frobust &&
-        nid != NID_sphincsshake256128frobust &&
-        nid != NID_p256_sphincsshake256128frobust &&
-        nid != NID_rsa3072_sphincsshake256128frobust &&
+        nid != NID_sphincssha256128ssimple &&
+        nid != NID_p256_sphincssha256128ssimple &&
+        nid != NID_rsa3072_sphincssha256128ssimple &&
+        nid != NID_sphincsshake256128fsimple &&
+        nid != NID_p256_sphincsshake256128fsimple &&
+        nid != NID_rsa3072_sphincsshake256128fsimple &&
         1 /* This is just to faciliate templating. */
 ///// OQS_TEMPLATE_FRAGMENT_CHECK_IF_KNOWN_NID_END
         && nid != OBJ_sn2nid("DilithiumX") 

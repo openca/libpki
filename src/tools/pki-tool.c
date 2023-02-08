@@ -500,12 +500,20 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #endif
 
 #ifdef ENABLE_COMPOSITE
-	if (kp->scheme == PKI_SCHEME_COMPOSITE
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+	if (   kp->scheme == PKI_SCHEME_COMPOSITE
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
+		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_RSA
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
 #ifdef ENABLE_COMBINED
@@ -591,6 +599,9 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 }
 
 int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * digest_opt) {
+
+	// Default Option - SHA256
+	tk->digest = PKI_DIGEST_ALG_DEFAULT;
 
 	if ( algor_opt ) {
 		
@@ -1252,6 +1263,8 @@ int main (int argc, char *argv[] ) {
 			// This should be a catch all for new algos
 			fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);
 		}
+
+		PKI_DEBUG("\nSelected Algorithm: %s\n", algor_opt);
 
 		if ((gen_keypair(tk, 
 				 bits,
