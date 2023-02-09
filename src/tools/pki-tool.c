@@ -625,8 +625,9 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 			PKI_log_err( "Can not set algor in Token (%d)", algor_id);
 			return PKI_ERR;
 		}
-	}
 
+	}
+	
 	if (digest_opt) {
 
 		PKI_DIGEST_ALG * digest = NULL;
@@ -657,21 +658,29 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 		tk->digest = digest;
 
 		// Updates the algorithm
-		if (tk->keypair) {
+		if (tk->keypair != NULL && algor_opt == NULL) {
 
 			PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 				// Internal Value
 
-			// Gest the Signature ID for the digest/pkey combination
-			if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
-				PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
-					EVP_MD_nid(digest), EVP_PKEY_id(p_val));
-				return PKI_ERR;
-			}
-			
-			// Let's update the token's algorithm, if any
-			if (sig_alg != PKI_ID_UNKNOWN) {
-				PKI_TOKEN_set_algor(tk, sig_alg);
+			if (digest != NULL && digest != EVP_md_null()) {
+				// Gest the Signature ID for the digest/pkey combination
+				if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
+					PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
+						EVP_MD_nid(digest), EVP_PKEY_id(p_val));
+					return PKI_ERR;
+				}
+				// Let's update the token's algorithm, if any
+				if (sig_alg != PKI_ID_UNKNOWN) {
+					PKI_TOKEN_set_algor(tk, sig_alg);
+				}
+			} else if (digest == EVP_md_null()) {
+				// If we do not have a defined one, let's use 
+				PKI_TOKEN_set_algor(tk, EVP_PKEY_id(p_val));
+			} else {
+				// Error Condition
+				fprintf(stderr, "\n    ERROR: Cannot set the token algorithm\n\n");
+				exit(1);
 			}
 		}
 	}
@@ -1322,7 +1331,10 @@ int main (int argc, char *argv[] ) {
 			}
 		}
 
+		fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
+
 		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
+			fprintf(stderr, "\n    ERROR: Cannot set the token's algorithm\n\n");
 			exit(1);
 		}
 

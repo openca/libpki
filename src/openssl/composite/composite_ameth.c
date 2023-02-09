@@ -26,47 +26,47 @@
 
 #ifdef ENABLE_COMPOSITE
 
-// Returns a COPY of the stack
-STACK_OF(EVP_PKEY) * COMPOSITE_KEY_sk_get1(COMPOSITE_KEY * key) {
+// // Returns a COPY of the stack
+// STACK_OF(EVP_PKEY) * COMPOSITE_KEY_sk_get1(COMPOSITE_KEY * key) {
 
-  EVP_PKEY * tmp_pkey = NULL;
-    // Pointer for the Data Structure
+//   EVP_PKEY * tmp_pkey = NULL;
+//     // Pointer for the Data Structure
 
-  STACK_OF(EVP_PKEY) * ret_sk = NULL;
-    // Return Pointer
+//   STACK_OF(EVP_PKEY) * ret_sk = NULL;
+//     // Return Pointer
 
-  // Input checks
-  if (!key) return NULL;
+//   // Input checks
+//   if (!key) return NULL;
 
-  // Allocates the Stack
-  if ((ret_sk = sk_EVP_PKEY_new_null()) == NULL)
-    return NULL;
+//   // Allocates the Stack
+//   if ((ret_sk = sk_EVP_PKEY_new_null()) == NULL)
+//     return NULL;
 
-  for (int i = 0; i < COMPOSITE_KEY_num(key); i++) {
+//   for (int i = 0; i < COMPOSITE_KEY_num(key); i++) {
 
-    if ((tmp_pkey = COMPOSITE_KEY_get0(key, i)) == NULL)
-      goto err;
+//     if ((tmp_pkey = COMPOSITE_KEY_get0(key, i)) == NULL)
+//       goto err;
     
-    EVP_PKEY_up_ref(tmp_pkey);
+//     EVP_PKEY_up_ref(tmp_pkey);
     
-    if (!sk_EVP_PKEY_push(ret_sk, tmp_pkey))
-      goto err;
-  }
+//     if (!sk_EVP_PKEY_push(ret_sk, tmp_pkey))
+//       goto err;
+//   }
 
-  // All done
-  return ret_sk;
+//   // All done
+//   return ret_sk;
 
-err:
+// err:
 
-    if (ret_sk) {
-      // Let's POP from the STACK but
-      // no need to free the item's memory
-      while(sk_EVP_PKEY_pop((STACK_OF(EVP_PKEY) *)ret_sk));
-      sk_EVP_PKEY_free((STACK_OF(EVP_PKEY) *)ret_sk);
-    }
+//     if (ret_sk) {
+//       // Let's POP from the STACK but
+//       // no need to free the item's memory
+//       while(sk_EVP_PKEY_pop((STACK_OF(EVP_PKEY) *)ret_sk));
+//       sk_EVP_PKEY_free((STACK_OF(EVP_PKEY) *)ret_sk);
+//     }
 
-    return NULL;
-}
+//     return NULL;
+// }
 
 // ==============================
 // EVP_PKEY_ASN1_METHOD Functions
@@ -905,38 +905,37 @@ int pkey_security_bits(const EVP_PKEY *pk) {
   return sec_bits;
 }
 
-// Not Implemented
-int param_decode(EVP_PKEY *pkey, const unsigned char **pder, int derlen) {
-  // There are no parameters to decode, always succeed
-  return 1;
-}
+// // ========================
+// // Key Parameters Functions
+// // ========================
 
-// Not Implemented
-int param_encode(const EVP_PKEY *pkey, unsigned char **pder) {
-  // There are no parameters to encode, always succeed
-  return 1;
-}
+// // Not Implemented
+// int param_decode(EVP_PKEY *pkey, const unsigned char **pder, int derlen) {
+//   // There are no parameters to decode, always succeed
+//   return 1;
+// }
 
-// Not Implemented
-int param_missing(const EVP_PKEY *pk) {
-  // There are no parameters, we return 1 for
-  // indicating there are no missing parameters
-  // (error condition is 0)
-  // return 1;
+// // Not Implemented
+// int param_encode(const EVP_PKEY *pkey, unsigned char **pder) {
+//   // There are no parameters to encode, always succeed
+//   return 1;
+// }
 
-  // Weird: returning 1 creates an error in
-  // openssl's p_lib.c:85 where if the function
-  // exists, it shall return 0 for success
-  return 0;
-}
+// // Not Implemented
+// int param_missing(const EVP_PKEY *pk) {
+//   // There are no parameters, we return 1 for
+//   // indicating there are no missing parameters
+//   // (error condition is 0)
+//   // return 1;
+// }
 
-// Not Implemented
-int param_copy(EVP_PKEY *to, const EVP_PKEY *from) {
-  // There are no parameters, we return 1 for
-  // indicating there are no missing parameters
-  // (error condition is 0)
-  return 1;
-}
+// // Not Implemented
+// int param_copy(EVP_PKEY *to, const EVP_PKEY *from) {
+//   // There are no parameters, we return 1 for
+//   // indicating there are no missing parameters
+//   // (error condition is 0)
+//   return 1;
+// }
 
 // Implemented
 int param_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
@@ -946,11 +945,11 @@ int param_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
   return 1;
 }
 
-// Not Implemented
-int param_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
-  // There are no parameters to print, nothing to do
-  return 1;
-}
+// // Not Implemented
+// int param_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
+//   // There are no parameters to print, nothing to do
+//   return 1;
+// }
 
 // Not Implemented
 int sig_print(BIO *out, const X509_ALGOR *sigalg, const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx) {
@@ -1026,21 +1025,21 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
   return 1;
 }
 
-// ============================
-// Legacy Functions for old PEM
-// ============================
+// // ============================
+// // Legacy Functions for old PEM
+// // ============================
 
-// Not Implemented
-int old_priv_decode(EVP_PKEY *pkey, const unsigned char **pder, int derlen) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// int old_priv_decode(EVP_PKEY *pkey, const unsigned char **pder, int derlen) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-int old_priv_encode(const EVP_PKEY *pkey, unsigned char **pder) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// int old_priv_encode(const EVP_PKEY *pkey, unsigned char **pder) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
 // ==================================
 // Custom ASN1 signature verification
@@ -1093,12 +1092,16 @@ int item_sign(EVP_MD_CTX      * ctx,
   digest_id = md != NULL ? EVP_MD_nid(md) : PKI_DIGEST_ALG_ID_DEFAULT;
   pkey_id = EVP_PKEY_id(pkey);
 
+  PKI_DEBUG("PKEY ID: %d", pkey_id);
+
   // Search for the Algorithm ID
   if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
     PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
       digest_id, pkey_id);
     return -1;
   }
+
+  PKI_DEBUG("SIGNATURE ID: %d", signature_id);
 
   // Sets the Algorithm IDs
   if (alg1 != NULL)
@@ -1113,7 +1116,7 @@ int item_sign(EVP_MD_CTX      * ctx,
 
 // Not Implemented
 int siginf_set(X509_SIG_INFO *siginf, const X509_ALGOR *alg, const ASN1_STRING *sig) {
-  PKI_DEBUG("Not Implemented, yet");
+  fprintf(stderr, "%s:%d: DEBUG: siginf_set() called\n", __FILE__, __LINE__);
   return 0;
 }
 
@@ -1197,39 +1200,36 @@ int pkey_public_check(const EVP_PKEY *pkey) {
 
 // Not Implemented
 int pkey_param_check(const EVP_PKEY *pkey) {
-
-  PKI_DEBUG("Not Implemented, yet.");
-
-  return 0;
+  return 1;
 }
 
-// =================================
-// Get/Set For Raw priv/pub key data
-// =================================
+// // =================================
+// // Get/Set For Raw priv/pub key data
+// // =================================
 
-// Not Implemented
-int set_priv_key(EVP_PKEY *pk, const unsigned char *priv, size_t len) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// int set_priv_key(EVP_PKEY *pk, const unsigned char *priv, size_t len) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-int set_pub_key(EVP_PKEY *pk, const unsigned char *pub, size_t len) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// int set_pub_key(EVP_PKEY *pk, const unsigned char *pub, size_t len) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-int get_priv_key(const EVP_PKEY *pk, unsigned char *priv, size_t *len) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// int get_priv_key(const EVP_PKEY *pk, unsigned char *priv, size_t *len) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
-// Not Implemented
-int get_pub_key(const EVP_PKEY *pk, unsigned char *pub, size_t *len) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
-}
+// // Not Implemented
+// int get_pub_key(const EVP_PKEY *pk, unsigned char *pub, size_t *len) {
+//   PKI_DEBUG("Not implemented, yet.");
+//   return 0;
+// }
 
 // ===========================
 // ASN1 PKEY Method Definition
@@ -1257,19 +1257,19 @@ EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     pkey_bits,                // int (*pkey_bits) (const EVP_PKEY *pk);
     pkey_security_bits,       // int (*pkey_security_bits) (const EVP_PKEY *pk);
     
-    param_decode,             // int (*param_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
-    param_encode,             // int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
-    param_missing,            // int (*param_missing) (const EVP_PKEY *pk);
-    param_copy,               // int (*param_copy) (EVP_PKEY *to, const EVP_PKEY *from);
+    0, // param_decode,             // int (*param_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
+    0, // param_encode,             // int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
+    0, // param_missing,            // int (*param_missing) (const EVP_PKEY *pk);
+    0, // param_copy,               // int (*param_copy) (EVP_PKEY *to, const EVP_PKEY *from);
     param_cmp,                // int (*param_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
-    param_print,              // int (*param_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
+    0, // param_print,              // int (*param_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
     
     sig_print,                // int (*sig_print) (BIO *out, const X509_ALGOR *sigalg, const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx);
     pkey_free,                // void (*pkey_free) (EVP_PKEY *pkey);
     pkey_ctrl,                // int (*pkey_ctrl) (EVP_PKEY *pkey, int op, long arg1, void *arg2);
     // Legacy Functions for old PEM
-    old_priv_decode,          // int (*old_priv_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
-    old_priv_encode,          // int (*old_priv_encode) (const EVP_PKEY *pkey, unsigned char **pder);
+    0, // old_priv_decode,          // int (*old_priv_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
+    0, // old_priv_encode,          // int (*old_priv_encode) (const EVP_PKEY *pkey, unsigned char **pder);
     // Custom ASN1 signature verification
     item_verify,              // int (*item_verify) (EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, ASN1_BIT_STRING *sig, EVP_PKEY *pkey);
     item_sign,                // int (*item_sign) (EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *alg1, X509_ALGOR *alg2, ASN1_BIT_STRING *sig);
@@ -1278,10 +1278,10 @@ EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     pkey_check,               // int (*pkey_check) (EVP_PKEY *pkey);
     pkey_public_check,        // int (*pkey_public_check) (EVP_PKEY *pkey);
     pkey_param_check,         // int (*pkey_param_check) (EVP_PKEY *pkey);
-    set_priv_key,             // int (*set_priv_key) (EVP_PKEY *pk, const unsigned char *priv, size_t len);
-    set_pub_key,              // int (*set_pub_key) (EVP_PKEY *pk, const unsigned char *pub, size_t len);
-    get_priv_key,             // int (*get_priv_key) (const EVP_PKEY *pk, unsigned char *priv, size_t *len);
-    get_pub_key,              // int (*get_pub_key) (const EVP_PKEY *pk, unsigned char *pub, size_t *len);
+    0, // set_priv_key,             // int (*set_priv_key) (EVP_PKEY *pk, const unsigned char *priv, size_t len);
+    0, // set_pub_key,              // int (*set_pub_key) (EVP_PKEY *pk, const unsigned char *pub, size_t len);
+    0, // get_priv_key,             // int (*get_priv_key) (const EVP_PKEY *pk, unsigned char *priv, size_t *len);
+    0, // get_pub_key,              // int (*get_pub_key) (const EVP_PKEY *pk, unsigned char *pub, size_t *len);
 };
 
 #endif

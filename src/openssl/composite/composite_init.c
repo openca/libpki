@@ -47,6 +47,9 @@
 #include "composite_ameth.h"
 #endif
 
+// Composite Methods
+extern EVP_PKEY_ASN1_METHOD composite_asn1_meth;
+extern EVP_PKEY_METHOD composite_pkey_meth;
 
 #define PKI_REGISTER_PKEY_METH(ALG, OID)                            \
 	PKI_PQC_asn1_meth_set_id(&ALG##_ASN1_METH, OBJ_txt2nid(OID)); 	  \
@@ -78,6 +81,90 @@
 // DEFINE_ITEM_SIGN_AND_INFO_SET(dilithiumX)
 
 #endif
+
+static int _init_generic_composite() {
+
+	// TODO:
+	// =====
+	//
+	// Update the way we add the composite ASN1 method. Currently we use the
+	// auxillary function (see composite_ameth.c) to set the method's pkey id.
+	//
+	// The Right way to add a new method would be to first generate a new
+	// one and then set the different callbacks, such as:
+	//
+	//   composite_asn1_method = EVP_PKEY_asn1_meth_new(NID_composite);
+	//   EVP_PKEY_asn1_meth_set_XXX(composite_asn1_method, .... );
+
+	// Retrieves the COMPOSITE id
+	int composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
+
+	// Assigns the generated IDs
+	EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, composite_id);
+
+	// Assigns the PKEY ID
+	EVP_PKEY_meth_set_id(&composite_pkey_meth, composite_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
+
+	// We also Need to initialize the PKEY method for the algorithm
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+
+	// We Need to initialize the ASN1 conversion method
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+	
+	// All Done, Success.
+	return 1;
+}
+
+static int _init_explicit_composite() {
+
+	// Here we initialize PKEYs to handle the explicit
+	// composite combinations
+
+	// TODO: madwolf: Enable the Instantiation of Explicit Combinations
+
+	// Debugging
+	// PKI_DEBUG("TODO: Add Explicit Composite Combinations.");
+
+	// char * methods_oids[] = {
+	// 	OPENCA_ALG_PKEY_EXP_COMP_OID,
+	//  	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_ECDSA_P521_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_OID,
+	// 	NULL,
+	// };
+
+	// for (int i = 0; methods_oids[i] != NULL; i++ ) {
+
+	// 	// Retrieves the ID for the Explicit PKEY
+	// 	int explicit_comp_id = OBJ_txt2nid(methods_oids[i]);
+
+	// 	// Debugging
+	// 	PKI_DEBUG("Adding Explicit Composite Combination %d (%s)", 
+	// 		explicit_comp_id, methods_oids[i]);
+
+	// 	// // Assigns the generated IDs
+	// 	// EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, explicit_comp_id);
+
+	// 	// // Assigns the PKEY ID
+	// 	// EVP_PKEY_meth_set_id(&composite_pkey_meth, explicit_comp_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
+
+	// 	// // We also Need to initialize the PKEY method for the algorithm
+	// 	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	// 	// if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+
+	// 	// // We Need to initialize the ASN1 conversion method
+	// 	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	// 	// if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+	// }
+	
+	// All Done, Success.
+	return 1;
+}
 
 // ================
 // Local Prototypes
@@ -342,13 +429,66 @@ int PKI_COMPOSITE_ALG_new(const char * name, int flags) {
 
 int PKI_COMPOSITE_init() {
 
-  // Let's initialize our own implementation of Dilithium5
-  // that we call "DilithiumX3" (Test for initialization of
-  // Post-Quantum cryptography from our own pool)
-  if (PKI_COMPOSITE_ALG_new("DilithiumX3", -1) == PKI_ERR) {
-    // Reports the Error
-    PKI_DEBUG("Cannot add Explicit COMPOSITE: DilithiumX3 (dilithium3 native implementation)");
-  }
+  // Retrieves the COMPOSITE id
+	int composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
+
+	// Assigns the generated IDs
+	EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, composite_id);
+
+	// Assigns the PKEY ID
+	EVP_PKEY_meth_set_id(&composite_pkey_meth, composite_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
+
+	// We also Need to initialize the PKEY method for the algorithm
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+
+	// We Need to initialize the ASN1 conversion method
+	// https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+
+
+  // Here we initialize PKEYs to handle the explicit
+	// composite combinations
+
+	// TODO: madwolf: Enable the Instantiation of Explicit Combinations
+
+	// Debugging
+	// PKI_DEBUG("TODO: Add Explicit Composite Combinations.");
+
+	// char * methods_oids[] = {
+	// 	OPENCA_ALG_PKEY_EXP_COMP_OID,
+	//  	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ECDSA_P256_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ECDSA_P256_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_ECDSA_P521_OID,
+	// 	OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_OID,
+	// 	NULL,
+	// };
+
+	// for (int i = 0; methods_oids[i] != NULL; i++ ) {
+
+	// 	// Retrieves the ID for the Explicit PKEY
+	// 	int explicit_comp_id = OBJ_txt2nid(methods_oids[i]);
+
+	// 	// Debugging
+	// 	PKI_DEBUG("Adding Explicit Composite Combination %d (%s)", 
+	// 		explicit_comp_id, methods_oids[i]);
+
+	// 	// // Assigns the generated IDs
+	// 	// EVP_PKEY_asn1_meth_set_id(&composite_asn1_meth, explicit_comp_id);
+
+	// 	// // Assigns the PKEY ID
+	// 	// EVP_PKEY_meth_set_id(&composite_pkey_meth, explicit_comp_id, -1); // EVP_PKEY_FLAG_SIGCTX_CUSTOM
+
+	// 	// // We also Need to initialize the PKEY method for the algorithm
+	// 	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_METHOD.html
+	// 	// if (!EVP_PKEY_meth_add0(&composite_pkey_meth)) return 0;
+
+	// 	// // We Need to initialize the ASN1 conversion method
+	// 	// // https://www.openssl.org/docs/man1.1.1/man3/EVP_PKEY_ASN1_METHOD.html
+	// 	// if (!EVP_PKEY_asn1_add0(&composite_asn1_meth)) return 0;
+	// }
 
   // All Done
   return PKI_OK;

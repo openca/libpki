@@ -316,24 +316,28 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 		EVP_PKEY_id(pkey), PKI_ID_get_txt(EVP_PKEY_id(pkey)), def_nid, PKI_ID_get_txt(def_nid), digestResult);
 
 	// Checks for error
-	if (digestResult <= 0) {
-		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", EVP_PKEY_id(pkey));
+	if (digest == NULL && digestResult <= 0) {
+		PKI_DEBUG("Cannot get the default digest for signing key (type: %d)", EVP_PKEY_id(pkey));
 		return NULL;
 	}
 
 	// If the returned value is == 2, then the returned
 	// digest is mandatory and cannot be replaced
-	if (digestResult == 2) {
-		// Checks if we are in a no-hash mandatory
-		if (def_nid == NID_undef && (digest != EVP_md_null() && digest != NULL)) {
-			PKI_DEBUG("PKEY requires no hash but got one (%d)", EVP_MD_nid(digest));
-			return NULL;
-		}
-		// Checks if we are using the mandated digest
-		if (def_nid == NID_undef || def_nid != EVP_MD_nid(digest)) {
-			PKI_DEBUG("PKEY requires digest (%d) but got (%d)", def_nid, EVP_MD_nid(digest));
-			return NULL;
-		}
+	if (digestResult == 2 && def_nid != EVP_MD_nid(digest)) {
+		// // Checks if we are in a no-hash mandatory
+		// if (def_nid == NID_undef && (digest != EVP_md_null() && digest != NULL)) {
+		// 	PKI_DEBUG("PKEY requires no hash but got one (%d)", EVP_MD_nid(digest));
+		// 	return NULL;
+		// }
+		// // Checks if we are using the mandated digest
+		// if ((digest != NULL && def_nid != NID_undef) || (def_nid != EVP_MD_nid(digest))) {
+		// 	PKI_DEBUG("PKEY requires digest (%d) but got (%d)", def_nid, EVP_MD_nid(digest));
+		// 	return NULL;
+		// }
+		PKI_DEBUG("PKEY requires %s digest (mandatory) and cannot be used with %s digest (requested).",
+			def_nid == NID_undef ? "NO" : PKI_ID_get_txt(def_nid), 
+			digest == NULL ? "NO" : PKI_ID_get_txt(EVP_MD_nid(digest)));
+		return NULL;
 	}
 
 	// Initialize the return structure
@@ -351,44 +355,6 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// Initializes the Context
 	EVP_MD_CTX_init(ctx);
 
-	// // Builds the PKEY CTX structure
-	// pctx = EVP_PKEY_CTX_new(pkey, NULL);
-	// if (!pctx) {
-	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the PKEY CTX");
-	// 	goto err;
-	// }
-
-	// // Sets the PKEY CTX in the MD CTX
-	// EVP_MD_CTX_set_pkey_ctx(ctx, pctx);
-
-	// // Sets the Digest to be used when calculating the signature
-	// // that is equiv to a CTRL call (see <openssl/evp.h> for more details)
-	// if (digest != NULL && digest != EVP_md_null()) {
-
-	// 	int ossl_ret = -1;
-
-	// 	// Sets the Digest to use when calculating the signature,
-	// 	// this is a MACRO for EVP_PKEY_CTX_ctrl() with the sign
-	// 	// operation (EVP_PKEY_OP_TYPE_SIG) and the type (EVP_PKEY_CTRL_MD)
-	// 	// to set the desired EVP_MD (digest)
-	// 	ossl_ret = EVP_PKEY_CTX_set_signature_md(pctx, digest);
-	// 	if (ossl_ret == -2) {
-	// 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Signing operation not supported");
-	// 		return NULL;
-	// 	} else if (ossl_ret <= 0) {
-	// 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK, "PKEY CTRL: Invalid Operation");
-	// 		return NULL;
-	// 	}
-	// } else {
-
-	// 	// This is a hack to accommodate for the issue with OQS where
-	// 	// when we use the EVP_md_null() they apply the use of the MD
-	// 	// to only the classic part of the key, until we use our own
-	// 	// implementation to fix this issue, we need to set the digest
-	// 	// to NULL or we get a segfault(11).
-	// 	digest = NULL;
-	// }
-
 	PKI_DEBUG("MD (digest) = %p (EVP_md_null = %p) (EVP_md_null() ==> %d)", 
 		digest, EVP_md_null, EVP_md_null() == digest);
 
@@ -403,25 +369,33 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 		goto err;
 	}
 
-	// Updates the Digest calculation with the TBS data
-	if (EVP_DigestSignUpdate(ctx, 
-							 der->data,
-							 der->size) <= 0) {
-		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Update EVP_DigestSignUpdate()");
+	if (EVP_DigestSign(ctx, out_mem->data, &out_size, der->data, der->size) <= 0) {
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot generate signature via EVP_DigestSign()");
 		goto err;
 	}
+	
+	// Update the size of the signature
+	out_mem->size = (size_t) out_size;
 
-	// Finalize the MD
-	EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_FINALISE);
+	// // Updates the Digest calculation with the TBS data
+	// if (EVP_DigestSignUpdate(ctx, 
+	// 						 der->data,
+	// 						 der->size) <= 0) {
+	// 	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Update EVP_DigestSignUpdate()");
+	// 	goto err;
+	// }
 
-	// Finalizes the Signature calculation and saves it in the output buffer
-	if (EVP_DigestSignFinal(ctx,
-							out_mem->data,
-							&out_size) <= 0) {
-		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Finalize EVP_DigestSignFinal()");
-		goto err;
-	}
-	else out_mem->size = (size_t) out_size;
+	// // Finalize the MD
+	// // EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_FINALISE);
+
+	// // Finalizes the Signature calculation and saves it in the output buffer
+	// if (EVP_DigestSignFinal(ctx,
+	// 						out_mem->data,
+	// 						&out_size) <= 0) {
+	// 	PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot Finalize EVP_DigestSignFinal()");
+	// 	goto err;
+	// }
+	// else out_mem->size = (size_t) out_size;
 
 	// All Done
 	goto end;

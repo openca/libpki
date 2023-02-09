@@ -519,33 +519,6 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
-	// Let's Get The signing OID
-	int sig_nid = -1;
-	int pkey_nid = EVP_PKEY_id(pkey);
-	int digest_nid = EVP_MD_nid(digest);
-
-	if (1 != OBJ_find_sigid_by_algs(&sig_nid, digest_nid, pkey_nid)) {
-		PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
-			PKI_ID_get_txt(pkey_nid), digest ? PKI_ID_get_txt(digest_nid) : "NULL");
-	} else {
-		// If the find routine returns 1 it was successful, however
-		// for PQC it seems to return NID_undef for the sig_nid, this fixes it
-		if (sig_nid == NID_undef) sig_nid = EVP_PKEY_id(pkey);
-	}
-
-	// Debugging Information
-	PKI_DEBUG("Signing Algorithm Should be: %s", PKI_ID_get_txt(sig_nid));
-	PKI_DEBUG("Digest Signing Algorithm: %s", PKI_ID_get_txt(digest_nid));
-
-	// Sets the right OID for the signature
-	ASN1_item_sign(x->it, 
-	               PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
-                   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
-                   NULL,
-				   NULL,
-                   pkey,
-				   ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
-
 	// Retrieves the DER representation of the data to be signed
 	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
 		// Logs the issue
@@ -559,6 +532,42 @@ int PKI_X509_sign(PKI_X509               * x,
 			return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
 		}
 	}
+
+	// if (digest && digest != PKI_DIGEST_ALG_NULL) {
+		
+	// 	int digest_nid = EVP_MD_nid(digest);
+	// 		// Digest NID
+
+	// // Let's Get The signing OID
+	// int sig_nid = -1;
+	// int pkey_nid = EVP_PKEY_id(pkey);
+
+	// 	if (OBJ_find_sigid_by_algs(&sig_nid, digest_nid, pkey_nid) != 1) {
+	// 		PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
+	// 			PKI_ID_get_txt(pkey_nid), digest ? PKI_ID_get_txt(digest_nid) : "NULL");
+	// 	} else {
+	// 		// If the find routine returns 1 it was successful, however
+	// 		// for PQC it seems to return NID_undef for the sig_nid, this fixes it
+	// 		if (sig_nid == NID_undef) sig_nid = EVP_PKEY_id(pkey);
+	// 	}
+
+	// 	// Debugging Information
+	// 	PKI_DEBUG("Signing Algorithm Should be: %s", PKI_ID_get_txt(sig_nid));
+	// 	PKI_DEBUG("Digest Signing Algorithm: %s", PKI_ID_get_txt(digest_nid));
+	// }
+
+	// Since we are using the DER representation for signing, we need to first
+	// update the data structure(s) with the right OIDs - we use the default
+	// ASN1_item_sign() with a NULL buffer parameter to do that.
+
+	// Sets the right OID for the signature
+	ASN1_item_sign(x->it, 
+	               PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+                   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
+                   NULL,
+				   NULL,
+                   pkey,
+				   ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
 	// Generates the Signature
 	if ((sig = PKI_sign(der, digest, key)) == NULL) {
@@ -602,8 +611,8 @@ int PKI_X509_sign(PKI_X509               * x,
 	// Now we can free the signature mem
 	PKI_MEM_free(sig);
 
+	// Success
 	return PKI_OK;
-
 }
 
 /*! \brief General signature function on data */

@@ -1151,7 +1151,7 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	// If already set, let's free the memory first
 	if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 	
-	// Now we can safely assign the algoritm to the token
+	// Now we can safely assign the algorithm to the token
 	tk->algor = al;
 	
 	/* Check that the HSM capabilities */
