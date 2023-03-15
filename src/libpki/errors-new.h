@@ -84,6 +84,10 @@ typedef enum {
 	PKI_ERR_X509_KEYPAIR_GENERATION,
 	PKI_ERR_X509_KEYPAIR_DECODE,
 	PKI_ERR_X509_KEYPAIR_ENCODE,
+	PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT,
+	PKI_ERR_X509_KEYPAIR_ENCRYPT,
+	PKI_ERR_X509_KEYPAIR_DECRYPT_INIT,
+	PKI_ERR_X509_KEYPAIR_DECRYPT,
 	PKI_ERR_X509_KEYPAIR_,
 	/* Certificate Operations */
 	PKI_ERR_X509_CERT_CREATE,
@@ -220,6 +224,10 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_X509_KEYPAIR_GENERATION, "Can not create new key material" },
 	{ PKI_ERR_X509_KEYPAIR_ENCODE, "Can not encode the key material" },
 	{ PKI_ERR_X509_KEYPAIR_DECODE, "Can not decode the key material" },
+	{ PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, "Can not initialize public key encryption (wrong algorithm?)" },
+	{ PKI_ERR_X509_KEYPAIR_ENCRYPT, "Can not complete public key encryption" },
+	{ PKI_ERR_X509_KEYPAIR_DECRYPT_INIT, "Can not initialize public key decryption (wrong algorithm?)" },
+	{ PKI_ERR_X509_KEYPAIR_DECRYPT, "Can not complete public key decryption" },
 	{ PKI_ERR_X509_KEYPAIR_, "" },
 	/* Certificate Operations */
 	{ PKI_ERR_X509_CERT_CREATE, "Can not create a certificate object" },

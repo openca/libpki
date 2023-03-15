@@ -1,3 +1,8 @@
+* Mar 14 2023 Massimiliano Pala <madwolf@openca.org>
+- Updated library version in configure.ac to 0.9.9
+- Added Public Key Encryption/Decryption functions (RSA supported only)
+- Added fix for 64bit compilation on MacOS with Apple silicon
+
 * Feb  6 2023 Massimiliano Pala <madwolf@openca.org>
 - Aligned OID usage with IETF/Hackathon repo (https://github.com/IETF-Hackathon/pqc-certificates/blob/master/docs/oid_mapping.md)
 

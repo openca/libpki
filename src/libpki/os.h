@@ -109,6 +109,7 @@
 // iPHONE
 #  define LIBPKI_IPHONE     1
 #  define LIBPKI_UNIX       1
+#  define LIBPKI_OS_BITS    LIBPKI_OS64
 #  define LIBPKI_OS_VENDOR  LIBPKI_OS_IPHONE
 #  define LIBPKI_OS_CLASS   LIBPKI_OS_POSIX
 # elif defined(__sun) || defined(sun)
@@ -160,8 +161,12 @@
 #  if defined(__x86_64__) || defined(__AMD64__) || defined(__amd64__)
 #   define LIBPKI_OS_BITS    LIBPKI_OS64
 #  else
-#   define LIBPKI_OS_BITS    LIBPKI_OS32
-#  endif
+#   ifdef ENABLE_ARCH_64
+#    define LIBPKI_OS_BITS    LIBPKI_OS64
+#   else
+#    define LIBPKI_OS_BITS    LIBPKI_OS32
+#   endif
+# endif
 # endif /* LIBPKI_OS_POSIX */
 
 // ---------------------- OS Specific Includes -----------------------

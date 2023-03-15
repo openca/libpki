@@ -90,7 +90,7 @@ host_triplet = @host@
 target_triplet = @target@
 check_PROGRAMS = test1$(EXEEXT) test2$(EXEEXT) test3$(EXEEXT) \
 	test4$(EXEEXT) test5$(EXEEXT) test6$(EXEEXT) test7$(EXEEXT) \
-	test8$(EXEEXT) test9$(EXEEXT) test10$(EXEEXT)
+	test8$(EXEEXT) test9$(EXEEXT) test10$(EXEEXT) test11$(EXEEXT)
 subdir = src/tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -122,6 +122,12 @@ test10_DEPENDENCIES = $(testLDADD)
 test10_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test10_CFLAGS) $(CFLAGS) \
 	$(test10_LDFLAGS) $(LDFLAGS) -o $@
+am_test11_OBJECTS = test11-test11.$(OBJEXT)
+test11_OBJECTS = $(am_test11_OBJECTS)
+test11_DEPENDENCIES = $(testLDADD)
+test11_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test11_CFLAGS) $(CFLAGS) \
+	$(test11_LDFLAGS) $(LDFLAGS) -o $@
 am_test2_OBJECTS = test2-test2.$(OBJEXT)
 test2_OBJECTS = $(am_test2_OBJECTS)
 test2_DEPENDENCIES = $(testLDADD)
@@ -186,11 +192,11 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/test1-test1.Po \
-	./$(DEPDIR)/test10-test10.Po ./$(DEPDIR)/test2-test2.Po \
-	./$(DEPDIR)/test3-test3.Po ./$(DEPDIR)/test4-test4.Po \
-	./$(DEPDIR)/test5-test5.Po ./$(DEPDIR)/test6-test6.Po \
-	./$(DEPDIR)/test7-test7.Po ./$(DEPDIR)/test8-test8.Po \
-	./$(DEPDIR)/test9-test9.Po
+	./$(DEPDIR)/test10-test10.Po ./$(DEPDIR)/test11-test11.Po \
+	./$(DEPDIR)/test2-test2.Po ./$(DEPDIR)/test3-test3.Po \
+	./$(DEPDIR)/test4-test4.Po ./$(DEPDIR)/test5-test5.Po \
+	./$(DEPDIR)/test6-test6.Po ./$(DEPDIR)/test7-test7.Po \
+	./$(DEPDIR)/test8-test8.Po ./$(DEPDIR)/test9-test9.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -210,14 +216,14 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test1_SOURCES) $(test10_SOURCES) $(test2_SOURCES) \
-	$(test3_SOURCES) $(test4_SOURCES) $(test5_SOURCES) \
-	$(test6_SOURCES) $(test7_SOURCES) $(test8_SOURCES) \
-	$(test9_SOURCES)
-DIST_SOURCES = $(test1_SOURCES) $(test10_SOURCES) $(test2_SOURCES) \
-	$(test3_SOURCES) $(test4_SOURCES) $(test5_SOURCES) \
-	$(test6_SOURCES) $(test7_SOURCES) $(test8_SOURCES) \
-	$(test9_SOURCES)
+SOURCES = $(test1_SOURCES) $(test10_SOURCES) $(test11_SOURCES) \
+	$(test2_SOURCES) $(test3_SOURCES) $(test4_SOURCES) \
+	$(test5_SOURCES) $(test6_SOURCES) $(test7_SOURCES) \
+	$(test8_SOURCES) $(test9_SOURCES)
+DIST_SOURCES = $(test1_SOURCES) $(test10_SOURCES) $(test11_SOURCES) \
+	$(test2_SOURCES) $(test3_SOURCES) $(test4_SOURCES) \
+	$(test5_SOURCES) $(test6_SOURCES) $(test7_SOURCES) \
+	$(test8_SOURCES) $(test9_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -580,6 +586,10 @@ test10_SOURCES = test10.c
 test10_LDFLAGS = $(testLDFLAGS)
 test10_LDADD = $(testLDADD)
 test10_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+test11_SOURCES = test11.c
+test11_LDFLAGS = $(testLDFLAGS)
+test11_LDADD = $(testLDADD)
+test11_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
 all: all-recursive
 
 .SUFFIXES:
@@ -631,6 +641,10 @@ test10$(EXEEXT): $(test10_OBJECTS) $(test10_DEPENDENCIES) $(EXTRA_test10_DEPENDE
 	@rm -f test10$(EXEEXT)
 	$(AM_V_CCLD)$(test10_LINK) $(test10_OBJECTS) $(test10_LDADD) $(LIBS)
 
+test11$(EXEEXT): $(test11_OBJECTS) $(test11_DEPENDENCIES) $(EXTRA_test11_DEPENDENCIES) 
+	@rm -f test11$(EXEEXT)
+	$(AM_V_CCLD)$(test11_LINK) $(test11_OBJECTS) $(test11_LDADD) $(LIBS)
+
 test2$(EXEEXT): $(test2_OBJECTS) $(test2_DEPENDENCIES) $(EXTRA_test2_DEPENDENCIES) 
 	@rm -f test2$(EXEEXT)
 	$(AM_V_CCLD)$(test2_LINK) $(test2_OBJECTS) $(test2_LDADD) $(LIBS)
@@ -671,6 +685,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test1-test1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test10-test10.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test11-test11.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2-test2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3-test3.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test4-test4.Po@am__quote@ # am--include-marker
@@ -737,6 +752,20 @@ test10-test10.obj: test10.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test10.c' object='test10-test10.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test10_CFLAGS) $(CFLAGS) -c -o test10-test10.obj `if test -f 'test10.c'; then $(CYGPATH_W) 'test10.c'; else $(CYGPATH_W) '$(srcdir)/test10.c'; fi`
+
+test11-test11.o: test11.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -MT test11-test11.o -MD -MP -MF $(DEPDIR)/test11-test11.Tpo -c -o test11-test11.o `test -f 'test11.c' || echo '$(srcdir)/'`test11.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test11-test11.Tpo $(DEPDIR)/test11-test11.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test11.c' object='test11-test11.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -c -o test11-test11.o `test -f 'test11.c' || echo '$(srcdir)/'`test11.c
+
+test11-test11.obj: test11.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -MT test11-test11.obj -MD -MP -MF $(DEPDIR)/test11-test11.Tpo -c -o test11-test11.obj `if test -f 'test11.c'; then $(CYGPATH_W) 'test11.c'; else $(CYGPATH_W) '$(srcdir)/test11.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test11-test11.Tpo $(DEPDIR)/test11-test11.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test11.c' object='test11-test11.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -c -o test11-test11.obj `if test -f 'test11.c'; then $(CYGPATH_W) 'test11.c'; else $(CYGPATH_W) '$(srcdir)/test11.c'; fi`
 
 test2-test2.o: test2.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2_CFLAGS) $(CFLAGS) -MT test2-test2.o -MD -MP -MF $(DEPDIR)/test2-test2.Tpo -c -o test2-test2.o `test -f 'test2.c' || echo '$(srcdir)/'`test2.c
@@ -1056,6 +1085,7 @@ clean-am: clean-checkPROGRAMS clean-generic clean-libtool \
 distclean: distclean-recursive
 		-rm -f ./$(DEPDIR)/test1-test1.Po
 	-rm -f ./$(DEPDIR)/test10-test10.Po
+	-rm -f ./$(DEPDIR)/test11-test11.Po
 	-rm -f ./$(DEPDIR)/test2-test2.Po
 	-rm -f ./$(DEPDIR)/test3-test3.Po
 	-rm -f ./$(DEPDIR)/test4-test4.Po
@@ -1111,6 +1141,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-recursive
 		-rm -f ./$(DEPDIR)/test1-test1.Po
 	-rm -f ./$(DEPDIR)/test10-test10.Po
+	-rm -f ./$(DEPDIR)/test11-test11.Po
 	-rm -f ./$(DEPDIR)/test2-test2.Po
 	-rm -f ./$(DEPDIR)/test3-test3.Po
 	-rm -f ./$(DEPDIR)/test4-test4.Po
