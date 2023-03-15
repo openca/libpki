@@ -782,5 +782,232 @@ err:
 #else
 	return PKI_ID_UNKNOWN;
 #endif
-};
+}
 
+PKI_MEM * PKI_X509_KEYPAIR_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
+                                   const unsigned char          * const data, 
+                                   size_t                         const data_len,
+                                   int                            const flags) {
+
+	EVP_PKEY * pkey = (EVP_PKEY *)pVal;
+		// Pointer to the keypair value
+
+	EVP_PKEY_CTX * pkey_ctx = NULL;
+		// Pointer to the EVP context
+
+	PKI_MEM * out_mem = NULL;
+		// Output buffer
+
+	int padding = -1;
+		// Padding
+
+	size_t enc_size = 0;
+		// Encrypted data max size
+
+	// Input Checks
+	if (!pVal || !data || data_len == 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Checks the padding
+	if (flags <= 0) {
+		if (EVP_PKEY_RSA == EVP_PKEY_id(pkey) || 
+		    EVP_PKEY_RSA2 == EVP_PKEY_id(pkey) ||
+		    EVP_PKEY_RSA_PSS == EVP_PKEY_id(pkey)) {
+		   // RSA supports encryption and different
+		   // padding options, let's set the default
+		   padding = RSA_PKCS1_OAEP_PADDING;
+		}
+	} else {
+		padding = flags;
+	}
+
+	// Creates a new PKEY context
+	if ((pkey_ctx = EVP_PKEY_CTX_new(pkey, NULL)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Initializes the Encryption Process (will fail for key pairs
+	// that do not support encryption)
+	if (EVP_PKEY_encrypt_init(pkey_ctx) <= 0) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, NULL);
+		goto err;
+	}
+
+	// Sets the padding, if one is set
+	if (padding > 0) {
+
+		// Sets the padding via the CTRL interface
+		switch (EVP_PKEY_id(pkey)) {
+
+			// RSA Algorithm(s)
+			case EVP_PKEY_RSA:
+			case EVP_PKEY_RSA2:
+			case EVP_PKEY_RSA_PSS: {
+				if (EVP_PKEY_CTX_ctrl(pkey_ctx, EVP_PKEY_id(pkey), EVP_PKEY_OP_ENCRYPT, EVP_PKEY_CTRL_RSA_PADDING, padding, NULL) <= 0) {
+					PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, NULL);
+					goto err;
+				}
+			} break;
+
+			// Default Algorithms
+			default:
+				PKI_DEBUG("Public Key Type %d does not support encryption");
+				goto err;
+		}
+	}
+
+	//Let's encrypt the data
+	if (EVP_PKEY_encrypt(pkey_ctx, NULL, &enc_size, data, data_len) <= 0) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT, NULL);
+		goto err;
+	}
+
+	// Let's allocate the output buffer
+	if ((out_mem = PKI_MEM_new(enc_size)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
+	}
+
+	//Let's encrypt the data
+	if (EVP_PKEY_encrypt(pkey_ctx, out_mem->data, &out_mem->size, data, data_len) <= 0) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT, NULL);
+		goto err;
+	}
+
+	// Free allocated CTX
+	if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+	pkey_ctx = NULL; // Safety
+
+	// All Done.
+	return out_mem;
+
+err:
+
+	// Free allocated memory
+	if (out_mem) PKI_MEM_free(out_mem);
+	out_mem = NULL; // Safety
+
+	// Free the CTX from OpenSSL
+	if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+	pkey_ctx = NULL; // Safety
+
+	// Error condition
+	return NULL;
+}
+
+PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
+                                   const unsigned char          * const data, 
+                                   size_t                         const data_len,
+                                   int                            const flags) {
+	
+	EVP_PKEY * pkey = (EVP_PKEY *)pVal;
+		// Pointer to the keypair value
+
+	EVP_PKEY_CTX * pkey_ctx = NULL;
+		// Pointer to the EVP context
+
+	PKI_MEM * out_mem = NULL;
+		// Output buffer
+
+	int padding = -1;
+		// Padding
+
+	size_t dec_size = 0;
+		// Size of decrypted data
+
+	// Input Checks
+	if (!pVal || !data || data_len == 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Checks the padding
+	if (flags <= 0) {
+		if (EVP_PKEY_RSA == EVP_PKEY_id(pkey) || 
+		    EVP_PKEY_RSA2 == EVP_PKEY_id(pkey) ||
+		    EVP_PKEY_RSA_PSS == EVP_PKEY_id(pkey)) {
+		   // RSA supports encryption and different
+		   // padding options, let's set the default
+		   padding = RSA_PKCS1_OAEP_PADDING;
+		}
+	} else {
+		padding = flags;
+	}
+
+	// Creates a new PKEY context
+	if ((pkey_ctx = EVP_PKEY_CTX_new(pkey, NULL)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Initializes the Encryption Process (will fail for key pairs
+	// that do not support encryption)
+	if (!EVP_PKEY_decrypt_init(pkey_ctx)) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, NULL);
+		return NULL;
+	}
+
+	// Sets the padding, if one is set
+	if (padding > 0) {
+
+		// Sets the padding via the CTRL interface
+		switch (EVP_PKEY_id(pkey)) {
+
+			// RSA Algorithm(s)
+			case EVP_PKEY_RSA:
+			case EVP_PKEY_RSA2:
+			case EVP_PKEY_RSA_PSS: {
+				if (EVP_PKEY_CTX_ctrl(pkey_ctx, EVP_PKEY_id(pkey), EVP_PKEY_OP_DECRYPT, EVP_PKEY_CTRL_RSA_PADDING, padding, NULL) <= 0) {
+					PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, NULL);
+					goto err;
+				}
+			} break;
+
+			// Default Algorithms
+			default:
+				PKI_DEBUG("Public Key Type %d does not support encryption");
+				goto err;
+		}
+	}
+
+	// Let's get the output buffer size
+	if (!EVP_PKEY_decrypt(pkey_ctx, NULL, &dec_size, data, data_len)) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT, NULL);
+		return NULL;
+	}
+
+	// Let's allocate the output buffer
+	if ((out_mem = PKI_MEM_new(dec_size)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Let's decrypt the data
+	if (!EVP_PKEY_decrypt(pkey_ctx, out_mem->data, &out_mem->size, data, data_len)) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT, NULL);
+		return NULL;
+	}
+
+	// Free allocated CTX
+	if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+	pkey_ctx = NULL; // Safety
+
+	// All Done.
+	return out_mem;
+
+err:
+
+	// Free allocated memory
+	if (out_mem) PKI_MEM_free(out_mem);
+	out_mem = NULL; // Safety
+
+	// Free the CTX from OpenSSL
+	if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+	pkey_ctx = NULL; // Safety
+
+	// Error condition
+	return NULL;
+}
