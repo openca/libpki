@@ -888,14 +888,11 @@ PKI_CONFIG_STACK * PKI_CONFIG_load_dir(const char *dir,
 				snprintf(fullpath, BUFF_MAX_SIZE,
 					"%s" LIBPKI_PATH_SEPARATOR "%s", url->addr, filename );
 
-				if((fullsize = strlen(url->addr) + 
-					strlen( filename ) + 1) > 
-							BUFF_MAX_SIZE) {
+				if ((fullsize = strlen(url->addr) + strlen(filename) + 1) > BUFF_MAX_SIZE) {
 					continue;
 				}
 				
-				if((tmp_cfg = PKI_CONFIG_load( fullpath )) ==
-									NULL ) {
+				if((tmp_cfg = PKI_CONFIG_load(fullpath)) == NULL) {
 					continue;
 				}
 
