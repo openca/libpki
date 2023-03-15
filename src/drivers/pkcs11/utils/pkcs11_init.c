@@ -335,8 +335,7 @@ int HSM_PKCS11_get_contents_info( unsigned long slot_id, PKI_CRED *cred,
 
 	if((rv = lib->callbacks->C_FindObjectsInit(*session, attr, 0)) 
 								!= CKR_OK ) {
-		PKI_log_debug("hsm_pkcs11_get_contents_info()::Error in Find "
-						"Initialization" );
+		PKI_DEBUG("Error in Find Initialization");
 		return ( PKI_ERR );
 	}
 
@@ -347,8 +346,7 @@ int HSM_PKCS11_get_contents_info( unsigned long slot_id, PKI_CRED *cred,
 							1, &ulObjectCount );
 
 		if( rv != CKR_OK || ulObjectCount == 0 ) {
-			PKI_log_debug("[Find] - Find Exiting (rv=0x%8.8X - "
-				"ulObjectCount = %lu", rv, ulObjectCount );
+			PKI_DEBUG("Find Exiting (rv=0x%8.8X - ulObjectCount = %lu", rv, ulObjectCount );
 			break;
 		}
 
@@ -397,12 +395,8 @@ int HSM_PKCS11_get_contents_info( unsigned long slot_id, PKI_CRED *cred,
 
 		if((HSM_PKCS11_get_attr_sn( &hObject, session,
 			CKA_LABEL, &buf, lib )) > 0) {
-#if (LIBPKI_OS_BITS == LIBPKI_OS32)
-			printf( "    Label ......................: %s (%u)\n", 
-#else
 			printf( "    Label ......................: %s (%lu)\n", 
-#endif
-				( buf != NULL ) ? buf : "n/a" , strlen(buf));
+				( buf != NULL ) ? buf : "n/a" , (size_t) strlen(buf));
 			PKI_Free ( buf );
 			buf = NULL;
 		} else {
@@ -675,18 +669,18 @@ int HSM_PKCS11_get_attribute (CK_OBJECT_HANDLE *hPkey,
 	/* Let's get the size of the attribute */
 	if(( rv = lib->callbacks->C_GetAttributeValue(*hSession, *hPkey, 
 						pTemplate, 1 )) != CKR_OK ) {
-		PKI_log_debug("%s()::Failed 0x%8.8X", __PRETTY_FUNCTION__, rv);
+		PKI_DEBUG("Failed 0x%8.8X", rv);
 		return ( PKI_ERR );
 	}
 
 	if( pTemplate[0].ulValueLen <= 0 ) {
-		PKI_log_debug("%s()::Attribute is Empty!", __PRETTY_FUNCTION__);
+		PKI_DEBUG("Attribute is Empty!");
 		return ( PKI_ERR );
 	}
 
 	if((p = (CK_BYTE *) PKI_Malloc ( pTemplate[0].ulValueLen )) == NULL ) {
-		PKI_log_err ("%s()::Memory Error", __PRETTY_FUNCTION__);
-		return ( PKI_ERR_MEMORY_ALLOC );
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR_MEMORY_ALLOC;
 	}
 
 	pTemplate[0].pValue = p;
@@ -695,8 +689,7 @@ int HSM_PKCS11_get_attribute (CK_OBJECT_HANDLE *hPkey,
 	/* Now that we know the size, let's get the attribute */
 	if(( rv = lib->callbacks->C_GetAttributeValue( *hSession, *hPkey, 
 						pTemplate, 1 )) != CKR_OK ) {
-		PKI_log_err("%s()::PKCS11/C_GetAttributeValue Failed (0x%8.8X)",
-		 	    __PRETTY_FUNCTION__, rv );
+		PKI_DEBUG("PKCS11/C_GetAttributeValue Failed (0x%8.8X)", rv );
 		PKI_Free ( p );
 		return ( PKI_ERR );
 	}
@@ -905,18 +898,18 @@ int HSM_PKCS11_save_attribute (CK_OBJECT_HANDLE *obj,
 
 	if( !obj || !templ || !lib || !lib->callbacks || 
 				!lib->callbacks->C_SetAttributeValue ) {
-		return ( PKI_ERR );
+		return PKI_ERR;
 	}
 
 	rv = lib->callbacks->C_SetAttributeValue ( *hSession, *obj,
 							templ, (CK_ULONG) idx );
 
 	if( rv != CKR_OK ) {
-		PKI_log_err ("C_SetAttributeValue()::Failed with 0x%8.8X");
-		return ( PKI_ERR );
+		PKI_log_err ("C_SetAttributeValue()::Failed with 0x%8.8X", rv);
+		return PKI_ERR;
 	}
 
-	return ( PKI_OK );
+	return PKI_OK;
 }
 
 int HSM_PKCS11_save_attr_bool (CK_OBJECT_HANDLE *obj, CK_ATTRIBUTE_TYPE type,
