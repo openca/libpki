@@ -48,6 +48,8 @@ static char * _xml_search_namespace_add ( char *search ) {
 	int r = 0;
 	int i = 0;
 
+	size_t my_search_len = 0;
+
 	// int strSize = -1;
 
 	/* Let's alloc enough memory for the arguments, maybe this is
@@ -69,32 +71,29 @@ static char * _xml_search_namespace_add ( char *search ) {
 		strncat(my_search, LIBPKI_PATH_SEPARATOR, BUFF_MAX_SIZE );
 	}
 
-	while( (i < strlen( search )) &&
-			 (sscanf( search + i, "%[^" LIBPKI_PATH_SEPARATOR "]%n", 
-				my_arg, &r ) > 0 )) {
+	while ((i < strlen( search )) &&
+		   (sscanf( search + i, "%[^" LIBPKI_PATH_SEPARATOR "]%n", my_arg, &r ) > 0 )) {
+	
 		i = i + r;
 
-		if( strchr( my_arg, ':' ) == NULL ) {
-			strncat( my_search, PKI_NAMESPACE_PREFIX ":",
-					BUFF_MAX_SIZE - strlen(my_search) );
+		my_search_len = strlen(my_search);
+		if (strchr( my_arg, ':' ) == NULL) {
+			strncat(my_search, PKI_NAMESPACE_PREFIX ":", BUFF_MAX_SIZE - my_search_len);
+			my_search_len = strlen(my_search);
 		}
-		strncat( my_search, my_arg, BUFF_MAX_SIZE - strlen(my_search));
 
-		while( search[i] == LIBPKI_PATH_SEPARATOR_CHAR ) {
+		strncat(my_search, my_arg, BUFF_MAX_SIZE - my_search_len);
+
+		while (search[i] == LIBPKI_PATH_SEPARATOR_CHAR) {
 			i++;
-			strncat(my_search, LIBPKI_PATH_SEPARATOR, 
-				BUFF_MAX_SIZE - strlen( my_search ));
+			my_search_len = strlen(my_search);
+			strncat(my_search, LIBPKI_PATH_SEPARATOR, BUFF_MAX_SIZE - my_search_len);
 		}
 	}
 	PKI_Free(my_arg);
 
 	// Duplicates only the good parts
 	ret = strdup(my_search);
-
-	// strSize = (int) strlen(my_search);
-	// if ((ret = PKI_Malloc((size_t) strSize + 1)) != NULL) {
-	//	strncpy(ret, my_search, (size_t)strSize - strlen(my_search) - 1);
-	// }
 
 	PKI_Free(my_search);
 	return(ret);
