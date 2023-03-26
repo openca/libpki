@@ -10,7 +10,6 @@ int main (int argc, char *argv[] ) {
 		// Pointer to encrypted data structure
 
 	PKI_X509_KEYPAIR * key_pair = NULL;
-	PKI_X509_KEYPAIR_VALUE * key_pair_value = NULL;
 		// Keypair Pointer
 
 	printf("\n\nlibpki Test - Massimiliano Pala <madwolf@openca.org>\n");
@@ -36,15 +35,15 @@ int main (int argc, char *argv[] ) {
 		exit (1);
 	}
 
-	// Info
-	printf("Ok\n  - Extracting RAW value ........: ");
+	// // Info
+	// printf("Ok\n  - Extracting RAW value ........: ");
 
-	// Let's extract the low-level pointer
-	key_pair_value = PKI_X509_get_value(key_pair);
-	if (!key_pair_value) {
-		fprintf(stderr, "\n    ERROR: Cannot get the key pair lower layer value, aborting.");
-		exit(1);
-	}
+	// // Let's extract the low-level pointer
+	// key_pair_value = PKI_X509_get_value(key_pair);
+	// if (!key_pair_value) {
+	// 	fprintf(stderr, "\n    ERROR: Cannot get the key pair lower layer value, aborting.");
+	// 	exit(1);
+	// }
 
 	// Info
 	printf("Ok\n\n");
@@ -52,7 +51,7 @@ int main (int argc, char *argv[] ) {
 	printf("* Public Key Encryption:\n  - Encrypting Data Value .......: ");
 
 	// Perform public key encryption operation
-	enc_data = PKI_X509_KEYPAIR_encrypt(key_pair_value, (const unsigned char *)data, strlen(data), RSA_PKCS1_OAEP_PADDING);
+	enc_data = PKI_X509_KEYPAIR_encrypt(key_pair, (const unsigned char *)data, strlen(data), RSA_PKCS1_OAEP_PADDING);
 	if (enc_data == NULL) {
 		fprintf(stderr, "\n    ERROR: Cannot perform public key encryption.\n\n");
 		exit(1);
@@ -66,7 +65,7 @@ int main (int argc, char *argv[] ) {
 	printf("  - Decrypting Data Value .......: ");
 
 	// Perform public key encryption operation
-	dec_data = PKI_X509_KEYPAIR_decrypt(key_pair_value, (const unsigned char *)enc_data->data, enc_data->size, RSA_PKCS1_OAEP_PADDING);
+	dec_data = PKI_X509_KEYPAIR_decrypt(key_pair, (const unsigned char *)enc_data->data, enc_data->size, RSA_PKCS1_OAEP_PADDING);
 	if (dec_data == NULL) {
 		fprintf(stderr, "\n    ERROR: Cannot perform public key encryption.\n\n");
 		exit(1);

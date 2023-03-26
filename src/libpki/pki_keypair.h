@@ -123,28 +123,54 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8(const PKI_MEM *buf );
 
 /* @brief This function encrypts the input data under a keypair and a padding scheme.
  *
- * @param pVal is the keypair that will be used for encryption
+ * @param pVal is the PKI_X509_KEYPAIR_VALUE that will be used for encryption
  * @param data is the pointer to the input data
  * @param data_len is the size of the input data
  * @param pad is the padding scheme to use (def. OAEP)
  * @return A pointer to a PKI_MEM structure that contains the encrypted data.
  */
-PKI_MEM * PKI_X509_KEYPAIR_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
-                                   const unsigned char          * const data, 
-                                   size_t                         const data_len,
-                                   int                            const flags);
+PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
+                                         const unsigned char          * const data, 
+                                         size_t                         const data_len,
+                                         int                            const flags);
+
+/* @brief This function encrypts the input data under a keypair and a padding scheme.
+ *
+ * @param pVal is the PKI_X509_KEYPAIR that will be used for encryption
+ * @param data is the pointer to the input data
+ * @param data_len is the size of the input data
+ * @param pad is the padding scheme to use (def. OAEP)
+ * @return A pointer to a PKI_MEM structure that contains the encrypted data.
+ */
+PKI_MEM * PKI_X509_KEYPAIR_encrypt(const PKI_X509_KEYPAIR * keypair, 
+                                   const unsigned char    * const data, 
+                                   size_t                   const data_len,
+                                   int                      const flags);
 
 /* @brief This function decrypts the input data via a keypair and a padding scheme.
  *
- * @param pVal is the keypair that was used to encrypt the data
+ * @param pVal is the PKI_X509_KEYPAIR_VALUE that was used to encrypt the data
  * @param data is the pointer to the encrypted data
  * @param data_len is the length of the encrypted data (bytes)
  * @param padding is the selected padding mode (def. OAEP)
  * @return a pointer to a PKI_MEM that contains the decrypted data.
  */ 
-PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
-                                   const unsigned char          * const data, 
-                                   size_t                         const data_len,
-                                   int                            const flags);
+PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
+                                         const unsigned char          * const data, 
+                                         size_t                         const data_len,
+                                         int                            const flags);
+
+/* @brief This function decrypts the input data via a keypair and a padding scheme.
+ *
+ * @param pVal is the PKI_X509_KEYPAIR that was used to encrypt the data
+ * @param data is the pointer to the encrypted data
+ * @param data_len is the length of the encrypted data (bytes)
+ * @param padding is the selected padding mode (def. OAEP)
+ * @return a pointer to a PKI_MEM that contains the decrypted data.
+ */ 
+PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR * keypair, 
+                                   const unsigned char    * const data, 
+                                   size_t                   const data_len,
+                                   int                      const flags);
 
 #endif

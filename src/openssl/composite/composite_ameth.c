@@ -1069,6 +1069,9 @@ int item_sign(EVP_MD_CTX      * ctx,
   * See ASN1_item_sign_ctx() at OPENSSL/crypto/asn1/a_sign.c:140
   */
 
+ // Test
+ return 2;
+
   EVP_PKEY_CTX * pkey_ctx = EVP_MD_CTX_pkey_ctx(ctx);
     // Public Key CTX
   
@@ -1117,7 +1120,7 @@ int item_sign(EVP_MD_CTX      * ctx,
 // Not Implemented
 int siginf_set(X509_SIG_INFO *siginf, const X509_ALGOR *alg, const ASN1_STRING *sig) {
   fprintf(stderr, "%s:%d: DEBUG: siginf_set() called\n", __FILE__, __LINE__);
-  return 0;
+  return 1;
 }
 
 // ===================
@@ -1241,7 +1244,7 @@ int pkey_param_check(const EVP_PKEY *pkey) {
 EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     0,                        // int pkey_id; // EVP_PKEY_COMPOSITE
     0,                        // int pkey_base_id; // EVP_PKEY_COMPOSITE
-    ASN1_PKEY_SIGPARAM_NULL,  // unsigned long pkey_flags; 
+    0,                        // unsigned long pkey_flags; ASN1_PKEY_SIGPARAM_NULL
     "COMPOSITE",              // char *pem_str;
     "Composite Crypto With Combined Keys", // char *info;
     pub_decode,               // int (*pub_decode) (EVP_PKEY *pk, X509_PUBKEY *pub);
@@ -1261,7 +1264,7 @@ EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     0, // param_encode,             // int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
     0, // param_missing,            // int (*param_missing) (const EVP_PKEY *pk);
     0, // param_copy,               // int (*param_copy) (EVP_PKEY *to, const EVP_PKEY *from);
-    param_cmp,                // int (*param_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
+    0, // param_cmp,                // int (*param_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
     0, // param_print,              // int (*param_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
     
     sig_print,                // int (*sig_print) (BIO *out, const X509_ALGOR *sigalg, const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx);

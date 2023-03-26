@@ -321,11 +321,15 @@ static void cleanup(EVP_PKEY_CTX * ctx) {
 //   return 0;
 // }
 
-// // Not Implemented
+// // Implemented
 // static int paramgen(EVP_PKEY_CTX * ctx,
 //                     EVP_PKEY     * pkey) {
-//   PKI_DEBUG("Not implemented, yet.");
-//   return 0;
+
+//   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+//     // Pointer to inner key structure
+
+//   // Success
+//   return 1;
 // }
 
 // Implemented
@@ -494,9 +498,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     // Signature's generation
     ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen);
     if (ret_code != 1) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
-        "Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", 
-        idx, ret_code);
+      DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", idx, ret_code);
       goto err;
     }
 
@@ -924,7 +926,6 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
     // ===================
 
     case EVP_PKEY_CTRL_GET_MD: {
-      PKI_DEBUG("[ PMETH ] ======= EVP_PKEY_CTRL_GET_MD (Val: %p) ========== ", comp_ctx->md);
       *(const EVP_MD **)value = comp_ctx->md;
     } break;
 
@@ -943,9 +944,6 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
       // Sets the MD
       comp_ctx->md = value;
 
-      // Debug
-      PKI_DEBUG("Successfully set the MD for Composite Key");
-
       // All Done
       return 1;
 
@@ -953,8 +951,8 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
 
 
     case EVP_PKEY_OP_TYPE_SIG: {
-      DEBUG("[ PMETH ] ======= EVP_PKEY_OP_TYPE_SIG ========== ");
-      PKI_DEBUG("Got EVP sign operation - missing code, returning ok");
+      // Signature is supported
+      return 1;
     } break;
 
     case EVP_PKEY_CTRL_PEER_KEY:
@@ -1066,7 +1064,14 @@ static int digestsign(EVP_MD_CTX          * ctx,
                       size_t              * siglen,
                       const unsigned char * tbs,
                       size_t                tbslen) {
-  
+
+  unsigned char tbs_hash[EVP_MAX_MD_SIZE];
+  unsigned int tbs_hash_len = 0;
+    // Container for the Hashed value
+
+  int ossl_ret = 0;
+    // OpenSSL return code
+
   EVP_PKEY_CTX * p_ctx = EVP_MD_CTX_pkey_ctx(ctx);
     // PKEY context
 
@@ -1075,10 +1080,24 @@ static int digestsign(EVP_MD_CTX          * ctx,
     return 0;
   }
 
-  // Signs and Returns the result
-  return sign(p_ctx, sig, siglen, tbs, tbslen);
+  // Calculates the Digest (since we use custom digest, the data is not
+  // hashed when it is passed to this function)
+  ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
+  if (ossl_ret == 0) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+    return 0;
+  }
 
-  return 0;
+  // Signs and Returns the result
+  ossl_ret = sign(p_ctx, sig, siglen, tbs_hash, (size_t)tbs_hash_len);
+  if (ossl_ret == 0) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+    return 0;
+  }
+
+  // Success
+  return 1;
+
   /*
   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
     // Pointer to inner key structure
@@ -1242,6 +1261,13 @@ static int digestverify(EVP_MD_CTX          * ctx,
                         const unsigned char * tbs,
                         size_t                tbslen) {
 
+  unsigned char tbs_hash[EVP_MAX_MD_SIZE];
+  unsigned int tbs_hash_len = 0;
+    // Container for the Hashed value
+
+  int ossl_ret = 0;
+    // OpenSSL return code
+
   EVP_PKEY_CTX * p_ctx = EVP_MD_CTX_pkey_ctx(ctx);
     // PKEY context
 
@@ -1250,8 +1276,23 @@ static int digestverify(EVP_MD_CTX          * ctx,
     return 0;
   }
 
-  // Signs and Returns the result
-  return verify(p_ctx, sig, siglen, tbs, tbslen);
+  // Calculates the Digest (since we use custom digest, the data is not
+  // hashed when it is passed to this function)
+  ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
+  if (ossl_ret == 0) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+    return 0;
+  }
+
+  // Verifies and Returns the result
+  ossl_ret = verify(p_ctx, sig, siglen, tbs_hash, tbs_hash_len);
+  if (ossl_ret == 0) {
+    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+    return 0;
+  }
+
+  // Success
+  return 1;
 }
 
 // // Not Implemented
@@ -1306,10 +1347,10 @@ EVP_PKEY_METHOD composite_pkey_meth = {
     0, // copy,     // int (*copy)(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src);
     cleanup,        // void (*cleanup)(EVP_PKEY_CTX *ctx);
     0,              // paramgen_init,  // int (*paramgen_init)(EVP_PKEY_CTX *ctx);
-    0,              // paramgen,       // int (*paramgen)(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey);
-    0, // keygen_init, // int (*keygen_init)(EVP_PKEY_CTX *ctx);
+    0,              // int (*paramgen)(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey);
+    0,              // int (*keygen_init)(EVP_PKEY_CTX *ctx);
     keygen,         // int (*keygen)(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey);
-    0, // sign_init,      // int (*sign_init) (EVP_PKEY_CTX *ctx);
+    0,              // int (*sign_init) (EVP_PKEY_CTX *ctx);
     sign,           // int (*sign) (EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen);
     0,              // verify_init,    // int (*verify_init) (EVP_PKEY_CTX *ctx);
     verify,         // int (*verify) (EVP_PKEY_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen);

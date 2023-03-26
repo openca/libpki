@@ -824,66 +824,84 @@ int PKI_verify_signature(const PKI_MEM              * data,
 	const PKI_DIGEST_ALG *dgst = NULL;
 
 	// Input Checks
-	if( !data || !data->data || !sig || !sig->data ||
-			 !alg || !key || !key->value )  {
-
+	if (!data || !data->data || !sig || !sig->data ||
+		!alg  || !key || !key->value )  {
 		// Reports the Input Error
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
 	// Gets the Digest Algorithm to verify with
 	if ((dgst = PKI_X509_ALGOR_VALUE_get_digest(alg)) == PKI_ID_UNKNOWN) {
-
 		// Reports the error
 		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,  NULL);
 	}
 
-	// Creates and Initializes a new crypto context (CTX)
-	if ((ctx = EVP_MD_CTX_new()) == NULL) {
+	// Only use digest when we have not digest id
+	// that was returned for the algorithm
+	if (dgst != NULL && dgst != EVP_md_null()) {
 
-		// Can not alloc memory, let's report the error
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-	}
+		// Creates and Initializes a new crypto context (CTX)
+		if ((ctx = EVP_MD_CTX_new()) == NULL) {
+			// Can not alloc memory, let's report the error
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		}
 
-	// Initializes the new CTX
-	EVP_MD_CTX_init(ctx);
+		// Initializes the new CTX
+		EVP_MD_CTX_init(ctx);
 
-	// Initializes the Verify Function
-	if ((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0) {
+		// Initializes the Verify Function
+		if ((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0) {
 
-		// Error in initializing the signature verification function
-		PKI_log_err("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
-			HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
-			HSM_get_errno(NULL));
+			// Error in initializing the signature verification function
+			PKI_log_err("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
+				HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
+				HSM_get_errno(NULL));
 
-		// Done working
-		goto err;
-	}
+			// Done working
+			goto err;
+		}
 
-	// Updates the Verify function
-	if ((v_code = EVP_VerifyUpdate(ctx, (unsigned char *)data->data,
-					data->size)) <= 0 ) {
+		// Updates the Verify function
+		if ((v_code = EVP_VerifyUpdate(ctx, (unsigned char *)data->data,
+						data->size)) <= 0 ) {
 
-		// Reports the error
-		PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
-			HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code, 
-			HSM_get_errno(NULL));
+			// Reports the error
+			PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
+				HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code, 
+				HSM_get_errno(NULL));
 
-		// Done working
-		goto err;
-	}
+			// Done working
+			goto err;
+		}
 
-	// Finalizes the Verify function
-	if ((v_code = EVP_VerifyFinal(ctx, (unsigned char *)sig->data,
-                        (unsigned int)sig->size, key->value )) <= 0 ) {
+		// Finalizes the Verify function
+		if ((v_code = EVP_VerifyFinal(ctx, (unsigned char *)sig->data,
+							(unsigned int)sig->size, key->value )) <= 0 ) {
 
-		// Reports the error
-		PKI_log_err("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
-			HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,
-			HSM_get_errno(NULL));
+			// Reports the error
+			PKI_log_err("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
+				HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,
+				HSM_get_errno(NULL));
 
-		// Done working
-		goto err;
+			// Done working
+			goto err;
+		}
+	} else {
+
+		EVP_PKEY_CTX * pctx = EVP_PKEY_CTX_new(key->value, NULL);
+			// Context for the verify operation
+
+		// Initialize the Verify operation
+		if ((v_code = EVP_PKEY_verify_init(pctx)) <= 0) {
+			PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, "cannot initialize direct (no-hash) sig verification");
+			goto err;
+		}
+
+		// Verifies the signature
+		if ((v_code = EVP_PKEY_verify(pctx, sig->data, sig->size, data->data, data->size)) <= 0) {
+			PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+			goto err;
+		}
 	}
 
 	// Free the memory

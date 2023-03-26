@@ -784,10 +784,10 @@ err:
 #endif
 }
 
-PKI_MEM * PKI_X509_KEYPAIR_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
-                                   const unsigned char          * const data, 
-                                   size_t                         const data_len,
-                                   int                            const flags) {
+PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
+                                    	 const unsigned char          * const data, 
+                                   		 size_t                         const data_len,
+                                   		 int                            const flags) {
 
 	EVP_PKEY * pkey = (EVP_PKEY *)pVal;
 		// Pointer to the keypair value
@@ -898,10 +898,19 @@ err:
 	return NULL;
 }
 
-PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
-                                   const unsigned char          * const data, 
-                                   size_t                         const data_len,
-                                   int                            const flags) {
+PKI_MEM * PKI_X509_KEYPAIR_encrypt(const PKI_X509_KEYPAIR * keypair, 
+                                   const unsigned char    * const data, 
+                                   size_t                   const data_len,
+                                   int                      const flags) {
+
+	// Wrapper for the call to the lower crypto layer
+	return PKI_X509_KEYPAIR_VALUE_encrypt(PKI_X509_get_value(keypair), data, data_len, flags);
+}
+
+PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
+                                         const unsigned char          * const data, 
+                                         size_t                         const data_len,
+                                         int                            const flags) {
 	
 	EVP_PKEY * pkey = (EVP_PKEY *)pVal;
 		// Pointer to the keypair value
@@ -1010,4 +1019,13 @@ err:
 
 	// Error condition
 	return NULL;
+}
+
+PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR * keypair, 
+                                   const unsigned char    * const data, 
+                                   size_t                   const data_len,
+                                   int                      const flags) {
+
+	// Wrapper for lower-layer crypto call
+	return PKI_X509_KEYPAIR_VALUE_decrypt(PKI_X509_get_value(keypair), data, data_len, flags);
 }

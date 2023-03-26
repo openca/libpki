@@ -64,9 +64,6 @@ BEGIN_C_DECLS
 DEFINE_STACK_OF(EVP_PKEY);
   // Provides the Definition for the stack of keys
 
-// DEFINE_STACK_OF_CONST(EVP_PKEY);
-  // Provides the Definition for the stack of keys
-
 typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY;
   // The Composite Key is just a Stack of EVP_PKEY
 
@@ -75,28 +72,6 @@ DEFINE_STACK_OF(EVP_PKEY_CTX);
 
 DEFINE_STACK_OF(EVP_MD_CTX);
   // Provides the Definition for the stack of keys
-
-
-// DEFINE_STACK_OF_CONST(EVP_PKEY_CTX)
-  // Provides the definition for the stack of CTX
-
-// Old Definition - uses stack of contexts
-// ---------------------------------------
-
-// typedef struct {
-
-//     EVP_PKEY_CTX * pkey_ctx;
-//       // Stack of context for the components
-
-//     EVP_MD_CTX * md_ctx;
-//       // Stack of MD CTX for the components
-
-// } COMPOSITE_CTX_ITEM;
-
-// DEFINE_STACK_OF(COMPOSITE_CTX_ITEM);
-// //DEFINE_STACK_OF_CONST(COMPOSITE_CTX_ITEM);
-
-// typedef STACK_OF(COMPOSITE_CTX_ITEM) COMPOSITE_CTX;
 
 // New Definition - uses a single hash value
 typedef struct _libpki_composite_ctx {
@@ -107,14 +82,10 @@ typedef struct _libpki_composite_ctx {
   // Stack of EVP PKEY CTX
   STACK_OF(EVP_PKEY) * components;
 
+  // Stack of Algorithm Identifiers
+  STACK_OF(X509_ALGOR) * params;
+
 } COMPOSITE_CTX;
-
-// #define COMPOSITE_CTX_new()                sk_COMPOSITE_CTX_ITEM_new_null()
-//   // Allocates a new stack of EVP_PKEY
-
-// #define COMPOSITE_CTX_new_null()           sk_COMPOSITE_CTX_ITEM_new_null()
-//   // Allocates a new stack of EVP_PKEY
-
 
 // Used to Concatenate the encodings of the different
 // components when encoding via the ASN1 meth (priv_encode)
@@ -193,12 +164,6 @@ STACK_OF(EVP_PKEY) * COMPOSITE_CTX_pkey_stack0(COMPOSITE_CTX * ctx);
 // COMPOSITE_CTX_ITEM: Prototypes
 // ------------------------------
 
-// COMPOSITE_CTX_ITEM * COMPOSITE_CTX_ITEM_new_null();
-//   // Allocates a new internal CTX item
-
-// void COMPOSITE_CTX_ITEM_free(COMPOSITE_CTX_ITEM * it);
-//   // Frees the memory associated with a CTX
-
 // Returns the total size of the components
 int COMPOSITE_KEY_size(COMPOSITE_KEY * key);
 
@@ -211,75 +176,6 @@ int COMPOSITE_KEY_bits(COMPOSITE_KEY * bits);
 // or is the highest (if the AND logic is implemented)
 // among the key components
 int COMPOSITE_KEY_security_bits(COMPOSITE_KEY * sec_bits);
-
-// // COMPOSITE_CTX: Stack Aliases
-// // ----------------------------
-
-// #define COMPOSITE_CTX_new()                sk_COMPOSITE_CTX_ITEM_new_null()
-//   // Allocates a new stack of EVP_PKEY
-
-// #define COMPOSITE_CTX_new_null()           sk_COMPOSITE_CTX_ITEM_new_null()
-//   // Allocates a new stack of EVP_PKEY
-
-// #define COMPOSITE_CTX_push_item(ctx, val)  sk_COMPOSITE_CTX_ITEM_push(ctx, val)
-//   // Pushes a new EVP_PKEY_CTX to the CTX
-
-// #define COMPOSITE_CTX_pop_item(ctx)        sk_COMPOSITE_CTX_ITEM_pop(ctx)
-//   // Removes the last EVP_PKEY_CTX from the CTX
-
-// #define COMPOSITE_CTX_pop_free(ctx)        sk_COMPOSITE_CTX_ITEM_pop_free(ctx, COMPOSITE_CTX_ITEM_free)
-//   // Removes the last EVP_PKEY_CTX from the CTX and frees memory
-
-// #define COMPOSITE_CTX_num(ctx)             sk_COMPOSITE_CTX_ITEM_num(ctx)
-//   // Gets the number of components of a ctx
-
-// #define COMPOSITE_CTX_value(ctx, num)      sk_COMPOSITE_CTX_ITEM_value(ctx, num)
-//   // Returns the num-th EVP_PKEY in the stack
-
-// #define COMPOSITE_CTX_add_item(ctx, value, num) sk_COMPOSITE_CTX_ITEM_insert(ctx, value, num)
-//   // Adds a component at num-th position
-
-// #define COMPOSITE_CTX_del(ctx, num)        COMPOSITE_CTX_ITEM_free(sk_COMPOSITE_CTX_ITEM_delete(ctx, num))
-//   // Deletes the num-th component from the key
-
-// #define COMPOSITE_CTX_get_item(ctx, num)   sk_COMPOSITE_CTX_ITEM_value(ctx, num)
-//   // Alias for the COMPOSITE_KEY_num() define
-
-// #define COMPOSITE_CTX_dup(ctx)             sk_COMPOSITE_CTX_ITEM_copy(ctx, COMPOSITE_CTX_ITEM_dup, COMPOSITE_CTX_ITEM_free)
-//   // Duplicates (deep copy) the key
-
-// int COMPOSITE_CTX_add(COMPOSITE_CTX * comp_ctx,
-//                       EVP_PKEY_CTX  * pkey_ctx, 
-//                       EVP_MD_CTX    * md_ctx,
-//                       int             index);
-
-// int COMPOSITE_CTX_add_pkey(COMPOSITE_CTX * comp_ctx,
-//                            EVP_PKEY      * pkey,
-//                            int             index);
-
-// int COMPOSITE_CTX_push(COMPOSITE_CTX * comp_ctx,
-//                       EVP_PKEY_CTX  * pkey_ctx,
-//                       EVP_MD_CTX    * md_ctx);
-
-// int COMPOSITE_CTX_push_pkey(COMPOSITE_CTX * comp_ctx,
-//                             EVP_PKEY      * pkey);
-
-// int COMPOSITE_CTX_get0(COMPOSITE_CTX  * comp_ctx,
-//                        int              index,
-//                        EVP_PKEY_CTX  ** pkey_ctx,
-//                        EVP_MD_CTX    ** md_ctx);
-
-// int COMPOSITE_CTX_pkey_get0(COMPOSITE_CTX  * comp_ctx,
-//                             EVP_PKEY      ** pkey_ctx,
-//                             int              index);
-
-// int COMPOSITE_CTX_pop(COMPOSITE_CTX * comp_ctx,
-//                       EVP_PKEY_CTX  ** pkey_ctx,
-//                       EVP_MD_CTX    ** md_ctx);
-
-// void COMPOSITE_CTX_clear(COMPOSITE_CTX *ctx);
-
-// void COMPOSITE_CTX_free(COMPOSITE_CTX * ctx);
 
 
 END_C_DECLS
