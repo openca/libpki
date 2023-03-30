@@ -148,18 +148,28 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new () {
 	PKI_X509_ALGOR_VALUE *ret = NULL;
 		// Return value
 
-	if((ret = X509_ALGOR_new()) == NULL) {
+	// Allocates a new X509_ALGOR
+	if ((ret = X509_ALGOR_new()) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 	}
 
+	// Success
 	return ret;
 }
 
 
-void PKI_X509_ALGOR_VALUE_free ( PKI_X509_ALGOR_VALUE *a ) {
+void PKI_X509_ALGOR_VALUE_free(PKI_X509_ALGOR_VALUE *a) {
+
+	// Input check
 	if ( !a ) return;
 
-	X509_ALGOR_free ( a );
+	// // Individual free
+	// if (a->parameter > (ASN1_TYPE *)0xF0000) ASN1_TYPE_free(a->parameter);
+	// if (a->algorithm) ASN1_OBJECT_free(a->algorithm);
+
+	// PKI_Free(a);
+
+	X509_ALGOR_free(a);
 
 	return;
 }
@@ -174,60 +184,78 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type ) {
 		return NULL;
 	}
 
-	if (!(ret->algorithm=OBJ_nid2obj(type))) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		goto err;
+	if (!X509_ALGOR_set0(ret, OBJ_nid2obj(type), V_ASN1_UNDEF, NULL)) {
+		PKI_ERROR(PKI_ERR_ALGOR_GET, NULL);
+		return NULL;
 	}
 
-	// Generates the parameter
-	if((ret->parameter = ASN1_TYPE_new()) == NULL ) goto err;
+	// // Generates the algorithm identifier
+	// if (!(ret->algorithm=OBJ_nid2obj(type))) {
+	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	// 	goto err;
+	// }
 
-	// Sets the Algorithm OID and Parameter Type
-	ret->algorithm=OBJ_nid2obj(type);
-	ret->parameter->type = V_ASN1_NULL;
+	// // Generates the parameter
+	// if((ret->parameter = ASN1_TYPE_new()) == NULL ) goto err;
+
+	// // Sets the Algorithm OID and Parameter Type
+	// ret->algorithm=OBJ_nid2obj(type);
+	// ret->parameter->type = V_ASN1_UNDEF;
 
 	return ret;
 
-err:
+// err:
 
-	if ( ret ) PKI_X509_ALGOR_VALUE_free ( ret );
+// 	if ( ret ) PKI_X509_ALGOR_VALUE_free ( ret );
 
-	return NULL;
+// 	return NULL;
 }
 
 PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
 
 	PKI_X509_ALGOR_VALUE *ret = NULL;
+		// Pointer for returned item
+
 	PKI_ID id = PKI_ID_UNKNOWN;
+		// Identifier for the algorithm
 
-	if ( !alg ) return NULL;
+	// Input checks
+	if (!alg) return NULL;
 
-	if((id = EVP_MD_nid( alg )) == NID_undef) {
-		return NULL;
-	};
+	// Checks for the MD identifier
+	if ((id = EVP_MD_nid(alg)) == NID_undef) return NULL;
 
-	if (( ret = X509_ALGOR_new()) == NULL ) {
+	// Creates a new empty X509_ALGOR
+	if ((ret = X509_ALGOR_new()) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
-	};
+	}
 
-	if (!(ret->algorithm=OBJ_nid2obj(id))) {
+	if (!X509_ALGOR_set0(ret, OBJ_nid2obj(id), V_ASN1_UNDEF, NULL)) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		goto err;
 	}
 
-    if ((ret->parameter=ASN1_TYPE_new()) == NULL) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		goto err;
-	}
+	// if (!(ret->algorithm=OBJ_nid2obj(id))) {
+	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	// 	goto err;
+	// }
 
-    ret->parameter->type=V_ASN1_NULL;
+    // if ((ret->parameter=ASN1_TYPE_new()) == NULL) {
+	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	// 	goto err;
+	// }
 
+    // ret->parameter->type=V_ASN1_NULL;
+
+	// Success
 	return ret;
 
 err:
+	// Freeing allocated memory
 	if (ret) X509_ALGOR_free ( ret );
 
+	// Error Condition
 	return NULL;
 }
 
@@ -616,7 +644,7 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 
 	// Finds if this NID is a X509_ALGOR nid, if not let's return NULL
 	if (!OBJ_find_sigid_algs(alg_nid, &hash_nid, &pkey_nid)) {
-		PKI_DEBUG("Cannot Find Algors for %d (%s)", alg_nid, OBJ_nid2sn(alg_nid));
+		PKI_DEBUG("Cannot Find Algorithms for %d (%s)", alg_nid, OBJ_nid2sn(alg_nid));
 		return NULL;
 	}
 
@@ -629,15 +657,19 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 	}
 
 	// Let's return the PKIX X509 Algorithm Data structure
-	return PKI_X509_ALGOR_VALUE_new_type(alg_nid);
+	ret = PKI_X509_ALGOR_VALUE_new_type(alg_nid);
+
+	// Return the resul of the instantiation
+	return ret;
 
 err:
 
   // Free Allocated Memory  
 	if (ret) PKI_X509_ALGOR_VALUE_free(ret);
+	ret = NULL;
 
 	// Returns NULL
-	return (PKI_ALGOR_NULL);
+	return PKI_ALGOR_NULL;
 }
 
 /* ! \brief Get a PKI_ALGOR from an PKI_ALGOR object */

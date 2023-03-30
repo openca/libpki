@@ -311,9 +311,9 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// Gets the default digest for the key
 	digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
 
-	PKI_DEBUG("Requested Digest for Signing is %s", digest ? PKI_ID_get_txt(EVP_MD_nid(digest)) : "NULL");
-	PKI_DEBUG("Checking Default Digest for PKEY %d (%s) is %d (%s) (result = %d)",
-		EVP_PKEY_id(pkey), PKI_ID_get_txt(EVP_PKEY_id(pkey)), def_nid, PKI_ID_get_txt(def_nid), digestResult);
+	// PKI_DEBUG("Requested Digest for Signing is %s", digest ? PKI_ID_get_txt(EVP_MD_nid(digest)) : "NULL");
+	// PKI_DEBUG("Checking Default Digest for PKEY %d (%s) is %d (%s) (result = %d)",
+	// 	EVP_PKEY_id(pkey), PKI_ID_get_txt(EVP_PKEY_id(pkey)), def_nid, PKI_ID_get_txt(def_nid), digestResult);
 
 	// Checks for error
 	if (digest == NULL && digestResult <= 0) {
@@ -355,12 +355,12 @@ PKI_MEM * HSM_OPENSSL_sign(PKI_MEM * der, PKI_DIGEST_ALG * digest, PKI_X509_KEYP
 	// Initializes the Context
 	EVP_MD_CTX_init(ctx);
 
-	PKI_DEBUG("MD (digest) = %p (EVP_md_null = %p) (EVP_md_null() ==> %d)", 
-		digest, EVP_md_null, EVP_md_null() == digest);
+	// PKI_DEBUG("MD (digest) = %p (EVP_md_null = %p) (EVP_md_null() ==> %d)", 
+	// 	digest, EVP_md_null, EVP_md_null() == digest);
 
 	// DEBUG
-	PKI_DEBUG("MD (digest) in DigestSignInit: %d (%s)", 
-		digest ? EVP_MD_nid(digest) : NID_undef, digest ? PKI_DIGEST_ALG_get_parsed(digest) : "<NULL>");
+	// PKI_DEBUG("MD (digest) in DigestSignInit: %d (%s)", 
+	// 	digest ? EVP_MD_nid(digest) : NID_undef, digest ? PKI_DIGEST_ALG_get_parsed(digest) : "<NULL>");
 
 	// Initializes the Digest and does special processing for when the 
 	// EVP_md_null() is used to indicate that the NO HASH was requested

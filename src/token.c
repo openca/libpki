@@ -914,71 +914,100 @@ int PKI_TOKEN_load_config ( PKI_TOKEN * const tk, const char * const tk_name ) {
 		// Key loading is delayed until the call to the PKI_TOKEN_login()
 		// function
 		
+	} else {
+		PKI_DEBUG("No Key Provided");
 	}
-	else PKI_log_debug("TOKEN::Warning::No Key Provided!");
 
-	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/cert")) != NULL)
-	{
-		if ((tk->cert = PKI_X509_CERT_get(tmp_s, PKI_DATA_FORMAT_UNKNOWN, 
-													tk->cred, tk->hsm)) == NULL) {
+	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/cert")) != NULL) {
+
+		if ((tk->cert = PKI_X509_CERT_get(tmp_s, 
+										  PKI_DATA_FORMAT_UNKNOWN, 
+										  tk->cred,
+										  tk->hsm)) == NULL) {
 			PKI_Free(tmp_s);
 			PKI_ERROR(PKI_ERR_TOKEN_CERT_LOAD, NULL);
 			goto end;
 		} 
 
-		// The init function already assigned and algorithm to the token, we
-		// might want to free it before re-assigning the algorithm
-		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
+		// Retrieves the certificate's algorithm
+		alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
 
 		// Assign the algorithm from the certificate
-		alg = PKI_X509_CERT_get_data(tk->cert, PKI_X509_DATA_ALGORITHM);
-		if (alg) PKI_TOKEN_set_algor(tk, PKI_X509_ALGOR_VALUE_get_id(alg));
+		if (alg) {
+			// The init function already assigned and algorithm to the token, we
+			// might want to free it before re-assigning the algorithm
+			if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
+			tk->algor = NULL;
+
+			// Sets the algorithm in the token
+			if (!PKI_TOKEN_set_algor(tk, PKI_X509_ALGOR_VALUE_get_id(alg))) {
+				// Recoverable Error (?)
+				PKI_DEBUG("ERROR: Cannot set the algorithm for the token.");
+			}
+		}
 
 		// Assign the name
 		tk->cert_id = strdup( tmp_s );
 		PKI_Free ( tmp_s );
 	}
 
-	if ((tmp_s = PKI_CONFIG_get_value ( tk->config, "/tokenConfig/cacert")) != NULL)
-	{
-		if((tk->cacert = PKI_X509_CERT_get(tmp_s, PKI_DATA_FORMAT_UNKNOWN,
-													tk->cred, tk->hsm )) == NULL) {
+	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/cacert")) != NULL) {
+
+		// Check for the CA cert presence
+		if ((tk->cacert = PKI_X509_CERT_get(tmp_s, 
+			 							    PKI_DATA_FORMAT_UNKNOWN,
+										    tk->cred,
+										    tk->hsm )) == NULL) {
+			// Error Condition
 			PKI_ERROR(PKI_ERR_TOKEN_CACERT_LOAD, NULL);
-		}
-		else
-		{
+		} else {
+			// Duplicates the CA cert ID
 			tk->cacert_id = strdup( tmp_s );
 		}
+		
 		PKI_Free(tmp_s);
 	}
 
-	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/otherCerts")) != NULL)
-	{
+	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/otherCerts")) != NULL) {
+
+		// Retrieves the "other" certificates
 		tk->otherCerts = PKI_X509_CERT_STACK_get(tmp_s, 
-												 PKI_DATA_FORMAT_UNKNOWN, tk->cred, tk->hsm );
-
-		if (tk->otherCerts == NULL)
+												 PKI_DATA_FORMAT_UNKNOWN,
+												 tk->cred,
+												 tk->hsm );
+		// Check we successfully added the stack
+		if (tk->otherCerts == NULL) {
+			// Error Condition
 			PKI_ERROR(PKI_ERR_TOKEN_OTHERCERTS_LOAD, tmp_s);
-
-		PKI_Free ( tmp_s );
+		}
+		// Free the buffer
+		PKI_Free(tmp_s);
 	}
 
-	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/trustedCerts")) != NULL)
-	{
+	if ((tmp_s = PKI_CONFIG_get_value(tk->config, "/tokenConfig/trustedCerts")) != NULL) {
+
+		// Retrieves the trusted certificates
 		tk->trustedCerts = PKI_X509_CERT_STACK_get(tmp_s, 
-												   PKI_DATA_FORMAT_UNKNOWN, tk->cred, tk->hsm);
-
-		if (!tk->trustedCerts) 
+												   PKI_DATA_FORMAT_UNKNOWN,
+												   tk->cred,
+												   tk->hsm);
+		// Check we successfully added the new stack
+		if (tk->trustedCerts == NULL) { 
 			PKI_ERROR(PKI_ERR_TOKEN_TRUSTEDCERTS_LOAD, tmp_s);
-
-		PKI_Free ( tmp_s );
+		}
+		// Free the buffer
+		PKI_Free(tmp_s);
 	}
 
+	// Success
 	ret = PKI_OK;
 
 end:
+	// Free Heap memory
 	if (tk_name) tk->name = strdup(tk_name);
 	if (config_file) PKI_Free(config_file);
+
+	// All Done
 	return ret;
 }
 
@@ -1047,18 +1076,19 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 		tk->config_dir = strdup ( buff );
 	}
 
-	/* Load Configuration Files */
-	snprintf( buff, sizeof(buff), "%s/%s", tk->config_dir, 
-		PKI_DEFAULT_CONF_OID_FILE);
+	// Builds the name for the default OID config file
+	snprintf(buff, sizeof(buff), "%s/%s", tk->config_dir, PKI_DEFAULT_CONF_OID_FILE);
+	
+	// Load the external object Identifiers file
+	if ((oids = PKI_CONFIG_load(buff)) != NULL) {
+		tk->oids = oids;
+	}
 
-	/* Load the external object Identifiers file */
-	if ((oids = PKI_CONFIG_load( buff )) != NULL) tk->oids = oids;
+	// Builds the name for the dir/profile.d/ directory
+	snprintf( buff, BUFF_MAX_SIZE, "%s/%s", tk->config_dir, PKI_DEFAULT_PROFILE_DIR);
 
-	/* Load Configuration Files */
-	snprintf( buff, BUFF_MAX_SIZE, "%s/%s", tk->config_dir, 
-		PKI_DEFAULT_PROFILE_DIR);
-
-	if (PKI_TOKEN_load_profiles( tk, buff ) != PKI_OK) {
+	// Loads all profile files in the directory
+	if (PKI_TOKEN_load_profiles(tk, buff) != PKI_OK) {
 		// If the failure happens when we were passed
 		// a directory name, we need to inform the caller,
 		// otherwise there is no need to use an error message
@@ -1069,10 +1099,12 @@ int PKI_TOKEN_init(PKI_TOKEN  * const tk,
 		}
 	}
 
-	/* Now let's try to load the HSM configuration file */
+	// Let's now load the specific token to use
 	if (tk_name) {
+		// Loads the 'tk_name' configuration
 		if ((PKI_TOKEN_load_config(tk, tk_name)) != PKI_OK)	{
-			return PKI_ERROR ( PKI_ERR_TOKEN_PROFILE_LOAD, tk_name );
+			PKI_DEBUG("Cannot load the requested token (name: %s)", tk_name);
+			return PKI_ERR;
 		}
 	}
 
@@ -1137,27 +1169,45 @@ PKI_OID *PKI_TOKEN_OID_new ( PKI_TOKEN *tk, char *oid_s )
 int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 {
 	PKI_X509_ALGOR_VALUE *al = NULL;
+		// Pointer to the generated algor
 
-	if (!tk) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
+	int ret = PKI_ERR;
+		// Return value
 
+	// Input checks
+	if (!tk) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
+		return PKI_ERR;
+	}
+
+	// If no algorithm was passed, let's use the default one
 	if(algId <= 0) algId = PKI_ALGOR_DEFAULT;
 
 	// Now let's get the algor
 	if ((al = PKI_X509_ALGOR_VALUE_get(algId)) == NULL) {
+		// No algorithm was present
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-		return PKI_ERR;
+		return ret;
 	}
 
 	// If already set, let's free the memory first
-	if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
+	if (tk->algor) {
+		PKI_DEBUG("Freeing the heap memory for the algorithm");
+		PKI_X509_ALGOR_VALUE_free(tk->algor);
+		tk->algor = NULL;
+	}
 	
 	// Now we can safely assign the algorithm to the token
 	tk->algor = al;
 	
 	/* Check that the HSM capabilities */
-	if (tk->hsm) return HSM_set_sign_algor(tk->algor, tk->hsm);
+	if (tk->hsm) {
+		// Updates the algorithm in the HSM
+		ret = HSM_set_sign_algor(tk->algor, tk->hsm);
+	}
 
-	return PKI_OK;
+	// All Done
+	return ret;
 };
 
 /*!
