@@ -23,9 +23,10 @@ void PKI_X509_REQ_free_void( void *x ) {
 
 void PKI_X509_REQ_free( PKI_X509_REQ *x ) {
 
-	if( x ) PKI_X509_free ( x );
+	// Free Memory
+	if (x) PKI_X509_free ( x );
 
-	/* Return success -- 1 */
+	// All Done
 	return;
 }
 

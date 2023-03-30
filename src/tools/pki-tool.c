@@ -1351,9 +1351,6 @@ int main (int argc, char *argv[] ) {
 						PKI_X509_ALGOR_VALUE_get_parsed( tk->algor ));
 			fprintf(stderr, "  - key size .......: %d\n",
 				PKI_X509_KEYPAIR_get_size ( tk->keypair ));
-			// fprintf(stderr, "  - key URI ........: %s\n", 
-			// 	URL_get_parsed( tk->keypair->ref ) ?
-			// 	URL_get_parsed( tk->keypair->ref ) : outkey_s );
 			fprintf(stderr, "  - Output .........: %s\n", outfile );
 			fflush(stderr);
 

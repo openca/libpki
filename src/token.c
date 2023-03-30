@@ -934,15 +934,11 @@ int PKI_TOKEN_load_config ( PKI_TOKEN * const tk, const char * const tk_name ) {
 
 		// Assign the algorithm from the certificate
 		if (alg) {
-			// The init function already assigned and algorithm to the token, we
-			// might want to free it before re-assigning the algorithm
-			if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
-			tk->algor = NULL;
-
 			// Sets the algorithm in the token
 			if (!PKI_TOKEN_set_algor(tk, PKI_X509_ALGOR_VALUE_get_id(alg))) {
 				// Recoverable Error (?)
-				PKI_DEBUG("ERROR: Cannot set the algorithm for the token.");
+				PKI_DEBUG("ERROR: Cannot set the algorithm for the token (%d).",
+					PKI_X509_ALGOR_VALUE_get_id(alg));
 			}
 		}
 
@@ -1171,9 +1167,6 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	PKI_X509_ALGOR_VALUE *al = NULL;
 		// Pointer to the generated algor
 
-	int ret = PKI_ERR;
-		// Return value
-
 	// Input checks
 	if (!tk) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL );
@@ -1187,12 +1180,11 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	if ((al = PKI_X509_ALGOR_VALUE_get(algId)) == NULL) {
 		// No algorithm was present
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-		return ret;
+		return PKI_ERR;
 	}
 
 	// If already set, let's free the memory first
 	if (tk->algor) {
-		PKI_DEBUG("Freeing the heap memory for the algorithm");
 		PKI_X509_ALGOR_VALUE_free(tk->algor);
 		tk->algor = NULL;
 	}
@@ -1203,12 +1195,12 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	/* Check that the HSM capabilities */
 	if (tk->hsm) {
 		// Updates the algorithm in the HSM
-		ret = HSM_set_sign_algor(tk->algor, tk->hsm);
+		return HSM_set_sign_algor(tk->algor, tk->hsm);
 	}
 
-	// All Done
-	return ret;
-};
+	// Success
+	return PKI_OK;
+}
 
 /*!
  * \brief Set the TOKEN's scheme algorithm via its name.

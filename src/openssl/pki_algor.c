@@ -163,14 +163,10 @@ void PKI_X509_ALGOR_VALUE_free(PKI_X509_ALGOR_VALUE *a) {
 	// Input check
 	if ( !a ) return;
 
-	// // Individual free
-	// if (a->parameter > (ASN1_TYPE *)0xF0000) ASN1_TYPE_free(a->parameter);
-	// if (a->algorithm) ASN1_OBJECT_free(a->algorithm);
-
-	// PKI_Free(a);
-
+	// Free the memory
 	X509_ALGOR_free(a);
 
+	// All Done
 	return;
 }
 
@@ -189,26 +185,8 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type ) {
 		return NULL;
 	}
 
-	// // Generates the algorithm identifier
-	// if (!(ret->algorithm=OBJ_nid2obj(type))) {
-	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-	// 	goto err;
-	// }
-
-	// // Generates the parameter
-	// if((ret->parameter = ASN1_TYPE_new()) == NULL ) goto err;
-
-	// // Sets the Algorithm OID and Parameter Type
-	// ret->algorithm=OBJ_nid2obj(type);
-	// ret->parameter->type = V_ASN1_UNDEF;
-
+	// All Done
 	return ret;
-
-// err:
-
-// 	if ( ret ) PKI_X509_ALGOR_VALUE_free ( ret );
-
-// 	return NULL;
 }
 
 PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
@@ -235,18 +213,6 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		goto err;
 	}
-
-	// if (!(ret->algorithm=OBJ_nid2obj(id))) {
-	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-	// 	goto err;
-	// }
-
-    // if ((ret->parameter=ASN1_TYPE_new()) == NULL) {
-	// 	PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-	// 	goto err;
-	// }
-
-    // ret->parameter->type=V_ASN1_NULL;
 
 	// Success
 	return ret;
@@ -676,26 +642,11 @@ err:
 
 PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 
-	PKI_ALGOR_ID ret = PKI_ALGOR_ID_UNKNOWN;
-	  // Return Value
-
 	// Input Checks
 	if (!algor || !algor->algorithm) return PKI_ALGOR_ID_UNKNOWN;
 
-	PKI_DEBUG("Need to update the procedure to use X509_ALGOR_get0");
-	
-	// // Returns the algorithm's ID
-	// ret = X509_ALGOR_get0(algor);
-	// if (ret == PKI_ALGOR_ID_UKNOWN)
-
 	// Gets the Algorithm Id
-	if ((ret = OBJ_obj2nid(algor->algorithm)) == PKI_ALGOR_ID_UNKNOWN) {
-		// ERROR: Unknown or unsupported algorithm
-		PKI_ERROR( PKI_ERR_ALGOR_UNKNOWN, "PKI_ID_UNKNOWN returned (%p)", algor);
-	}
-
-  // All Done
-	return ret;
+	return OBJ_obj2nid(algor->algorithm);
 }
 
 /*! \brief Get the Digest Algorithm from the passed PKI_ALGOR
