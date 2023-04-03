@@ -302,7 +302,7 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 	switch (p_type)
 	{
 		case EVP_PKEY_DSA:
-			algId = PKI_ALGOR_DSA_SHA1;
+			algId = PKI_ALGOR_DSA_SHA256;
 			break;
 
 		case EVP_PKEY_RSA:
@@ -311,9 +311,7 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_
 
 #ifdef ENABLE_ECDSA
 		case EVP_PKEY_EC:
-			if ( size < 256 ) {
-				algId = PKI_ALGOR_ECDSA_SHA1;
-			} else if ( size < 384 ) {
+			if ( size < 384 ) {
 				algId = PKI_ALGOR_ECDSA_SHA256;
 			} else if ( size < 512 ) {
 				algId = PKI_ALGOR_ECDSA_SHA384;

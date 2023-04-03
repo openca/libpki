@@ -245,11 +245,11 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 }
 
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
-		char *url_s, char *algor_opt, char *profile_s, char *outform, 
+		char *url_s, char *algor_opt, char *profile_s, PKI_DATA_FORMAT outFormVal, 
 		char *comp_keys[], int comp_keys_num, int batch ) {
 
 	char *prompt = NULL;
-	int outFormVal = PKI_DATA_FORMAT_PEM;
+	// int outFormVal = PKI_DATA_FORMAT_PEM;
 
 	URL *keyurl = NULL;
 
@@ -268,21 +268,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			};
 		};
 	};
-
-	if ( outform ) {
-		if (strcmp_nocase( outform, "pem") == 0 ) {
-			outFormVal = PKI_DATA_FORMAT_PEM;
-		} else if ( strcmp_nocase( outform, "der") == 0 ) {
-			outFormVal = PKI_DATA_FORMAT_ASN1;
-	  } else if ( strcmp_nocase( outform, "txt") == 0 ) {
-		  outFormVal = PKI_DATA_FORMAT_TXT;
-		} else if ( strcmp_nocase( outform, "xml") == 0 ) {
-			outFormVal = PKI_DATA_FORMAT_XML;
-		} else {
-			fprintf(stderr, "ERROR, out format %s not supported!\n\n", outform);
-			exit(1);
-		}
-	}
 
 	// Output can not write to stdin, so, if that was specified, 
 	// let's re-route to stdout instead
@@ -576,7 +561,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 					fflush(stderr);
 				}
 
-				ret = PKI_TOKEN_export_keypair( tk, tmp_s, PKI_DATA_FORMAT_PEM);
+				ret = PKI_TOKEN_export_keypair( tk, tmp_s, (PKI_DATA_FORMAT)outFormVal);
 			}
 
 			if ( ret == PKI_ERR )
@@ -728,7 +713,9 @@ int main (int argc, char *argv[] ) {
 	char * type = NULL;
 	char * param_s = NULL;
 	char * outkey_s = NULL;
+
 	char * outform = NULL;
+	PKI_DATA_FORMAT outFormVal = PKI_DATA_FORMAT_PEM;
 
 	char * outpubkey_s = NULL;
 	char * outprivkey_s = NULL;
@@ -867,6 +854,7 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-curves", argv[i], 7 ) == 0 ) {
 			usage_curves( NULL );
 		} else {
+			fprintf(stderr, "\n   ERROR: unknown option '%s', abort.\n\n", argv[i]);
 			usage();
 		}
 	}
@@ -904,6 +892,21 @@ int main (int argc, char *argv[] ) {
 
 	if (batch) {
 		PKI_TOKEN_cred_set_cb ( tk, NULL, NULL );
+	}
+
+	if (outform) {
+		if (strcmp_nocase( outform, "pem") == 0 ) {
+			outFormVal = PKI_DATA_FORMAT_PEM;
+		} else if ( strcmp_nocase( outform, "der") == 0 ) {
+			outFormVal = PKI_DATA_FORMAT_ASN1;
+	  } else if ( strcmp_nocase( outform, "txt") == 0 ) {
+		  outFormVal = PKI_DATA_FORMAT_TXT;
+		} else if ( strcmp_nocase( outform, "xml") == 0 ) {
+			outFormVal = PKI_DATA_FORMAT_XML;
+		} else {
+			fprintf(stderr, "\n    ERROR: out format %s not supported!\n\n", outform);
+			exit(1);
+		}
 	}
 
 	if( token_name == NULL ) {
@@ -1270,7 +1273,7 @@ int main (int argc, char *argv[] ) {
 			algor_opt = "FALCON512";
 		} else {
 			// This should be a catch all for new algos
-			fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);
+			if (debug) fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);
 		}
 
 		PKI_DEBUG("\nSelected Algorithm: %s\n", algor_opt);
@@ -1281,7 +1284,7 @@ int main (int argc, char *argv[] ) {
 				 outfile,
 				 algor_opt, 
 				 profile,
-				 outform,
+				 outFormVal,
 #ifdef ENABLE_COMPOSITE
 				 comp_keys,
 				 comp_keys_num,
@@ -1308,14 +1311,14 @@ int main (int argc, char *argv[] ) {
 
 #ifdef ENABLE_COMPOSITE
 			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
-					profile, outform, comp_keys, comp_keys_num, batch)) == PKI_ERR ) 
+					profile, outFormVal, comp_keys, comp_keys_num, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);
 			}
 #else
 			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
-					profile, outform, NULL, 0, batch)) == PKI_ERR ) 
+					profile, outFormVal, NULL, 0, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);
@@ -1380,7 +1383,7 @@ int main (int argc, char *argv[] ) {
 				}
 
 				if((PKI_TOKEN_export_req( tk, outfile,
-							PKI_DATA_FORMAT_PEM )) == PKI_ERR )
+							(PKI_DATA_FORMAT)outFormVal )) == PKI_ERR )
 				{
 					fprintf(stderr, "ERROR, can not save req!\n");
 					exit(1);
@@ -1491,14 +1494,15 @@ int main (int argc, char *argv[] ) {
 				}
 			}
 
-			if((PKI_TOKEN_export_cert( tk, outfile,
-					PKI_DATA_FORMAT_PEM )) == PKI_ERR ) {
-				printf("ERROR,can not save cert in "
-							"'%s'\n", outfile);
+			if ((PKI_TOKEN_export_cert( tk, outfile, outFormVal )) == PKI_ERR ) {
+				printf("ERROR,can not save cert in '%s'\n", outfile);
 				return(1);
 			}
-			if ( verbose ) printf("Ok.\n");
+
+			if (verbose) printf("Ok.\n");
+
 		} else {
+
 			PKI_X509_CERT * x = NULL;
 
 			if(verbose ) printf("  - Issuing new certificate ... ");
@@ -1527,15 +1531,17 @@ int main (int argc, char *argv[] ) {
 				fflush(stdout);
 			};
 
-			if((PKI_X509_CERT_put ( x, PKI_DATA_FORMAT_PEM, 
-				outfile, NULL, tk->cred, tk->hsm)) == PKI_ERR) {
-				printf("ERROR, can not save cert in "
-						"%s\n", outfile );
+			if ((PKI_X509_CERT_put(x, outFormVal, outfile, NULL, tk->cred, tk->hsm)) == PKI_ERR) {
+				printf("ERROR, can not save cert in %s\n", outfile );
 				return(1);
 			}
+
 			if ( verbose ) printf("Ok.\n");
+
 		}
+
 	} else if ( strncmp_nocase(cmd, "gencrl", 6) == 0 ) {
+
 		PKI_X509_CRL *crl = NULL;
 		int ret = PKI_OK;
 
@@ -1563,22 +1569,31 @@ int main (int argc, char *argv[] ) {
 									   NULL,
 									   NULL,
 									   profile )) == NULL) {
-			fprintf(stderr, "ERROR: can not generate a new CRL!\n\n");
-			exit(1);
-		};
-		if((ret = PKI_X509_CRL_put ( crl, PKI_DATA_FORMAT_PEM, 
-					outfile, NULL, NULL )) != PKI_OK ) {
-			fprintf(stderr, "ERROR: can not save crl!\n\n");
+			fprintf(stderr, "\n    ERROR: can not generate a new CRL!\n\n");
 			exit(1);
 		}
-		if( verbose ) printf("Ok.\n");
+
+		if((ret = PKI_X509_CRL_put(crl, 
+								   outFormVal, 
+								   outfile,
+								   NULL,
+								   NULL)) != PKI_OK ) {
+			fprintf(stderr, "\n    ERROR: can not save crl!\n\n");
+			exit(1);
+		}
+
+		if (verbose) printf("Ok.\n");
+
 
 	} else if ( strncmp_nocase(cmd, "delete", 6) == 0 ) {
+
 		if( uri == NULL ) {
 			printf("\nERROR, no '-uri' provided!");
 			usage();
 		}
+
 	} else if ( strncmp_nocase(cmd, "import", 6) == 0 ) {
+
 		if ( type == NULL ) {
 			printf("\nERROR, no <type> provided!");
 			usage();

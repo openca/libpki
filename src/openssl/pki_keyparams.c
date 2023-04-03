@@ -20,7 +20,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 	}
 
 	// Zeroize the Memory
-	memset(kp, 1, sizeof(PKI_KEYPARAMS));
+	memset(kp, 0, sizeof(PKI_KEYPARAMS));
 
 #ifdef ENABLE_COMPOSITE
 
@@ -151,8 +151,8 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 					} else if (strncmp_nocase(tmp_s,"specifiedCurve",14) == 0){
 						kp->ec.asn1flags = 0;
 					} else {
-						PKI_log_err("ecParams (%s) not supported: use "
-							"namedCurve or specifiedCurve");
+						// Defaults to namedCurve
+						kp->ec.asn1flags = 1;
 					};
 					PKI_Free ( tmp_s );
 				} else {

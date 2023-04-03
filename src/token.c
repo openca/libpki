@@ -217,13 +217,11 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const toke
 	/* Initialize OpenSSL so that it adds all the needed algor and dgst */
 	if (PKI_get_init_status() == PKI_STATUS_NOT_INIT ) PKI_init_all();
 
-	if ((PKI_TOKEN_init(tk, config_dir, tokenName)) != PKI_OK)
-	{
-		PKI_log_err("can not initialize token, config loading error.\n");
+	if ((PKI_TOKEN_init(tk, config_dir, tokenName)) != PKI_OK) {
+		PKI_ERROR(PKI_ERR_TOKEN_INIT, NULL);
 		tk->status = PKI_TOKEN_STATUS_INIT_ERR;
-	}
-	else
-	{
+	} else {
+		// Successful Initialization
 		tk->status = PKI_TOKEN_STATUS_OK;
 	}
 
@@ -306,8 +304,9 @@ int PKI_TOKEN_check(PKI_TOKEN *tk )
 {
 	if (!tk) return PKI_TOKEN_STATUS_MEMORY_ERR;
 
-	if (tk->hsm == NULL && tk->type != HSM_TYPE_SOFTWARE)
+	if (tk->hsm == NULL && tk->type != HSM_TYPE_SOFTWARE) {
 		PKI_TOKEN_status_add_error(tk, PKI_TOKEN_STATUS_HSM_ERR);
+	}
 
 	if (tk->keypair == NULL) {
 		// If there is no key, the error condition is triggered if the
