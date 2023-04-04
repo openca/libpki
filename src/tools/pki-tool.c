@@ -1158,6 +1158,8 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "genkey", 6) == 0 ) {
 
+		int algor_len = (int) strlen(algor_opt);
+
 		PKI_TOKEN_login( tk );
 
 		// Algor Option (default)
@@ -1173,78 +1175,98 @@ int main (int argc, char *argv[] ) {
 		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
 			algor_opt = "DSA";
 		// Explicit Composite - DILITHIUM3-P256
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_NAME, 15) == 0 ||
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID, algor_len) == 0 ||
+ 				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, algor_len) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM3-ECDSA", 16) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM3-EC", 13) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM-P256", 14) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_NAME;
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME;
 		// Explicit Composite - DILITHIUM3-RSA
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_NAME, 14) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-RSA", 14) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-RSA", 13) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, algor_len) == 0 ||
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, algor_len) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM3-RSA", 14) == 0) {
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME;
 		// Explicit Composite - DILITHIUM3-BRAINPOOL256
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_NAME, 12) == 0 || 
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "DILITHIUM3-BRAINPOOL", 20) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-B256", 14) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, 18) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM-ED25519", 17) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-25519", 15) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM3-B256", 15) == 0) {
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, "DILITHIUM3-ED25519", 18) == 0 ||
+				   strncmp_nocase(algor_opt, "DILITHIUM3-25519", 16) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM3-25519", 16) == 0) {
 			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_NAME, 15) == 0 || 
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "DILITHIUM5-ECDSA", 16) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM5-EC", 13) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-P384", 14) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_NAME, 23) == 0 || 
+				   strncmp_nocase(algor_opt, "DILITHIUM5-P384", 15) == 0) {
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "DILITHIUM5-BRAINPOOL", 20) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-B384", 14) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, 16) == 0 || 
+				   strncmp_nocase(algor_opt, "DILITHIUM5-B384", 15) == 0) {
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "DILITHIUM5-448", 14) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM-ED448", 15) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM-448", 13) == 0) {
 			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_NAME, 15) == 0 || 
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON512-P256", 14) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON-ECDSA", 12) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON-P256", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_NAME, 22) == 0 || 
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON512-BRAINPOOL", 19) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON-BRAINPOOL256", 19) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON-BRAINPOOL", 16) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, 17) == 0 || 
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, algor_len) == 0 ||
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON512-25519", 15) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON-ED25519", 14) == 0 || 
 				   strncmp_nocase(algor_opt, "FALCON-25519", 12) == 0) {
 			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_NAME, 15) == 0 || 
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS256-ECDSA", 16) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS-ECDSA", 13) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS-P256", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_NAME, 23) == 0 || 
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS256-BRAINPOOL", 20) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS-BRAINPOOL", 17) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS-B256", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, 18) == 0 || 
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, algor_len) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS256-25519", 16) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS-ED25519", 15) == 0 || 
 				   strncmp_nocase(algor_opt, "SPHINCS-25519", 13) == 0) {
 			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME;
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_NAME, 13) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-RSA", 10) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, "DILITHIUM3-RSAPSS", 17) == 0 || 
+				   strncmp_nocase(algor_opt, "DILITHIUM-RSAPSS", 16) == 0) {
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME;
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, algor_len) == 0 || 
+				   strncmp_nocase(algor_opt, "FALCON-RSA", 10) == 0 ||
+				   strncmp_nocase(algor_opt, "FALCON512-RSA", 10) == 0) {
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME;
 		// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-P521
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_NAME, 26) == 0 ||
+		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID, algor_len) == 0 ||
+				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, algor_len) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM-FALCON-EC", 19) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM-FALCON-P521", 21) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_NAME;
+			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME;
 		} else if (strncmp_nocase(algor_opt, "DILITHIUMX3", 11) == 0
 				   && strlen(algor_opt) == strlen("DILITHIUMX3")) {
 			algor_opt = "DILITHIUMX3";
