@@ -53,6 +53,7 @@ void usage ( void ) {
 	fprintf(stderr, "  genkey          - Generates a new Keypair (def. RSA-SHA1)\n");
 	fprintf(stderr, "  genreq          - Generates a new X.509 PKCS#10 request\n");
 	fprintf(stderr, "  gencert         - Generates a new X.509 certificate\n");
+	fprintf(stderr, "  format          - Converts the format of the input data type\n");
 	fprintf(stderr, "  import          - Import an item in the token\n");
 	fprintf(stderr, "\n");
 
@@ -62,6 +63,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -hsm <name>     - HSM name (HOME/.libpki/hsm.d)\n");
 	fprintf(stderr, "  -in <url>       - Input Data URI\n");
 	fprintf(stderr, "  -out <url>      - Output Data URI\n");
+	fprintf(stderr, "  -outform <OPT>  - Output Format (i.e., PEM, DER, TXT, XML)\n");
 	fprintf(stderr, "  -bits <num>     - Number of Bits\n");
 	fprintf(stderr, "  -type <objtype> - Type of Object\n");
 	fprintf(stderr, "  -algor <name>   - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
@@ -71,8 +73,7 @@ void usage ( void ) {
 #endif
 	fprintf(stderr, "  -newkey         - Generate new keypair when using genreq\n");
 	fprintf(stderr, "  -outkey <URI>   - URI where to store the new key\n");
-	fprintf(stderr, "  -uri <uri>      - URI of the item (key/cert/..) in the "
-				    "token\n");
+	fprintf(stderr, "  -uri <uri>      - URI of the item (key/cert/..) in the token\n");
 	fprintf(stderr, "  -signkey <uri>  - URI of the cert-signing key\n");
 	fprintf(stderr, "  -signcert <uri> - URI of the cert-signing cert (CA)\n");
 	fprintf(stderr, "  -subject <dn>   - Distinguished Name (Subject)\n");
@@ -86,7 +87,6 @@ void usage ( void ) {
 	fprintf(stderr, "  -mins <num>     - Validity period (mins)\n");
 	fprintf(stderr, "  -secs <num>     - Validity period (secs)\n");
 	fprintf(stderr, "  -selfsign       - Generate a self signed X.509 cert\n");
-	fprintf(stderr, "  -outform <OPT>  - Output format (i.e., PEM, DER, TXT, XML)\n");
 	fprintf(stderr, "  -batch          - Batch mode (no prompt - assumes yes)\n");
 	fprintf(stderr, "  -verbose        - Writes additional info to stdout\n");
 	fprintf(stderr, "  -debug          - Enables Debugging info to stderr\n");
@@ -1334,7 +1334,7 @@ int main (int argc, char *argv[] ) {
 			}
 		}
 
-		fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
+		// fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
 
 		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
 			fprintf(stderr, "\n    ERROR: Cannot set the token's algorithm\n\n");
@@ -1742,6 +1742,47 @@ int main (int argc, char *argv[] ) {
 			printf("\nERROR: type '%s' not recognized!\n\n", type);
 			usage();
 		}
+
+	} else if ( strncmp_nocase(cmd, "convert", 7) == 0 ) {
+
+		PKI_X509 * obj = NULL;
+
+		if (!infile) {
+			fprintf(stderr, "\nERROR, '-in <x509_data>' is required!\n\n");
+			usage();
+		}
+
+		// Verbose
+		if (verbose) printf("* Converting X509 data to %s:\n", outform);
+
+		// Verbose
+		if (verbose) printf("  - Loading input file (%s) ... : ", infile);
+
+		// Tries to load the generic object
+		obj = PKI_X509_get(infile, PKI_DATATYPE_ANY, PKI_DATA_FORMAT_UNKNOWN, NULL, NULL);
+		if (obj == NULL) {
+			if (verbose) printf("ERROR!\n");
+			fprintf(stderr, "\n    ERROR: cannot open the input file, aborting.\n\n");
+			exit(1);
+		}
+
+		// Verbose
+		if (verbose) printf("Ok\n");
+
+		// Verbose
+		if (verbose) printf ("  - Converting to %s ... : ", outform);
+		if (!outfile) outfile = "stdout";
+
+		// Let's generate the output version
+		if (PKI_X509_put(obj, outFormVal, outfile, NULL, NULL, NULL) == PKI_ERR) {
+			printf("ERROR!\n");
+			fprintf(stderr, "\n    ERROR: cannot convert to %s, aborting.\n\n", outform);
+			exit(1);
+		}
+
+		// Verbose
+		if (verbose) printf ("Ok\n\n");
+
 	} else {
 		printf("\n  ERROR: command not recognized (%s)\n", cmd );
 		usage();

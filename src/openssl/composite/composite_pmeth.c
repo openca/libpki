@@ -1371,11 +1371,11 @@ EVP_PKEY_METHOD composite_pkey_meth = {
 #if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
     // These are only available on OpenSSL v1.1.X+ //
     digestsign,     // int (*digestsign) (EVP_MD_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen);
-    0, // digestverify,   // int (*digestverify) (EVP_MD_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen);
-    0,                    // int (*check) (EVP_PKEY *pkey);
-    0,                    // int (*public_check) (EVP_PKEY *pkey);
-    0, // param_check,    // int (*param_check) (EVP_PKEY *pkey);
-    0, // digest_custom   // int (*digest_custom) (EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx);
+    digestverify,   // int (*digestverify) (EVP_MD_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen);
+    0,              // int (*check) (EVP_PKEY *pkey);
+    0,              // int (*public_check) (EVP_PKEY *pkey);
+    0,              // int (*param_check) (EVP_PKEY *pkey);
+    0,              // int (*digest_custom) (EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx);
 #endif
 };
 

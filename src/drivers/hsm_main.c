@@ -519,20 +519,6 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
-	// Retrieves the DER representation of the data to be signed
-	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
-		// Logs the issue
-		PKI_DEBUG("Can not get the DER representation of the PKIX data via tbs func");
-		// Builds the DER representation in a PKI_MEM structure
-		if ((der = PKI_X509_put_mem(x, PKI_DATA_FORMAT_ASN1, 
-		                                           NULL, NULL )) == NULL) {
-			// Logs the issue
-			PKI_DEBUG("Can not get the DER representation directly, aborting.");
-			// Can not encode into DER
-			return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
-		}
-	}
-
 	// if (digest && digest != PKI_DIGEST_ALG_NULL) {
 		
 	// 	int digest_nid = EVP_MD_nid(digest);
@@ -569,6 +555,22 @@ int PKI_X509_sign(PKI_X509               * x,
                    pkey,
 				   ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
+	// Retrieves the DER representation of the data to be signed
+	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
+		// Logs the issue
+		PKI_DEBUG("Can not get the DER representation of the PKIX data via tbs func");
+		// Builds the DER representation in a PKI_MEM structure
+		if ((der = PKI_X509_put_mem(x, 
+									PKI_DATA_FORMAT_ASN1, 
+		                            NULL,
+									NULL )) == NULL) {
+			// Logs the issue
+			PKI_DEBUG("Can not get the DER representation directly, aborting.");
+			// Can not encode into DER
+			return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
+		}
+	}
+
 	// Generates the Signature
 	if ((sig = PKI_sign(der, digest, key)) == NULL) {
 		// Error while creating the signature, aborting
@@ -576,6 +578,18 @@ int PKI_X509_sign(PKI_X509               * x,
 		// Report the issue
 		return PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 	}
+
+	// // Debugging
+	// FILE * fp = fopen("signature_create.der", "w");
+	// if (fp) {
+	// 	fwrite(sig->data, sig->size, 1, fp);
+	// 	fclose(fp);
+	// }
+	// fp = fopen("signed_data_create.der", "w");
+	// if (fp) {
+	// 	fwrite(der->data, der->size, 1, fp);
+	// 	fclose(fp);
+	// }
 
 	// der work is finished, let's free the memory
 	if (der) PKI_MEM_free(der);
@@ -794,6 +808,18 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 
 	} else {
 
+		// // Debugging
+		// FILE * fp = fopen("signature_verify.der", "w");
+		// if (fp) {
+		// 	fwrite(sig->data, sig->size, 1, fp);
+		// 	fclose(fp);
+		// }
+		// fp = fopen("signed_data_verify.der", "w");
+		// if (fp) {
+		// 	fwrite(data->data, data->size, 1, fp);
+		// 	fclose(fp);
+		// }
+
 		// If there is no verify callback, let's call the internal one
 		ret = PKI_verify_signature(data, sig, alg, key);
 
@@ -820,12 +846,20 @@ int PKI_verify_signature(const PKI_MEM              * data,
                          const PKI_X509_ALGOR_VALUE * alg,
                          const PKI_X509_KEYPAIR     * key ) {
 	int v_code = 0;
+		// OpenSSL return code
+
 	EVP_MD_CTX *ctx = NULL;
+		// PKey Context
+
+	PKI_X509_KEYPAIR_VALUE * k_val = PKI_X509_get_value(key);
+		// Internal representation of the key
+
 	const PKI_DIGEST_ALG *dgst = NULL;
+		// Digest Algorithm
 
 	// Input Checks
 	if (!data || !data->data || !sig || !sig->data ||
-		!alg  || !key || !key->value )  {
+		!alg  || !key || !k_val )  {
 		// Reports the Input Error
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
@@ -849,43 +883,69 @@ int PKI_verify_signature(const PKI_MEM              * data,
 		// Initializes the new CTX
 		EVP_MD_CTX_init(ctx);
 
-		// Initializes the Verify Function
-		if ((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0) {
+		//
+		// Verify (Old Approach) - Updated Apr 3, 2023
+		//
+		// // Initializes the Verify Function
+		// if ((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0) {
 
+		// 	// Error in initializing the signature verification function
+		// 	PKI_log_err("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
+		// 		HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
+		// 		HSM_get_errno(NULL));
+
+		// 	// Done working
+		// 	goto err;
+		// }
+
+		// // Updates the Verify function
+		// if ((v_code = EVP_VerifyUpdate(ctx, (unsigned char *)data->data,
+		// 				data->size)) <= 0 ) {
+
+		// 	// Reports the error
+		// 	PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
+		// 		HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code, 
+		// 		HSM_get_errno(NULL));
+
+		// 	// Done working
+		// 	goto err;
+		// }
+
+		// // Finalizes the Verify function
+		// if ((v_code = EVP_VerifyFinal(ctx, (unsigned char *)sig->data,
+		// 					(unsigned int)sig->size, key->value )) <= 0 ) {
+
+		// 	// Reports the error
+		// 	PKI_log_err("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
+		// 		HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,
+		// 		HSM_get_errno(NULL));
+
+		// 	// Done working
+		// 	goto err;
+		// }
+
+		//
+		// Verify (New) Method - Updated Apr 3, 2023
+		//
+
+		// Initializes the verify function
+		if (!EVP_DigestVerifyInit(ctx, NULL, dgst, NULL, k_val)) {
 			// Error in initializing the signature verification function
-			PKI_log_err("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
-				HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
-				HSM_get_errno(NULL));
-
+			PKI_DEBUG("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
+				HSM_get_errdesc(HSM_get_errno(NULL), NULL), HSM_get_errno(NULL));
 			// Done working
 			goto err;
 		}
 
-		// Updates the Verify function
-		if ((v_code = EVP_VerifyUpdate(ctx, (unsigned char *)data->data,
-						data->size)) <= 0 ) {
-
+		// Finalizes the validation
+		if ((v_code = EVP_DigestVerify(ctx, sig->data, sig->size, data->data, data->size)) <= 0) {
 			// Reports the error
-			PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
-				HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code, 
-				HSM_get_errno(NULL));
-
+			PKI_DEBUG("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
+				HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,	HSM_get_errno(NULL));
 			// Done working
 			goto err;
 		}
 
-		// Finalizes the Verify function
-		if ((v_code = EVP_VerifyFinal(ctx, (unsigned char *)sig->data,
-							(unsigned int)sig->size, key->value )) <= 0 ) {
-
-			// Reports the error
-			PKI_log_err("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
-				HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,
-				HSM_get_errno(NULL));
-
-			// Done working
-			goto err;
-		}
 	} else {
 
 		EVP_PKEY_CTX * pctx = EVP_PKEY_CTX_new(key->value, NULL);

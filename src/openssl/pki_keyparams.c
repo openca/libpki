@@ -361,8 +361,8 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 			else if (bits <= 128 ) { kp->bits = 2048; }
 			else if (bits <= 192 ) { kp->bits = 3072; }
 			else if (bits <= 256 ) { kp->bits = 4096; }
-			else if (bits <= 384 ) { kp->bits = 8192; }
-			else if (bits <= 521 ) { kp->bits = 16384; }
+			else if (bits <= 384 ) { kp->bits = 4096 /* 8192 */ ; }
+			else if (bits <= 521 ) { kp->bits = 4096 /* 16384 */; }
 			// Classical Sizes
 			else if (bits <= 512 ) { kp->bits = 512;  }
 			else if (bits <= 756 ) { kp->bits = 756;  }

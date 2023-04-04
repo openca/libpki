@@ -56,8 +56,13 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 	char *pwd = NULL;
 
 	// Checks the input
-	if (!mem || !mem->data || !mem->size || !cb) {
+	if (!mem || !mem->data || !cb) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	if (mem->size <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
 		return NULL;
 	}
 
@@ -125,9 +130,8 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 					break;
 				}
 
-				if (PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 1) != PKI_OK &&
-						PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 0) != PKI_OK)
-				{
+				if (PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 1) == PKI_ERR &&
+					PKI_MEM_decode(dup_mem, PKI_DATA_FORMAT_B64, 0) == PKI_ERR) {
 					// Can not B64 decode
 					PKI_ERROR(PKI_ERR_DATA_FORMAT_UNKNOWN, NULL);
 					// Free Memory
@@ -138,20 +142,25 @@ static void * __get_data_callback(PKI_MEM *mem, const PKI_X509_CALLBACKS *cb,
 
 				// Close the current BIO
 				BIO_free_all(ro);
+				ro = NULL;
+
+				// Checks we have data to duplicate, if not, we are done
+				if (!dup_mem->data || dup_mem->size <= 0) break;
 
 				// Create a read only memory buffer for further usage it's faster
 				// than a read/write one
 				if ((ro = BIO_new_mem_buf(dup_mem->data, 
-							  (int)dup_mem->size)) == NULL) {
+										(int)dup_mem->size)) == NULL) {
 					// Error, can not allocate another RO BIO
 					PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 					// Free Memory
 					PKI_MEM_free(dup_mem);
+					dup_mem = NULL; //Safety
 					break;
 				}
 
 				// Free Memory
-				PKI_MEM_free(dup_mem);
+				if (dup_mem) PKI_MEM_free(dup_mem);
 
 				// And use the DER reader to retrieve the
 				// requested object
@@ -242,9 +251,9 @@ PKI_X509_STACK *PKI_X509_STACK_get_mem ( PKI_MEM *mem, PKI_DATATYPE type,
 
 			// Fix for older applications using -1 as format
 		if (format == 4294967295) {
-			PKI_log_err("Wrong DATA format used in application (-1),"
+			PKI_DEBUG("Wrong DATA format used in application (-1),"
 				"please replace with PKI_DATA_FORMAT_UNKNOWN (%d)", 
-						PKI_DATA_FORMAT_UNKNOWN);
+				PKI_DATA_FORMAT_UNKNOWN);
 		}
 
 		// A Format was selected, so we skip the others
