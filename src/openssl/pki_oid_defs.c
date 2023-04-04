@@ -553,7 +553,7 @@ int PKI_X509_OID_init() {
 					   !strncmp(sig->oid, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID, strlen(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)) ||
 					   !strncmp(sig->oid, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, strlen(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID))) {
 				// Use same OIDs for PKEY and SIG 
-				sig->pkey_nid = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
+				sig->pkey_nid = OBJ_txt2nid(sig->oid);
 
 			} else {
 
@@ -564,18 +564,21 @@ int PKI_X509_OID_init() {
 			}
 		}
 
-		// Generates the New Signature Object
-		sig->sig_nid = OBJ_create(sig->oid, sig->name, sig->desc);
-		if (sig->sig_nid == NID_undef) {
-			PKI_DEBUG("ERROR: Cannot create Signature Object (%s - %s)\n", sig->name, sig->oid);
-			// Error Condition, nothing to do here
-			PKI_ERROR(PKI_ERR_ALGOR_SET, NULL);
-		} else {
-			// Adds the Signature NID to the OpenSSL's Index (and our table)
-			if (!OBJ_add_sigid(sig->sig_nid, sig->hash_nid, sig->pkey_nid)) {
-				fprintf(stderr, "ERROR: Cannot associate signature nid (%d) with hash nid (%d) and pkey nid (%d\n",
-					sig->nid, sig->hash_nid, sig->pkey_nid);
+		// Checks if the object already exists
+		if ((sig->sig_nid = OBJ_txt2nid(sig->oid)) == NID_undef) {
+			// Generates the New Signature Object
+			sig->sig_nid = OBJ_create(sig->oid, sig->name, sig->desc);
+			if (sig->sig_nid == NID_undef) {
+				PKI_DEBUG("ERROR: Cannot create Signature Object (%s - %s)\n", sig->name, sig->oid);
+				// Error Condition, nothing to do here
+				PKI_ERROR(PKI_ERR_ALGOR_SET, NULL);
 			}
+		}
+		
+		// Adds the Signature NID to the OpenSSL's Index (and our table)
+		if (!OBJ_add_sigid(sig->sig_nid, sig->hash_nid, sig->pkey_nid)) {
+			fprintf(stderr, "ERROR: Cannot associate signature nid (%d) with hash nid (%d) and pkey nid (%d\n",
+				sig->nid, sig->hash_nid, sig->pkey_nid);
 		}
 
 		sig = &sigs_table[++index];
