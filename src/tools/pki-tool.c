@@ -1383,7 +1383,7 @@ int main (int argc, char *argv[] ) {
 			}
 		}
 
-		fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
+		// fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
 
 		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
 			fprintf(stderr, "\n    ERROR: Cannot set the token's algorithm\n\n");
