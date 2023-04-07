@@ -43,7 +43,7 @@ int PKI_MSG_REQ_add_data (PKI_MSG_REQ *msg, unsigned char *data, size_t size ){
 		}
 	}
 
-	if((PKI_MEM_add( msg->data, (char *)data, size)) == PKI_ERR ) {
+	if((PKI_MEM_add( msg->data, data, size)) == PKI_ERR ) {
 		PKI_log_debug("PKI_MSG_REQ_add_data()::PKI_MEM grow error!");
 		return (PKI_ERR);
 	}
@@ -618,8 +618,8 @@ PKI_MSG_RESP *PKI_MSG_REQ_SCEP_send ( PKI_MSG_REQ *msg,
 	snprintf( dest_url, sizeof(dest_url), 
 			"%s?operation=PKIOperation&message=", url_s );
 
-	PKI_MEM_add(mem_url, dest_url, strlen(dest_url) );
-	PKI_MEM_add(mem_url, (char *) mem->data, mem->size+1 );
+	PKI_MEM_add(mem_url, (const unsigned char *)dest_url, strlen(dest_url) );
+	PKI_MEM_add(mem_url, mem->data, mem->size+1 );
 	mem_url->data[mem_url->size-1] = '\x0';
 
 	// Now we can free the mem buffer

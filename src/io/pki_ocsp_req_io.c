@@ -226,60 +226,12 @@ int PKI_X509_OCSP_REQ_put (PKI_X509_OCSP_REQ *req, PKI_DATA_FORMAT format,
 			char *url_s, char *mime, PKI_CRED *cred, HSM *hsm) {
 
 	return PKI_X509_put ( req, format, url_s, mime, cred, hsm );
-/*
-	PKI_X509_OCSP_REQ_STACK *sk = NULL;
-	int ret = PKI_OK;
-
-	if( !req || !url_s ) return (PKI_ERR);
-
-	if(( sk = PKI_STACK_OCSP_REQ_new()) == NULL ) return (PKI_ERR);
-
-	if(PKI_STACK_OCSP_REQ_push( sk, req ) == PKI_ERR ) {
-		PKI_STACK_OCSP_REQ_free( sk );
-		return (PKI_ERR);
-	}
-
-	ret = PKI_X509_OCSP_REQ_STACK_put ( sk, format, url_s, cred, hsm );
-
-	if( sk ) {
-		PKI_X509_OCSP_REQ *tmp_r = NULL;
-		while((tmp_r = PKI_STACK_OCSP_REQ_pop ( sk )) != NULL ) {
-			PKI_STACK_OCSP_REQ_free (sk);
-		}
-	}
-
-	return (ret);
-*/
 }
 
 int PKI_X509_OCSP_REQ_put_url(PKI_X509_OCSP_REQ *req, PKI_DATA_FORMAT format, 
 			URL *url, char *mime, PKI_CRED *cred, HSM *hsm) {
 
 	return PKI_X509_put_url ( req, format, url, mime, cred, hsm );
-
-/*
-	PKI_X509_OCSP_REQ_STACK *sk = NULL;
-	int ret = PKI_OK;
-
-	if( !req || !url ) return (PKI_ERR);
-
-	if(( sk = PKI_STACK_OCSP_REQ_new()) == NULL ) return (PKI_ERR);
-
-	if(PKI_STACK_OCSP_REQ_push( sk, req ) == PKI_ERR ) {
-		PKI_STACK_OCSP_REQ_free( sk );
-		return (PKI_ERR);
-	}
-
-	ret = PKI_X509_OCSP_REQ_STACK_put_url( sk, format, url, cred, hsm );
-	if( sk ) {
-		PKI_X509_OCSP_REQ *tmp_r = NULL;
-		while( ( tmp_r = PKI_STACK_OCSP_REQ_pop ( sk )) != NULL ) {
-			PKI_STACK_OCSP_REQ_free (sk);
-		}
-	}
-
-	return( ret );
-*/
 }
 
 PKI_MEM *PKI_X509_OCSP_REQ_put_mem ( PKI_X509_OCSP_REQ *req,
@@ -295,25 +247,6 @@ int PKI_X509_OCSP_REQ_STACK_put ( PKI_X509_OCSP_REQ_STACK *sk,
 
 	return PKI_X509_STACK_put ( sk, format, url_s, mime, cred, hsm );
 
-/*
-	int ret = PKI_OK;
-	URL *url = NULL;
-
-	if(!sk || !url_s ) return( PKI_ERR );
-
-	if(PKI_STACK_OCSP_REQ_elements(sk) < 1 ) return (PKI_ERR);
-
-	if((url = URL_new(url_s)) == NULL ) {
-		return(PKI_ERR);
-	}
-
-	ret = PKI_X509_OCSP_REQ_STACK_put_url( sk, format, url, cred, hsm );
-
-	URL_free ( url );
-
-	return (ret);
-*/
-
 }
 
 int PKI_X509_OCSP_REQ_STACK_put_url (PKI_X509_OCSP_REQ_STACK *sk, 
@@ -321,40 +254,6 @@ int PKI_X509_OCSP_REQ_STACK_put_url (PKI_X509_OCSP_REQ_STACK *sk,
 				PKI_CRED *cred, HSM *hsm ) {
 
 	return PKI_X509_STACK_put_url ( sk, format, url, mime, cred, hsm );
-
-/*
-	PKI_MEM *mem = NULL;
-	int idx = 0;
-	int ret = 0;
-
-	if( !sk || !url ) {
-		return ( PKI_ERR );
-	}
-
-	if((idx = PKI_STACK_OCSP_REQ_elements (sk)) < 1 ) {
-		return ( PKI_ERR );
-	}
-
-	if( url->proto == URI_PROTO_ID && hsm ) {
-		return ( PKI_ERR );
-	};
-
-	if((mem = PKI_MEM_new_null()) == NULL ) {
-		return (PKI_ERR);
-	}
-
-	if(PKI_X509_OCSP_REQ_STACK_put_mem( sk, format, mem, cred, url->object_num )
-							 == PKI_ERR ) {
-		if( mem ) PKI_MEM_free ( mem );
-		return ( PKI_ERR );
-	}
-
-	ret = URL_put_data_url ( url, mem, "application/pki-x509-req", NULL );
-
-	if ( mem ) PKI_MEM_free ( mem );
-
-	return ( ret );
-*/
 }
 
 PKI_MEM * PKI_X509_OCSP_REQ_STACK_put_mem ( PKI_X509_OCSP_REQ_STACK *sk, 
@@ -362,160 +261,5 @@ PKI_MEM * PKI_X509_OCSP_REQ_STACK_put_mem ( PKI_X509_OCSP_REQ_STACK *sk,
 				PKI_CRED *cred, HSM *hsm ) {
 
 	return PKI_X509_STACK_put_mem ( sk, format, pki_mem, cred, hsm );
-/*
-	BIO *membio = NULL;
-	BUF_MEM *buf_mem = NULL;
-	int ret = PKI_OK;
-	int i = 0;
-
-	PKI_X509_OCSP_REQ_VALUE *x_val = NULL;
-
-	if( !sk ) return (PKI_ERR);
-
-	if((membio = BIO_new(BIO_s_mem())) == NULL ) {
-		PKI_log_err("Memory Error");
-		return (PKI_ERR);
-	}
-
-	for( i = 0; i < PKI_STACK_OCSP_REQ_elements ( sk ); i++ ) {
-
-		PKI_X509_OCSP_REQ *curr_req = NULL;
-
-		if((num > 0 ) && ( i != num )) {
-			continue;
-		}
-
-		if((curr_req= PKI_STACK_OCSP_REQ_get_num( sk, i ))
-							== NULL ) {
-			break;
-		}
-
-		switch( format ) {
-			case PKI_FORMAT_PEM:
-				ret = PEM_write_bio_OCSP_REQUEST ( membio, 
-					(OCSP_REQUEST *) curr_req->value);
-				break;
-			case PKI_FORMAT_ASN1:
-				ret = i2d_OCSP_REQUEST_bio( membio, 
-					(OCSP_REQUEST *) curr_req->value );
-				break;
-			default:
-				return(PKI_ERR);
-		}
-
-		if ( !ret ) {
-			if( membio ) BIO_free_all (membio);
-			return ( PKI_ERR );
-		}
-	}
-
-	BIO_get_mem_ptr(membio, &buf_mem);
-
-	if( buf_mem ) {
-		PKI_MEM_add( pki_mem, buf_mem->data, (size_t) buf_mem->length );
-	}
-
-	if( membio ) BIO_free_all ( membio );
-
-	return ( PKI_OK );
-*/
 }
 
-
-/*
- * OCSP_REQ File Operations
- */
-
-/*
-PKI_X509_OCSP_REQ_STACK *PKI_X509_OCSP_REQ_STACK_get_file ( URL *url ) {
-
-        PKI_X509_OCSP_REQ *req= NULL;
-        BIO *in = NULL;
-        PKI_X509_OCSP_REQ_STACK *r_sk = NULL;
-
-	if( !url || !url->addr ) return NULL;
-
-        if ((in=BIO_new_file( url->addr, "r")) == NULL) {
-                return(NULL);
-        }
-
-        if((r_sk = PKI_STACK_OCSP_REQ_new()) == NULL ) {
-                return(NULL);
-        }
-
-	if((req = PKI_X509_new( PKI_DATATYPE_X509_OCSP_REQ )) == NULL ) {
-		PKI_STACK_OCSP_REQ_free ( r_sk );
-		return (NULL);
-	}
-
-	while(( req->value = PEM_read_bio_OCSP_REQ(in, NULL, 
-						NULL, NULL)) == NULL) {
-		PKI_STACK_OCSP_REQ_push(r_sk, req);
-	}
-
-	if( PKI_STACK_OCSP_REQ_elements( r_sk ) < 1 ) {
-		while(( req->value = d2i_OCSP_REQUEST_bio(in, NULL)) == NULL ) {
-			PKI_STACK_OCSP_REQ_push(r_sk, req);
-		}
-	}
-
-	if( PKI_STACK_OCSP_REQ_elements(r_sk) == 0 ) {
-		PKI_STACK_OCSP_REQ_free (r_sk );
-		return NULL;
-	}
-        return r_sk;
-}
-
-int PKI_X509_OCSP_REQ_STACK_export_file( PKI_X509_OCSP_REQ_STACK *sk, 
-						int format, URL *url ) {
-	BIO *out = NULL;
-	PKI_X509_OCSP_REQ *req = NULL;
-	PKI_X509_OCSP_REQ_VALUE *req_val = NULL;
-
-	int ret = PKI_OK;
-	int i = 0;
-
-	if( !sk ) return (PKI_ERR);
-
-	if((out = BIO_new(BIO_s_file())) == NULL ) {
-		PKI_log_err("Memory error!");
-		return (PKI_ERR);
-	}
-
-	if( !url || !url->addr ) {
-		 ret = BIO_set_fp(out,stdout,BIO_NOCLOSE);
-	} else {
-		ret = (int ) BIO_write_filename( out, url->addr);
-	}
-
-	if( ret == 0 ) {
-		BIO_free_all( out );
-		return( PKI_ERR );
-	}
-
-	ret = PKI_OK;
-
-	for( i=0; i < PKI_STACK_OCSP_REQ_elements( sk ); i++ ) {
-		if((req = PKI_STACK_OCSP_REQ_get_num( sk, i )) == NULL) {
-			break;
-		}
-
-		switch( format ) {
-			case PKI_FORMAT_PEM:
-				ret = PEM_write_bio_OCSP_REQUEST( out, 
-						(OCSP_REQUEST *)req->value);
-				break;
-			case PKI_FORMAT_ASN1:
-				ret = i2d_OCSP_REQUEST_bio( out, 
-						(OCSP_REQUEST *) req->value);
-			default:
-				ret = PKI_ERR;
-				break;
-		}
-	}
-
-	if( out ) BIO_free_all (out);
-
-	return(ret);
-}
-*/

@@ -532,11 +532,11 @@ PKI_MEM *PKI_NET_get_data ( int fd, int timeout, size_t max_size ) {
 		if( (max_size > 0) && 
 				((ssize_t)(buf->size) + newsize > max_size) ) {
 			newsize = (ssize_t) (max_size - buf->size);
-			PKI_MEM_add( buf, tmp_buff, (size_t) newsize);
+			PKI_MEM_add( buf, (const unsigned char *)tmp_buff, (size_t) newsize);
 			break;
 		};
 
-		PKI_MEM_add ( buf, tmp_buff, (size_t) newsize );
+		PKI_MEM_add(buf, (const unsigned char *)tmp_buff, (size_t)newsize);
 
 	};
 

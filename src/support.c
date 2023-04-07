@@ -37,10 +37,10 @@ char * get_env_string(const char *str) {
 	while((p1) && (p2 = strchr(p1, '$'))) {
 
 		char var_name[1024];
-		char *var_value = NULL;
+		unsigned char *var_value = NULL;
 		size_t var_len = 0;
 
-		PKI_MEM_add ( mem, p1, (size_t) (p2-p1) );
+		PKI_MEM_add ( mem, (const unsigned char *)p1, (size_t) (p2-p1) );
 		p3 = p2+1;
 
 		while( isalnum(*p3) || *p3 == '_' ) { p3++; };
@@ -50,15 +50,16 @@ char * get_env_string(const char *str) {
 		var_name[var_len] = '\x0';
 
 		/* Grabs and attaches the new (ENV) value */
-		if(( var_value = PKI_get_env(var_name)) != NULL ) {
-			PKI_MEM_add( mem, var_value, strlen(var_value));
+		if(( var_value = (unsigned char *)PKI_get_env(var_name)) != NULL ) {
+			PKI_MEM_add( mem, var_value, strlen((char *)var_value));
 		}
 
 		/* move the pointers */
 		p1 = p3;
-	};
+	}
+
 	if( p1 && strlen(p1)) {
-		PKI_MEM_add( mem, p1, strlen(p1));
+		PKI_MEM_add( mem, (const unsigned char *)p1, strlen(p1));
 	}
 
 	len = PKI_MEM_get_size( mem );

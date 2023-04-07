@@ -1023,8 +1023,19 @@ int main (int argc, char *argv[] ) {
 	};
 
 	if ( strncmp_nocase("version", cmd, 3) == 0 ) {
+					
+					// ------------
+					// CMD: version
+					// ------------
+					
 		version();
+
 	} else if( strncmp( cmd, "clear", 5) == 0 ) {
+
+					// ----------
+					// CMD: clear
+					// ----------
+
 		printf("\nThis will delete all the contents of the Token.\n");
 		if( !batch ) {
 			prompt = prompt_str ("Are you sure [y/N] ? ");
@@ -1044,6 +1055,11 @@ int main (int argc, char *argv[] ) {
 			printf("\nOperation Cancelled.\n\n");
 		}
 	} else if( strncmp( cmd, "delete", 6) == 0 ) {
+
+					// -----------
+					// CMD: delete
+					// -----------
+					
 		if( uri == NULL ) {
 			printf("ERROR: please use '-uri' to identify what to "
 								"delete.\n\n");
@@ -1132,6 +1148,11 @@ int main (int argc, char *argv[] ) {
 			printf("\nOperation Cancelled.\n\n");
 		}
 	} else if ( strncmp_nocase(cmd, "info", 4) == 0 ) {
+
+					// ---------
+					// CMD: info
+					// ---------
+
 		printf("\nPrinting Token information (%s):\n\n", 
 			token_name ? token_name : "default" );
 		PKI_TOKEN_print_info ( tk );
@@ -1158,6 +1179,10 @@ int main (int argc, char *argv[] ) {
 		if( sk ) PKI_STACK_TOKEN_free ( sk );
 
 	} else if ( strncmp_nocase(cmd, "genkey", 6) == 0 ) {
+
+					// -----------
+					// CMD: genkey
+					// -----------
 
 		// Logs into the token
 		PKI_TOKEN_login( tk );
@@ -1346,6 +1371,11 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		}
 	} else if ( strncmp_nocase(cmd, "genreq", 6) == 0 ) {
+
+					// -----------
+					// CMD: genreq
+					// -----------
+					
 		/* We need to generate a new keypair first - if the '-newkey'
 		   switch is used */
 
@@ -1354,8 +1384,8 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		};
 
-		if( newkey ) 
-		{
+		if (newkey) {
+
 			if (verbose) fprintf(stderr, "Generating KeyPair %s ...", outkey_s);
 
 #ifdef ENABLE_COMPOSITE
@@ -1446,6 +1476,10 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "gencert", 7) == 0 ) {
 
+					// ------------
+					// CMD: version
+					// ------------
+					
 		PKI_TOKEN_login( tk );
 
 		if (signkey)
@@ -1593,6 +1627,10 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "gencrl", 6) == 0 ) {
 
+					// -----------
+					// CMD: gencrl
+					// -----------
+					
 		PKI_X509_CRL *crl = NULL;
 		int ret = PKI_OK;
 
@@ -1638,12 +1676,20 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "delete", 6) == 0 ) {
 
+					// -----------
+					// CMD: delete
+					// -----------
+
 		if( uri == NULL ) {
 			printf("\nERROR, no '-uri' provided!");
 			usage();
 		}
 
 	} else if ( strncmp_nocase(cmd, "import", 6) == 0 ) {
+
+					// -----------
+					// CMD: import
+					// -----------
 
 		if ( type == NULL ) {
 			printf("\nERROR, no <type> provided!");
@@ -1796,6 +1842,10 @@ int main (int argc, char *argv[] ) {
 
 	} else if ( strncmp_nocase(cmd, "convert", 7) == 0 ) {
 
+					// ------------
+					// CMD: convert
+					// ------------
+
 		PKI_X509 * obj = NULL;
 
 		if (!infile) {
@@ -1868,97 +1918,6 @@ int main (int argc, char *argv[] ) {
 	if(verbose) printf("Done.\n\n");
 
 	return (0);
-
-	/*
-	printf("Setting Token Algorithm to DSA-SHA1 ... ");
-	if((PKI_TOKEN_set_algor ( tk, PKI_ALGOR_DSA_SHA1 )) == PKI_ERR ) {
-		printf("ERROR, can not set the DSA-SHA1 crypto scheme!\n");
-	}
-	printf("Ok.\n");
-	*/
-
-	/*
-	printf("Setting Token Algorithm to DSA-SHA256 ... ");
-	if((PKI_TOKEN_set_algor ( tk, PKI_ALGOR_DSA_SHA256 )) == PKI_ERR ) {
-		printf("ERROR, can not set the RSA crypto scheme!\n");
-	}
-	printf("Ok.\n");
-
-	printf("Setting Token Algorithm to RSA-MD5 ... ");
-	if((PKI_TOKEN_set_algor ( tk, PKI_ALGOR_RSA_MD5 )) == PKI_ERR ) {
-		printf("ERROR, can not set the RSA crypto scheme!\n");
-	}
-	printf("Ok.\n");
-	*/
-
-	/*
-	if((PKI_TOKEN_new_req( tk, "CN=Test4, O=OpenCA", "test" )) == PKI_ERR) {
-		printf("ERROR, can not generate a new Request!\n");
-		return(0);
-	}
-	printf("Ok.\n");
-
-	printf("* Writing request to request.pem .... ");
-	if((PKI_TOKEN_export_req( tk, "request.pem",
-			PKI_DATA_FORMAT_PEM )) == PKI_ERR ) {
-		printf("ERROR, can not save req pkcs11_request.pem!\n");
-		return(0);
-	}
-	printf("Ok.\n");
-	*/
-
-
-	/*
-	if((PKI_TOKEN_set_scheme ( tk, PKI_SCHEME_RSA )) == PKI_ERR ) {
-		printf("ERROR, can not set the RSA crypto scheme!\n");
-		return (0);
-	}
-
-	if((PKI_TOKEN_set_algor ( tk, PKI_ALGOR_RSA_SHA1 )) == PKI_ERR ) {
-		printf("ERROR, can not set the RSA crypto scheme!\n");
-		return (0);
-	}
-
-	if((PKI_TOKEN_new_keypair ( tk, 1024, NULL )) == PKI_ERR) {
-		printf("ERROR, can not generate new keypair!\n");
-		return (0);
-	}
-
-	printf("* Generating new Request ... ");
-	if((PKI_TOKEN_new_req( tk, "CN=Test4, O=OpenCA", "test" )) == PKI_ERR) {
-		printf("ERROR, can not generate a new Request!\n");
-		return(0);
-	}
-	printf("Ok.\n");
-
-	printf("* Writing request to results/test4_req1.pem .... ");
-	if((PKI_TOKEN_write_req( tk, "results/test4_req1.pem",
-			PKI_DATA_FORMAT_PEM )) == PKI_ERR ) {
-		printf("ERROR, can not save req results/test4_req1.pem!\n");
-		return(0);
-	}
-	printf("Ok.\n");
-
-	printf("* Self Signing certificate .... ");
-	if((PKI_TOKEN_self_sign( tk, NULL, NULL, "Test" )) == PKI_ERR ) {
-		printf("ERROR, can not self sign certificate!\n");
-		return(0);
-	}
-	printf("Ok.\n");
-
-	if((PKI_KEYPAIR_export( tk->keypair, NULL, PKI_DATA_FORMAT_PEM, NULL, 
-			keyfile,  NULL )) == PKI_ERR ) {
-                printf("ERROR::Can not export key (%s)!\n", buf );
-                return(0);
-        };
-
-	printf("Writing Certificate to file... \n");
-	if((PKI_TOKEN_write_cert( tk, "results/test4_cert1.pem",
-			PKI_DATA_FORMAT_PEM )) == PKI_ERR ) {
-		printf("ERROR,can not save cert in results/test4_cert1.pem!\n");
-		return(0);
-	}
-	*/
 
 }
 

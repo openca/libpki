@@ -194,7 +194,7 @@ PKI_MEM_STACK *URL_get_data_dns_url(const URL * url,
 		if (strlen(dnsRecordName) > 0) {
 			// If it is a printable value, we add the parsed version of the
 			// record
-			if(PKI_MEM_add(obj, (char *) dnsRecordName, strlen(dnsRecordName)) == PKI_ERR) {
+			if(PKI_MEM_add(obj, (const unsigned char *)dnsRecordName, strlen(dnsRecordName)) == PKI_ERR) {
 				/* ERROR in memory growth */;
 				PKI_log_err("DNS URI: Memory Allocation Error");
 				break;
@@ -202,7 +202,7 @@ PKI_MEM_STACK *URL_get_data_dns_url(const URL * url,
 		} else {
 			// The value is not parsed/parsable, we return the raw data
 			// the application should know what to do with the data!
-			if(PKI_MEM_add(obj, (char *) ns_rr_rdata(dnsRecord), 
+			if(PKI_MEM_add(obj, ns_rr_rdata(dnsRecord), 
 					ns_rr_rdlen(dnsRecord)) == PKI_ERR) {
 				/* ERROR in memory growth */;
 				PKI_log_err("DNS URI: Memory Allocation Error");

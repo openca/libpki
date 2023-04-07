@@ -35,7 +35,7 @@ void PKI_ZFree ( void *pnt, size_t size );
 void PKI_ZFree_str ( char *str );
 
 PKI_MEM *PKI_MEM_new ( size_t size );
-PKI_MEM *PKI_MEM_new_data ( size_t size, unsigned char *data );
+PKI_MEM *PKI_MEM_new_data ( size_t size, const unsigned char *data );
 PKI_MEM *PKI_MEM_new_null ( void );
 PKI_MEM *PKI_MEM_dup ( PKI_MEM *mem );
 
@@ -45,7 +45,7 @@ PKI_MEM *PKI_MEM_new_func_bio (void *obj, int (*func)());
 int PKI_MEM_free ( PKI_MEM *buf );
 
 int PKI_MEM_grow( PKI_MEM *buf, size_t new_size );
-int PKI_MEM_add( PKI_MEM *buf, char *data, size_t data_size );
+int PKI_MEM_add( PKI_MEM *buf, const unsigned char *data, size_t data_size );
 unsigned char * PKI_MEM_get_data( PKI_MEM *buf );
 char * PKI_MEM_get_parsed(PKI_MEM *buf);
 size_t PKI_MEM_get_size( PKI_MEM *buf );

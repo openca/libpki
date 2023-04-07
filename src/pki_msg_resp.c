@@ -37,9 +37,8 @@ int PKI_MSG_RESP_add_data (PKI_MSG_RESP *msg, unsigned char *data, size_t size){
 		}
 	}
 
-	if((PKI_MEM_add( msg->data, (char *) data, size)) == PKI_ERR ) {
-		PKI_log_debug("PKI_MSG_REQ_add_data()::PKI_MEM grow error!");
-		return (PKI_ERR);
+	if((PKI_MEM_add( msg->data, data, size)) == PKI_ERR ) {
+		return PKI_ERR;
 	}
 
 	return ( PKI_OK );

@@ -499,10 +499,6 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pk
 
 #endif
 
-	// Let's allocate enough space for the DER representation
-	// of the key
-	// buf_size = i2d_X509_PUBKEY(xpk, &buf);
-
 	// Calculates the digest over the DER representation of the pubkey
 	if (buf != NULL && buf_size > 0) {
 
@@ -516,40 +512,6 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pk
 		// Free the Buffer Memory
 		PKI_Free(buf);
 	}
-
-	// Now we might need to free the X509_PUBKEY structure
-	// if (xpk) X509_PUBKEY_free(xpk);
-	// xpk = NULL; // Safety
-
-	/* TODO: Remove this Debugging Info
-	printf("[DEBUG] PUBKEY Bit String:\n");
-	for (int i = 0; i < buf_size; i++) {
-		uint8_t c;
-                c = buf[i];
-                printf("%2.2X",c);
-                if (i < buf_size) printf(":");
-		if (i > 0 && (i+1) % 20 == 0) printf("\n");
-        } printf("\n");
-
-	// TODO: Remove this Debugging
-        URL_put_data_raw("libpki_key_raw_value.bin",
-                         (const unsigned char *)buf,
-                         buf_size,
-                         NULL,
-                         NULL,
-                         0,
-                         0,
-                         NULL);
-
-	// TODO: Remove this Debugging
-        URL_put_data("libpki_digest_over_key_sha1_value.bin",
-                     (const PKI_MEM *)ret,
-                     NULL,
-                     NULL,
-                     0,
-                     0,
-                     NULL);
-	*/
 
 	return ret;
 }
@@ -1028,4 +990,95 @@ PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR * keypair,
 
 	// Wrapper for lower-layer crypto call
 	return PKI_X509_KEYPAIR_VALUE_decrypt(PKI_X509_get_value(keypair), data, data_len, flags);
+}
+
+/*! \brief Puts a X509_KEYPAIR to a PKI_MEM */
+
+PKI_MEM *PKI_X509_KEYPAIR_pubraw(const PKI_X509_KEYPAIR  * key, 
+							     PKI_MEM       	        ** pki_mem) {
+
+	PKI_X509_KEYPAIR_VALUE * k_val = NULL;
+		// Pointer to the underlying crypto-layer
+
+	// Input checks
+	if (!key) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Gets the value and calls the lower-level function
+	k_val = PKI_X509_get_value(key);
+
+	// All done
+	return PKI_X509_KEYPAIR_VALUE_pubraw(k_val, pki_mem);
+}
+
+/*! \brief Puts a X509_KEYPAIR_VALUE's raw key value into a PKI_MEM */
+
+PKI_MEM *PKI_X509_KEYPAIR_VALUE_pubraw(const PKI_X509_KEYPAIR_VALUE  * const k_val, 
+							  		   PKI_MEM          		    ** pki_mem) {
+
+	const unsigned char * buff;
+	int len = 0;
+		// Output buffer for the raw key
+
+	X509_PUBKEY * xpk = NULL;
+		// Data structures to extract the raw data
+
+	PKI_MEM * ret = NULL;
+		// Return data structure
+
+	// Input checks
+	if (!k_val) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Sets the Public Key
+	if(!X509_PUBKEY_set(&xpk, (EVP_PKEY *)k_val)) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, NULL);
+		return NULL;
+	}
+
+	// Checks we have a good pointer
+	if (!xpk) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return NULL;
+	}
+
+	// Extracts the Public Key
+	if (!X509_PUBKEY_get0_param(NULL, (const unsigned char **)&buff, &len, NULL, xpk)) {
+		PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, NULL);
+		X509_PUBKEY_free(xpk);
+		return NULL;
+	}
+
+	// Checks if to re-use the passed structure or create a new one
+	if (pki_mem && *pki_mem) {
+		// Uses the passed PKI_MEM structure
+		ret = *pki_mem;
+		// Frees the data, if any is present
+		if (ret->data) PKI_Free(ret->data);
+		ret->data = NULL;
+		// Allocates the new buffer and copies the data
+		if (PKI_OK != PKI_MEM_add(ret, buff, (size_t)len)) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return NULL;
+		}
+	} else if (pki_mem) {
+		// Let's generate the return object
+		if ((ret = PKI_MEM_new_data((size_t)len, buff)) == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return NULL;
+		}
+		// Let's update the output parameter
+		if (pki_mem) *pki_mem = ret;
+	}
+
+	// Free heap memory
+	if (xpk) X509_PUBKEY_free(xpk);
+	xpk = NULL;
+
+	// All Done
+	return ret;
 }

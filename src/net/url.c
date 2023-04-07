@@ -108,7 +108,7 @@ PKI_MEM_STACK *URL_get_data_fd(const URL *url, ssize_t size ) {
 	ssize_t file_size = 0;
 	// ssize_t max_size = 0;
 
-	char * buff = NULL;
+	unsigned char * buff = NULL;
 	ssize_t buff_size = 0;
 
 	int fd = 1;

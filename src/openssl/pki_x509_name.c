@@ -261,14 +261,14 @@ char *PKI_X509_NAME_get_parsed ( const PKI_X509_NAME *name ) {
 			c = buf[i];
 			switch ( c ) {
 				case '/':
-					PKI_MEM_add( mem, ", ", 2 );
+					PKI_MEM_add( mem, (const unsigned char *)", ", 2 );
 					break;
 
 				case '\\':
 					break;
 
 				default:
-					PKI_MEM_add( mem, &buf[i], 1 );
+					PKI_MEM_add( mem, (const unsigned char *)&buf[i], 1 );
 			}
 		}
 

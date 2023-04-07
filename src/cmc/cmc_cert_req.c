@@ -105,14 +105,12 @@ CERT_REQ_MSG *CERT_REQ_MSG_get_fd( int fd ) {
 	PKI_MEM *mem = NULL;
 	CERT_REQ_MSG *ret = NULL;
 
-	char buf[1024];
+	unsigned char buf[4096];
 	ssize_t n = 0;
 
 	if((mem = PKI_MEM_new_null()) == NULL ) {
-		PKI_log_debug("Memory Allocation error (%s:%d)!",
-			__FILE__, __LINE__ );
-
-		return ( NULL );
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
 	}
 
 	while( (n = _Read( fd, buf, sizeof( buf ))) > 0 ) {
@@ -284,7 +282,7 @@ int CERT_REQ_MSG_put_mem( CERT_REQ_MSG *req, PKI_MEM *mem, int format ) {
 	if ( rv == 0 ) goto err;
 
 	BIO_get_mem_ptr( mem_bio, &buf );
-	rv = PKI_MEM_add( mem, buf->data, (size_t) buf->length );
+	rv = PKI_MEM_add( mem, (const unsigned char *)buf->data, (size_t) buf->length );
 
 	if( mem_bio ) BIO_free ( mem_bio );
 

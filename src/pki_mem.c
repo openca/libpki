@@ -45,7 +45,7 @@ PKI_MEM *PKI_MEM_new ( size_t size ) {
 /*!  \brief Returns a new PKI_MEM object with a copy of the data passed as arg
  */
 
-PKI_MEM *PKI_MEM_new_data ( size_t size, unsigned char *data ) {
+PKI_MEM *PKI_MEM_new_data ( size_t size, const unsigned char *data ) {
 
 	PKI_MEM *ret = NULL;
 
@@ -205,7 +205,7 @@ int PKI_MEM_grow( PKI_MEM *buf, size_t data_size )
 
 /*! \brief Adds the passed data to a PKI_MEM */
 
-int PKI_MEM_add( PKI_MEM *buf, char *data, size_t data_size ) {
+int PKI_MEM_add( PKI_MEM *buf, const unsigned char *data, size_t data_size ) {
 	
 	size_t curr_size = 0;
 
@@ -393,7 +393,7 @@ PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io ) {
 		if((pki_mem = PKI_MEM_new_null()) == NULL ) {
 			return ( NULL );
 		}
-		PKI_MEM_add( pki_mem, buf_mem->data, (size_t) buf_mem->length );
+		PKI_MEM_add( pki_mem, (const unsigned char *)buf_mem->data, (size_t) buf_mem->length );
 	}
 
 	return( pki_mem );
@@ -403,7 +403,7 @@ PKI_MEM *PKI_MEM_new_membio ( PKI_IO *io ) {
 
 PKI_MEM *PKI_MEM_new_bio(PKI_IO *io, PKI_MEM **mem)
 {
-	unsigned char buf[1024];
+	unsigned char buf[4096];
 
 	PKI_MEM *my_mem = NULL;
 
@@ -432,7 +432,7 @@ PKI_MEM *PKI_MEM_new_bio(PKI_IO *io, PKI_MEM **mem)
 		int i = -1;
 		for (i = BIO_read(io, buf, sizeof(buf)); i > 0; i = BIO_read(io, buf, sizeof(buf)))
 		{
-			if (i > 0) PKI_MEM_add(my_mem, (char *)buf, (size_t) i);
+			if (i > 0) PKI_MEM_add(my_mem, buf, (size_t) i);
 		}
 	}
 
@@ -520,7 +520,7 @@ PKI_MEM *PKI_MEM_get_b64_decoded(PKI_MEM *mem, int withNewLines)
 
 	int n = 0;
 
-	char buf[1024];
+	char buf[4096];
 
 	if (!(b64 = BIO_new(BIO_f_base64()))) return NULL;
 	if (withNewLines <= 0) BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
@@ -540,7 +540,7 @@ PKI_MEM *PKI_MEM_get_b64_decoded(PKI_MEM *mem, int withNewLines)
 
 	while ((n = BIO_read(b64, buf, sizeof(buf))) > 0)
 	{
-		PKI_MEM_add(decoded, buf, (size_t)n);
+		PKI_MEM_add(decoded, (const unsigned char *)buf, (size_t)n);
 	}
 	BIO_free_all(b64);
 
@@ -559,7 +559,7 @@ PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skipNewLines)
 {
 	PKI_MEM *encoded = NULL;
 
-	char enc_buf[1024];
+	unsigned char enc_buf[1024];
 
 	int i = 0;
 	size_t enc_idx = 0;
@@ -587,13 +587,13 @@ PKI_MEM *PKI_MEM_get_url_encoded(PKI_MEM *mem, int skipNewLines)
 		if ((strchr( str, tmp_d2 ) != NULL ) ||
 			(tmp_d2 <= 31) || ( tmp_d2 >= 127 ) || (isgraph(tmp_d2) == 0))
 		{
-			enc_idx += (size_t) sprintf(&enc_buf[enc_idx], "%%%2.2x", tmp_d2 );
+			enc_idx += (size_t) sprintf((char *)&enc_buf[enc_idx], "%%%2.2x", tmp_d2 );
 			// PKI_MEM_add ( encoded, enc_buf, 3 );
 		}
 		else
 		{
 			// PKI_MEM_add ( encoded, (char *) &(mem->data[i]), 1);
-			enc_buf[enc_idx++] = (char)mem->data[i];
+			enc_buf[enc_idx++] = mem->data[i];
 		}
 
 		// Let's check if it is time to move the buffer contents into the

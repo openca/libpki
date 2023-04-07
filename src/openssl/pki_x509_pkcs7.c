@@ -792,7 +792,7 @@ PKI_MEM *PKI_X509_PKCS7_get_raw_data(const PKI_X509_PKCS7 * const p7 ) {
 		return NULL;
 	}
 
-	if (PKI_MEM_add(ret, (char *) data, (size_t) len) == PKI_ERR)
+	if (PKI_MEM_add(ret, data, (size_t) len) == PKI_ERR)
 	{
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Memory Failure (ret=%p, data=%p, len=%d)",
 				ret, data, len );

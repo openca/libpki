@@ -43,13 +43,13 @@ char *pg_parse_url_query ( const URL * url ) {
 	snprintf( tmp, sizeof( tmp ), "SELECT %s from %s ", url->attrs, table );
 	PKI_Free (table);
 
-	PKI_MEM_add( buf, tmp, strlen( tmp ));
+	PKI_MEM_add( buf, (const unsigned char *)tmp, strlen( tmp ));
 
 	where = 0;
 	while( sscanf(tmp_s, "(%[^)=]=%[^)])", col, val) > 1 ) {
 		if( where == 0 ) {
 			/* Let's add the WHERE clause */
-			PKI_MEM_add(buf, "WHERE ", 6);
+			PKI_MEM_add(buf, (const unsigned char *)"WHERE ", 6);
 			where = 1;
 		}
 		/* The tmp_s should point to the next token */
@@ -57,13 +57,13 @@ char *pg_parse_url_query ( const URL * url ) {
 
 		/* Control if we need to add the AND in the SQL statement */
 		if( add_and == 1 ) {
-			PKI_MEM_add( buf, " AND ", 5);
+			PKI_MEM_add( buf, (const unsigned char *)" AND ", 5);
 		}
 
-		PKI_MEM_add( buf, col, strlen( col ));
-		PKI_MEM_add( buf, "='", 2);
-		PKI_MEM_add( buf, val, strlen( val ));
-		PKI_MEM_add( buf, "' ", 2);
+		PKI_MEM_add( buf, (const unsigned char *)col, strlen( col ));
+		PKI_MEM_add( buf, (const unsigned char *)"='", 2);
+		PKI_MEM_add( buf, (const unsigned char *)val, strlen( val ));
+		PKI_MEM_add( buf, (const unsigned char *)"' ", 2);
 
 		/* This triggers the adding of AND on the next iteration */
 		add_and = 1;
@@ -115,9 +115,9 @@ char *pg_parse_url_put_query ( const URL * url, const PKI_MEM *data ) {
 	}
 
 	sprintf( tmp, "INSERT INTO %s (%s) VALUES ('", table, url->attrs );
-	PKI_MEM_add( buf, tmp, strlen( tmp ));
-	PKI_MEM_add( buf, (char * ) data->data, data->size );
-	PKI_MEM_add( buf, "') ", 3);
+	PKI_MEM_add( buf, (const unsigned char *)tmp, strlen( tmp ));
+	PKI_MEM_add( buf, data->data, data->size );
+	PKI_MEM_add( buf, (const unsigned char *)"') ", 3);
 
 	/*
 	base=strlen(buf);
@@ -137,17 +137,9 @@ char *pg_parse_url_put_query ( const URL * url, const PKI_MEM *data ) {
 			if( buf ) PKI_MEM_free ( buf );
 
 			buf = PKI_MEM_new_null();
-			PKI_MEM_add( buf, tmp, strlen( tmp ));
-			PKI_MEM_add( buf, (char *)data->data, data->size );
-			PKI_MEM_add( buf, "' WHERE ", 8);
-
-			/*
-			base=strlen(buf);
-			for( i=0; i < data->size; i++ ) {
-				sprintf(buf + base + i, "%c", data->data[i]);
-			}
-			sprintf(buf+base+i,"' WHERE ");
-			*/
+			PKI_MEM_add( buf, (const unsigned char *)tmp, strlen( tmp ));
+			PKI_MEM_add( buf, data->data, data->size );
+			PKI_MEM_add( buf, (const unsigned char *)"' WHERE ", 8);
 
 			/* Let's add the WHERE clause */
 			where = 1;
@@ -157,20 +149,13 @@ char *pg_parse_url_put_query ( const URL * url, const PKI_MEM *data ) {
 
 		/* Control if we need to add the AND in the SQL statement */
 		if( add_and == 1 ) {
-			PKI_MEM_add( buf, " AND ", 5);
+			PKI_MEM_add( buf, (const unsigned char *)" AND ", 5);
 		}
 
-		PKI_MEM_add( buf, col, strlen( col ));
-		PKI_MEM_add( buf, "='", 2);
-		PKI_MEM_add( buf, val, strlen( val ));
-		PKI_MEM_add( buf, "' ", 2 );
-
-		/*
-		strncat( buf, col, BUFF_MAX_SIZE - strlen(buf) );
-		strncat( buf, "='", BUFF_MAX_SIZE - strlen(buf) );
-		strncat( buf, val, BUFF_MAX_SIZE - strlen(buf) );
-		strncat( buf, "'", BUFF_MAX_SIZE - strlen(buf) );
-		*/
+		PKI_MEM_add( buf, (const unsigned char *)col, strlen( col ));
+		PKI_MEM_add( buf, (const unsigned char *)"='", 2);
+		PKI_MEM_add( buf, (const unsigned char *)val, strlen( val ));
+		PKI_MEM_add( buf, (const unsigned char *)"' ", 2 );
 
 		/* This triggers the adding of AND on the next iteration */
 		add_and = 1;

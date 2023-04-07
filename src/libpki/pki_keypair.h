@@ -121,7 +121,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8(const PKI_MEM *buf );
 
 /* --------------------- PKEY Encrypt/Decrypt --------------------------- */
 
-/* @brief This function encrypts the input data under a keypair and a padding scheme.
+/*! @brief This function encrypts the input data under a keypair and a padding scheme.
  *
  * @param pVal is the PKI_X509_KEYPAIR_VALUE that will be used for encryption
  * @param data is the pointer to the input data
@@ -134,7 +134,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
                                          size_t                         const data_len,
                                          int                            const flags);
 
-/* @brief This function encrypts the input data under a keypair and a padding scheme.
+/*! @brief This function encrypts the input data under a keypair and a padding scheme.
  *
  * @param pVal is the PKI_X509_KEYPAIR that will be used for encryption
  * @param data is the pointer to the input data
@@ -147,7 +147,7 @@ PKI_MEM * PKI_X509_KEYPAIR_encrypt(const PKI_X509_KEYPAIR * keypair,
                                    size_t                   const data_len,
                                    int                      const flags);
 
-/* @brief This function decrypts the input data via a keypair and a padding scheme.
+/*! @brief This function decrypts the input data via a keypair and a padding scheme.
  *
  * @param pVal is the PKI_X509_KEYPAIR_VALUE that was used to encrypt the data
  * @param data is the pointer to the encrypted data
@@ -160,7 +160,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
                                          size_t                         const data_len,
                                          int                            const flags);
 
-/* @brief This function decrypts the input data via a keypair and a padding scheme.
+/*! @brief This function decrypts the input data via a keypair and a padding scheme.
  *
  * @param pVal is the PKI_X509_KEYPAIR that was used to encrypt the data
  * @param data is the pointer to the encrypted data
@@ -172,5 +172,55 @@ PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR * keypair,
                                    const unsigned char    * const data, 
                                    size_t                   const data_len,
                                    int                      const flags);
+
+/*! \brief Exports a raw public key value into a PKI_MEM 
+ *
+ * This function returns the internal structure of a public key in
+ * its DER representation from a PKI_X509_KEYPAIR data structure.
+ * For example, for RSA keys this function exports the following
+ * data:
+ * 
+ *   rsaKey := SEQUENCE {
+ *      modulus             INTEGER, 
+ *      publicExponent      INTEGER }
+ * 
+ * in DER format in the output buffer. If the @pki_mem parameter
+ * or the deferred pointer (@*pki_mem) are NULL, a new PKI_MEM
+ * structure will be allocated and returned. In case the *pki_mem
+ * is not NULL, the passed PKI_MEM structure will be used (if
+ * any data is present it will be first freed with PKI_Free).
+ * The function returns NULL in case of errors.
+ * 
+ * @param k_val The pointer to the PKI_X509_KEYPAIR to use
+ * @param pki_mem The output structure where to store the data
+ * @retval A pointer to the PKI_MEM with the retrieved data.
+*/
+PKI_MEM *PKI_X509_KEYPAIR_pubraw(const PKI_X509_KEYPAIR  * const k_val, 
+							  	 PKI_MEM          	    ** pki_mem);
+
+/*! \brief Exports a raw public key value into a PKI_MEM 
+ *
+ * This function returns the internal structure of a public key in
+ * its DER representation from a PKI_X509_KEYPAIR_VALUE pointer.
+ * For example, for RSA keys this function exports the following
+ * data:
+ * 
+ *   rsaKey := SEQUENCE {
+ *      modulus             INTEGER, 
+ *      publicExponent      INTEGER }
+ * 
+ * in DER format in the output buffer. If the @pki_mem parameter
+ * or the deferred pointer (@*pki_mem) are NULL, a new PKI_MEM
+ * structure will be allocated and returned. In case the *pki_mem
+ * is not NULL, the passed PKI_MEM structure will be used (if
+ * any data is present it will be first freed with PKI_Free).
+ * The function returns NULL in case of errors.
+ * 
+ * @param k_val The pointer to the PKI_X509_KEYPAIR_VALUE to use
+ * @param pki_mem The output structure where to store the data
+ * @retval A pointer to the PKI_MEM with the retrieved data.
+*/
+PKI_MEM *PKI_X509_KEYPAIR_VALUE_pubraw(const PKI_X509_KEYPAIR_VALUE  * const k_val, 
+							  		   PKI_MEM          		    ** pki_mem);
 
 #endif
