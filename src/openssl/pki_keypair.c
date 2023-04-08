@@ -994,8 +994,8 @@ PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR * keypair,
 
 /*! \brief Puts a X509_KEYPAIR to a PKI_MEM */
 
-PKI_MEM *PKI_X509_KEYPAIR_pubraw(const PKI_X509_KEYPAIR  * key, 
-							     PKI_MEM       	        ** pki_mem) {
+PKI_MEM *PKI_X509_KEYPAIR_get_public_bitstring(const PKI_X509_KEYPAIR  * key, 
+							                   PKI_MEM       	      ** pki_mem) {
 
 	PKI_X509_KEYPAIR_VALUE * k_val = NULL;
 		// Pointer to the underlying crypto-layer
@@ -1010,13 +1010,13 @@ PKI_MEM *PKI_X509_KEYPAIR_pubraw(const PKI_X509_KEYPAIR  * key,
 	k_val = PKI_X509_get_value(key);
 
 	// All done
-	return PKI_X509_KEYPAIR_VALUE_pubraw(k_val, pki_mem);
+	return PKI_X509_KEYPAIR_VALUE_get_public_bitstring(k_val, pki_mem);
 }
 
 /*! \brief Puts a X509_KEYPAIR_VALUE's raw key value into a PKI_MEM */
 
-PKI_MEM *PKI_X509_KEYPAIR_VALUE_pubraw(const PKI_X509_KEYPAIR_VALUE  * const k_val, 
-							  		   PKI_MEM          		    ** pki_mem) {
+PKI_MEM *PKI_X509_KEYPAIR_VALUE_get_public_bitstring(const PKI_X509_KEYPAIR_VALUE  * const k_val, 
+							  		                 PKI_MEM          		      ** pki_mem) {
 
 	const unsigned char * buff;
 	int len = 0;

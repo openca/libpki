@@ -227,26 +227,26 @@ int PKI_MEM_add( PKI_MEM *buf, const unsigned char *data, size_t data_size ) {
 
 /*! \brief Returns the pointer to the data within a PKI_MEM datastructure */
 
-unsigned char * PKI_MEM_get_data( PKI_MEM *buf ) {
+const unsigned char * PKI_MEM_get_data(const PKI_MEM * const buf ) {
 
 	if (!buf ) { 
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return (PKI_ERR);
 	};
 
-	return( buf->data );
+	return (buf->data);
 }
 
 /*! \brief Returns the size of the data within a PKI_MEM datastructure */
 
-size_t PKI_MEM_get_size( PKI_MEM *buf ) {
+size_t PKI_MEM_get_size(const PKI_MEM *buf) {
 
 	if( !buf || !buf->data ) {
 		if(!buf) PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
 		return (0);
-	};
+	}
 
-	return( buf->size );
+	return buf->size;
 }
 
 /*! \brief Returns the contents of the PKI_MEM in a string which is guaranteed

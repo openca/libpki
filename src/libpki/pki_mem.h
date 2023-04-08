@@ -46,9 +46,9 @@ int PKI_MEM_free ( PKI_MEM *buf );
 
 int PKI_MEM_grow( PKI_MEM *buf, size_t new_size );
 int PKI_MEM_add( PKI_MEM *buf, const unsigned char *data, size_t data_size );
-unsigned char * PKI_MEM_get_data( PKI_MEM *buf );
+const unsigned char * PKI_MEM_get_data(const PKI_MEM * const buf);
 char * PKI_MEM_get_parsed(PKI_MEM *buf);
-size_t PKI_MEM_get_size( PKI_MEM *buf );
+size_t PKI_MEM_get_size(const PKI_MEM * const buf );
 
 ssize_t PKI_MEM_printf( PKI_MEM * buf );
 ssize_t PKI_MEM_fprintf( FILE *file, PKI_MEM *buf );

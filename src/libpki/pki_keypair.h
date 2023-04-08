@@ -195,8 +195,8 @@ PKI_MEM * PKI_X509_KEYPAIR_decrypt(const PKI_X509_KEYPAIR * keypair,
  * @param pki_mem The output structure where to store the data
  * @retval A pointer to the PKI_MEM with the retrieved data.
 */
-PKI_MEM *PKI_X509_KEYPAIR_pubraw(const PKI_X509_KEYPAIR  * const k_val, 
-							  	 PKI_MEM          	    ** pki_mem);
+PKI_MEM *PKI_X509_KEYPAIR_get_public_bitstring(const PKI_X509_KEYPAIR  * const k_val, 
+							  	               PKI_MEM          	  ** pki_mem);
 
 /*! \brief Exports a raw public key value into a PKI_MEM 
  *
@@ -220,7 +220,7 @@ PKI_MEM *PKI_X509_KEYPAIR_pubraw(const PKI_X509_KEYPAIR  * const k_val,
  * @param pki_mem The output structure where to store the data
  * @retval A pointer to the PKI_MEM with the retrieved data.
 */
-PKI_MEM *PKI_X509_KEYPAIR_VALUE_pubraw(const PKI_X509_KEYPAIR_VALUE  * const k_val, 
-							  		   PKI_MEM          		    ** pki_mem);
+PKI_MEM *PKI_X509_KEYPAIR_VALUE_get_public_bitstring(const PKI_X509_KEYPAIR_VALUE  * const k_val, 
+							  		                 PKI_MEM          		      ** pki_mem);
 
 #endif
