@@ -90,6 +90,14 @@ PKI_ALGOR_ID PKI_ALGOR_ID_LIST_SPHINCS[] = {
 	PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R
 };
 
+PKI_ALGOR_ID PKI_ALGOR_ID_LIST_CLASSIC_MCELIECE[] = {
+	PKI_ALGOR_ID_CLASSIC_MCELIECE1,
+	PKI_ALGOR_ID_CLASSIC_MCELIECE2,
+	PKI_ALGOR_ID_CLASSIC_MCELIECE3,
+	PKI_ALGOR_ID_CLASSIC_MCELIECE4,
+	PKI_ALGOR_ID_CLASSIC_MCELIECE5
+};
+
 PKI_ALGOR_ID PKI_ALGOR_ID_LIST_COMPOSITE_RSA_FALCON[] = {
 	PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512
 };
@@ -354,7 +362,6 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "DSA";
 		} break;
 
-
 		// ===================
 		// Post-Quantum Crypto
 		// ===================
@@ -369,12 +376,20 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "DILITHIUM";
 		} break;
 
-		case PKI_SCHEME_DILITHIUMX3: {
-			ret = "DILITHIUMX3";
-		} break;
-
 		case PKI_SCHEME_SPHINCS: {
 			ret = "SPHINCS";
+		} break;
+
+		case PKI_SCHEME_CLASSIC_MCELIECE: {
+			ret = "MCELIECE";
+		} break;
+
+		// =========================
+		// Post-Quantum Experimental
+		// =========================
+
+		case PKI_SCHEME_DILITHIUMX3: {
+			ret = "DILITHIUMX3";
 		} break;
 
 		// =====================
@@ -624,18 +639,18 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
 		return NULL;
 	}
 
-	// Finds if this NID is a X509_ALGOR nid, if not let's return NULL
-	if (!OBJ_find_sigid_algs(alg_nid, &hash_nid, &pkey_nid)) {
-		PKI_DEBUG("Cannot Find Algorithms for %d (%s)", alg_nid, OBJ_nid2sn(alg_nid));
-		return NULL;
-	}
-
 	// If the Algorithm ID is known, let's generate the
 	// PKIX algorithm data structure
 	if (alg_nid == PKI_ALGOR_ID_UNKNOWN) {
 		// Unknown or unsupported Algorithm
 		PKI_DEBUG("Unknown algorithm [ Algor ID: %d ]", algor);
 		goto err;
+	}
+
+	// Finds if this NID is a X509_ALGOR nid, if not let's return NULL
+	if (!OBJ_find_sigid_algs(alg_nid, &hash_nid, &pkey_nid)) {
+		PKI_DEBUG("Cannot Find Signature Algorithm %d, using Public Key algorithm identifier (%s)", 
+			alg_nid, OBJ_nid2sn(alg_nid));
 	}
 
 	// Let's return the PKIX X509 Algorithm Data structure
@@ -1228,6 +1243,10 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 		
 		case PKI_SCHEME_SPHINCS: {
 			ret = PKI_ALGOR_ID_LIST_SPHINCS;
+		} break;
+
+		case PKI_SCHEME_CLASSIC_MCELIECE: {
+			ret = PKI_ALGOR_ID_LIST_CLASSIC_MCELIECE;
 		} break;
 
 		case PKI_SCHEME_DILITHIUMX3: {

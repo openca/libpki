@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	// PKI_X509_SIGNATURE *sig = NULL;
 	PKI_X509_ALGOR_VALUE *algor = NULL;
 
-	PKI_OID *oid = NULL;
+	// PKI_OID *oid = NULL;
 
 	char *pnt = NULL;
 	char *sigName = NULL;
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	int log_level = PKI_LOG_NONE;
 	PKI_LOG_FLAGS log_flags = PKI_LOG_FLAGS_NONE;
 
-	int nid = 0;
+	// int nid = 0;
 
 	if(argv[0]) prg_name = strdup(argv[0]);
 
@@ -165,119 +165,119 @@ int main(int argc, char *argv[])
 	};
 
 	printf("\n    Signer's Key Info:\n");
-	printf("        Scheme: ");
+	printf("        Scheme: %s\n", PKI_SCHEME_ID_get_parsed(PKI_X509_KEYPAIR_get_scheme(kp)));
 
-	switch ( PKI_X509_KEYPAIR_get_scheme( kp ))
-	{
-		case PKI_SCHEME_RSA:
-			printf("RSA\n");
-			break;
+// 	switch ( PKI_X509_KEYPAIR_get_scheme( kp ))
+// 	{
+// 		case PKI_SCHEME_RSA:
+// 			printf("RSA\n");
+// 			break;
 
-#ifdef ENABLE_DSA
-		case PKI_SCHEME_DSA:
-			printf("DSA\n");
-			break;
-#endif
+// #ifdef ENABLE_DSA
+// 		case PKI_SCHEME_DSA:
+// 			printf("DSA\n");
+// 			break;
+// #endif
 
-#ifdef ENABLE_ECDSA
-		case PKI_SCHEME_ECDSA:
-			printf("ECDSA\n");
-			nid = PKI_X509_KEYPAIR_get_curve ( kp );
-			if((oid = PKI_OID_new_id( nid )) != NULL ) {
-				printf("        Curve Name: %s\n", PKI_OID_get_descr( oid ));
-				PKI_OID_free ( oid );
-			};
-			break;
-#endif
+// #ifdef ENABLE_ECDSA
+// 		case PKI_SCHEME_ECDSA:
+// 			printf("ECDSA\n");
+// 			nid = PKI_X509_KEYPAIR_get_curve ( kp );
+// 			if((oid = PKI_OID_new_id( nid )) != NULL ) {
+// 				printf("        Curve Name: %s\n", PKI_OID_get_descr( oid ));
+// 				PKI_OID_free ( oid );
+// 			};
+// 			break;
+// #endif
 
-#ifdef ENABLE_OQS
-			// Post Quantum Digital Signature Switches
-			case PKI_SCHEME_FALCON: {
-				printf("Falcon\n");
-			} break;
+// #ifdef ENABLE_OQS
+// 			// Post Quantum Digital Signature Switches
+// 			case PKI_SCHEME_FALCON: {
+// 				printf("Falcon\n");
+// 			} break;
 			
-			case PKI_SCHEME_PICNIC: {
-				printf("PicNic\n");
-			} break;
+// 			case PKI_SCHEME_PICNIC: {
+// 				printf("PicNic\n");
+// 			} break;
 
-			case PKI_SCHEME_SPHINCS: {
-				// Needs to check for each algorithm
-				printf("Sphincs+\n");
-			} break;
+// 			case PKI_SCHEME_SPHINCS: {
+// 				// Needs to check for each algorithm
+// 				printf("Sphincs+\n");
+// 			} break;
 
-			case PKI_SCHEME_DILITHIUM: {
-				printf("Dilithium\n");
-			} break;
+// 			case PKI_SCHEME_DILITHIUM: {
+// 				printf("Dilithium\n");
+// 			} break;
 
-			case PKI_SCHEME_DILITHIUMX3: {
-				// Experimental Only
-				printf("DilithiumX\n");
-			} break;
+// 			case PKI_SCHEME_DILITHIUMX3: {
+// 				// Experimental Only
+// 				printf("DilithiumX\n");
+// 			} break;
 
-			// Combined Crypto
-			case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
-				printf("OQS Hybrid (RSA with Falcon)\n");
-			} break;
+// 			// Combined Crypto
+// 			case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
+// 				printf("OQS Hybrid (RSA with Falcon)\n");
+// 			} break;
 			
-			case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
-				printf("OQS Hybrid (ECDSA with Falcon)\n");
-			} break;
+// 			case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
+// 				printf("OQS Hybrid (ECDSA with Falcon)\n");
+// 			} break;
 			
-			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:{
-				printf("OQS Hybrid (RSA with Dilithium)\n");
-			} break;
+// 			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:{
+// 				printf("OQS Hybrid (RSA with Dilithium)\n");
+// 			} break;
 			
-			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
-				printf("OQS Hybrid (ECDSA with Dilithium)\n");
-			} break;
+// 			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
+// 				printf("OQS Hybrid (ECDSA with Dilithium)\n");
+// 			} break;
 
-			case PKI_SCHEME_NTRU_PRIME: {
-				printf("NTRU Prime\n");
-			} break;
+// 			case PKI_SCHEME_NTRU_PRIME: {
+// 				printf("NTRU Prime\n");
+// 			} break;
 			
-			case PKI_SCHEME_SIKE:{
-				printf("SIKE\n");
-			} break;
+// 			case PKI_SCHEME_SIKE:{
+// 				printf("SIKE\n");
+// 			} break;
 
-			case PKI_SCHEME_BIKE:{
-				printf("BIKE\n");
-			} break;
+// 			case PKI_SCHEME_BIKE:{
+// 				printf("BIKE\n");
+// 			} break;
 			
-			case PKI_SCHEME_FRODOKEM: {
-				printf("Frodo KEM\n");
-			} break;
+// 			case PKI_SCHEME_FRODOKEM: {
+// 				printf("Frodo KEM\n");
+// 			} break;
 
-			case PKI_SCHEME_DH: {
-				printf("Diffie-Hellman\n");
-			} break;
+// 			case PKI_SCHEME_DH: {
+// 				printf("Diffie-Hellman\n");
+// 			} break;
 
-			// case PKI_SCHEME_UNKNOWN: {
-			// 	PKI_DEBUG("Scheme Not Supported (PKEY ID: %d)", EVP_PKEY_id((EVP_PKEY *)kp->value));
-			// 	return PKI_ERR;
-			// } break;
-#endif
+// 			// case PKI_SCHEME_UNKNOWN: {
+// 			// 	PKI_DEBUG("Scheme Not Supported (PKEY ID: %d)", EVP_PKEY_id((EVP_PKEY *)kp->value));
+// 			// 	return PKI_ERR;
+// 			// } break;
+// #endif
 
-		default:
-#ifdef ENABLE_COMPOSITE
-			if (EVP_PKEY_id((EVP_PKEY *)kp->value) == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
-				printf("Composite\n");
-			} 
-#endif
+// 		default:
+// #ifdef ENABLE_COMPOSITE
+// 			if (EVP_PKEY_id((EVP_PKEY *)kp->value) == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+// 				printf("Composite\n");
+// 			} 
+// #endif
 
-# ifdef ENABLE_COMBINED
-			else if (EVP_PKEY_id((EVP_PKEY *)kp->value) == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
-				printf("Multikey\n");
-			}
-#endif
-			else if (EVP_PKEY_id((EVP_PKEY *)kp->value) != NID_undef) {
-				printf("PQC: %s\n", OBJ_nid2sn(EVP_PKEY_id((EVP_PKEY*)kp->value)));
-			} else {
-				printf("Unknown!\n\n");
-				fprintf(stderr, "\n    ERROR: Unsupported signing scheme (Key Type: %d), aborted.\n\n",
-					EVP_PKEY_id((EVP_PKEY *)kp->value));
-				exit(1);
-			}
-	};
+// # ifdef ENABLE_COMBINED
+// 			else if (EVP_PKEY_id((EVP_PKEY *)kp->value) == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+// 				printf("Multikey\n");
+// 			}
+// #endif
+// 			else if (EVP_PKEY_id((EVP_PKEY *)kp->value) != NID_undef) {
+// 				printf("PQC: %s\n", OBJ_nid2sn(EVP_PKEY_id((EVP_PKEY*)kp->value)));
+// 			} else {
+// 				printf("Unknown!\n\n");
+// 				fprintf(stderr, "\n    ERROR: Unsupported signing scheme (Key Type: %d), aborted.\n\n",
+// 					EVP_PKEY_id((EVP_PKEY *)kp->value));
+// 				exit(1);
+// 			}
+// 	};
 
 	printf("        Key Size: %d\n", PKI_X509_KEYPAIR_get_size( kp ));
 

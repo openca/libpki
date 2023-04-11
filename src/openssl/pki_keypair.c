@@ -137,12 +137,14 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme (const PKI_X509_KEYPAIR *k ) {
 PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *pVal ) {
 
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
+		// Return Value
+
 	int p_type = 0;
 
 	if ( !pVal ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return ret;
-	};
+	}
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 	p_type = EVP_PKEY_type(pVal->type);
@@ -151,24 +153,63 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *p
 #endif
 
 	switch(p_type) {
-		case EVP_PKEY_DSA:
+
+		case PKI_ALGOR_DSA:
 			ret = PKI_SCHEME_DSA;
 			break;
 
-		case EVP_PKEY_RSA:
+		case PKI_ALGOR_RSA:
+		case PKI_ALGOR_RSAPSS:
 			ret = PKI_SCHEME_RSA;
 			break;
 
 #ifdef ENABLE_ECDSA
-		case EVP_PKEY_EC:
+		case PKI_ALGOR_ECDSA:
+		case PKI_ALGOR_ECDSA_DSS1:
 			ret = PKI_SCHEME_ECDSA;
 			break;
 #endif
 
-		default:
-			return ret;
-	};
+#ifdef ENABLE_OQS
+		case PKI_ALGOR_DILITHIUM2:
+		case PKI_ALGOR_DILITHIUM3:
+		case PKI_ALGOR_DILITHIUM5: {
+			ret = PKI_SCHEME_DILITHIUM;
+		} break;
 
+		case PKI_ALGOR_FALCON512:
+		case PKI_ALGOR_FALCON1024: {
+			ret = PKI_SCHEME_FALCON;
+		} break;
+
+		case PKI_ALGOR_CLASSIC_MCELIECE1: {
+			ret = PKI_SCHEME_CLASSIC_MCELIECE;
+		} break;
+
+		case PKI_ALGOR_KYBER512:
+		case PKI_ALGOR_KYBER768:
+		case PKI_ALGOR_KYBER1024: {
+			ret = PKI_SCHEME_KYBER;
+		} break;
+
+#endif
+
+		default: {
+#ifdef ENABLE_COMPOSITE
+			if ( p_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+				return PKI_SCHEME_COMPOSITE;
+			}
+#endif
+#ifdef ENABLE_COMBINED
+			if ( p_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+				return PKI_SCHEME_COMBINED;
+			}
+#endif
+		} // End of default
+
+	} // End of switch()
+
+	// All done.
 	return ret;
 };
 

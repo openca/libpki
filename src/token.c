@@ -1175,7 +1175,7 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 	// If no algorithm was passed, let's use the default one
 	if(algId <= 0) algId = PKI_ALGOR_DEFAULT;
 
-	// Now let's get the algor
+	// Now let's get the signing algor
 	if ((al = PKI_X509_ALGOR_VALUE_get(algId)) == NULL) {
 		// No algorithm was present
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);

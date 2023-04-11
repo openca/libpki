@@ -505,6 +505,9 @@ int PKI_X509_sign(PKI_X509               * x,
 	PKI_X509_KEYPAIR_VALUE * pkey = NULL;
 	  // Internal Value
 
+	int sig_nid = -1;
+		// Signature Algorithm identifier
+
 	// Input Checks
 	if (!x || !x->value || !key || !key->value ) 
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -519,32 +522,60 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
-	// if (digest && digest != PKI_DIGEST_ALG_NULL) {
-		
-	// 	int digest_nid = EVP_MD_nid(digest);
-	// 		// Digest NID
 
-	// // Let's Get The signing OID
-	// int sig_nid = -1;
-	// int pkey_nid = EVP_PKEY_id(pkey);
+	// Handles the weirdness of OpenSSL - we want to check if the signing algorithm
+	// is actually allowed with the selected public key
+	if (digest != NULL && digest != PKI_DIGEST_ALG_NULL) {
 
-	// 	if (OBJ_find_sigid_by_algs(&sig_nid, digest_nid, pkey_nid) != 1) {
-	// 		PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
-	// 			PKI_ID_get_txt(pkey_nid), digest ? PKI_ID_get_txt(digest_nid) : "NULL");
-	// 	} else {
-	// 		// If the find routine returns 1 it was successful, however
-	// 		// for PQC it seems to return NID_undef for the sig_nid, this fixes it
-	// 		if (sig_nid == NID_undef) sig_nid = EVP_PKEY_id(pkey);
-	// 	}
+		// Finds the associated signing algorithm identifier, if any
+		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_nid(digest), EVP_PKEY_id(pkey)) != 1) {
+			PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
+				PKI_ID_get_txt(PKI_X509_KEYPAIR_VALUE_get_id(pkey)), digest ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
+			// Fatal Error
+			return PKI_ERR;
+		}
 
-	// 	// Debugging Information
-	// 	PKI_DEBUG("Signing Algorithm Should be: %s", PKI_ID_get_txt(sig_nid));
-	// 	PKI_DEBUG("Digest Signing Algorithm: %s", PKI_ID_get_txt(digest_nid));
-	// }
+	} else {
+
+		// Gets the key type
+		PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_get_scheme(key);
+
+		switch (scheme_id) {
+
+			// Algorithms that do not require hashing
+			case PKI_SCHEME_DILITHIUM:
+			case PKI_SCHEME_FALCON:
+			case PKI_SCHEME_COMPOSITE:
+			case PKI_SCHEME_COMBINED:
+			case PKI_SCHEME_CLASSIC_MCELIECE:
+			/* case PKI_SCHEME_ED448: */
+			/* case PKI_SCHEME_X25519: */ {
+				// No-hashing is supported by the algorithm
+				// If the find routine returns 1 it was successful, however
+				// for PQC it seems to return NID_undef for the sig_nid, this fixes it
+				if (sig_nid == NID_undef) sig_nid = EVP_PKEY_id(pkey);
+			} break;
+			
+
+			// Hashing required
+			default:
+				PKI_DEBUG("%s does not support arbitrary signing, hashing is required",
+					PKI_SCHEME_ID_get_parsed(scheme_id));
+				// Error condition
+				return PKI_ERR;
+		}
+
+	}
+
+	// Debugging Information
+	PKI_DEBUG("Signing Algorithm Is: %s", PKI_ID_get_txt(sig_nid));
+	PKI_DEBUG("Digest Algorithm Is: %s", PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Since we are using the DER representation for signing, we need to first
 	// update the data structure(s) with the right OIDs - we use the default
 	// ASN1_item_sign() with a NULL buffer parameter to do that.
+
+	PKI_DEBUG("Digest Signing Algorithm: %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Sets the right OID for the signature
 	ASN1_item_sign(x->it, 
@@ -553,7 +584,8 @@ int PKI_X509_sign(PKI_X509               * x,
                    NULL,
 				   NULL,
                    pkey,
-				   ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
+				   //    ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
+				   digest);
 
 	// Retrieves the DER representation of the data to be signed
 	if ((der = PKI_X509_get_tbs_asn1(x)) == NULL) {
@@ -646,6 +678,10 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
 
 	// If no HSM is provided, let's get the default one
 	hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());
+
+	// Debugging Info
+	PKI_DEBUG("Calling Callback with Digest = %p (Null =? %s)\n",
+		alg, alg == EVP_md_null() ? "Yes" : "No");
 
 	// Requires the use of the HSM's sign callback
 	if (hsm && hsm->callbacks && hsm->callbacks->sign) {

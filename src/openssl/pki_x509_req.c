@@ -55,23 +55,23 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 	}
 	kVal = (EVP_PKEY *) PKI_X509_get_value(k);
 
+	// Debug Info
+	PKI_DEBUG("Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
+
 	// Let's set the digest for the right signature scheme */
 	// Open Quantum Safe Algos do not offer Digests, we are now
 	// more permissive with the digest
-	if( !digest ) {
+	if (!digest) {
 		// Gets the default algorithm
-		if ((digest = PKI_DIGEST_ALG_get_by_key( k )) == NULL) {
+		if ((digest = PKI_DIGEST_ALG_get_by_key(k)) == NULL) {
 			PKI_DEBUG("No Default Digest is recommended for the PKEY algorithm");
 		}
+		// Let's use the NULL one
+		digest = EVP_md_null();
 	}
 
 	// Debug Info
-	if (digest) {
-		PKI_DEBUG("Selected Hashing Algorithm is %s (EVP_md_null() ? = %s)", 
-			OBJ_nid2sn(EVP_MD_nid(digest)), digest == PKI_DIGEST_ALG_NULL ? "Yes" : "No");
-	} else {
-		PKI_DEBUG("NO Hashing Algorithm is selected");
-	}
+	PKI_DEBUG("Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	/* This has to be fixed, to work on every option */
 	if( subj_s ) {
@@ -100,13 +100,13 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 		}
 	};
 
-	if( !subj ) {
+	if (!subj) {
 		PKI_ERROR(PKI_ERR_X509_CERT_CREATE_SUBJECT, subj_s );
 		goto err;
 	}
 
-	if (( req = PKI_X509_REQ_new_null()) == NULL ) {
-		PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL );
+	if ((req = PKI_X509_REQ_new_null()) == NULL) {
+		PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL);
 		goto err;
 	}
 
@@ -114,10 +114,12 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 	if((val = req->cb->create()) == NULL ) {
 		PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL );
 		goto err;
-		return ( NULL );
 	}
 
 	req->value = val;
+
+	// Debug Info
+	PKI_DEBUG("Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	/* Now we need the PKI_REQ */
 	if( req_cnf != NULL ) {
@@ -188,6 +190,8 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 #ifdef ENABLE_OQS
 				case PKI_SCHEME_FALCON:
 				case PKI_SCHEME_DILITHIUM:
+				case PKI_SCHEME_CLASSIC_MCELIECE:
+				case PKI_SCHEME_SPHINCS:
 				case PKI_SCHEME_DILITHIUMX3:
 
 #ifdef ENABLE_COMPOSITE
@@ -220,12 +224,12 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 					// Nothing to do
 					PKI_ERROR(PKI_ERR_GENERAL, "Signing Scheme Uknown %d!", kParams->scheme);
 					break;
-			};
-		};
-	};
+			}
+		}
+	}
 
 	/* Set the version number */
-	if (!X509_REQ_set_version( (X509_REQ *) val, 2L)) {
+	if (!X509_REQ_set_version((X509_REQ *)val, 2L)) {
 		PKI_ERROR(PKI_ERR_X509_REQ_CREATE_VERSION, NULL);
 		goto err;
 	}
@@ -234,14 +238,16 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 	if (!X509_REQ_set_pubkey( (X509_REQ *) val, kVal )) {
 		PKI_ERROR(PKI_ERR_X509_REQ_CREATE_PUBKEY, NULL);
 		goto err;
-	};
+	}
 
 	// Sets the Subject
 	if (!X509_REQ_set_subject_name((X509_REQ *)val, (X509_NAME *)subj)) {
 		if(subj) X509_NAME_free((X509_NAME *) subj);
 		PKI_ERROR(PKI_ERR_X509_REQ_CREATE_SUBJECT, subj_s);
 		goto err;
-	};
+	}
+
+	PKI_DEBUG("Calling PKI_X509_sign() with Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Signs the Request
 	rv = PKI_X509_sign(req, digest, k);

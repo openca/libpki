@@ -13,6 +13,10 @@
 # include <libpki/compat.h>
 #endif
 
+#ifdef ENABLE_OQS
+# include <oqs/oqs.h>
+#endif
+
 BEGIN_C_DECLS 
 
 /* PKI Datatypes */
@@ -198,6 +202,10 @@ typedef enum {
 #ifdef ENABLE_ECDSA
 	PKI_SCHEME_ECDSA,
 #endif
+	PKI_SCHEME_X448,
+	PKI_SCHEME_ED448,
+	PKI_SCHEME_X25519,
+	PKI_SCHEME_ED25519,
 
 #ifdef ENABLE_OQS
 	// Post Quantum Cryptography - KEMS
@@ -207,11 +215,17 @@ typedef enum {
 	PKI_SCHEME_FRODOKEM,
 	// Post Quantum Cryptography - Digital Signatures
 	PKI_SCHEME_FALCON,
+	PKI_SCHEME_SPHINCS,
 	PKI_SCHEME_DILITHIUM,
+#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
+	PKI_SCHEME_CLASSIC_MCELIECE,
+#endif
+#ifdef OQS_ENABLE_KEM_KYBER
+	PKI_SCHEME_KYBER,
+#endif
 	// Experimental Only - To Be Removed (DilithiumX)
 	PKI_SCHEME_DILITHIUMX3,
 	PKI_SCHEME_PICNIC,
-	PKI_SCHEME_SPHINCS,
 #endif
 #ifdef ENABLE_COMPOSITE
 	// Composite Crypto Schemes

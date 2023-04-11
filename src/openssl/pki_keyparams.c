@@ -94,6 +94,12 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 				kp->bits = 192;
 			} break;
 
+			case PKI_SCHEME_CLASSIC_MCELIECE:
+				break;
+
+			case PKI_SCHEME_SPHINCS:
+				break;
+
 #endif // ENABLE OQS
 
 #ifdef ENABLE_COMPOSITE
@@ -197,6 +203,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			// Post Quantum Cryptography - Digital Signatures
 			case PKI_SCHEME_FALCON:
 			case PKI_SCHEME_DILITHIUM:
+			case PKI_SCHEME_CLASSIC_MCELIECE:
 			case PKI_SCHEME_DILITHIUMX3:
 			case PKI_SCHEME_SPHINCS: {
 				kp->bits = 128;

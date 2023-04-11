@@ -649,7 +649,7 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 			PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 				// Internal Value
 
-			if (digest != NULL && digest != EVP_md_null()) {
+			if (digest != EVP_md_null()) {
 				// Gest the Signature ID for the digest/pkey combination
 				if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
 					PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
@@ -1546,6 +1546,7 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
+			fprintf(stderr, "\n    ERROR: Cannot set the token's algorithm\n\n");
 			exit(1);
 		}
 

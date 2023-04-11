@@ -31,6 +31,10 @@
 #include <openssl/ec.h>
 #endif
 
+#ifdef ENABLE_OQS
+#include <oqs/oqs.h>
+#endif
+
 // #ifndef _LIBPKI_COMPOSITE_LOCAL_H
 // #include <libpki/composite/composite_internals.h>
 // #endif
@@ -72,15 +76,77 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define  PKI_ID_UNKNOWN		NID_undef
 
 #define  PKI_DIGEST_ALG				EVP_MD
-// #define	 PKI_ALGOR        X509_ALGOR
+// #define	 PKI_ALGOR        	X509_ALGOR
 // #define	 PKI_ALGORITHM		X509_ALGOR
-#define  PKI_X509_ALGOR_VALUE X509_ALGOR
+#define  PKI_X509_ALGOR_VALUE 	X509_ALGOR
 #define  PKI_CIPHER       		EVP_CIPHER
 
-#define PKI_X509_NAME		X509_NAME
+#define PKI_X509_NAME			X509_NAME
 
 #define PKI_DIGEST_ALG_NULL  	(PKI_DIGEST_ALG *) EVP_md_null()
 #define PKI_DIGEST_ALG_UNKNOWN 	(PKI_DIGEST_ALG *) NULL
+
+						// ===========
+						// Family: DSA
+						// ===========
+
+
+/* Begin - NID_dsa */
+#ifdef NID_dsa
+#define ENABLE_DSA
+#define PKI_ALGOR_DSA	  	NID_dsa
+#define PKI_ALGOR_ID_DSA	NID_dsa
+#else
+#define PKI_ALGOR_DSA	  	NID_undef
+#define PKI_ALGOR_ID_DSA	NID_undef
+#endif
+/* End - NID_dsa */
+
+
+						// ===========
+						// Family: RSA
+						// ===========
+
+/* Begin - NID_rsaEncryption */
+#ifdef NID_rsaEncryption
+#define ENABLE_RSA
+#define PKI_ALGOR_RSA	  	NID_rsaEncryption
+#define PKI_ALGOR_ID_RSA	NID_rsaEncryption
+#else
+#define PKI_ALGOR_DSA	  	NID_undef
+#define PKI_ALGOR_ID_DSA	NID_undef
+#endif
+/* End - NID_rsaEncryption */
+
+/* Begin - NID_rsassaPss or EVP_PKEY_RSA_PSS */
+#ifdef NID_rsassaPss
+#define ENABLE_RSAPSS
+#define PKI_ALGOR_RSAPSS	  	NID_rsassaPss
+#define PKI_ALGOR_ID_RSAPSS		NID_rsassaPss
+#else
+#define PKI_ALGOR_RSAPSS	  	NID_undef
+#define PKI_ALGOR_ID_RSAPSS		NID_undef
+#endif
+/* End - NID_rsassaPss */
+
+						// ==========
+						// Family: EC
+						// ==========
+
+/* Begin - NID_X9_62_id_ecPublicKey or EVP_PKEY_EC */
+#ifdef EVP_PKEY_EC
+#define PKI_ALGOR_ECDSA	  		EVP_PKEY_EC
+#define PKI_ALGOR_ID_ECDSA		EVP_PKEY_EC
+#else
+#define PKI_ALGOR_ECDSA			NID_undef
+#define PKI_ALGOR_ID_ECDSA		NID_undef
+#endif 
+/* End - NID_X9_62_id_ecPublicKey or EVP_PKEY_EC */
+
+
+						// =================
+						// Digest Algorithms
+						// =================
 
 // #define PKI_ALGOR_MD2		NID_md2
 // #define PKI_DIGEST_ALG_MD2	(PKI_DIGEST_ALG *) EVP_md2()
@@ -122,6 +188,10 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_DIGEST_ALG_SHA1 (PKI_DIGEST_ALG *) NULL
 #endif
 #define PKI_ALGOR_SHA1_SIZE	20
+
+						// ============
+						// Family: SHA2
+						// ============
 
 // Support for SHA-224
 #ifdef NID_sha224
@@ -175,6 +245,10 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 #define PKI_ALGOR_SHA512_SIZE	64
 
+						// ==============
+						// Family: RIPEMD
+						// ==============
+
 #ifdef NID_ripemd128
 #define ENABLE_RIPEMD128
 #define PKI_ALGOR_RIPEMD128       NID_ripemd128
@@ -198,6 +272,10 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_DIGEST_ALG_RIPEMD160	(PKI_DIGEST_ALG *) NULL
 #endif
 #define PKI_ALGOR_RIPEMD160_SIZE	20
+
+						// ============
+						// Family: SHA3
+						// ============
 
 // Support for SHA3-256
 #ifdef NID_sha3_256
@@ -234,6 +312,10 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_DIGEST_ALG_SHA3_256		(PKI_DIGEST_ALG *) NULL
 #endif
 #define PKI_ALGOR_SHA512_SIZE		64
+
+						// =============
+						// Family: SHAKE
+						// =============
 
 // Support for SHAKE-128
 #ifdef NID_shake128
@@ -273,17 +355,16 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_ID              int
 #define PKI_ALGOR_ID_UNKNOWN      -1
 
-// #define PKI_ALGOR_RSA_MD2	NID_md2WithRSAEncryption
-#define PKI_ALGOR_RSA_MD5     NID_md5WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_MD5  NID_md5WithRSAEncryption
-#define PKI_ALGOR_RSA_MD4	    NID_md4WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_MD4  NID_md4WithRSAEncryption
-#define PKI_ALGOR_RSA_SHA1    NID_sha1WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_SHA1 NID_sha1WithRSAEncryption
+							// ====================
+							// Signature Algorithms
+							// ====================
 
-#ifdef NID_sha224WithRSAEncryption
-#define ENABLE_RSA_SHA_2
-#endif
+#define PKI_ALGOR_RSA_MD5     	NID_md5WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_MD5  	NID_md5WithRSAEncryption
+#define PKI_ALGOR_RSA_MD4	    NID_md4WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_MD4  	NID_md4WithRSAEncryption
+#define PKI_ALGOR_RSA_SHA1    	NID_sha1WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_SHA1 	NID_sha1WithRSAEncryption
 
 #ifdef ENABLE_SHA224
 #define PKI_ALGOR_RSA_SHA224	  NID_sha224WithRSAEncryption
@@ -294,6 +375,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 
 #ifdef ENABLE_SHA256
+#define ENABLE_RSA_SHA_2
 #define PKI_DIGEST_ALG_RSA_DEFAULT PKI_DIGEST_ALG_SHA256
 #define PKI_ALGOR_RSA_SHA256	   NID_sha256WithRSAEncryption
 #define PKI_ALGOR_ID_RSA_SHA256	   NID_sha256WithRSAEncryption
@@ -613,6 +695,94 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 */
 /* End - NID_sphincsshake256256frobust - open-quantum-safe */
 
+
+						// =============
+						// Family: Kyber
+						// =============
+
+
+# ifdef OQS_ENABLE_KEM_KYBER
+
+/* Classic Kyber - Level 1 - 512 */
+# ifdef NID_kyber512
+#  define PKI_ALGOR_KYBER512     			NID_kyber512
+#  define PKI_ALGOR_ID_KYBER512  			NID_kyber512
+# else
+#  define PKI_ALGOR_KYBER512     			NID_undef
+#  define PKI_ALGOR_ID_KYBER512  			NID_undef
+# endif
+
+/* Classic Kyber - Level 3 - 768 */
+# ifdef NID_kyber768
+#  define PKI_ALGOR_KYBER768     			NID_kyber768
+#  define PKI_ALGOR_ID_KYBER768  			NID_kyber768
+# else
+#  define PKI_ALGOR_KYBER768     			NID_undef
+#  define PKI_ALGOR_ID_KYBER768  			NID_undef
+# endif
+
+/* Classic Kyber - Level 5 - 1024 */
+# ifdef NID_kyber1024
+#  define PKI_ALGOR_KYBER1024    			NID_kyber1024
+#  define PKI_ALGOR_ID_KYBER1024 			NID_kyber1024
+# else
+#  define PKI_ALGOR_KYBER1024    			NID_undef
+#  define PKI_ALGOR_ID_KYBER1024 			NID_undef
+# endif
+
+#endif
+
+/* Begin - Classic McEliece - open-quantum-safe */
+#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
+
+/* Classic McEliece - Level 1 - 348864 */
+# ifdef OQS_ENABLE_KEM_classic_mceliece_348864
+#  define PKI_ALGOR_CLASSIC_MCELIECE1     OQS_ENABLE_KEM_classic_mceliece_348864
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE1  OQS_ENABLE_KEM_classic_mceliece_348864
+# else
+#  define PKI_ALGOR_CLASSIC_MCELIECE1     NID_undef
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE1  NID_undef
+# endif
+
+/* Classic McEliece - Level 2 - 460896 */
+# ifdef OQS_ENABLE_KEM_classic_mceliece_460896
+#  define PKI_ALGOR_CLASSIC_MCELIECE2     OQS_ENABLE_KEM_classic_mceliece_460896
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE2  OQS_ENABLE_KEM_classic_mceliece_460896
+# else
+#  define PKI_ALGOR_CLASSIC_MCELIECE2     NID_undef
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE2  NID_undef
+# endif
+
+/* Classic McEliece  */
+# ifdef OQS_ENABLE_KEM_classic_mceliece_6688128
+#  define PKI_ALGOR_CLASSIC_MCELIECE3     OQS_ENABLE_KEM_classic_mceliece_6688128
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE3  OQS_ENABLE_KEM_classic_mceliece_6688128
+# else
+#  define PKI_ALGOR_CLASSIC_MCELIECE3     NID_undef
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE3  NID_undef
+# endif
+
+/* Classic McEliece  */
+# ifdef OQS_ENABLE_KEM_classic_mceliece_6960119
+#  define PKI_ALGOR_CLASSIC_MCELIECE4     OQS_ENABLE_KEM_classic_mceliece_6960119
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE4  OQS_ENABLE_KEM_classic_mceliece_6960119
+# else
+#  define PKI_ALGOR_CLASSIC_MCELIECE4     NID_undef
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE4  NID_undef
+# endif
+
+/* Classic McEliece  */
+# ifdef OQS_ENABLE_KEM_classic_mceliece_8192128
+#  define PKI_ALGOR_CLASSIC_MCELIECE5     OQS_ENABLE_KEM_classic_mceliece_8192128
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE5  OQS_ENABLE_KEM_classic_mceliece_8192128
+# else
+#  define PKI_ALGOR_CLASSIC_MCELIECE5     NID_undef
+#  define PKI_ALGOR_ID_CLASSIC_MCELIECE5  NID_undef
+# endif
+
+
+#endif
+/* End - OQS_ENABLE_KEM_CLASSIC_MCELIECE - open-quantum-safe */
 
 // ============================================ //
 // Composite Crypto and Post Quantum Algorithms //
