@@ -198,35 +198,56 @@ typedef enum {
 	PKI_SCHEME_UNKNOWN 	= 0,
 	PKI_SCHEME_RSA,
 	PKI_SCHEME_DSA,
-	PKI_SCHEME_DH,
 #ifdef ENABLE_ECDSA
+	// ECDSA signature scheme
 	PKI_SCHEME_ECDSA,
 #endif
-	PKI_SCHEME_X448,
+	// ED signature schemes
 	PKI_SCHEME_ED448,
-	PKI_SCHEME_X25519,
 	PKI_SCHEME_ED25519,
+
+	// Key-Exchange based on Diffie-Hellman
+	PKI_SCHEME_DH,
+
+	// Key-Exchange based on ED
+	PKI_SCHEME_X448,
+	PKI_SCHEME_X25519,
 
 #ifdef ENABLE_OQS
 	// Post Quantum Cryptography - KEMS
+#ifdef OQS_ENABLE_KEM_NTRU
 	PKI_SCHEME_NTRU_PRIME,
+#endif
+#ifdef OQS_ENABLE_KEM_SIKE
 	PKI_SCHEME_SIKE,
+#endif
+#ifdef OQS_ENABLE_KEM_BIKE
 	PKI_SCHEME_BIKE,
+#endif
+#ifdef OQS_ENABLE_KEM_FRODOKEM
 	PKI_SCHEME_FRODOKEM,
-	// Post Quantum Cryptography - Digital Signatures
-	PKI_SCHEME_FALCON,
-	PKI_SCHEME_SPHINCS,
-	PKI_SCHEME_DILITHIUM,
+#endif
 #ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
 	PKI_SCHEME_CLASSIC_MCELIECE,
 #endif
 #ifdef OQS_ENABLE_KEM_KYBER
 	PKI_SCHEME_KYBER,
 #endif
+	// Post Quantum Cryptography - Digital Signatures
+#ifdef OQS_ENABLE_SIG_FALCON
+	PKI_SCHEME_FALCON,
+#endif
+	PKI_SCHEME_SPHINCS,
+#ifdef OQS_ENABLE_SIG_DILITHIUM
+	PKI_SCHEME_DILITHIUM,
 	// Experimental Only - To Be Removed (DilithiumX)
 	PKI_SCHEME_DILITHIUMX3,
+#endif
+#ifdef OQS_ENABLE_SIG_PICNIC
 	PKI_SCHEME_PICNIC,
 #endif
+#endif // End of ENABLE_OQS
+
 #ifdef ENABLE_COMPOSITE
 	// Composite Crypto Schemes
 	PKI_SCHEME_COMPOSITE,

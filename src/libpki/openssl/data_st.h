@@ -84,7 +84,10 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_X509_NAME			X509_NAME
 
 #define PKI_DIGEST_ALG_NULL  	(PKI_DIGEST_ALG *) EVP_md_null()
-#define PKI_DIGEST_ALG_UNKNOWN 	(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_NULL		NID_undef
+
+#define PKI_DIGEST_ALG_UNKNOWN 		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_UNKNOWN	NID_undef
 
 						// ===========
 						// Family: DSA
