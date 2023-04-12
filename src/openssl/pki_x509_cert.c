@@ -74,25 +74,27 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
   if (!kPair || !kPair->value) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return (NULL);
-  };
+  }
 
+  PKI_DEBUG("Creating a New Cert ----> algorithm is: %s", PKI_X509_ALGOR_VALUE_get_parsed(algor));
+
+  // Retrieves the internal value
   signingKey = kPair->value;
 
   /* TODO: This has to be fixed, to work on every option */
-  if ( subj_s )
-  {
-    subj = PKI_X509_NAME_new ( subj_s );
-  }
-  else if (conf || req)
-  {
+  if (subj_s) {
+    // Use the passed subject string
+    subj = PKI_X509_NAME_new(subj_s);
+  } else if (conf || req) {
+
     char *tmp_s = NULL;
+      // Temp pointer
 
     // Let's use the configuration option first
     if (conf) {
-
       // Get the value of the DN, if present
       if ((tmp_s = PKI_CONFIG_get_value( conf, 
-                                 "/profile/subject/dn")) != NULL ) {
+                        "/profile/subject/dn")) != NULL ) {
         // Builds from the DN in the config  
         subj = PKI_X509_NAME_new(tmp_s);
         PKI_Free ( tmp_s );
@@ -134,15 +136,18 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     goto err;
   }
 
-  if( ca_cert ) {
+  if (ca_cert) {
+
     const PKI_X509_NAME *ca_subject = NULL;
+      // CA subject name
 
     /* Let's get the ca_cert subject and dup that data */
     // ca_subject = (PKI_X509_NAME *) 
     //     X509_get_subject_name( (X509 *) ca_cert );
-    ca_subject = PKI_X509_CERT_get_data( ca_cert, 
-        PKI_X509_DATA_SUBJECT );
+    ca_subject = PKI_X509_CERT_get_data(ca_cert, 
+                                        PKI_X509_DATA_SUBJECT );
 
+    // Duplicate the subject as the new issuer or throw an error
     if( ca_subject ) {
       issuer = (PKI_X509_NAME *) X509_NAME_dup((X509_NAME *)ca_subject);
     } else {
@@ -151,15 +156,17 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     }
 
   } else {
+
+    // Self-Signed, let's use our own subject as the issuer
     issuer = (PKI_X509_NAME *) X509_NAME_dup((X509_NAME *) subj);
   }
 
-  if( !issuer ) {
+  if (!issuer) {
     PKI_ERROR(PKI_ERR_X509_CERT_CREATE_ISSUER, NULL);
     goto err;
   }
 
-  if(( ret = PKI_X509_CERT_new_null()) == NULL ) {
+  if ((ret = PKI_X509_CERT_new_null()) == NULL) {
     PKI_ERROR(PKI_ERR_OBJECT_CREATE, NULL);
     goto err;
   }
@@ -367,34 +374,36 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
 
   /* Copy the PKEY if it is in the request, otherwise use the
      public part of the PKI_X509_CERT */
-  if (req)
-  {
+  if (req) {
+
+    // Gets the pointer to the public key
     certPubKeyVal = (PKI_X509_KEYPAIR_VALUE *) 
        PKI_X509_REQ_get_data(req, PKI_X509_DATA_KEYPAIR_VALUE);
 
+    // Error Checks
     if( !certPubKeyVal ) {
       PKI_DEBUG("ERROR, can not get pubkey from req!");
       goto err;
     }
-  }
-  else
-  {
+  } else {
     /* Self Signed -- Same Public Key! */
     certPubKeyVal = signingKey;
   }
 
-  if (!ca_cert && conf)
-  {
-    char *tmp_s = NULL;
+  // Handles the situation where we do not have the
+  // CA Cert but we have the config
+  if (!ca_cert && conf) {
 
-    if(( tmp_s = PKI_X509_PROFILE_get_value( conf, 
-        "/profile/keyParams/algorithm")) != NULL )
-    {
+    char *tmp_s = NULL;
+      // Temporary pointer
+
+    if(( tmp_s = PKI_X509_PROFILE_get_value(conf, 
+        "/profile/keyParams/algorithm")) != NULL ) {
+
       PKI_X509_ALGOR_VALUE *myAlg = NULL;
       const PKI_DIGEST_ALG *dgst;
 
-      if((myAlg = PKI_X509_ALGOR_VALUE_get_by_name( tmp_s ))
-                                                      != NULL) {
+      if ((myAlg = PKI_X509_ALGOR_VALUE_get_by_name(tmp_s)) != NULL) {
 
         if (!algor) algor = myAlg;
 
@@ -483,10 +492,8 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     goto err;
   }
 
-  if (conf)
-  {
-    if((tk = PKI_TOKEN_new_null()) == NULL )
-    {
+  if (conf) {
+    if ((tk = PKI_TOKEN_new_null()) == NULL ) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       goto err;
     }
@@ -503,17 +510,21 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     if (kPair) PKI_TOKEN_set_keypair ( tk, (PKI_X509_KEYPAIR *)kPair );
 
     rv = PKI_X509_EXTENSIONS_cert_add_profile(conf, oids, ret, tk);
-    if (rv != PKI_OK)
-    {
+    if (rv != PKI_OK) {
+
+      // Debugging Info
       PKI_DEBUG( "ERROR, can not set extensions!");
 
+      // Reset the token
       tk->cert = NULL;
       tk->cacert = NULL;
       tk->req = NULL;
       tk->keypair = NULL;
 
+      // Free memory
       PKI_TOKEN_free ( tk );
 
+      // Error
       goto err;
     }
 
@@ -522,52 +533,71 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     tk->cacert = NULL;
     tk->req = NULL;
     tk->keypair = NULL;
+
+    // Free memory
     PKI_TOKEN_free ( tk );
   }
 
-  if (!digest)
-  {
-    if (!algor)
-    {
-      PKI_log_debug("Getting the Digest Algorithm from the CA cert");
+  // PKI_DEBUG("Calling PKI_X509_sign() with Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
-      // Let's get the Digest Algorithm from the CA Cert
-      if (ca_cert)
-      {
-        if((algor = PKI_X509_CERT_get_data(ca_cert,
-              PKI_X509_DATA_ALGORITHM )) == NULL)
-        {
-          PKI_log_err("Can not retrieve DATA algorithm from CA cert");
-        }
-      }
+  if (!digest) {
+
+    digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(algor);
+    if (!digest) {
+      PKI_DEBUG("ERROR when trying to retrieve the digest from the algor (%s)",
+        PKI_X509_ALGOR_VALUE_get_parsed(algor));
+      goto err;
     }
 
-    // If we have an Algor from either the passed argument or
-    // the CA Certificate, extract the digest from it. Otherwise
-    // get the digest from the signing key
-    if (algor)
-    {
-      if((digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(algor)) == NULL )
-      {
-        PKI_log_err("Can not get digest from algor");
-      }
-    }
+    // PKI_DEBUG("Got DIGEST (%s) from ALGOR (%s)", PKI_DIGEST_ALG_get_parsed(digest), PKI_X509_ALGOR_VALUE_get_parsed(algor));
 
-    // Check, if still no digest, let's try from the signing Key
-    if (digest == NULL)
-    {
-      if ((digest = (PKI_DIGEST_ALG *)PKI_DIGEST_ALG_get_by_key( kPair )) == NULL)
-      {
-        PKI_log_err("Can not infer digest algor from the key pair");
-      }
-    }
+    // PKI_DEBUG("No Digest Provided when creating the cert");
+
+    // if (!algor) {
+    //   PKI_log_debug("Getting the Digest Algorithm from the CA cert");
+
+    //   // Let's get the Digest Algorithm from the CA Cert
+    //   if (ca_cert) {
+    //     if((algor = PKI_X509_CERT_get_data(ca_cert, PKI_X509_DATA_ALGORITHM )) == NULL) {
+    //       PKI_log_err("Can not retrieve DATA algorithm from CA cert");
+    //     }
+    //   }
+    // }
+
+  // PKI_DEBUG("Signing With Digest => %s", PKI_DIGEST_ALG_get_parsed(digest));
+
+  //   // If we have an Algor from either the passed argument or
+  //   // the CA Certificate, extract the digest from it. Otherwise
+  //   // get the digest from the signing key
+  //   if (algor)
+  //   {
+  //     if((digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(algor)) == NULL )
+  //     {
+  //       PKI_log_err("Can not get digest from algor");
+  //     }
+  //   }
+
+  // PKI_DEBUG("Signing With Digest => %s", PKI_DIGEST_ALG_get_parsed(digest));
+
+
+  //   // Check, if still no digest, let's try from the signing Key
+  //   if (digest == NULL)
+  //   {
+  //     if ((digest = (PKI_DIGEST_ALG *)PKI_DIGEST_ALG_get_by_key( kPair )) == NULL)
+  //     {
+  //       PKI_log_err("Can not infer digest algor from the key pair");
+  //     }
+  //   }
+
   }
 
-  // No Digest Here ? We failed...
-  if (digest == NULL) {
-    PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
-    return NULL;
-  }
+  // // No Digest Here ? We failed...
+  // if (digest == NULL) {
+  //   PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, NULL);
+  //   return NULL;
+  // }
+
+  PKI_DEBUG("Calling PKI_X509_sign() with Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
   // Sign the data
   if (PKI_X509_sign(ret, digest, kPair) == PKI_ERR) {
@@ -621,7 +651,7 @@ int PKI_X509_CERT_sign(PKI_X509_CERT *cert, PKI_X509_KEYPAIR *kp,
 
   // All Done
   return PKI_OK;
-};
+}
 
 /*!
  * \brief Signs a PKI_X509_CERT by using a configured PKI_TOKEN

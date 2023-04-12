@@ -1,6 +1,7 @@
 /* openssl/pki_pkey.c */
 
 #include <libpki/pki.h>
+#include <libpki/datatypes.h>
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_null () {
 	return PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, NULL );
@@ -134,25 +135,27 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme (const PKI_X509_KEYPAIR *k ) {
  * \brief Returns the signing scheme from a keypair value
  */
 
-PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *pVal ) {
+PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pVal) {
 
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 		// Return Value
 
-	int p_type = 0;
+	int pkey_type = 0;
 
 	if ( !pVal ) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return ret;
 	}
 
+	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
-	p_type = EVP_PKEY_type(pVal->type);
+	pkey_type = EVP_PKEY_type(pVal->type);
 #else
-	p_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
+	pkey_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
 #endif
 
-	switch(p_type) {
+	switch(pkey_type) {
 
 		case PKI_ALGOR_DSA:
 			ret = PKI_SCHEME_DSA;
@@ -165,12 +168,12 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *p
 
 #ifdef ENABLE_ECDSA
 		case PKI_ALGOR_ECDSA:
-		case PKI_ALGOR_ECDSA_DSS1:
 			ret = PKI_SCHEME_ECDSA;
 			break;
 #endif
 
 #ifdef ENABLE_OQS
+
 		case PKI_ALGOR_DILITHIUM2:
 		case PKI_ALGOR_DILITHIUM3:
 		case PKI_ALGOR_DILITHIUM5: {
@@ -182,26 +185,46 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme (const PKI_X509_KEYPAIR_VALUE *p
 			ret = PKI_SCHEME_FALCON;
 		} break;
 
-		case PKI_ALGOR_CLASSIC_MCELIECE1: {
-			ret = PKI_SCHEME_CLASSIC_MCELIECE;
-		} break;
-
 		case PKI_ALGOR_KYBER512:
 		case PKI_ALGOR_KYBER768:
 		case PKI_ALGOR_KYBER1024: {
 			ret = PKI_SCHEME_KYBER;
 		} break;
 
+		case PKI_ALGOR_SPHINCS_SHA256_128_R:
+		case PKI_ALGOR_SPHINCS_SHAKE256_128_R: {
+			ret = PKI_SCHEME_SPHINCS;
+		} break;
+
 #endif
 
 		default: {
 #ifdef ENABLE_COMPOSITE
-			if ( p_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+
+			// Generic Composite
+			if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
 				return PKI_SCHEME_COMPOSITE;
-			}
+			// Explicit Composite
+			} else if (   pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID)
+					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)
+					   ) {
+				return (PKI_SCHEME_ID)pkey_type;
+		   }
 #endif
 #ifdef ENABLE_COMBINED
-			if ( p_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+			if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
 				return PKI_SCHEME_COMBINED;
 			}
 #endif
@@ -323,142 +346,207 @@ int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pk
  * \brief Returns the default signing algorithm from a keypair value
  */
 
-PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE *pVal )
-{
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_VALUE *pVal) {
+
 	PKI_X509_ALGOR_VALUE *ret = NULL;
-	int p_type = 0;
+	// int pkey_type = 0;
 
-	int size = 0;
+	// int size = 0;
 	int algId = NID_undef;
+	// int digestId = NID_undef;
 
-	size = PKI_X509_KEYPAIR_VALUE_get_size(pVal);
-	// PKI_DEBUG("Detected a 0 Key size");
+	// size = PKI_X509_KEYPAIR_VALUE_get_size(pVal);
+	// // PKI_DEBUG("Detected a 0 Key size");
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-	p_type = EVP_PKEY_type(pVal->type);
-#else
-	p_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
-#endif
+	// PKI_SCHEME_ID scheme_id = PKI_ALGOR_VALUE_get_scheme(pVal);
+	// 	// Gets the Scheme ID
 
-	switch (p_type)
-	{
-		case EVP_PKEY_DSA:
-			algId = PKI_ALGOR_DSA_SHA256;
-			break;
-
-		case EVP_PKEY_RSA:
-			algId = PKI_ALGOR_RSA_SHA256;
-			break;
-
-#ifdef ENABLE_ECDSA
-		case EVP_PKEY_EC:
-			if ( size < 384 ) {
-				algId = PKI_ALGOR_ECDSA_SHA256;
-			} else if ( size < 512 ) {
-				algId = PKI_ALGOR_ECDSA_SHA384;
-			} else {
-				algId = PKI_ALGOR_ECDSA_SHA512;
-			};
-			break;
-#endif
-
-#ifdef ENABLE_OQS
-
-		// Open Quantum Safe Algos
-		case PKI_ALGOR_FALCON512:
-		case PKI_ALGOR_FALCON1024:
-		case PKI_ALGOR_DILITHIUM2:
-		case PKI_ALGOR_DILITHIUM3:
-		case PKI_ALGOR_DILITHIUM5:
-		case PKI_ALGOR_DILITHIUM2_AES:
-		case PKI_ALGOR_DILITHIUM3_AES:
-		case PKI_ALGOR_DILITHIUM5_AES:
-		case PKI_ALGOR_SPHINCS_SHA256_128_R:
-		case PKI_ALGOR_SPHINCS_SHAKE256_128_R:
-			algId = p_type;
-			break;
-
-		// Composite Crypto Quantum Safe Algos
-		case PKI_ALGOR_COMPOSITE_RSA_FALCON512:
-		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON512:
-		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024:
-		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2:
-		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2:
-		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3:
-		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5:
-			algId = p_type;
-			break;
-#endif
-
-		default:
-			PKI_DEBUG("Algorithm not found in static methods [%d]", p_type);
-	};
-
-	// Address the dynamic methods
-#ifdef ENABLE_COMPOSITE
-
-	if (algId <= NID_undef) {
-		if (algId <= NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
-			algId = OBJ_txt2nid(OPENCA_ALG_SIGS_COMP_SHA512_OID);
+	int def_ret = -1, def_nid = -1;
+		// OpenSSL return code
+	
+	// Retrieves the default digest
+	def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
+	if (def_ret <= 0 || def_nid == NID_undef) {
+		// Error or No digest is supported
+		algId = EVP_PKEY_id(pVal);
+		PKI_DEBUG("Using the PKEY as the Algorithm ID");
+		ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+	} else if (def_nid != NID_undef) {
+		// Digest supported, let's use it
+		if (!OBJ_find_sigid_by_algs(&algId, def_nid, EVP_PKEY_id(pVal))) {
+			// No default algorithm found, let's return the PKEY id
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+			return NULL;
 		}
-	}
+		PKI_DEBUG("Got a new Algorithm ID from the key and def_nid");
+		// Gets the algorithm
+		ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+    }
 
-	// Checks for the Explicit Composite Crypto combinations
-	if (algId <= NID_undef && (
-			// Dilithium3 - Standard Explicit
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID) ||
-			// Dilithium5 - Standard Explicit
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID) ||
-			// Falcon512 - Standard Explicit
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID) || 
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID) || 
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID) ||
-			// Sphincs256 - Standard Explicit
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID) ||
-			// RSA PSS
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID) ||
-			// Non-Standard Explicit Combinations
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID) || 
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_OID) ||
-			p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_OID))) {
-		// Sets the default algorithm ID to be the same as the key ID
-		// (no hash support for now for explicit)
-		algId = p_type;
-	}
-#endif
-
-#ifdef ENABLE_COMBINED
-	if (algId == NID_undef && p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
-		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_ALT_SHA512_OID);
-	}
-#endif
-
-	// Experimental - Native PQC implementation
-	if (algId <= 0) {
-		if (p_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID)) {
-			algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID);
-		}
-	}
-
-	// Final checks
-	if( algId > 0 ) {
-		ret = PKI_X509_ALGOR_VALUE_get(algId);
-	} else {
-		PKI_DEBUG("Algorithm not found in dynamic methods [%d]", p_type);
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-	}
+	// Debugging
+	PKI_DEBUG("algId: %d, ret: %p", algId, ret);
 
 	// All Done
 	return ret;
-};
+
+// 	// For OQS/PQC we do not use a default hash (null is ok)
+// 	if (PKI_SCHEME_ID_requires_digest(scheme_id)) {
+// 		// Debugging Info
+// 		PKI_DEBUG("ALGOR requires Digest (SCHEME: %d, ALGOR: %d)",scheme_id, EVP_PKEY_id(pVal));
+// 		// Gets the default digest for the algorithm
+// 		if (!OBJ_find_sigid_by_algs(&algId, PKI_DIGEST_ALG_ID_DEFAULT, EVP_PKEY_id(pVal))) {
+// 			// No default algorithm found, let's return the PKEY id
+// 			algId = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+// 		}
+// 		if (!OBJ_find_sigid_by_algs(&algId, PKI_DIGEST_ALG_ID_DEFAULT, EVP_PKEY_id(pVal))) {
+// 			// No default algorithm found, let's return the PKEY id
+// 			algId = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+// 		}
+// 	} else if (PKI_SCHEME_ID_is_post_quantum(scheme_id)) {
+// 		// OQS/PQC uses the same OID for PKEY and SIGS
+// 		// when no digest is used
+// 		algId = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+// 	} else {
+// 		// Search for the default algorithm without hash
+// 		if (!OBJ_find_sigid_by_algs(&algId, PKI_DIGEST_ALG_ID_NULL, EVP_PKEY_id(pVal))) {
+// 			// Search for the default algorithm with default hash
+// 			if (!OBJ_find_sigid_by_algs(&algId, PKI_DIGEST_ALG_ID_DEFAULT, EVP_PKEY_id(pVal))) {
+// 				// No default algorithm found, let's return the PKEY id
+// 				algId = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+// 			}
+// 		}
+// 	}
+
+// 	if (algId != NID_undef) {
+// 		PKI_DEBUG("Returning Algorithm ID => %d", algId);
+// 		return PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_id(pVal));
+// 	}
+
+// #if OPENSSL_VERSION_NUMBER < 0x1010000fL
+// 	pkey_type = EVP_PKEY_type(pVal->type);
+// #else
+// 	pkey_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
+// #endif
+
+// 	switch (pkey_type)
+// 	{
+// 		case EVP_PKEY_DSA:
+// 			algId = PKI_ALGOR_DSA_SHA256;
+// 			break;
+
+// 		case EVP_PKEY_RSA:
+// 			algId = PKI_ALGOR_RSA_SHA256;
+// 			break;
+
+// #ifdef ENABLE_ECDSA
+// 		case EVP_PKEY_EC:
+// 			if ( size < 384 ) {
+// 				algId = PKI_ALGOR_ECDSA_SHA256;
+// 			} else if ( size < 512 ) {
+// 				algId = PKI_ALGOR_ECDSA_SHA384;
+// 			} else {
+// 				algId = PKI_ALGOR_ECDSA_SHA512;
+// 			};
+// 			break;
+// #endif
+
+// #ifdef ENABLE_OQS
+
+// 		// Open Quantum Safe Algos
+// 		case PKI_ALGOR_FALCON512:
+// 		case PKI_ALGOR_FALCON1024:
+// 		case PKI_ALGOR_DILITHIUM2:
+// 		case PKI_ALGOR_DILITHIUM3:
+// 		case PKI_ALGOR_DILITHIUM5:
+// 		case PKI_ALGOR_DILITHIUM2_AES:
+// 		case PKI_ALGOR_DILITHIUM3_AES:
+// 		case PKI_ALGOR_DILITHIUM5_AES:
+// 		case PKI_ALGOR_SPHINCS_SHA256_128_R:
+// 		case PKI_ALGOR_SPHINCS_SHAKE256_128_R:
+// 			algId = pkey_type;
+// 			break;
+
+// 		// Composite Crypto Quantum Safe Algos
+// 		case PKI_ALGOR_COMPOSITE_RSA_FALCON512:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON512:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_FALCON1024:
+// 		case PKI_ALGOR_COMPOSITE_RSA_DILITHIUM2:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM2:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM3:
+// 		case PKI_ALGOR_COMPOSITE_ECDSA_DILITHIUM5:
+// 			algId = pkey_type;
+// 			break;
+// #endif
+
+// 		default:
+// 			PKI_DEBUG("Algorithm not found in static methods [%d]", pkey_type);
+// 	};
+
+// 	// Address the dynamic methods
+// #ifdef ENABLE_COMPOSITE
+
+// 	if (algId <= NID_undef) {
+// 		if (algId <= NID_undef && pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+// 			algId = OBJ_txt2nid(OPENCA_ALG_SIGS_COMP_SHA512_OID);
+// 		}
+// 	}
+
+// 	// Checks for the Explicit Composite Crypto combinations
+// 	if (algId <= NID_undef && (
+// 			// Dilithium3 - Standard Explicit
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID) ||
+// 			// Dilithium5 - Standard Explicit
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID) ||
+// 			// Falcon512 - Standard Explicit
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID) || 
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID) || 
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID) ||
+// 			// Sphincs256 - Standard Explicit
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID) ||
+// 			// RSA PSS
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID) ||
+// 			// Non-Standard Explicit Combinations
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID) || 
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_OID) ||
+// 			pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_OID))) {
+// 		// Sets the default algorithm ID to be the same as the key ID
+// 		// (no hash support for now for explicit)
+// 		algId = pkey_type;
+// 	}
+// #endif
+
+// #ifdef ENABLE_COMBINED
+// 	if (algId == NID_undef && pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
+// 		algId = OBJ_txt2nid(OPENCA_ALG_SIGS_ALT_SHA512_OID);
+// 	}
+// #endif
+
+// 	// Experimental - Native PQC implementation
+// 	if (algId <= 0) {
+// 		if (pkey_type == OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID)) {
+// 			algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_DILITHIUMX_OID);
+// 		}
+// 	}
+
+// 	// Final checks
+// 	if( algId > 0 ) {
+// 		ret = PKI_X509_ALGOR_VALUE_get(algId);
+// 	} else {
+// 		PKI_DEBUG("Algorithm not found in dynamic methods [%d]", pkey_type);
+// 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 	}
+
+// 	// All Done
+// 	return ret;
+}
 
 /*!
  * \brief Returns the size (in bits) of a pubkey

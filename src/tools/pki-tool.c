@@ -187,26 +187,28 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 		return 0;
 	}
 
-	if (kp->scheme != PKI_SCHEME_COMPOSITE
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_P256
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_P256
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_RSA
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
-	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
-#ifdef ENABLE_COMBINED
-		&& kp->scheme != PKI_SCHEME_COMBINED
-#endif
+	if (!PKI_SCHEME_ID_supports_multiple_components(kp->scheme)
+
+// 	if (kp->scheme != PKI_SCHEME_COMPOSITE
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_P256
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_ED25519
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_P256
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_RSA
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
+// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
+// #ifdef ENABLE_COMBINED
+// 		&& kp->scheme != PKI_SCHEME_COMBINED
+// #endif
 		) {
 		PKI_DEBUG("ERROR while adding a component key to a non-composite algorithm (%d)", kp->scheme);
 		return 0;
@@ -329,10 +331,18 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 		switch ( kp->scheme )
 		{
-			case PKI_SCHEME_RSA:
-			case PKI_SCHEME_DSA:
-				// Nothing to do Here - no params support
-				break;
+			// case PKI_SCHEME_RSA:
+			// case PKI_SCHEME_DSA:
+			// 	// No parameters to set
+			// 	break;
+
+			// case PKI_SCHEME_RSAPSS: {
+			// 	// Shall we set the parameters?
+			// } break;
+
+			// case PKI_SCHEME_DH: {
+			// 	// No parameters to set
+			// } break;
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
@@ -359,61 +369,64 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				break;
 #endif
 
-#ifdef ENABLE_OQS
-			// Post Quantum Digital Signature Switches
-			case PKI_SCHEME_FALCON:
-			case PKI_SCHEME_PICNIC:
-			case PKI_SCHEME_SPHINCS:
-				// Needs to check for each algorithm
-				break;
+// #ifdef ENABLE_OQS
+// 			// Post Quantum Digital Signature Switches
+// 			case PKI_SCHEME_FALCON:
+// 			case PKI_SCHEME_PICNIC:
+// 			case PKI_SCHEME_SPHINCS:
+// 			case PKI_SCHEME_DILITHIUM: {
+// 				// No parameters to set
+// 			} break;
 
-			case PKI_SCHEME_DILITHIUM: {
-				// Old support for AES variant of Dilithium
-				// if (strncmp_nocase( param_s, "AES", 3) == 0 ) {
-				// 	PKI_KEYPARAMS_set_oqs(kp, PKI_ALGOR_OQS_PARAM_DILITHIUM_AES);
-				// }
-			} break;
+// 			// Experimental
+// 			case PKI_SCHEME_DILITHIUMX3:{
+// 				// No parameters to set
+// 			} break;
 
-			case PKI_SCHEME_DILITHIUMX3:
-				// Experimental Only
-				break;
+// #ifdef ENABLE_COMPOSITE
+// 			// Generic Composite Crypto Combinations
+// 			case PKI_SCHEME_COMPOSITE:
 
-#ifdef ENABLE_COMPOSITE
-			// Explicit Composite Crypto Combinations
-			case PKI_SCHEME_COMPOSITE_FALCON512_RSA:
-			case PKI_SCHEME_COMPOSITE_FALCON512_P256:
-			case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
-			case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
-			case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
-			case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA:
-				break;
-#endif
+// 			// Explicit Composite Crypto Combinations
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
+// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+// 				// No parameters to set
+// 			} break;
+// #endif
 
-			case PKI_SCHEME_NTRU_PRIME:
-			case PKI_SCHEME_SIKE:
-			case PKI_SCHEME_BIKE:
-			case PKI_SCHEME_FRODOKEM: {
-				fprintf(stderr, 
-					"ERROR: PQ Scheme [%d] not supported!\n\n",
-					kp->scheme);
-				return PKI_ERR;
-			} break;
+// #ifdef ENABLE_COMBINED
+// 			case PKI_SCHEME_COMBINED:{
+// 				// No parameters to set
+// 			} break;
+// #endif
 
-			case PKI_SCHEME_DH:
-			case PKI_SCHEME_UNKNOWN: {
-				fprintf(stderr, "ERROR: Scheme not supported!\n\n");
-				return PKI_ERR;
-			} break;
-#endif
+// 			// KEMs
+// 			case PKI_SCHEME_NTRU_PRIME:
+// 			case PKI_SCHEME_BIKE:
+// 			case PKI_SCHEME_FRODOKEM:
+// 			case PKI_SCHEME_CLASSIC_MCELIECE:
+// 			case PKI_SCHEME_KYBER: {
+// 				// No parameters to set
+// 			} break;
 
-#ifdef ENABLE_COMPOSITE
-			case PKI_SCHEME_COMPOSITE: {
-			} break;
-#endif
-# ifdef ENABLE_COMBINED
-			case PKI_SCHEME_COMBINED: {
-			} break;
-#endif
+// 			case PKI_SCHEME_UNKNOWN: {
+// 				PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 				return PKI_ERR;
+// 			} break;
+// #endif
+
 			default: {
 				fprintf(stderr, "ERROR: Scheme not supported (%d)\n\n", kp->scheme);
 				return PKI_ERR;
@@ -421,33 +434,36 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		}
 	}
 
-#ifdef ENABLE_COMPOSITE
+	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)
 
-	if (kp->scheme == PKI_SCHEME_COMPOSITE
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_P256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
-#ifdef ENABLE_COMBINED
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
-#endif
+// #ifdef ENABLE_COMPOSITE
+
+// 	if (kp->scheme == PKI_SCHEME_COMPOSITE
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA
+// #ifdef ENABLE_COMBINED
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
+// #endif
 											) {
 
 		char * url = NULL;
 		int i = 0;
 
-		PKI_DEBUG("Composite Scheme Detected");
+		PKI_DEBUG("Multiple Key Components Scheme Detected");
 
 		while ((url = comp_keys[i]) != NULL) {
 
@@ -468,7 +484,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 			}
 		}
 	}
-#endif
 
 	if (!batch)
 	{
@@ -486,25 +501,26 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #endif
 
 #ifdef ENABLE_COMPOSITE
-	if (   kp->scheme == PKI_SCHEME_COMPOSITE
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_P256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
-#ifdef ENABLE_COMBINED
-		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
-#endif
+	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)
+// 	if (   kp->scheme == PKI_SCHEME_COMPOSITE
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_P256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
+// #ifdef ENABLE_COMBINED
+// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
+// #endif
 	 ) {
 		fprintf(stderr, "  - Number of Keys..: %d\n", 
 			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
@@ -586,8 +602,11 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * digest_opt) {
 
-	// Default Option - SHA256
-	// tk->digest = PKI_DIGEST_ALG_DEFAULT;
+	PKI_DIGEST_ALG * digest = NULL;
+		// Requested Digest Algorithm
+
+	int sig_alg = -1;
+		// Signature Algorithm ID
 
 	if ( algor_opt ) {
 		
@@ -616,12 +635,6 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	
 	if (digest_opt) {
 
-		PKI_DIGEST_ALG * digest = NULL;
-			// Requested Digest Algorithm
-
-		int sig_alg = PKI_ID_UNKNOWN;
-			// Signature Algorithm
-
 		// Checks for the NO-HASH (null) digest option
 		if (strncasecmp(digest_opt, "null", 4) == 0 ||
 		    strncasecmp(digest_opt, "no", 2) == 0) {
@@ -640,34 +653,39 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 			return PKI_ERR;
 		}
 
-		// Assigns the digest algorithm to the token
-		tk->digest = digest;
+	} else {
 
-		// Updates the algorithm
-		if (tk->keypair != NULL && algor_opt == NULL) {
+		// Use the default algorithm if NULL was used
+		digest = PKI_DIGEST_ALG_DEFAULT;
+	}
 
-			PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
-				// Internal Value
+	// Assigns the digest algorithm to the token
+	tk->digest = digest;
 
-			if (digest != EVP_md_null()) {
-				// Gest the Signature ID for the digest/pkey combination
-				if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
-					PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
-						EVP_MD_nid(digest), EVP_PKEY_id(p_val));
-					return PKI_ERR;
-				}
-				// Let's update the token's algorithm, if any
-				if (sig_alg != PKI_ID_UNKNOWN) {
-					PKI_TOKEN_set_algor(tk, sig_alg);
-				}
-			} else if (digest == EVP_md_null()) {
-				// If we do not have a defined one, let's use 
-				PKI_TOKEN_set_algor(tk, EVP_PKEY_id(p_val));
-			} else {
-				// Error Condition
-				fprintf(stderr, "\n    ERROR: Cannot set the token algorithm\n\n");
-				exit(1);
+	// Updates the algorithm
+	if (tk->keypair != NULL && algor_opt == NULL) {
+
+		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
+			// Internal Value
+
+		if (digest != EVP_md_null()) {
+			// Gest the Signature ID for the digest/pkey combination
+			if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
+				PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
+					EVP_MD_nid(digest), EVP_PKEY_id(p_val));
+				return PKI_ERR;
 			}
+			// Let's update the token's algorithm, if any
+			if (sig_alg != PKI_ID_UNKNOWN) {
+				PKI_TOKEN_set_algor(tk, sig_alg);
+			}
+		} else if (digest == EVP_md_null()) {
+			// If we do not have a defined one, let's use 
+			PKI_TOKEN_set_algor(tk, EVP_PKEY_id(p_val));
+		} else {
+			// Error Condition
+			fprintf(stderr, "\n    ERROR: Cannot set the token algorithm\n\n");
+			exit(1);
 		}
 	}
 
@@ -981,7 +999,7 @@ int main (int argc, char *argv[] ) {
 		exit (1);
 	}
 
-	if( !batch ) {
+	if (!batch) {
 		printf("\n\nUsing Token (%s::%d)\n", 
 					token_name ? token_name : "none", 
 						token_slot );
@@ -1480,7 +1498,12 @@ int main (int argc, char *argv[] ) {
 					// CMD: version
 					// ------------
 					
-		PKI_TOKEN_login( tk );
+		// PKI_TOKEN_login( tk );
+
+		if (!PKI_TOKEN_login( tk )) {
+			fprintf(stderr, "\nERROR, cannot login into the Token!");
+			exit(1);
+		}
 
 		if (signkey)
 		{

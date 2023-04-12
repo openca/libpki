@@ -315,7 +315,6 @@ typedef enum {
 /* Credentials */
 #include <libpki/pki_err.h>
 #include <libpki/pki_cred.h>
-#include <libpki/errors.h>
 #include <libpki/support.h>
 #include <libpki/pki_mem.h>
 #include <libpki/stack.h>

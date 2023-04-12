@@ -116,13 +116,11 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 		goto err;
 	}
 
+	// Sets the value of the req internal structure
 	req->value = val;
 
-	// Debug Info
-	PKI_DEBUG("Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
-
 	/* Now we need the PKI_REQ */
-	if( req_cnf != NULL ) {
+	if (req_cnf != NULL) {
 
 		PKI_TOKEN * tk = NULL;
 		PKI_KEYPARAMS *kParams = NULL;
@@ -156,19 +154,20 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 		rv = PKI_X509_EXTENSIONS_req_add_profile( req_cnf, 
 				oids, req, tk );
 
-		tk->keypair = NULL;
-		tk->req = NULL;
-		PKI_TOKEN_free ( tk );
-
+		// Debugging Info
 		if ( rv == PKI_ERR ) {
-			PKI_log_err("Can not add extensions to request");
+			PKI_DEBUG("Error while adding request extensions from the profile, ignored");
 			// PKI_X509_REQ_free (req);
 			// return NULL;
 		}
 
+		tk->keypair = NULL;
+		tk->req = NULL;
+		PKI_TOKEN_free ( tk );
+
 		if( scheme == PKI_SCHEME_UNKNOWN ) {
 			scheme = PKI_X509_KEYPAIR_get_scheme ( k );
-		};
+		}
 
 		kParams = PKI_KEYPARAMS_new(scheme, req_cnf);
 		if( kParams ) {
@@ -186,39 +185,6 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
     				};
 					break;
 #endif
-
-#ifdef ENABLE_OQS
-				case PKI_SCHEME_FALCON:
-				case PKI_SCHEME_DILITHIUM:
-				case PKI_SCHEME_CLASSIC_MCELIECE:
-				case PKI_SCHEME_SPHINCS:
-				case PKI_SCHEME_DILITHIUMX3:
-
-#ifdef ENABLE_COMPOSITE
-				case PKI_SCHEME_COMPOSITE:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519:
-				case PKI_SCHEME_COMPOSITE_FALCON512_RSA:
-
-# ifdef ENABLE_ECDSA
-				case PKI_SCHEME_COMPOSITE_FALCON512_P256:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM5_P384:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448:
-				case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521:
-# endif
-				case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA:
-#endif
-
-#endif
-
-#ifdef ENABLE_COMBINED
-#endif
-				case PKI_SCHEME_RSA:
-				case PKI_SCHEME_DSA:
-					break;
 
 				default:
 					// Nothing to do

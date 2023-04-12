@@ -234,12 +234,6 @@ err:
 }
 
 
-/*! \brief Build a PKI_ALGOR structure from its name (char *)
- *
- * The function returns the pointer to a PKI_ALGOR structure based on the
- * name. Names are in the form of "RSA-SHA1", "RSA-SHA512", or "DSA-SHA1".
- */
-
 PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_by_name ( const char *alg_s ) {
 
 	char *pnt, *data, *tk;
@@ -298,8 +292,6 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_by_name ( const char *alg_s ) {
 	return PKI_X509_ALGOR_VALUE_get(alg_nid);
 }
 
-/*! \brief Returns a text string with the algorithm identifier */
-
 char * PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor ) {
 	ASN1_OBJECT *a = NULL;
 
@@ -311,8 +303,6 @@ char * PKI_ALGOR_ID_txt ( PKI_ALGOR_ID algor ) {
 
 	return( (char *)OBJ_nid2sn( algor ));
 }
-
-/*! \brief Returns a text representation of the algorithm identifier */
 
 const char * PKI_X509_ALGOR_VALUE_get_parsed (const PKI_X509_ALGOR_VALUE * algor ) {
 
@@ -334,9 +324,191 @@ const char * PKI_X509_ALGOR_VALUE_get_parsed (const PKI_X509_ALGOR_VALUE * algor
 	return OBJ_nid2ln( id );
 }
 
-/*!
- * \brief Returns a text representation of the PKI_SCHEME
- */
+int PKI_SCHEME_ID_supports_multiple_components(PKI_SCHEME_ID id) {
+
+	// Input checks
+	if (id <= 0) return PKI_ERR;
+
+#ifdef ENABLE_COMPOSITE
+	if (PKI_SCHEME_ID_is_composite(id) == PKI_OK) return PKI_OK;
+#endif
+
+#ifdef ENABLE_COMBINED
+	if (PKI_SCHEME_ID_is_combined(id) == PKI_OK) return PKI_OK;
+#endif
+
+	// No multiple components supported
+	return PKI_ERR;
+}
+
+int PKI_SCHEME_ID_is_composite(PKI_SCHEME_ID id) {
+
+	// Input checks
+	if (id <= 0) return PKI_ERR;
+
+#ifdef ENABLE_COMPOSITE
+	// Generic or Explicit
+	if (id == PKI_SCHEME_COMPOSITE || PKI_OK == PKI_SCHEME_ID_is_explicit_composite(id)) {
+		// Either Generic or Explicit composite
+		return PKI_OK;
+	}
+#endif
+	
+	// Neither
+	return PKI_ERR;
+}
+
+int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
+
+	// Input checks
+	if (id <= 0) return PKI_ERR;
+
+	switch (id) {
+
+		// Signature
+		case PKI_SCHEME_DILITHIUM:
+		case PKI_SCHEME_FALCON:
+		case PKI_SCHEME_PICNIC:
+		case PKI_SCHEME_SPHINCS: {
+			// Nothing to do
+		} break;
+
+		// KEMs
+		case PKI_SCHEME_CLASSIC_MCELIECE:
+		case PKI_SCHEME_KYBER: {
+			// Nothing to do
+		} break;
+
+		// Experimental
+		case PKI_SCHEME_BIKE:
+		case PKI_SCHEME_DILITHIUMX3: {
+			// Nothing to do
+		} break;
+
+		default:
+			// Non-Post Quantum
+			return PKI_ERR;
+	}
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_SCHEME_ID_requires_digest(PKI_SCHEME_ID id) {
+
+	// Input checks
+	if (id <= 0) return PKI_ERR;
+
+	// Composite, Combined, and Post-Quantum
+	if (!PKI_SCHEME_ID_is_post_quantum(id) &&
+		!PKI_SCHEME_ID_supports_multiple_components(id)) {
+
+		// Classical Territory
+		switch (id) {
+
+			case PKI_SCHEME_RSAPSS:
+			case PKI_SCHEME_ED25519:
+			case PKI_SCHEME_ED448: {
+				// No digest required
+			} break;
+
+			default:
+				// Digest is required for all remaining
+				// classical algorithm
+				return PKI_OK;
+		}
+	}
+
+	// No Digest Required
+	return PKI_ERR;
+}
+
+int PKI_SCHEME_ID_is_combined(PKI_SCHEME_ID id) {
+
+	// Input checks
+	if (id <= 0) return PKI_ERR;
+
+#ifdef ENABLE_COMBINED
+	// Generic or Explicit
+	if (id == PKI_SCHEME_COMBINED || PKI_OK == PKI_SCHEME_ID_is_explicit_combined(id)) {
+		// Either Generic or Explicit composite
+		return PKI_OK;
+	}
+#endif
+	
+	// Neither
+	return PKI_ERR;
+}
+
+int PKI_SCHEME_ID_is_explicit_composite(PKI_SCHEME_ID id) {
+
+	// Input Checks
+	if (id <= 0) return PKI_ERR;
+
+	// Checks for Explicit Composite OIDs
+	switch(id) {
+
+#ifdef ENABLE_COMPOSITE
+# ifdef ENABLE_OQS
+		// Post Quantum Cryptography - Composite Crypto
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: 
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+			// Explicit Composite Combinations, nothing to do
+		} break;
+# endif
+#endif
+
+		default: {
+			// Non-Explicit Composite Scheme detected
+			return PKI_ERR;
+		}
+	}
+
+	// All done
+	return PKI_OK;
+}
+
+int PKI_SCHEME_ID_is_explicit_combined(PKI_SCHEME_ID id) {
+
+	// Input Checks
+	if (id <= 0) return PKI_ERR;
+
+	// Checks for Explicit Composite OIDs
+	switch(id) {
+
+#ifdef ENABLE_COMBINED
+# ifdef ENABLE_OQS
+		// Post Quantum Cryptography - Composite Crypto
+		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_P256:
+		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_BRAINPOOL256:
+		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_ED25519:
+		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_RSA:
+		case PKI_SCHEME_COMBINED_EXPLICIT_FALCON512_P256:
+		case PKI_SCHEME_COMBINED_EXPLICIT_FALCON512_ED25519:
+		case PKI_SCHEME_COMBINED_EXPLICIT_FALCON512_RSA: 
+		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM5_FALCON1024_P521:
+		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+			// Explicit Combined schemes, nothing to do
+		} break;
+# endif
+#endif
+
+		default: {
+			// Non-Combined scheme detected
+			return PKI_ERR;
+		}
+	}
+
+	// All Done
+	return PKI_OK;
+}
 
 const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 
@@ -429,75 +601,75 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 		// Composite: Generic and PQ
 		// =========================
 
-		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA: {
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM3_P256: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM5_P384: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_FALCON512_P256: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_FALCON512_ED25519: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_SPHINCS256_P256: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_DILITHIUM3_RSAPSS: {
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_FALCON512_RSA: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_SPHINCS256_RSA: {
+	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_NAME;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA: {
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME;
 		} break;
 
@@ -521,10 +693,6 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 
 	return ret;
 }
-
-/*!
- * \brief Returns the PKI_SCHEME_ID from the passed string
- */
 
 PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 
@@ -552,64 +720,67 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
 			return PKI_SCHEME_SPHINCS;
 #endif
-#ifdef ENABLE_OQS
+#ifdef ENABLE_COMBINED
+		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
+			return PKI_SCHEME_COMBINED;
+#endif
+
 # ifdef ENABLE_COMPOSITE
+		// Generic Composite
+		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
+			return PKI_SCHEME_COMPOSITE;
+#ifdef ENABLE_OQS
 		// Explicit Composite
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM3_P256 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM5_P384 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_FALCON512_P256 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_FALCON512_ED25519 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_SPHINCS256_P256 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM3_RSAPSS ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521 ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521 ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA ;
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA ;
 		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_SPHINCS256_RSA;
-# endif
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA;
+# endif // End of ENABLE_OQS
+#endif // End of ENABLE_COMPOSITE
+
+#ifdef ENABLE_OQS
 		// Dilithium Algorithm
 		// Experimental: LibPKI PQC Native
 		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_EXP_DILITHIUMX_NAME, data, 11) == 0) {
 			return PKI_SCHEME_DILITHIUMX3;
 #endif
-#ifdef ENABLE_COMPOSITE
-		// Generic Composite
-		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
-			return PKI_SCHEME_COMPOSITE;
-#ifdef ENABLE_COMBINED
-		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
-			return PKI_SCHEME_COMBINED;
-#endif
-#endif
+
 		} else {
-			PKI_log_err("Cannot Convert [%s] into a recognized OID.", data);
+			PKI_DEBUG("Cannot Convert [%s] into a recognized OID.", data);
 		}
 
 	}
@@ -680,62 +851,60 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 	return OBJ_obj2nid(algor->algorithm);
 }
 
-/*! \brief Get the Digest Algorithm from the passed PKI_ALGOR
+/*! 
+ * \brief Get the Digest Algorithm from the passed PKI_ALGOR
  */
+const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor) {
 
-const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE *algor ) {
-
-	PKI_ALGOR_ID id = PKI_ID_UNKNOWN;
-	PKI_ALGOR_ID pkey_id = PKI_ID_UNKNOWN;
-	PKI_ALGOR_ID digest_id = PKI_ID_UNKNOWN; 
+	PKI_ALGOR_ID digest_id = PKI_ID_UNKNOWN;
+		// Digest Identifier
 
 	// Input checks
 	if (!algor) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, "No algorithm provided");
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
-	// Retrieves the Algorithm ID
-	if((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) <= 0) {
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-		return NULL;
-	}
-
-	// Gets the MD and PKEY components
-	if (!OBJ_find_sigid_algs(id, &digest_id, &pkey_id)) {
-		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot break the signign algorithm (%d) into PKEY and MD.", id);
-		return NULL;
-	}
+	// Retrieves the digest id
+	digest_id = PKI_X509_ALGOR_VALUE_get_digest_id(algor);
 
 	// If nothing was found, let's return nothing
 	if (digest_id == NID_undef) return EVP_md_null();
 
-	// Let's get the digest
-	PKI_DIGEST_ALG * ret = (PKI_DIGEST_ALG *)EVP_get_digestbynid(digest_id);
-	if (!ret) {
-		PKI_ERROR(PKI_ERR_DIGEST_VALUE_NULL, "Cannot retrieve Digest Algorithm (NID: %d, NAME: %s)",
-			digest_id, OBJ_nid2sn(digest_id));
-	}
-
-	// If we found the digest, let's get it
-	return ret;
+	// All Done
+	return EVP_get_digestbynid(digest_id);
 }
 
-/*! \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR */
-
+/*! 
+ * \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR
+ */
 PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *algor ) {
 
-	int i = -1;
-	const EVP_MD *md = NULL;
+	int alg_id = -1;
+	int pkey_id = -1;
+	int digest_id = -1;
+		// Algorithm Identifiers 
 
-	if ( !algor || !algor->algorithm ) return PKI_ALGOR_ID_UNKNOWN;
-
-	i = OBJ_obj2nid(algor->algorithm);
-    if ((md = EVP_get_digestbyname(OBJ_nid2sn(i))) != NULL ) {
-		return EVP_MD_nid(md);
+	if ( !algor || !algor->algorithm ) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ALGOR_ID_UNKNOWN;
 	}
 
-	return PKI_ALGOR_ID_UNKNOWN;
+	// Retrieves the Algorithm ID
+	if((alg_id = PKI_X509_ALGOR_VALUE_get_id(algor)) <= 0) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+		return PKI_ALGOR_ID_UNKNOWN;
+	}
+
+	// Gets the MD and PKEY components
+	if (!OBJ_find_sigid_algs(alg_id, &digest_id, &pkey_id)) {
+		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, 
+			"Cannot break the signing algorithm (%d) into PKEY and MD.", alg_id);
+		return PKI_ALGOR_ID_UNKNOWN;
+	}
+
+	// All Done
+	return digest_id;
 }
 
 /*! \brief Returns the PKI_SCHEME_ID (signature scheme ID) of the algorithm */

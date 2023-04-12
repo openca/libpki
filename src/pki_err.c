@@ -37,7 +37,16 @@ const PKI_ERR_ST __libpki_errors_st[] = {
 	{ PKI_ERR_DIGEST_VALUE_NULL, "Digest Value not available" },
 	// PKI ALGOR Errors
 	{ PKI_ERR_ALGOR_UNKNOWN, "Unknown Algorithm" },
-	{ PKI_ERR_ALGOR_SET, "Cannot set the Algorithm data"},
+	{ PKI_ERR_ALGOR_SET, "Cannot set the Algorithm data" },
+	{ PKI_ERR_ALGOR_GET, "Cannot get the algorithm data" },
+	{ PKI_ERR_ALGOR_ADD, "Cannot add a new algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_METHOD_NEW, "Error while allocating a new public key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_METHOD_ADD, "Error while adding a new public key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_METHOD_UNKNOWN, "Public key algorithm not supported" },
+	{ PKI_ERR_ALGOR_PKEY_ASN1_METHOD_NEW, "Error while allocating a new ASN1 method for a public key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_ASN1_METHOD_ADD, "Error while allocating a new ASN1 method for a public key algorithm" },
+	{ PKI_ERR_ALGOR_PKEY_ASN1_METHOD_UNKNOWN, "Cannot add a new ASN1 method for a public key algorithm" },
+	{ PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, "Wrong algorithm sequence for explicit composite key" },
 	// URI Related Operations
 	{ PKI_ERR_URI_UNSUPPORTED, "Unsupported URI Schema" },
 	{ PKI_ERR_URI_GENERAL, "URI General Error" },
