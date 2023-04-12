@@ -2759,7 +2759,12 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 	tk->cert = PKI_X509_CERT_new ( NULL, tk->keypair, tk->req, subject,
 		serial, validity, cert_profile, tk->algor, tk->oids, tk->hsm );
 
-	if (!tk->cert) return PKI_ERROR(PKI_ERR_X509_CERT_CREATE, NULL);
+	if (!tk->cert) {
+		PKI_DEBUG("Certificate was not issued for algor %s", PKI_X509_ALGOR_VALUE_get_parsed(tk->algor));
+		PKI_DEBUG("OpenSSL Error Description: %s", PKI_ERROR_crypto_get_errdesc());
+		PKI_ERROR(PKI_ERR_X509_CERT_CREATE, NULL);
+		return PKI_ERR;
+	}
 
 	return (PKI_OK);
 }

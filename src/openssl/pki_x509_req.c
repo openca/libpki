@@ -188,7 +188,6 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 
 				default:
 					// Nothing to do
-					PKI_ERROR(PKI_ERR_GENERAL, "Signing Scheme Uknown %d!", kParams->scheme);
 					break;
 			}
 		}

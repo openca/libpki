@@ -878,7 +878,7 @@ const PKI_DIGEST_ALG *PKI_X509_ALGOR_VALUE_get_digest(const PKI_X509_ALGOR_VALUE
 /*! 
  * \brief Returns the PKI_ALGOR_ID of the digest used in the PKI_ALGOR
  */
-PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *algor ) {
+PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id(const PKI_X509_ALGOR_VALUE *algor) {
 
 	int alg_id = -1;
 	int pkey_id = -1;
@@ -898,8 +898,8 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *alg
 
 	// Gets the MD and PKEY components
 	if (!OBJ_find_sigid_algs(alg_id, &digest_id, &pkey_id)) {
-		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, 
-			"Cannot break the signing algorithm (%d) into PKEY and MD.", alg_id);
+		PKI_DEBUG("Cannot break the signing algorithm (%d) into PKEY and MD (algor: %s).", 
+			alg_id, PKI_X509_ALGOR_VALUE_get_parsed(algor));
 		return PKI_ALGOR_ID_UNKNOWN;
 	}
 
@@ -921,7 +921,8 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 	// Gets the MD and PKEY components
 	// if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
 	if (!OBJ_find_sigid_algs(id, &digest_id, &pkey_id)) {
-		PKI_ERROR(PKI_ERR_OBJECT_TYPE_UNKNOWN, "Cannot break the signing algorithm (%d) into PKEY and MD.", id);
+		PKI_DEBUG("Cannot break the signing algorithm (%d) into PKEY and MD (algor: %s).", 
+			id, PKI_X509_ALGOR_VALUE_get_parsed(algor));
 		return PKI_SCHEME_UNKNOWN;
 	}
 
