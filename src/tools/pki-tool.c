@@ -46,63 +46,67 @@ void usage ( void ) {
 
 	fprintf(stderr, "  USAGE: pki-tool cmd [options]\n\n");
 	fprintf(stderr, "  Where cmd is:\n");
-	fprintf(stderr, "  info            - Prints out information about the token\n");
-	fprintf(stderr, "  list            - List the names of available tokens\n");
-	fprintf(stderr, "  clear           - Deletes all the data on the token\n");
-	fprintf(stderr, "  delete          - Deletes objects (use -uri)\n");
-	fprintf(stderr, "  genkey          - Generates a new Keypair (def. RSA-SHA1)\n");
-	fprintf(stderr, "  genreq          - Generates a new X.509 PKCS#10 request\n");
-	fprintf(stderr, "  gencert         - Generates a new X.509 certificate\n");
-	fprintf(stderr, "  format          - Converts the format of the input data type\n");
-	fprintf(stderr, "  import          - Import an item in the token\n");
+	fprintf(stderr, "  info             - Prints out information about the token\n");
+	fprintf(stderr, "  list             - List the names of available tokens\n");
+	fprintf(stderr, "  clear            - Deletes all the data on the token\n");
+	fprintf(stderr, "  delete           - Deletes objects (use -uri)\n");
+	fprintf(stderr, "  genkey           - Generates a new Keypair (def. RSA-SHA1)\n");
+	fprintf(stderr, "  genreq           - Generates a new X.509 PKCS#10 request\n");
+	fprintf(stderr, "  gencert          - Generates a new X.509 certificate\n");
+	fprintf(stderr, "  convert          - Converts the format of the input data type\n");
+	fprintf(stderr, "  import           - Import an item in the token\n");
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "  Where Options are:\n");
-	fprintf(stderr, "  -token          - Name of the token to be used\n");
-	fprintf(stderr, "  -config <dir>   - Token config dir (HOME/.libpki/token.d)\n");
-	fprintf(stderr, "  -hsm <name>     - HSM name (HOME/.libpki/hsm.d)\n");
-	fprintf(stderr, "  -in <url>       - Input Data URI\n");
-	fprintf(stderr, "  -out <url>      - Output Data URI\n");
-	fprintf(stderr, "  -outform <OPT>  - Output Format (i.e., PEM, DER, TXT, XML)\n");
-	fprintf(stderr, "  -bits <num>     - Number of Bits\n");
-	fprintf(stderr, "  -type <objtype> - Type of Object\n");
-	fprintf(stderr, "  -algor <name>   - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
-	fprintf(stderr, "  -digest <name>  - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
+	fprintf(stderr, "  -token           - Name of the token to be used\n");
+	fprintf(stderr, "  -config <dir>    - Token config dir (HOME/.libpki/token.d)\n");
+	fprintf(stderr, "  -hsm <name>      - HSM name (HOME/.libpki/hsm.d)\n");
+	fprintf(stderr, "  -in <url>        - Input Data URI\n");
+	fprintf(stderr, "  -out <url>       - Output Data URI\n");
+	fprintf(stderr, "  -pubout <url>    - Saves the SubjectPublicKeyInfo of a cert\n");
+	fprintf(stderr, "  -outform <OPT>   - Output Format (i.e., PEM, DER, TXT, XML)\n");
+	fprintf(stderr, "  -bits <num>      - Number of Bits\n");
+	fprintf(stderr, "  -type <objtype>  - Type of Object\n");
+	fprintf(stderr, "  -algor <name>    - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
+	fprintf(stderr, "  -digest <name>   - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
 #ifdef ENABLE_COMPOSITE
-	fprintf(stderr, "  -addkey <file>  - Key to be added to a composite key\n");
+	fprintf(stderr, "  -addkey <file>   - Key to be added to a composite key\n");
 #endif
-	fprintf(stderr, "  -newkey         - Generate new keypair when using genreq\n");
-	fprintf(stderr, "  -outkey <URI>   - URI where to store the new key\n");
-	fprintf(stderr, "  -uri <uri>      - URI of the item (key/cert/..) in the token\n");
-	fprintf(stderr, "  -signkey <uri>  - URI of the cert-signing key\n");
-	fprintf(stderr, "  -signcert <uri> - URI of the cert-signing cert (CA)\n");
-	fprintf(stderr, "  -subject <dn>   - Distinguished Name (Subject)\n");
-	fprintf(stderr, "  -serial <num>   - Serial Number to use (gencert)\n");
-	fprintf(stderr, "  -profile <name> - Profile to use (gencert/genreq)\n");
+	fprintf(stderr, "  -newkey          - Generate new keypair when using genreq\n");
+	fprintf(stderr, "  -outkey <URI>    - URI where to store the new key\n");
+	fprintf(stderr, "  -keyalg <uri>    - Extracts the key AlgorithmIdentifier into URI\n");
+	fprintf(stderr, "  -uri <uri>       - URI of the item (key/cert/..) in the token\n");
+	fprintf(stderr, "  -signkey <uri>   - URI of the cert-signing key\n");
+	fprintf(stderr, "  -signcert <uri>  - URI of the cert-signing cert (CA)\n");
+	fprintf(stderr, "  -sigout <uri>    - Extracts the signature bitstream into URI\n");
+	fprintf(stderr, "  -sigalg <uri>    - Extracts the signature AlgorithmIdentifier into URI\n");
+	fprintf(stderr, "  -subject <dn>    - Distinguished Name (Subject)\n");
+	fprintf(stderr, "  -serial <num>    - Serial Number to use (gencert)\n");
+	fprintf(stderr, "  -profile <name>  - Profile to use (gencert/genreq)\n");
 	fprintf(stderr, "  -profileuri <uri>  - Profile URI to load (gencert/genreq)\n");
 	fprintf(stderr, "  -profilesdir <dir> - Directory to scan for profile configs\n");
-	fprintf(stderr, "  -oidsuri <uri>  - OID files to load (gencert/genreq)\n");
-	fprintf(stderr, "  -days <num>     - Validity period (days)\n");
-	fprintf(stderr, "  -hours <num>    - Validity period (hours)\n");
-	fprintf(stderr, "  -mins <num>     - Validity period (mins)\n");
-	fprintf(stderr, "  -secs <num>     - Validity period (secs)\n");
-	fprintf(stderr, "  -selfsign       - Generate a self signed X.509 cert\n");
-	fprintf(stderr, "  -batch          - Batch mode (no prompt - assumes yes)\n");
-	fprintf(stderr, "  -verbose        - Writes additional info to stdout\n");
-	fprintf(stderr, "  -debug          - Enables Debugging info to stderr\n");
-	fprintf(stderr, "  -param <par>    - KeyGen param (eg., curve:curvename for EC)\n");
-	fprintf(stderr, "  -curves         - Prints out available curve names\n");
+	fprintf(stderr, "  -oidsuri <uri>   - OID files to load (gencert/genreq)\n");
+	fprintf(stderr, "  -days <num>      - Validity period (days)\n");
+	fprintf(stderr, "  -hours <num>     - Validity period (hours)\n");
+	fprintf(stderr, "  -mins <num>      - Validity period (mins)\n");
+	fprintf(stderr, "  -secs <num>      - Validity period (secs)\n");
+	fprintf(stderr, "  -selfsign        - Generate a self signed X.509 cert\n");
+	fprintf(stderr, "  -batch           - Batch mode (no prompt - assumes yes)\n");
+	fprintf(stderr, "  -verbose         - Writes additional info to stdout\n");
+	fprintf(stderr, "  -debug           - Enables Debugging info to stderr\n");
+	fprintf(stderr, "  -param <par>     - KeyGen param (eg., curve:curvename for EC)\n");
+	fprintf(stderr, "  -curves          - Prints out available curve names\n");
 
 	fprintf(stderr, "\n  Where Type of Object can be:\n");
-	fprintf(stderr, "   any            - Unknown type\n");
-	fprintf(stderr, "   key            - Keypair (Pub and Priv Keys)\n");
-	fprintf(stderr, "   pubkey         - Public Key\n");
-	fprintf(stderr, "   privkey        - Private Key\n");
-	fprintf(stderr, "   user           - User Certificates\n");
-	fprintf(stderr, "   ca             - CA Certificates\n");
-	fprintf(stderr, "   trusted        - Trusted Certificates (TA)\n");
-	fprintf(stderr, "   other          - Other Certificates\n");
-	fprintf(stderr, "   crl            - CRL\n");
+	fprintf(stderr, "   any             - Unknown type\n");
+	fprintf(stderr, "   key             - Keypair (Pub and Priv Keys)\n");
+	fprintf(stderr, "   pubkey          - Public Key\n");
+	fprintf(stderr, "   privkey         - Private Key\n");
+	fprintf(stderr, "   user            - User Certificates\n");
+	fprintf(stderr, "   ca              - CA Certificates\n");
+	fprintf(stderr, "   trusted         - Trusted Certificates (TA)\n");
+	fprintf(stderr, "   other           - Other Certificates\n");
+	fprintf(stderr, "   crl             - CRL\n");
 
 	fprintf(stderr, "\n");
 
@@ -693,6 +697,345 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	return PKI_OK;
 }
 
+int pki_tool_save_object_data(PKI_X509 * obj, const char * uri, PKI_X509_DATA type) {
+
+	PKI_MEM * out_mem = NULL;
+		// Output Buffer
+
+	PKI_X509_ALGOR_VALUE * val = NULL;
+		// Internal Value
+
+	const ASN1_BIT_STRING * data;
+		// Pointer to the Signature ASN1_BIT_STRING type
+
+	PKI_DATATYPE obj_type = PKI_DATATYPE_UNKNOWN;
+		// Type of object that was passed
+
+	// Input Checks
+	if (!obj) return PKI_ERR;
+
+	// Gets the Value
+	val = PKI_X509_get_value(obj);
+	if (!val) return PKI_ERR;
+
+	// Gets the type of object
+	obj_type = PKI_X509_get_type(obj);
+	if (obj_type == PKI_DATATYPE_UNKNOWN) {
+		fprintf(stderr, "\n    ERROR: Unknown data type.\n\n");
+		exit(1);
+	}
+
+	// Process the different types
+	switch (obj_type) {
+
+		// KeyPair
+		case PKI_DATATYPE_X509_KEYPAIR: {
+
+			// Checks for the type
+			if (type != PKI_X509_DATA_PUBKEY_BITSTRING) {
+				fprintf(stderr, "\nERROR: Keypair do not support signature extraction, aborting.\n\n");
+				exit(1);
+			}
+
+			// Retrieves the ASN1_BITSTRING for the public key
+			if (PKI_X509_KEYPAIR_get_public_bitstring(obj, &out_mem) == NULL) {
+				fprintf(stderr, "\nERROR: Cannot extract the key bitstring from the keypair\n\n");
+				exit(1);
+			}
+			
+		} break;
+
+		// Certificate
+		case PKI_DATATYPE_X509_REQ: {
+
+			data = PKI_X509_get_data(obj, type);
+			if (!data) {
+				fprintf(stderr, "\nERROR: Cannot extract the key bitstring from the request.\n\n");
+				exit(1);
+			}
+		} break;
+
+		// Certificate
+		case PKI_DATATYPE_X509_CERT: {
+
+			// Retrieves the public key from the certificate
+			data = PKI_X509_get_data(obj, type);
+			if (!data) {
+				fprintf(stderr, "\nERROR: Cannot extract the key bitstring from the certificate.\n\n");
+				exit(1);
+			}
+
+		} break;
+
+		default:
+			fprintf(stderr, "\n    ERROR: signature extraction is not supported for %s type\n\n",
+				PKI_X509_get_type_parsed(obj));
+			exit(1);
+	}
+
+	// If we do not already have the data, we use the ASN1_BIT_STRING (data)
+	// pointer to save it into the out_mem
+	if (!out_mem) {
+		// Status Check
+		if (!data) {
+			fprintf(stderr, "\n    ERROR: Cannot extract the signature, aborting.\n\n");
+			exit(1);
+		}
+		// Copies the data from the certificate
+		out_mem = PKI_MEM_new_data((size_t)data->length, data->data);
+		if (!out_mem) {
+			fprintf(stderr, "\n    ERROR: memory allocation error, aborting.\n\n");
+			exit(1);
+		}
+	}
+	
+	// Saves the extracted data to the URI
+	if (PKI_OK != URL_put_data(uri, out_mem, NULL, NULL, 0, 0, NULL)) {
+		fprintf(stderr, "\n    ERROR: Cannot save to destination file (%s).\n\n", uri);
+		exit(1);
+	}
+
+	// Free allocated memory
+	if (out_mem) PKI_MEM_free(out_mem);
+	out_mem = NULL;
+	
+	// All done
+	return PKI_OK;
+
+	// All done
+	return PKI_OK;
+}
+
+int pki_tool_save_params(PKI_X509 * obj, const char * uri, int key_params) {
+
+	PKI_MEM * out_mem = NULL;
+		// Output Buffer
+
+	PKI_X509_ALGOR_VALUE * val = NULL;
+		// Internal Value
+
+	PKI_X509_ALGOR_VALUE * algor = NULL;
+		// Pointer to the Signature ASN1_BIT_STRING type
+
+	PKI_DATATYPE obj_type = PKI_DATATYPE_UNKNOWN;
+		// Type of object that was passed
+
+	// Input Checks
+	if (!obj) return PKI_ERR;
+
+	// Gets the Value
+	val = PKI_X509_get_value(obj);
+	if (!val) return PKI_ERR;
+
+	// Gets the type of object
+	obj_type = PKI_X509_get_type(obj);
+	if (obj_type == PKI_DATATYPE_UNKNOWN) {
+		fprintf(stderr, "\n    ERROR: Unknown data type.\n\n");
+		exit(1);
+	}
+
+	// Process the different types
+	switch (obj_type) {
+
+		// // Certificate
+		// case PKI_DATATYPE_X509_KEYPAIR: {
+
+		// 	X509_PUBKEY * pub_key = NULL;
+
+		// 	pub_key = PKI_X509_get_data(obj, PKI_X509_DATA_PUBKEY);
+		// 	if (!pub_key) {
+		// 		fprintf(stderr, "\nERROR: Cannot extract the AlgorithmIdentifier from the key.\n\n");
+		// 		exit(1);
+		// 	}
+
+		// 	if (!X509_PUBKEY_get0_param(NULL, NULL, NULL, &algor, pub_key)) {
+		// 		fprintf(stderr, "\nERROR: Cannot extract the AlgorithmIdentifier from the key.\n\n");
+		// 		exit(1);
+		// 	}
+		// } break;
+
+		case PKI_DATATYPE_X509_CERT:
+		case PKI_DATATYPE_X509_REQ: {
+
+			if (key_params) {
+				
+				X509_PUBKEY * pub_key = NULL;
+
+				// X509_ALGOR * al = X509_ALGOR_new();
+				pub_key = PKI_X509_get_data(obj, PKI_X509_DATA_X509_PUBKEY);
+				
+				if (!pub_key) {
+					fprintf(stderr, "\nERROR: Cannot extract the AlgorithmIdentifier from the key.\n\n");
+					exit(1);
+				}
+
+				if (!X509_PUBKEY_get0_param(NULL, NULL, NULL, &algor, pub_key)) {
+					fprintf(stderr, "\nERROR: Cannot extract the AlgorithmIdentifier from the key.\n\n");
+					exit(1);
+				}
+
+				// algor = al;
+
+			} else {
+
+				PKI_DEBUG("Retrieving CERT/REQ Sig Params...");
+				algor = PKI_X509_get_data(obj, PKI_X509_DATA_ALGORITHM);
+			}
+
+			if (!algor) {
+				fprintf(stderr, "\nERROR: Cannot extract the AlgorithmIdentifier from the request.\n\n");
+				exit(1);
+			}
+		} break;
+
+		default:
+			fprintf(stderr, "\n    ERROR: signature extraction is not supported for %s type\n\n",
+				PKI_X509_get_type_parsed(obj));
+			exit(1);
+	}
+
+	// If we do not already have the data, we use the ASN1_BIT_STRING (data)
+	// pointer to save it into the out_mem
+	if (!out_mem) {
+
+		size_t der_len = 0;
+		unsigned char * tmp_pnt = NULL;
+			// Temporary pointer to handle the i2d_ moving the pointer
+		
+		// Status Check
+		if (!algor) {
+			fprintf(stderr, "\n    ERROR: Cannot extract the signature, aborting.\n\n");
+			exit(1);
+		}
+
+		// Gets the size of the buffer
+		der_len = (size_t) i2d_X509_ALGOR(algor, NULL);
+		if (der_len == 0) {
+			fprintf(stderr, "\n    ERROR: Cannot DER-encode the AlgorithmIdentifier.\n\n");
+			exit(1);
+		}
+
+		// Allocates the buffer and copy data
+		out_mem = PKI_MEM_new(der_len);
+		tmp_pnt = out_mem->data;
+
+		// buff = PKI_Malloc((size_t)buff_len);
+
+		out_mem->size = (size_t) i2d_X509_ALGOR(algor, &tmp_pnt);
+		if (out_mem->size <= 0 || !out_mem->data) {
+			fprintf(stderr, "\n    ERROR: Cannot DER-encode the AlgorithmIdentifier.\n\n");
+			exit(1);
+		}
+	}
+	
+	// Saves the extracted data to the URI
+	if (PKI_OK != URL_put_data(uri, out_mem, NULL, NULL, 0, 0, NULL)) {
+		fprintf(stderr, "\n    ERROR: Cannot save to destination file (%s).\n\n", uri);
+		exit(1);
+	}
+
+	// Free allocated memory
+	if (out_mem) PKI_MEM_free(out_mem);
+	out_mem = NULL;
+	
+	// All done
+	return PKI_OK;
+
+	// All done
+	return PKI_OK;
+}
+
+// int pki_tool_save_sigout(PKI_X509 * obj, const char * uri, PKI_DATA_FORMAT outFormVal) {
+
+// 	PKI_MEM * mem = NULL;
+// 	PKI_X509_ALGOR_VALUE * val = NULL;
+// 	PKI_DATATYPE type = PKI_DATATYPE_ANY;
+
+// 	const ASN1_BIT_STRING * data;
+// 		// Pointer to the Signature ASN1_BIT_STRING type
+
+// 	// Input Checks
+// 	if (!obj) return PKI_ERR;
+
+// 	// Gets the Value
+// 	val = PKI_X509_get_value(obj);
+// 	if (!val) return PKI_ERR;
+
+// 	// Gets the type of object we are handling
+// 	type = PKI_X509_get_type(obj);
+// 	if (type == PKI_DATATYPE_UNKNOWN) {
+// 		fprintf(stderr, "\n    ERROR: Unknown object type, aborting.\n\n");
+// 		exit(1);
+// 	}
+
+// 	// Process the different types
+// 	switch (type) {
+
+// 		// Certificate request
+// 		case PKI_DATATYPE_X509_REQ: {
+// 			data = PKI_X509_get_data(obj, PKI_X509_DATA_SIGNATURE);
+// 			if (!data) {
+// 				fprintf(stderr, "\nERROR: Cannot extract the key bitstring from the request.\n\n");
+// 				exit(1);
+// 			}
+// 		} break;
+
+// 		// Certificate
+// 		case PKI_DATATYPE_X509_CERT: {
+// 			// Retrieves the public key from the certificate
+// 			data = PKI_X509_get_data(obj, PKI_X509_DATA_PUBKEY_BITSTRING);
+// 			if (!data) {
+// 				fprintf(stderr, "\nERROR: Cannot extract the key bitstring from the certificate.\n\n");
+// 				exit(1);
+// 			}
+// 		} break;
+
+// 		// Certificate request
+// 		case PKI_DATATYPE_X509_CRL: {
+// 			ASN1_BIT_STRING * data = NULL;
+// 			data = PKI_X509_get_data(obj, PKI_X509_DATA_SIGNATURE);
+// 			if (!data) {
+// 				fprintf(stderr, "\nERROR: Cannot extract the key bitstring from the request.\n\n");
+// 				exit(1);
+// 			}
+// 		} break;
+
+// 		default:
+// 			fprintf(stderr, "\n    ERROR: signature extraction is not supported for %s type\n\n",
+// 				PKI_X509_get_type_parsed(obj));
+// 			exit(1);
+// 	}
+
+// 	// Status Check
+// 	if (!data) {
+// 		fprintf(stderr, "\n    ERROR: Cannot extract the signature, aborting.\n\n");
+// 		exit(1);
+// 	}
+
+// 	PKI_MEM * out_sig_mem = NULL;
+// 		// Output Buffer
+
+// 	// Copies the data from the certificate
+// 	out_sig_mem = PKI_MEM_new_data(data->length, data->data);
+// 	if (!out_sig_mem) {
+// 		fprintf(stderr, "\n    ERROR: memory allocation error, aborting.\n\n");
+// 		exit(1);
+// 	}
+	
+// 	// Saves the extracted data to the URI
+// 	if (PKI_OK != URL_put_data(uri, out_sig_mem, NULL, NULL, 0, 0, NULL)) {
+// 		fprintf(stderr, "\n    ERROR: Cannot save to destination file (%s).\n\n", uri);
+// 		exit(1);
+// 	}
+
+// 	// Free allocated memory
+// 	if (out_sig_mem) PKI_MEM_free(out_sig_mem);
+	
+// 	// All done
+// 	return PKI_OK;
+
+// }
+
 int main (int argc, char *argv[] ) {
 
 	PKI_TOKEN *tk = NULL;
@@ -732,6 +1075,10 @@ int main (int argc, char *argv[] ) {
 	char * type = NULL;
 	char * param_s = NULL;
 	char * outkey_s = NULL;
+	char * pubout_s = NULL;
+	char * sigout_s = NULL;
+	char * sigalg_s = NULL;
+	char * keyalg_s = NULL;
 
 	char * outform = NULL;
 	PKI_DATA_FORMAT outFormVal = PKI_DATA_FORMAT_PEM;
@@ -784,6 +1131,9 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-outkey", argv[i], 7 ) == 0 ) {
 			if( argv[i++] == NULL) usage();
 			outkey_s = argv[i];
+		} else if ( strncmp_nocase("-keyalg", argv[i], 7 ) == 0 ) {
+			if( argv[i++] == NULL ) usage();
+			keyalg_s = argv[i];
 		} else if ( strncmp_nocase("-outpubkey", argv[i], 10) == 0 ) {
 			if( argv[i++] == NULL) usage();
 			outpubkey_s = argv[i];
@@ -793,6 +1143,9 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-out", argv[i], 4 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			outfile = argv[i];
+		}  else if ( strncmp_nocase("-pubout", argv[i], 7 ) == 0 ) {
+			if( argv[i++] == NULL ) usage();
+			pubout_s = argv[i];
 		} else if ( strncmp_nocase("-algor", argv[i], 6 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			algor_opt = argv[i];
@@ -813,6 +1166,12 @@ int main (int argc, char *argv[] ) {
 			if( argv[i++] == NULL ) usage();
 			signkey = argv[i];
 			uri = signkey;
+		} else if ( strncmp_nocase("-sigout", argv[i], 7 ) == 0 ) {
+			if( argv[i++] == NULL ) usage();
+			sigout_s = argv[i];
+		} else if ( strncmp_nocase("-sigalg", argv[i], 7 ) == 0 ) {
+			if( argv[i++] == NULL ) usage();
+			sigalg_s = argv[i];
 		} else if ( strncmp_nocase("-signcert", argv[i], 9 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			signcert = argv[i];
@@ -1890,6 +2249,18 @@ int main (int argc, char *argv[] ) {
 			fprintf(stderr, "\n    ERROR: cannot open the input file, aborting.\n\n");
 			exit(1);
 		}
+
+		// Handles saving the public key
+		if (pubout_s) pki_tool_save_object_data(obj, pubout_s, PKI_X509_DATA_PUBKEY_BITSTRING);
+
+		// Handles saving the signature
+		if (sigout_s) pki_tool_save_object_data(obj, sigout_s, PKI_X509_DATA_SIGNATURE);
+
+		// Handles saving the key parameters
+		if (keyalg_s) pki_tool_save_params(obj, keyalg_s, 1);
+
+		// Handles saving the signature parameters
+		if (sigalg_s) pki_tool_save_params(obj, sigalg_s, 0);
 
 		// Verbose
 		if (verbose) printf("Ok\n");

@@ -26,48 +26,6 @@
 
 #ifdef ENABLE_COMPOSITE
 
-// // Returns a COPY of the stack
-// STACK_OF(EVP_PKEY) * COMPOSITE_KEY_sk_get1(COMPOSITE_KEY * key) {
-
-//   EVP_PKEY * tmp_pkey = NULL;
-//     // Pointer for the Data Structure
-
-//   STACK_OF(EVP_PKEY) * ret_sk = NULL;
-//     // Return Pointer
-
-//   // Input checks
-//   if (!key) return NULL;
-
-//   // Allocates the Stack
-//   if ((ret_sk = sk_EVP_PKEY_new_null()) == NULL)
-//     return NULL;
-
-//   for (int i = 0; i < COMPOSITE_KEY_num(key); i++) {
-
-//     if ((tmp_pkey = COMPOSITE_KEY_get0(key, i)) == NULL)
-//       goto err;
-    
-//     EVP_PKEY_up_ref(tmp_pkey);
-    
-//     if (!sk_EVP_PKEY_push(ret_sk, tmp_pkey))
-//       goto err;
-//   }
-
-//   // All done
-//   return ret_sk;
-
-// err:
-
-//     if (ret_sk) {
-//       // Let's POP from the STACK but
-//       // no need to free the item's memory
-//       while(sk_EVP_PKEY_pop((STACK_OF(EVP_PKEY) *)ret_sk));
-//       sk_EVP_PKEY_free((STACK_OF(EVP_PKEY) *)ret_sk);
-//     }
-
-//     return NULL;
-// }
-
 // ==============================
 // EVP_PKEY_ASN1_METHOD Functions
 // ==============================
@@ -120,7 +78,7 @@ int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pub) {
   }
 
   // Allocates Memory for the inner key structure
-  if ((comp_key = COMPOSITE_KEY_new_null()) == NULL) {
+  if ((comp_key = COMPOSITE_KEY_new()) == NULL) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new composite key internal structure");
     goto err;
   }
@@ -517,7 +475,7 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
   }
 
   // Allocates Memory for the inner key structure
-  if ((comp_key = COMPOSITE_KEY_new_null()) == NULL) {
+  if ((comp_key = COMPOSITE_KEY_new()) == NULL) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new internal composite key structure");
     goto err;
   }
@@ -1047,8 +1005,17 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
 // Implemented
 int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, ASN1_BIT_STRING *sig, EVP_PKEY *pkey) {
-  PKI_DEBUG("Not implemented, yet.");
-  return 0;
+
+  /*
+   * Return value of 2 means carry on, anything else means we exit
+   * straight away: either a fatal error of the underlying verification
+   * routine handles all verification.
+   */
+
+  EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
+  EVP_PKEY_CTX_set_app_data(pctx,  (void *)0xdeadbeef);
+
+  return 2;
 }
 
 // Implemented
@@ -1068,6 +1035,9 @@ int item_sign(EVP_MD_CTX      * ctx,
   * 
   * See ASN1_item_sign_ctx() at OPENSSL/crypto/asn1/a_sign.c:140
   */
+
+ EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
+ EVP_PKEY_CTX_set_app_data(pctx, (void *)0xdeadbeef);
 
  // Test
  return 2;

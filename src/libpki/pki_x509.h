@@ -39,14 +39,28 @@ int PKI_X509_is_signed(const PKI_X509 *obj );
 
 PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void * v, 
 		                      const PKI_DATATYPE     type);
+
+/*! \brief Returns the DER encoded version of the toBeSigned portion of the PKI_X509_VALUE structure */
 PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x);
 
 void * PKI_X509_get_data (const PKI_X509 *x, PKI_X509_DATA type );
+
+/*! \brief Returns the parsed (char *, int *, etc.) version of the data in a PKI_X509 object */
 void * PKI_X509_get_parsed (const PKI_X509 *x, PKI_X509_DATA type );
+
+/*! \brief Prints the parsed data from a PKI_X509 object to a file descriptor */
 int PKI_X509_print_parsed (const PKI_X509 *x, PKI_X509_DATA type, int fd );
 
+/*! \brief Deletes the hard copy (eg., file, hsm file, etc.) of a PKI_X509 object. */
 int PKI_X509_delete ( PKI_X509 *x );
 
+/*! \brief Attaches (transfers ownership) the value to the PKI_X509 object. */
+int PKI_X509_attach(PKI_X509 * x, PKI_DATATYPE type, void * data, HSM * hsm);
+
+/*! \brief Detaches (sets to NULL) and returns the internal value. */
+int PKI_X509_detach(PKI_X509 * x, void ** data, PKI_DATATYPE * type, HSM **hsm);
+
+/*! \brief Sets the Aux Data into an PKI_X509 structure */
 int PKI_X509_aux_data_set (PKI_X509 * x,
 	                         void     * data, 
 	                         void       (*data_free_func)(void *),

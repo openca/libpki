@@ -1197,6 +1197,9 @@ int PKI_TOKEN_set_algor(PKI_TOKEN *tk, PKI_ALGOR_ID algId)
 		return HSM_set_sign_algor(tk->algor, tk->hsm);
 	}
 
+	// Sets the digest
+	tk->digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(tk->algor);
+
 	// Success
 	return PKI_OK;
 }

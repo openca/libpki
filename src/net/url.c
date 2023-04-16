@@ -425,14 +425,14 @@ int URL_put_data(const char          * url_s,
 	URL *url = NULL;
 	int ret = 0;
 
-	if( !url_s || !data || !data->size)
+	if (!url_s || !data)
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	if ((url = URL_new(url_s)) == NULL)
+	if ((url = URL_new(url_s)) == NULL) 
 		return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 
-	ret = URL_put_data_url( url, data, contType, ret_sk, 
-					timeout, max_size, ssl );
+	ret = URL_put_data_url(url, data, contType, ret_sk, 
+						   timeout, max_size, ssl );
 
 	if (url) URL_free(url);
 

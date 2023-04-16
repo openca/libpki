@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 			break;
 
 		case PKI_DATATYPE_X509_CERT:
-			pVal = PKI_X509_get_data ( obj, PKI_X509_DATA_PUBKEY );
+			pVal = PKI_X509_get_data ( obj, PKI_X509_DATA_KEYPAIR_VALUE );
 			if ( !pVal ) {
 				fprintf(stderr, "ERROR, can not retrieve the PubKey!\n\n");
 				exit(1);

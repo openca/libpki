@@ -32,10 +32,28 @@ int PKI_X509_KEYPAIR_put_file( PKI_X509_KEYPAIR *key, PKI_DATA_FORMAT format, UR
 /* -------------------------- Mem I/O ------------------------------------ */
 /* These are needed for the URL_put_data_url() functionality - not for HSM */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_get_mem( PKI_MEM *mem,
-					PKI_DATA_FORMAT format, PKI_CRED *cred );
+/*! \brief Returns a PKI_X509_KEYPAIR from a PKI_MEM buffer */
+PKI_X509_KEYPAIR * PKI_X509_KEYPAIR_get_mem(const PKI_MEM         * const mem,
+											const PKI_DATA_FORMAT   format,
+											const PKI_CRED        * const cred );
 
-PKI_MEM *PKI_X509_KEYPAIR_put_mem ( PKI_X509_KEYPAIR *key, PKI_DATA_FORMAT format, 
-			PKI_MEM **pki_mem, PKI_CRED *cred, HSM *hsm );
+/*! \brief Reads a PKI_X509_KEYPAIR_VALUE from a PKI_MEM buffer */
+PKI_X509_KEYPAIR_VALUE * PKI_X509_KEYPAIR_VALUE_get_mem(const PKI_MEM         * const mem, 
+												        const PKI_DATA_FORMAT   format,
+												        const PKI_CRED        * const cred );
+
+/*! \brief Writes a PKI_X509_KEYPAIR to a PKI_MEM buffer */
+PKI_MEM * PKI_X509_KEYPAIR_put_mem(const PKI_X509_KEYPAIR *  const key,
+								   const PKI_DATA_FORMAT     format, 
+								   PKI_MEM                ** const pki_mem,
+								   const PKI_CRED          * cred,
+								   const HSM               * hsm);
+
+/*! \brief Writes a PKI_X509_KEYPAIR_VALUE to a PKI_MEM buffer */
+PKI_MEM * PKI_X509_KEYPAIR_VALUE_put_mem(const PKI_X509_KEYPAIR_VALUE  * const key,
+								   		 const PKI_DATA_FORMAT           format, 
+								   		 PKI_MEM                      ** const pki_mem,
+								   		 const PKI_CRED                * cred,
+								   		 const HSM                     * hsm);
 
 #endif

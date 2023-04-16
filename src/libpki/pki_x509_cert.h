@@ -28,7 +28,10 @@ int PKI_X509_CERT_sign_tk ( PKI_X509_CERT *cert, PKI_TOKEN *tk,
 		PKI_DIGEST_ALG *alg);
 
 /* Get/Set data in a certificate */
+
+/*! \brief Returns a pointer to a specified data field in a certificate */
 const void * PKI_X509_CERT_get_data(const PKI_X509_CERT *x, PKI_X509_DATA type);
+
 int PKI_X509_CERT_set_data(PKI_X509_CERT *x, int type, void *data);
 
 /* Special case for TBS encoded data */

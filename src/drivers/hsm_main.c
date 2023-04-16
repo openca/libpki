@@ -733,7 +733,7 @@ int PKI_X509_verify_cert(const PKI_X509 *x, const PKI_X509_CERT *cert) {
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
 	// Gets the internal value of the public key from the certificate
-	kval = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_PUBKEY);
+	kval = PKI_X509_CERT_get_data(cert, PKI_X509_DATA_KEYPAIR_VALUE);
 	if (!kval) return PKI_ERR;
 
 	// Use the internal value to generate a new PKI_X509_KEYPAIR
@@ -860,7 +860,7 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 		// }
 
 		// If there is no verify callback, let's call the internal one
-		ret = PKI_verify_signature(data, sig, alg, key);
+		ret = PKI_verify_signature(data, sig, alg, x->it, key);
 
 	}
 
@@ -883,6 +883,7 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 int PKI_verify_signature(const PKI_MEM              * data,
                          const PKI_MEM              * sig,
                          const PKI_X509_ALGOR_VALUE * alg,
+						 const ASN1_ITEM            * it,
                          const PKI_X509_KEYPAIR     * key ) {
 	int v_code = 0;
 		// OpenSSL return code
@@ -908,6 +909,15 @@ int PKI_verify_signature(const PKI_MEM              * data,
 		// Reports the error
 		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,  NULL);
 	}
+
+	// PKI_DEBUG("Executing ASN1_item_verify()");
+
+	// ASN1_BIT_STRING signature;
+	// signature.data = sig->data;
+	// signature.length = (int)sig->size;
+
+	// ASN1_item_verify(it, (X509_ALGOR *)alg, &signature, NULL, k_val);
+	// PKI_DEBUG("Done with ASN1_item_verify()");
 
 	// Only use digest when we have not digest id
 	// that was returned for the algorithm
@@ -967,8 +977,10 @@ int PKI_verify_signature(const PKI_MEM              * data,
 		// Verify (New) Method - Updated Apr 3, 2023
 		//
 
+		EVP_PKEY_CTX * pctx = NULL;
+
 		// Initializes the verify function
-		if (!EVP_DigestVerifyInit(ctx, NULL, dgst, NULL, k_val)) {
+		if (!EVP_DigestVerifyInit(ctx, &pctx, dgst, NULL, k_val)) {
 			// Error in initializing the signature verification function
 			PKI_DEBUG("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
 				HSM_get_errdesc(HSM_get_errno(NULL), NULL), HSM_get_errno(NULL));
@@ -994,6 +1006,13 @@ int PKI_verify_signature(const PKI_MEM              * data,
 		if ((v_code = EVP_PKEY_verify_init(pctx)) <= 0) {
 			PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, "cannot initialize direct (no-hash) sig verification");
 			goto err;
+		}
+
+		// If we are in composite, we should attach the X509_ALGOR pointer
+		// to the application data for the PMETH verify() to pick that up
+		if (alg) {
+			PKI_DEBUG("Setting App Data: %p", alg);
+			EVP_PKEY_CTX_set_app_data(pctx, (void *)alg);
 		}
 
 		// Verifies the signature

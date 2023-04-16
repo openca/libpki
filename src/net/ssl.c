@@ -99,8 +99,7 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 	depth    = X509_STORE_CTX_get_error_depth ( ctx );
 
 	// Gets the extra data from the SSL context
-	ssl = X509_STORE_CTX_get_ex_data(ctx, 
-			      SSL_get_ex_data_X509_STORE_CTX_idx());
+	ssl = X509_STORE_CTX_get_ex_data(ctx, SSL_get_ex_data_X509_STORE_CTX_idx());
 	if (ssl == 0) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
 		return 0;
@@ -108,56 +107,54 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 
 	// Gets the PKI extra data
 	pki_ssl = SSL_get_ex_data(ssl, idx);
-	if (pki_ssl == 0) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
-		return 0;
-	}
+	if (pki_ssl == 0) PKI_DEBUG("Cannot retrieve the PKI_SSL context from SSL data");
 
-	if(( x = PKI_X509_new_dup_value ( PKI_DATATYPE_X509_CERT, 
-						err_cert, NULL )) == NULL ) {
+	if(( x = PKI_X509_new_dup_value(PKI_DATATYPE_X509_CERT, 
+									err_cert,
+									NULL )) == NULL ) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
 		return 0;
 	}
 
 	if ( 0 ) {
-	if ( PKI_X509_CERT_is_selfsigned ( x ) == PKI_ERR ) {
-		if ( (PKI_SSL_check_verify ( pki_ssl, 
-					PKI_SSL_VERIFY_CRL) == PKI_OK ) ||
-		 		(PKI_SSL_check_verify( pki_ssl, 
-					PKI_SSL_VERIFY_CRL_REQUIRE ) == PKI_OK)) {
-			
-			// Check for PRQP support
-			if ( PKI_SSL_check_verify ( pki_ssl,
-				PKI_SSL_VERIFY_ENABLE_PRQP ) == PKI_OK ) {
-				// PKI_X509_CERT_VALUE *issVal = NULL;
-				// PKI_X509_CERT *caCert = NULL;
+		if ( PKI_X509_CERT_is_selfsigned ( x ) == PKI_ERR ) {
+			if ( (PKI_SSL_check_verify ( pki_ssl, 
+						PKI_SSL_VERIFY_CRL) == PKI_OK ) ||
+					(PKI_SSL_check_verify( pki_ssl, 
+						PKI_SSL_VERIFY_CRL_REQUIRE ) == PKI_OK)) {
+				
+				// Check for PRQP support
+				if ( PKI_SSL_check_verify ( pki_ssl,
+					PKI_SSL_VERIFY_ENABLE_PRQP ) == PKI_OK ) {
+					// PKI_X509_CERT_VALUE *issVal = NULL;
+					// PKI_X509_CERT *caCert = NULL;
 
-				sk = PKI_get_ca_service_sk( x, 
-					"crlDistributionPoints", NULL);
-			}
-
-			if ( sk == NULL ) {
-				if ( (sk = PKI_X509_CERT_get_cdp ( x )) == NULL ) {
-					PKI_log_debug ("NO CDP in cert %d", depth);
+					sk = PKI_get_ca_service_sk( x, 
+						"crlDistributionPoints", NULL);
 				}
-			}
 
-			if ( (!sk) && ( PKI_SSL_check_verify ( pki_ssl, 
-					PKI_SSL_VERIFY_CRL_REQUIRE ) == PKI_OK) ) {
-				PKI_log_debug( "Required CRL check failed");
-				X509_STORE_CTX_set_error(ctx, X509_V_ERR_UNABLE_TO_GET_CRL);
-				// ctx->error = X509_V_ERR_UNABLE_TO_GET_CRL;
-			} else {
-				int i = 0;
+				if ( sk == NULL ) {
+					if ( (sk = PKI_X509_CERT_get_cdp ( x )) == NULL ) {
+						PKI_log_debug ("NO CDP in cert %d", depth);
+					}
+				}
 
-				for ( i=0; i < PKI_STACK_elements ( sk ); i++ ) {
-					PKI_log_debug( "[%d] CDP num [%d] => "
-						"%s", depth, 
-						PKI_STACK_get_num( sk, i ));
+				if ( (!sk) && ( PKI_SSL_check_verify ( pki_ssl, 
+						PKI_SSL_VERIFY_CRL_REQUIRE ) == PKI_OK) ) {
+					PKI_log_debug( "Required CRL check failed");
+					X509_STORE_CTX_set_error(ctx, X509_V_ERR_UNABLE_TO_GET_CRL);
+					// ctx->error = X509_V_ERR_UNABLE_TO_GET_CRL;
+				} else {
+					int i = 0;
+
+					for ( i=0; i < PKI_STACK_elements ( sk ); i++ ) {
+						PKI_log_debug( "[%d] CDP num [%d] => "
+							"%s", depth, 
+							PKI_STACK_get_num( sk, i ));
+					}
 				}
 			}
 		}
-	}
 	}
 
 	// if (code == 1) ctx->error = X509_V_OK;
@@ -204,17 +201,17 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 		/* Certificate Availability */
 		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
 		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
-			if ( pki_ssl->auth != 0 ) {
+			if (pki_ssl && pki_ssl->auth != 0 ) {
 				pki_ssl->verify_ok = PKI_ERR;
-			};
+			}
 			ret = 1;
 			break;
 
 		/* CRL Related */
 		case X509_V_ERR_UNABLE_TO_GET_CRL:
 			PKI_log_debug("[%d] Unable to get CRL", depth);
-			if (PKI_SSL_check_verify ( pki_ssl, 
-							PKI_SSL_VERIFY_CRL ) == PKI_ERR ) {
+			if (pki_ssl && PKI_SSL_check_verify(pki_ssl, 
+												PKI_SSL_VERIFY_CRL ) == PKI_ERR ) {
 				ret = 1;
 			}
 			break;
@@ -224,8 +221,8 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 		case X509_V_ERR_CRL_NOT_YET_VALID:
 		case X509_V_ERR_CRL_HAS_EXPIRED:
 			PKI_log_debug("[%d] CRL Validity Error", depth);
-			if (PKI_SSL_check_verify ( pki_ssl, 
-							PKI_SSL_VERIFY_CRL ) == PKI_ERR ) {
+			if (pki_ssl && PKI_SSL_check_verify(pki_ssl, 
+												PKI_SSL_VERIFY_CRL) == PKI_ERR) {
 				ret = 1;
 			}
 			break;
@@ -265,10 +262,8 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 			break;
 		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
 		case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-			if ( pki_ssl->flags & 
-					PKI_SSL_VERIFY_NO_SELFSIGNED) {
-				PKI_log_debug("Self Signed Certificate in "
-					"Chain [level %d]", depth );
+			if ( pki_ssl && pki_ssl->flags & PKI_SSL_VERIFY_NO_SELFSIGNED) {
+				PKI_DEBUG("Self Signed Certificate in Chain [level %d]", depth );
 			} else {
 				ret = 1;
 			}
@@ -276,9 +271,9 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 
 		/* Certificate Chain */
 		case X509_V_ERR_INVALID_CA:
-			PKI_log_debug("Invalid CA [%d::%s]",
-				depth, X509_verify_cert_error_string(err));
+			PKI_DEBUG("Invalid CA [%d::%s]", depth, X509_verify_cert_error_string(err));
 			break;
+
 		case X509_V_ERR_CERT_CHAIN_TOO_LONG:
 		case X509_V_ERR_PATH_LENGTH_EXCEEDED:
 			PKI_log_debug("Certificate Path Len Error [%d::%s]",
@@ -287,14 +282,14 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 
 		/* Extensions Related */
 		case X509_V_ERR_INVALID_PURPOSE:
-			PKI_log_debug("Invalid Purpose Error [%d::%s]",
+			PKI_DEBUG("Invalid Purpose Error [%d::%s]",
 				depth, X509_verify_cert_error_string(err));
 			break;
 		case X509_V_ERR_CERT_UNTRUSTED:
-			PKI_log_debug("Certificate Not Trusted [%d::%s]",
+			PKI_DEBUG("Certificate Not Trusted [%d::%s]",
 				depth, X509_verify_cert_error_string(err));
-			if (pki_ssl->auth != 0) {
-				PKI_log_debug("Cert not trusted, Ignored");
+			if (pki_ssl && pki_ssl->auth != 0) {
+				PKI_DEBUG("Cert not trusted, Ignored");
 				pki_ssl->verify_ok = PKI_ERR;
 				ret = 1;
 			};
@@ -374,83 +369,85 @@ static int __ssl_verify_cb ( int code, X509_STORE_CTX *ctx) {
 				X509_verify_cert_error_string(err));
 	}
 
-	// Checks the flags we set for the SSL/TLS connection
-	if (pki_ssl->verify_flags == PKI_SSL_VERIFY_NONE) {
-		pki_ssl->auth = 0;
-	}
+	// Only if we have the PKI_SSL structure available
+	// we can actually perform the extra operations
+	if (pki_ssl) {
 
-	/* Check if we don't really care about the authentication */
-	if (pki_ssl->auth == 0 || ret == 1) ret = 1;
-
-	/* We add the Cert to the peer_chain only if we have an "ok" return
-	 * code to avoid duplicates */
-	if (pki_ssl->peer_chain == 0) {
-
-		// Generates an empty stack of certs
-		pki_ssl->peer_chain = PKI_STACK_X509_CERT_new();
-
-		// If we can not allocate that, let's log the error and	
-		// return '0' value
-		if (pki_ssl->peer_chain == 0) {
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
-			return 0;
+		// Checks the flags we set for the SSL/TLS connection
+		if (pki_ssl->verify_flags == PKI_SSL_VERIFY_NONE) {
+			pki_ssl->auth = 0;
 		}
-	}
 
-	if (ret == 1) {
-		// We add the certificate only if it was successfully validated
-		// to avoid malformed, expired, etc. certificates
-		PKI_STACK_X509_CERT_push(pki_ssl->peer_chain, 
-                             PKI_X509_dup(x));
-	} 
+		/* Check if we don't really care about the authentication */
+		if (pki_ssl->auth == 0 || ret == 1) ret = 1;
 
-	/* Check for the verify_ok --- it should be OK in depth 0. We use
-	 * this variable to keep track if at least one cert in the chain is
-	 * explicitly trusted */
-	if (depth              == 0 && 
-	    pki_ssl->auth      != 0 && 
-	    pki_ssl->verify_ok != PKI_OK) {
+		/* We add the Cert to the peer_chain only if we have an "ok" return
+		* code to avoid duplicates */
+		if (pki_ssl->peer_chain == 0) {
 
-		PKI_X509_CERT_STACK *sk_x    = 0;
-		PKI_X509_CERT       *sk_cert = 0;
+			// Generates an empty stack of certs
+			pki_ssl->peer_chain = PKI_STACK_X509_CERT_new();
+			if (pki_ssl->peer_chain == 0) {
+				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 0);
+				return 0;
+			}
+		}
 
-		int k = 0;
-		int ok = PKI_ERR;
+		if (ret == 1) {
+			// We add the certificate only if it was successfully validated
+			// to avoid malformed, expired, etc. certificates
+			PKI_STACK_X509_CERT_push(pki_ssl->peer_chain, 
+									PKI_X509_dup(x));
+		}
 
-		sk_x = pki_ssl->peer_chain;
+		/* Check for the verify_ok --- it should be OK in depth 0. We use
+		* this variable to keep track if at least one cert in the chain is
+		* explicitly trusted */
+		if (depth              == 0 && 
+			pki_ssl->auth      != 0 && 
+			pki_ssl->verify_ok != PKI_OK) {
 
-		// Certificate Details
-		fprintf(stderr, "\n ====== SERVER CERTIFICATE ==========\n");
-		PKI_X509_CERT_put(x, PKI_DATA_FORMAT_TXT, "stderr", NULL, NULL, NULL);
-		fprintf(stderr, "\n\n");
+			PKI_X509_CERT_STACK *sk_x    = 0;
+			PKI_X509_CERT       *sk_cert = 0;
 
-		if (sk_x != 0) for (k = 0; k < PKI_STACK_X509_CERT_elements(sk_x); k++) {
+			int k = 0;
+			int ok = PKI_ERR;
 
-			// Gets the certificate from the stack
-			sk_cert = PKI_STACK_X509_CERT_get_num(sk_x, k);
+			sk_x = pki_ssl->peer_chain;
 
 			// Certificate Details
-			fprintf(stderr, "\n ====== PEER CHAIN CERTIFICATE - num: %d ==========\n", k);
-			PKI_X509_CERT_put(sk_cert, PKI_DATA_FORMAT_TXT, "stderr", NULL, NULL, NULL);
-			fprintf(stderr, "\n");
+			fprintf(stderr, "\n ====== SERVER CERTIFICATE ==========\n");
+			PKI_X509_CERT_put(x, PKI_DATA_FORMAT_TXT, "stderr", NULL, NULL, NULL);
+			fprintf(stderr, "\n\n");
 
-			// Checks if we can find the certificate in the list of
-			// trusted certificates for the SSL/TLS connection
-			ok = __ssl_find_trusted(ctx, (X509 *) sk_cert->value);
+			if (sk_x != 0) for (k = 0; k < PKI_STACK_X509_CERT_elements(sk_x); k++) {
 
-			// If we have found the certificate, let's break
-			if (ok == PKI_OK) break;
-		}
+				// Gets the certificate from the stack
+				sk_cert = PKI_STACK_X509_CERT_get_num(sk_x, k);
 
-		if ( ok == PKI_ERR ) {
-			/* No trusted certificate is present in the chain! */
-			PKI_log_err("None of the peer chain certificates is "
-					"trusted");
-			// ctx->error = X509_V_ERR_CERT_UNTRUSTED;
-			X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_UNTRUSTED);
-			ret = 0;
-		} else {
-			ret = 1;
+				// Certificate Details
+				fprintf(stderr, "\n ====== PEER CHAIN CERTIFICATE - num: %d ==========\n", k);
+				PKI_X509_CERT_put(sk_cert, PKI_DATA_FORMAT_TXT, "stderr", NULL, NULL, NULL);
+				fprintf(stderr, "\n");
+
+				// Checks if we can find the certificate in the list of
+				// trusted certificates for the SSL/TLS connection
+				ok = __ssl_find_trusted(ctx, (X509 *) sk_cert->value);
+
+				// If we have found the certificate, let's break
+				if (ok == PKI_OK) break;
+			}
+
+			if ( ok == PKI_ERR ) {
+				/* No trusted certificate is present in the chain! */
+				PKI_log_err("None of the peer chain certificates is "
+						"trusted");
+				// ctx->error = X509_V_ERR_CERT_UNTRUSTED;
+				X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_UNTRUSTED);
+				ret = 0;
+			} else {
+				ret = 1;
+			}
 		}
 	}
 

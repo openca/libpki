@@ -758,10 +758,6 @@ int PKI_X509_CERT_get_keysize(const PKI_X509_CERT *x ) {
   return PKI_X509_KEYPAIR_VALUE_get_size(pkey);
 }
 
-
-/*! \brief Returns a pointer to a specified data field in a certificate
- */
-
 const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
 				    PKI_X509_DATA         type) {
 
@@ -829,8 +825,11 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
       break;
 
     case PKI_X509_DATA_KEYPAIR_VALUE:
-    case PKI_X509_DATA_PUBKEY:
       ret = X509_get_pubkey((X509 *)tmp_x);
+      break;
+
+    case PKI_X509_DATA_X509_PUBKEY:
+      ret = X509_get_X509_PUBKEY((X509 *)tmp_x);
       break;
 
     case PKI_X509_DATA_PUBKEY_BITSTRING:
@@ -1097,6 +1096,7 @@ char * PKI_X509_CERT_get_parsed(const PKI_X509_CERT *x,
   if( !x ) return (NULL);
 
   switch( type ) {
+
     case PKI_X509_DATA_SERIAL:
       ret = PKI_INTEGER_get_parsed((PKI_INTEGER *) 
 		      		   PKI_X509_CERT_get_data(x, type));
@@ -1120,7 +1120,6 @@ char * PKI_X509_CERT_get_parsed(const PKI_X509_CERT *x,
 		      			  PKI_X509_CERT_get_data(x,type));
       break;
 
-    case PKI_X509_DATA_PUBKEY:
     case PKI_X509_DATA_KEYPAIR_VALUE:
       if ((pkey = PKI_X509_CERT_get_data(x, type)) != NULL) {
         k = PKI_X509_new_dup_value(PKI_DATATYPE_X509_KEYPAIR, pkey, NULL);
@@ -1136,9 +1135,14 @@ char * PKI_X509_CERT_get_parsed(const PKI_X509_CERT *x,
     case PKI_X509_DATA_CERT_TYPE:
     case PKI_X509_DATA_SIGNATURE:
     case PKI_X509_DATA_EXTENSIONS:
+    case PKI_X509_DATA_X509_PUBKEY:
+      PKI_DEBUG("Datatype %d not supported for getting the parsed version", type);
+      return NULL;
+
     default:
       /* Not Recognized/Supported DATATYPE */
-      return (NULL);
+      PKI_DEBUG("Datatype %d not recognized", type);
+      return NULL;
   }
 
   return (ret);
@@ -1384,7 +1388,7 @@ int PKI_X509_CERT_is_selfsigned(const PKI_X509_CERT *x ) {
 
   if (!x) return PKI_ERR;
 
-  kval = PKI_X509_CERT_get_data ( x, PKI_X509_DATA_PUBKEY );
+  kval = PKI_X509_CERT_get_data ( x, PKI_X509_DATA_KEYPAIR_VALUE );
   if ( !kval ) return PKI_ERR;
 
   kp = PKI_X509_new_dup_value(PKI_DATATYPE_X509_KEYPAIR, kval, NULL);

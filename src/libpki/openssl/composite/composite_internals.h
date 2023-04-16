@@ -8,6 +8,7 @@
 
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
+#include <openssl/evp.h>
 
 #ifndef _LIBPKI_OID_DEFS_H
 #include <libpki/openssl/pki_oid_defs.h>
@@ -25,30 +26,15 @@
 #include <libpki/pki_err.h>
 #endif
 
+#ifndef _LIBPKI_KEYPAIR_H
+#include <libpki/pki_keypair.h>
+#endif
+
 BEGIN_C_DECLS
 
 // ========================
 // Composite Crypto Support
 // ========================
-
-// TODO: Remove the use of this hack that
-//       is meant to patch things until we
-//       can use the dynamic implementation
-//       of the ameth/pmeth
-// #define NID_composite           1321
-// #define NID_combined            1322
-
-// The Dynamic Approach does not let you reference
-// the NID directly, therefore we need a different
-// approach by using a global variable
-// extern int NID_composite;
-// extern int NID_combined;
-
-// We need to find a solution for replacing
-// the use of NID_composite with the dynamic
-// version of it
-// # define EVP_PKEY_COMPOSITE     0
-// # define EVP_PKEY_COMBINED      1
 
 // Basic CTRL values for COMPOSITE support
 # define EVP_PKEY_CTRL_COMPOSITE_PUSH    0x201
@@ -64,16 +50,31 @@ BEGIN_C_DECLS
 DEFINE_STACK_OF(EVP_PKEY);
   // Provides the Definition for the stack of keys
 
-typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY;
-  // The Composite Key is just a Stack of EVP_PKEY
+/*! \brief Stack of Composite Key Components (EVP_PKEY) */
+typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY_STACK;
 
+/*!
+ * \brief Structure to hold the stack of key components
+ *        and validation param (K of N)
+ */
+typedef struct _libpki_composite_key_st {
+  STACK_OF(EVP_PKEY) * components;
+  ASN1_INTEGER * k;
+} COMPOSITE_KEY;
+
+/*!
+ * @brief Defines a stack of PKEY contexts
+ */
 DEFINE_STACK_OF(EVP_PKEY_CTX);
-  // Provides the definition for the stack of CTX
 
+/*! 
+ * @brief Defines a s tack of PKI_DIGEST_ALG contexts
+ */
 DEFINE_STACK_OF(EVP_MD_CTX);
-  // Provides the Definition for the stack of keys
 
-// New Definition - uses a single hash value
+/*!
+ * @brief Composite Key Context structure
+*/
 typedef struct _libpki_composite_ctx {
   
   // MD for signature calculation
@@ -87,9 +88,13 @@ typedef struct _libpki_composite_ctx {
 
 } COMPOSITE_CTX;
 
+// // Used to Concatenate the encodings of the different
+// // components when encoding via the ASN1 meth (priv_encode)
+// DEFINE_STACK_OF(ASN1_OCTET_STRING)
+
 // Used to Concatenate the encodings of the different
 // components when encoding via the ASN1 meth (priv_encode)
-DEFINE_STACK_OF(ASN1_OCTET_STRING)
+DEFINE_STACK_OF(ASN1_BIT_STRING)
 
 // ====================
 // Functions Prototypes
@@ -128,55 +133,195 @@ STACK_OF(EVP_PKEY) * COMPOSITE_CTX_pkey_stack0(COMPOSITE_CTX * ctx);
 // COMPOSITE_KEY: Stack Aliases
 // ----------------------------
 
-#define COMPOSITE_KEY_new()                sk_EVP_PKEY_new_null()
+#define COMPOSITE_KEY_STACK_new()                sk_EVP_PKEY_new_null()
   // Allocates a new stack of EVP_PKEY
 
-#define COMPOSITE_KEY_new_null()           sk_EVP_PKEY_new_null()
+#define COMPOSITE_KEY_STACK_free(p)              PKI_STACK_free ((PKI_STACK *)p)
+  // Free a stack of EVP_PKEYs
+
+#define COMPOSITE_KEY_STACK_new_null()           sk_EVP_PKEY_new_null()
   // Allocates a new stack of EVP_PKEY
 
-#define COMPOSITE_KEY_push(key, val)       sk_EVP_PKEY_push(key, val)
+#define COMPOSITE_KEY_STACK_push(key, val)       sk_EVP_PKEY_push(key, val)
   // Pushes a new EVP_PKEY to the key
 
-#define COMPOSITE_KEY_pop(key)             sk_EVP_PKEY_pop(key)
+#define COMPOSITE_KEY_STACK_pop(key)             sk_EVP_PKEY_pop(key)
   // Removes the last EVP_PKEY from the key
 
-#define COMPOSITE_KEY_pop_free(key)        sk_EVP_PKEY_pop_free(key, EVP_PKEY_free)
-  // Removes the last EVP_PKEY from the key and frees memory
+#define COMPOSITE_KEY_STACK_pop_free(key)        sk_EVP_PKEY_pop_free(key, EVP_PKEY_free)
+  // Removes all the elements of the sk and sk itself
 
-#define COMPOSITE_KEY_num(key)             sk_EVP_PKEY_num(key)
+#define COMPOSITE_KEY_STACK_num(key)             sk_EVP_PKEY_num(key)
   // Gets the number of components of a key
 
-#define COMPOSITE_KEY_value(key, num)      sk_EVP_PKEY_value(key, num)
+#define COMPOSITE_KEY_STACK_value(key, num)      sk_EVP_PKEY_value(key, num)
   // Returns the num-th EVP_PKEY in the stack
 
-#define COMPOSITE_KEY_add(key, value, num) sk_EVP_PKEY_insert(key, value, num)
+#define COMPOSITE_KEY_STACK_add(key, value, num) sk_EVP_PKEY_insert(key, value, num)
   // Adds a component at num-th position
 
-#define COMPOSITE_KEY_del(key, num)        EVP_PKEY_free(sk_EVP_PKEY_delete(key, num))
+#define COMPOSITE_KEY_STACK_del(key, num)        EVP_PKEY_free(sk_EVP_PKEY_delete(key, num))
   // Deletes the num-th component from the key
 
-#define COMPOSITE_KEY_get0(key, num)       sk_EVP_PKEY_value(key, num)
+#define COMPOSITE_KEY_STACK_get0(key, num)       sk_EVP_PKEY_value(key, num)
   // Alias for the COMPOSITE_KEY_num() define
 
-#define COMPOSITE_KEY_dup(key)             sk_EVP_PKEY_deep_copy(key, EVP_PKEY_dup, EVP_PKEY_free)
+#define COMPOSITE_KEY_STACK_dup(key)             sk_EVP_PKEY_deep_copy(key, EVP_PKEY_dup, EVP_PKEY_free)
   // Duplicates (deep copy) the key
 
-// COMPOSITE_CTX_ITEM: Prototypes
-// ------------------------------
+/// @brief Pops and free all components from the stack
+/// @param key The stack to empty
+inline void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
+  // Free all the entries, but not the stack structure itself
+  PKI_X509_KEYPAIR_VALUE * tmp_x;
+  while (sk != NULL && (tmp_x = sk_EVP_PKEY_pop(sk)) != NULL) { 
+    // Frees the component
+    if (tmp_x) EVP_PKEY_free(tmp_x);
+  }
+}
 
-// Returns the total size of the components
+// COMPOSITE_KEY: Allocation and management functions
+// --------------------------------------------------
+
+/*!
+ * \brief Allocates a new Composite Key
+ */
+COMPOSITE_KEY * COMPOSITE_KEY_new(void);
+
+/*!
+ * @brief Free the memory associated with the composite key itself
+*/ 
+void COMPOSITE_KEY_free(COMPOSITE_KEY * key);
+
+/*!
+ * \brief Adds a new key component at the end of the list
+ *
+ * @param key The Composite key to add the component to
+ * @param val The PKI_X509_KEYPAIR_VALUE component to add
+ * @retval Returns '1' if successful and '0' otherwise
+ */
+inline int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val) {
+  if (!key || !key->components || !val) return 0;
+  return sk_EVP_PKEY_push(key->components, val);
+};
+
+/*!
+ * \brief Removes the last component from the COMPOSITE_KEY
+ *
+ * @param key The Composite key to remove the component from
+ * @retval The pointer to the removed PKI_X509_KEYPAIR_VALUE
+ *         or NULL otherwise
+*/
+inline PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key) {
+  if (!key || !key->components) return NULL;
+  return sk_EVP_PKEY_pop(key->components);
+};
+
+/*!
+ * \brief Removes and free the memory of all components from the key
+ *
+ * @param key The Composite key to remove the components from
+ * @retval This function does not return a value
+ */
+inline void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key) {
+  if (!key || !key->components) return;
+  sk_EVP_PKEY_pop_free(key->components, EVP_PKEY_free);
+  key->components = NULL;
+}
+
+/*!
+ * \brief Returns the number of components
+ *
+ * @param key The COMPOSITE_KEY to count the element of
+ * @retval The number of components in the key
+*/
+inline int COMPOSITE_KEY_num(COMPOSITE_KEY * key) {
+  if (!key || !key->components) return 0;
+  return sk_EVP_PKEY_num(key->components);
+}
+
+/*!
+ * \brief Returns the num-th key component
+ *
+ * This function returns the pointer to the num-th component of
+ * the key. The ownership of the component is retained by the
+ * key, thus the caller must not free the retrieved component.
+ * 
+ * @param key The COMPOSITE_KEY to retrieve the component from
+ * @param num The number of the component to retrieve
+ * @retval The pointer to the num-th entry
+*/
+inline PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num) {
+  if (!key || !key->components) return 0;
+  return sk_EVP_PKEY_value(key->components, num);
+};
+
+/*!
+ * \brief Adds a component at num-th position
+ *
+ * @param key The COMPOSITE_KEY_to add the component to
+ * @param value The PKI_X509_KEYPAIR_VALUE to add
+ * @param num The position where to insert the component
+ * @retval The function returns PKI_OK if successful and PKI_ERR
+ *        otherwise.
+ */
+inline int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value, int num) {
+  if (!key || !key->components || !value) return PKI_ERR;
+  return sk_EVP_PKEY_insert(key->components, value, num);
+}
+
+/*!
+ * \brief Deletes the num-th component from the key
+ *
+ * @param key The COMPOSITE_KEY_to delete the component from
+ * @param num The num-th of the component to delete
+ * @retval The function returns PKI_OK if successful and PKI_ERR otherwise.
+ */
+inline int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num) {
+  if (!key || !key->components) return PKI_ERR;
+  EVP_PKEY_free(sk_EVP_PKEY_delete(key->components, num));
+  return PKI_OK;
+}
+
+/*!
+ * \brief Deletes all components of a COMPOSITE_KEY
+ *
+ * @param key The COMPOSITE_KEY_to delete the components from
+ * @retval The function returns PKI_OK if successful and PKI_ERR otherwise.
+ */
+int COMPOSITE_KEY_clear(COMPOSITE_KEY *key);
+
+/*! \brief Alias for @COMPOSITE_KEY_num() function */
+#define COMPOSITE_KEY_get0(key, num)  COMPOSITE_KEY_value(key, num)
+
+/*!
+ * \brief Duplicates a COMPOSITE_KEY structure
+ *
+ * @param key The COMPOSITE_KEY to duplicate
+ * @retval The duplicated key or NULL in case of errors
+ */
+COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key);
+
+/*!
+ * \brief Returns the total size of the components
+ */ 
 int COMPOSITE_KEY_size(COMPOSITE_KEY * key);
 
-// Returns the total size in bits of the components
-// (does this even make sense ?)
+/*!
+ * \brief Returns the total size in bits of the components
+ *        (does this even make sense ?)
+ */
 int COMPOSITE_KEY_bits(COMPOSITE_KEY * bits);
 
-// Returns the security bits of the composite key
-// which is the lowest (if the OR logic is implemented)
-// or is the highest (if the AND logic is implemented)
-// among the key components
+/*!
+ * \brief Returns the estimated security bits
+ *
+ * Returns the security bits of the composite key
+ * which is the lowest (if the OR logic is implemented)
+ * or is the highest (if the AND logic is implemented)
+ * among the key components.
+ */
 int COMPOSITE_KEY_security_bits(COMPOSITE_KEY * sec_bits);
-
 
 END_C_DECLS
 

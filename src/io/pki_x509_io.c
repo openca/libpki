@@ -224,10 +224,6 @@ PKI_X509_STACK *PKI_X509_STACK_get_url ( URL *url, PKI_DATATYPE type,
 	// Gets the Stack of PKI_MEM structure from the URL
 	if ((mem_sk = URL_get_data_url(url, 60, 0, ssl)) == NULL) {
 
-		// Reports the Error
-		PKI_ERROR(PKI_ERR_POINTER_NULL, 
-			"No data returned from URL");
-
 		// Nothing more to do
 		return NULL;
 	}

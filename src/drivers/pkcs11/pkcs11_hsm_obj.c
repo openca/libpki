@@ -1283,7 +1283,7 @@ CK_OBJECT_HANDLE * HSM_PKCS11_X509_CERT_find_private_key ( PKI_X509_CERT *x,
 	if( !x || !x->value || !hSession || !lib || !lib->callbacks )
 		return ( NULL );
 
-	if((pk = PKI_X509_CERT_get_data( x, PKI_X509_DATA_PUBKEY )) 
+	if((pk = PKI_X509_CERT_get_data( x, PKI_X509_DATA_KEYPAIR_VALUE )) 
 							== NULL ) {
 		/* No key - we can not find the private one! */
 		return ( NULL );

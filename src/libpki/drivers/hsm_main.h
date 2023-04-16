@@ -58,10 +58,11 @@ int PKI_X509_verify(const PKI_X509 *x,
 int PKI_X509_verify_cert(const PKI_X509 *x,
 			 const PKI_X509_CERT *cert );
 
-int PKI_verify_signature(const PKI_MEM *data,
-			 const PKI_MEM *sig,
-			 const PKI_X509_ALGOR_VALUE *alg,
-			 const PKI_X509_KEYPAIR *key );
+int PKI_verify_signature(const PKI_MEM  			* data,
+				 		 const PKI_MEM              * sig,
+						 const PKI_X509_ALGOR_VALUE * alg,
+						 const ASN1_ITEM            * it,
+						 const PKI_X509_KEYPAIR     * key );
 
 /* ------------------- PKI Object Retrieval ( Get ) ----------------------- */
 

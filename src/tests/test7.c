@@ -78,7 +78,8 @@ int main (int argc, char *argv[] ) {
 
 	char *url[] = { 
 		"file://COPYING",
-		"https://www.apache.org",
+		"https://www.openca.org",
+		// "https://www.apache.org",
 		// "ldap://ldap.dartmouth.edu:389/cn=Dartmouth CertAuth1, o=Dartmouth College, C=US, dc=dartmouth, dc=edu?cACertificate;binary",
 		// "mysql://openca:openca@localhost/openca/certificate/?data"
         };
@@ -110,7 +111,7 @@ int main (int argc, char *argv[] ) {
 	printf("(c) 2006 by Massimiliano Pala and OpenCA Project\n");
 	printf("OpenCA Licensed Software\n\n");
 
-	if(( PKI_log_init (PKI_LOG_TYPE_SYSLOG, PKI_LOG_NOTICE, NULL,
+	if(( PKI_log_init (PKI_LOG_TYPE_STDERR, PKI_LOG_ALWAYS, NULL,
 			PKI_LOG_FLAGS_ENABLE_DEBUG, NULL )) == PKI_ERR ) {
 		exit(1);
 	}
@@ -125,20 +126,24 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	printf("* Getting data from test URLs:\n");
-	printf("  o FILE [ %s ] ... ", url[0] );
+	// printf("* Getting data from test URLs:\n");
+	// printf("  o FILE [ %s ] ... ", url[0] );
 
-	if((data = URL_get_data( url[0], 0, 0, NULL )) != NULL ) {
-		printf("Ok (got %d objects)\n", PKI_STACK_MEM_elements( data ));
-		print_stack_contents( data );
-		PKI_STACK_MEM_free_all ( data );
-	} else {
-		printf("ERROR, can not get FILE data!\n\n");
-		exit(1);
-	}
+	// if((data = URL_get_data( url[0], 0, 0, NULL )) != NULL ) {
+	// 	printf("Ok (got %d objects)\n", PKI_STACK_MEM_elements( data ));
+	// 	print_stack_contents( data );
+	// 	PKI_STACK_MEM_free_all ( data );
+	// } else {
+	// 	printf("ERROR, can not get FILE data!\n\n");
+	// 	exit(1);
+	// }
 
-	printf("  o HTTP [ %s ] ... ", url[1] );
-	if((data = URL_get_data( url[1], 0, 0, NULL )) != NULL ) {
+	PKI_SSL * ssl = PKI_SSL_new(NULL);
+	PKI_X509_CERT * root = PKI_X509_get("file://./etc/certs.d/le-crypt/le-root.cer", PKI_DATATYPE_X509_CERT, PKI_DATA_FORMAT_PEM, NULL, NULL);
+	PKI_SSL_add_trusted(ssl, root);
+
+	printf("  o HTTPS [ %s ] ... ", url[1] );
+	if((data = URL_get_data( url[1], 0, 0, ssl )) != NULL ) {
 		printf("Ok (got %d objects)\n", PKI_STACK_MEM_elements( data ));
 		print_stack_contents( data );
 		PKI_STACK_MEM_free_all ( data );
@@ -282,7 +287,7 @@ int main (int argc, char *argv[] ) {
 
 	PKI_log_end();
 
-	printf("\n\n[ Test Ended Succesfully ]\n\n");
+	printf("\n\n[ Test Ended Successfully ]\n\n");
 
 	return (0);
 }

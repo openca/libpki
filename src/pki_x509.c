@@ -271,6 +271,8 @@ void PKI_X509_free ( PKI_X509 *x ) {
 	if (x->aux_data && x->free_aux_data)
 		x->free_aux_data(x->aux_data);
 
+	if (x->hsm) HSM_free(x->hsm);
+
 	PKI_ZFree ( x, sizeof(PKI_X509) );
 
 	return;
@@ -284,7 +286,7 @@ PKI_X509 *PKI_X509_new_value (PKI_DATATYPE type, void *value,
 	PKI_X509 *ret = NULL;
 
 	if (( ret = PKI_X509_new ( type, hsm )) == NULL ) {
-		PKI_log_debug ( "Can not initialized a new PKI_X509 object.");
+		PKI_log_debug ( "Can not initialize a new PKI_X509 object.");
 		return NULL;
 	}
 
@@ -597,9 +599,7 @@ int PKI_X509_is_signed(const PKI_X509 *obj ) {
 	return PKI_OK;
 }
 
-/*! \brief Returns the DER encoded version of the toBeSigned portion of
- *         the PKI_X509_VALUE structure
- */
+
 
 PKI_MEM * PKI_X509_VALUE_get_tbs_asn1(const void         * v, 
                                       const PKI_DATATYPE   type) {
@@ -640,9 +640,6 @@ PKI_MEM * PKI_X509_get_tbs_asn1(const PKI_X509 *x) {
 
 }
 
-/*! \brief Returns the parsed (char *, int *, etc.) version of the data in
-           a PKI_X509 object */
-
 void * PKI_X509_get_parsed(const PKI_X509 *x, PKI_X509_DATA type ) {
 
 	if ( !x || !x->cb || !x->cb->get_parsed || !x->value ) return NULL;
@@ -650,18 +647,12 @@ void * PKI_X509_get_parsed(const PKI_X509 *x, PKI_X509_DATA type ) {
 	return x->cb->get_parsed((PKI_X509 *)x, type );
 }
 
-
-/*! \brief Prints the parsed data from a PKI_X509 object to a file descriptor */
-
 int PKI_X509_print_parsed(const PKI_X509 *x, PKI_X509_DATA type, int fd ) {
 
 	if ( !x || !x->cb->print_parsed || !x->value ) return PKI_ERR;
 
 	return x->cb->print_parsed((PKI_X509 *)x, type, fd );
 }
-
-/*! \brief Deletes the hard copy (eg., file, hsm file, etc.) of the PKI_X509
- *         object. */
 
 int PKI_X509_delete ( PKI_X509 *x )
 {
@@ -695,7 +686,66 @@ int PKI_X509_delete ( PKI_X509 *x )
 	return ret;
 }
 
-/*! \brief Sets the Aux Data into an PKI_X509 structure */
+int PKI_X509_detach(PKI_X509 * x, void ** data, PKI_DATATYPE * type, HSM **hsm) {
+	
+	// Input Checks
+	if (!x) return PKI_ERR;
+
+	// Sets the output values
+	if (data) *data = x->value;
+	if (type) *type = x->type;
+	if (hsm) *hsm = x->hsm;
+
+	// Detaches the data
+	x->type = PKI_DATATYPE_UNKNOWN;
+	x->value = NULL;
+	x->it = NULL;
+	x->cb = NULL;
+	x->hsm = NULL;
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_X509_attach(PKI_X509 * x, PKI_DATATYPE type, void * data, HSM * hsm) {
+
+	const PKI_X509_CALLBACKS *cb = NULL;
+		// Callbacks for the specific value to attach
+
+	// Input checks
+	if (!x || !data) return PKI_ERR;
+
+	// Transfers the HSM, if any
+	if (hsm) {
+		if (x->hsm) HSM_free(x->hsm);
+		x->hsm = hsm;
+	}
+
+	// Now we need the callbacks for object creation and handling
+	if ((cb = PKI_X509_CALLBACKS_get(type, x->hsm)) == NULL ) {
+		PKI_ERROR(PKI_ERR_CALLBACK_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Sets the type of value
+	x->type = type;
+
+	// Frees the current value, if any
+	if (x->value) {
+		if (x->cb->free)
+			x->cb->free(x->value);
+		else
+			PKI_Free(x->value);
+	}
+
+	// Transfers the value
+	x->value = data;
+	x->cb = cb;
+
+	// All Done
+	return PKI_OK;
+}
+
 int PKI_X509_aux_data_set (PKI_X509 * x,
 	                         void     * data, 
 	                         void       (*data_free_func)(void *),

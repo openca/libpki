@@ -754,27 +754,22 @@ PKI_MEM * PKI_MEM_get_decoded(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
 	return NULL;
 }
 
-/* !\brief Encodes the contents of a PKI_MEM according to the provided data format.
- *
- * @param mem The first parameter should be a pointer to a valid PKI_MEM container.
- * @param format The second parameter controls the format to be encoded. Supported
- *    formats are PKI_DATA_FORMAT_B64 and PKI_DATA_FORMAT_URL.
- * @param opts The third parameter is format-specific. For B64 encoding, if this
- *    parameter is set to anything but 0, the encoded data will be bound with new lines
- *    every 76 chars. For URL encoding, if this parameter is set to anything but 0, new
- *    line characters (\n and \r) will be skipped (and, thus, NOT encoded).
- * @return PKI_OK if the decoding was successful. In case of errors, the appropriate
- *    error code is returned.
- */
 int PKI_MEM_encode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
 {
 	PKI_MEM *encoded = NULL;
 
-	if ((encoded = PKI_MEM_get_encoded(mem, format, opts)) == NULL)
-	{
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		return PKI_ERR_MEMORY_ALLOC;
+	if (!mem || !mem->data) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
 	}
+
+	if ((encoded = PKI_MEM_get_encoded(mem, format, opts)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return PKI_ERR;
+	}
+
+	// Removes and Frees the data in the PKI_MEM
+	PKI_MEM_transfer(mem, encoded);
 
 	// Clears the memory for the old PKI_MEM
 	// if (mem->data) PKI_Free(mem->data);
@@ -831,5 +826,81 @@ int PKI_MEM_decode(PKI_MEM *mem, PKI_DATA_FORMAT format, int opts)
 	PKI_MEM_free(decoded);
 
 	// Returns success
+	return PKI_OK;
+}
+
+int PKI_MEM_attach(PKI_MEM * mem, unsigned char * data, size_t len) {
+
+	// Input checks
+	if (!mem || !data) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Release current data, if any
+	if (mem->data) PKI_Free(mem->data);
+
+	// Transfers the data ownership
+	mem->data = data;
+	mem->size = len;
+
+	// All Done.
+	return PKI_OK;
+}
+
+int PKI_MEM_detach(PKI_MEM * mem, unsigned char ** data, size_t * len) {
+
+	// Input checks
+	if (!mem) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Saves the detached data
+	if (data) *data = mem->data;
+	if (len) *len = mem->size;
+
+	// Release current data, if any
+	mem->data = NULL;
+	mem->size = 0;
+
+	// All Done.
+	return PKI_OK;
+}
+
+int PKI_MEM_transfer(PKI_MEM * dst, PKI_MEM * src) {
+
+	// Input checks
+	if (!dst || !src || !src->data || src->data <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Attaches the data to the dst structure
+	PKI_MEM_attach(dst, src->data, src->size);
+
+	// Detaches the data from the src
+	src->data = NULL;
+	src->size = 0;
+
+	// All Done
+	return PKI_OK;
+}
+
+int PKI_MEM_clear(PKI_MEM * mem) {
+
+	if (!mem) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Free allocated memory
+	if (mem->data) PKI_Free(mem->data);
+
+	// Resets the data pointer and size
+	mem->data = NULL;
+	mem->size = 0;
+
+	// All Done
 	return PKI_OK;
 }

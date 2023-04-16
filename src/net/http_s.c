@@ -703,8 +703,6 @@ int PKI_HTTP_get_socket (const PKI_SOCKET * sock,
 	// If we were using a POST method, we need to actually send the data
 	if(data != NULL)
 	{
-		PKI_log_err("{DEBUG} Writing Data -> data_size = %d, data = %p", data_size, data);
-
 		if ((PKI_SOCKET_write(sock, data, data_size)) < 0)
 		{
 			PKI_log_err ("Can not write POST to socket.");

@@ -412,9 +412,14 @@ const void * PKI_X509_REQ_get_data(const PKI_X509_REQ * req,
 		case PKI_X509_DATA_SUBJECT:
 			ret = (void *) X509_REQ_get_subject_name((X509_REQ *)tmp_x);
 			break;
-		case PKI_X509_DATA_PUBKEY:
 		case PKI_X509_DATA_KEYPAIR_VALUE:
 			ret = (void *)X509_REQ_get_pubkey((X509_REQ *)tmp_x);
+			break;
+		case PKI_X509_DATA_PUBKEY_BITSTRING:
+			ret = tmp_x->req_info.pubkey->public_key;
+      		break;
+		case PKI_X509_DATA_X509_PUBKEY:
+			ret = (void *)X509_REQ_get_X509_PUBKEY((X509_REQ *)tmp_x);
 			break;
 		case PKI_X509_DATA_SIGNATURE:
 			ret = (void *) tmp_x->signature;
@@ -482,7 +487,6 @@ const char * PKI_X509_REQ_get_parsed(const PKI_X509_REQ *req,
 			ret = PKI_X509_ALGOR_VALUE_get_parsed((PKI_X509_ALGOR_VALUE *)
 				PKI_X509_REQ_get_data(req, type));
 			break;
-		case PKI_X509_DATA_PUBKEY:
 		case PKI_X509_DATA_KEYPAIR_VALUE:
 			if((pkey = PKI_X509_REQ_get_data(req, type)) != NULL) {
 				k = PKI_X509_new_dup_value ( 

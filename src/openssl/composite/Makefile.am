@@ -15,6 +15,7 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(COND_INCLUDES)
 
 OPENSSL_INTERNAL_SRCS = \
+	composite_internals.c \
 	composite_ossl_internals.h \
 	composite_ameth.h
 

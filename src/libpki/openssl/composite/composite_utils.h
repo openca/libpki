@@ -10,6 +10,10 @@
 #include <libpki/openssl/composite/composite_internals.h>
 #endif
 
+#ifndef _LIBPKI_PKI_X509_H
+#include <libpki/pki_x509.h>
+#endif
+
 BEGIN_C_DECLS
 
 // Declares the assign function, we can not use the
@@ -18,12 +22,6 @@ BEGIN_C_DECLS
 
 /// \brief Assigns a COMPOSITE key to the OpenSSL's PKEY
 int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key);
-
-/// \brief Clears (and free the memory) of the components of the key
-void COMPOSITE_KEY_clear(COMPOSITE_KEY *key);
-
-/// \brief Free the memory associated with the composite key itself
-void COMPOSITE_KEY_free(COMPOSITE_KEY * key);
 
 /// \brief Sets the PKEY ID in a PKEY Method
 int EVP_PKEY_meth_set_id(EVP_PKEY_METHOD * meth, int pkey_id, int flags);
