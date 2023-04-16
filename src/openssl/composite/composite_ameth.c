@@ -1006,14 +1006,33 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 // Implemented
 int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, ASN1_BIT_STRING *sig, EVP_PKEY *pkey) {
 
+  // Here we should build the parameters when NULL is used
+  // as a digest we have to query for the default hash of
+  // the specific PKEY (or we can just use SHA256 as the
+  // default).
+  
   // const EVP_MD * md = EVP_MD_CTX_md(ctx);
   // EVP_PKEY * pkey_val = EVP_PKEY_CTX_get0_pkey(pctx);
-  // COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pctx && pctx->pkey ? pctx->pkey : NULL);
-    // Pointer to inner key structure
-  
   EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
 
-  PKI_DEBUG("MISSING CODE: Retrieve the parameters from the X509_ALGOR");
+  // COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pctx && pctx->pkey ? pctx->pkey : NULL);
+  //   // Pointer to inner key structure
+
+  PKI_DEBUG("MISSING CODE: Build the parameters and set the algorithm identifiers (with the parameters)");
+
+  // Once the parameters are built, we can pass the list of
+  // algorithms to use in the 'app_data' portion of the
+  // EVP_MD_CTX.
+  // PKI_DEBUG("MISSING CODE: Add the pointer to the X509_ALGOR to the app_data");
+
+  // Update: Actually, instead of using the 'app_data' it seems
+  // architecturally more sound to leverage the CTRL interface
+  // where we can set a parameter such as the list of MD NIDs.
+  //
+  // Something like:
+  // EVP_PKEY_CTX_ctrl(pctx, EVP_PKEY_type(pkey_val), EVP_PKEY_OP_VERIFY, EVP_PKEY_CTRL_COMPOSITE_MD_LIST, )
+
+  PKI_DEBUG("MISSING CODE: Call the CTRL interface and set the list of X509_ALGOR for the sign operation.");
 
   /*
    * Return value of 2 means carry on, anything else means we exit
@@ -1021,7 +1040,8 @@ int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, 
    * routine handles all verification.
    */
 
-  EVP_PKEY_CTX_set_app_data(pctx,  (void *)0xdeadbeef);
+  // This is needed to pass the list of algorithms
+  EVP_PKEY_CTX_set_app_data(pctx, (void *)a);
 
   return 2;
 }
