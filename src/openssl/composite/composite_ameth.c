@@ -1036,11 +1036,25 @@ int item_sign(EVP_MD_CTX      * ctx,
   * See ASN1_item_sign_ctx() at OPENSSL/crypto/asn1/a_sign.c:140
   */
 
- EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
- EVP_PKEY_CTX_set_app_data(pctx, (void *)0xdeadbeef);
+  // Here we should build the parameters when NULL is used
+  // as a digest we have to query for the default hash of
+  // the specific PKEY (or we can just use SHA256 as the
+  // default).
+  
+  PKI_DEBUG("MISSING CODE: Build the parameters");
 
- // Test
- return 2;
+  // Once the parameters are built, we can pass the list of
+  // algorithms to use in the 'app_data' portion of the
+  // EVP_MD_CTX.
+
+  PKI_DEBUG("MISSING CODE: Add the pointer to the X509_ALGOR to the app_data");
+
+  // This is needed to pass the list of algorithms
+  EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
+  EVP_PKEY_CTX_set_app_data(pctx, (void *)alg1);
+
+  // Test
+  return 2;
 
   EVP_PKEY_CTX * pkey_ctx = EVP_MD_CTX_pkey_ctx(ctx);
     // Public Key CTX
