@@ -174,16 +174,10 @@ STACK_OF(EVP_PKEY) * COMPOSITE_CTX_pkey_stack0(COMPOSITE_CTX * ctx);
 #define COMPOSITE_KEY_STACK_dup(key)             sk_EVP_PKEY_deep_copy(key, EVP_PKEY_dup, EVP_PKEY_free)
   // Duplicates (deep copy) the key
 
+/// @brief Free all the entries, but not the stack structure itself
 /// @brief Pops and free all components from the stack
 /// @param key The stack to empty
-inline void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
-  // Free all the entries, but not the stack structure itself
-  PKI_X509_KEYPAIR_VALUE * tmp_x;
-  while (sk != NULL && (tmp_x = sk_EVP_PKEY_pop(sk)) != NULL) { 
-    // Frees the component
-    if (tmp_x) EVP_PKEY_free(tmp_x);
-  }
-}
+void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk);
 
 // COMPOSITE_KEY: Allocation and management functions
 // --------------------------------------------------
@@ -205,10 +199,7 @@ void COMPOSITE_KEY_free(COMPOSITE_KEY * key);
  * @param val The PKI_X509_KEYPAIR_VALUE component to add
  * @retval Returns '1' if successful and '0' otherwise
  */
-inline int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val) {
-  if (!key || !key->components || !val) return 0;
-  return sk_EVP_PKEY_push(key->components, val);
-};
+int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val);
 
 /*!
  * \brief Removes the last component from the COMPOSITE_KEY
@@ -217,10 +208,7 @@ inline int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val)
  * @retval The pointer to the removed PKI_X509_KEYPAIR_VALUE
  *         or NULL otherwise
 */
-inline PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key) {
-  if (!key || !key->components) return NULL;
-  return sk_EVP_PKEY_pop(key->components);
-};
+PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key);
 
 /*!
  * \brief Removes and free the memory of all components from the key
@@ -228,11 +216,7 @@ inline PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key) {
  * @param key The Composite key to remove the components from
  * @retval This function does not return a value
  */
-inline void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key) {
-  if (!key || !key->components) return;
-  sk_EVP_PKEY_pop_free(key->components, EVP_PKEY_free);
-  key->components = NULL;
-}
+void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key);
 
 /*!
  * \brief Returns the number of components
@@ -240,10 +224,7 @@ inline void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key) {
  * @param key The COMPOSITE_KEY to count the element of
  * @retval The number of components in the key
 */
-inline int COMPOSITE_KEY_num(COMPOSITE_KEY * key) {
-  if (!key || !key->components) return 0;
-  return sk_EVP_PKEY_num(key->components);
-}
+int COMPOSITE_KEY_num(COMPOSITE_KEY * key);
 
 /*!
  * \brief Returns the num-th key component
@@ -256,10 +237,8 @@ inline int COMPOSITE_KEY_num(COMPOSITE_KEY * key) {
  * @param num The number of the component to retrieve
  * @retval The pointer to the num-th entry
 */
-inline PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num) {
-  if (!key || !key->components) return 0;
-  return sk_EVP_PKEY_value(key->components, num);
-};
+PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, 
+                                             int             num);
 
 /*!
  * \brief Adds a component at num-th position
@@ -270,10 +249,9 @@ inline PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num
  * @retval The function returns PKI_OK if successful and PKI_ERR
  *        otherwise.
  */
-inline int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value, int num) {
-  if (!key || !key->components || !value) return PKI_ERR;
-  return sk_EVP_PKEY_insert(key->components, value, num);
-}
+int COMPOSITE_KEY_add(COMPOSITE_KEY          * key, 
+                      PKI_X509_KEYPAIR_VALUE * value, 
+                      int                      num);
 
 /*!
  * \brief Deletes the num-th component from the key
@@ -282,11 +260,7 @@ inline int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value
  * @param num The num-th of the component to delete
  * @retval The function returns PKI_OK if successful and PKI_ERR otherwise.
  */
-inline int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num) {
-  if (!key || !key->components) return PKI_ERR;
-  EVP_PKEY_free(sk_EVP_PKEY_delete(key->components, num));
-  return PKI_OK;
-}
+int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num);
 
 /*!
  * \brief Deletes all components of a COMPOSITE_KEY

@@ -19,6 +19,18 @@
 // Exported Functions
 // ==================
 
+void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
+
+  // Free all the entries, but not the stack structure itself
+  PKI_X509_KEYPAIR_VALUE * tmp_x;
+
+  while (sk != NULL && (tmp_x = sk_EVP_PKEY_pop(sk)) != NULL) { 
+    // Frees the component
+    if (tmp_x) EVP_PKEY_free(tmp_x);
+  }
+  
+}
+
 COMPOSITE_KEY * COMPOSITE_KEY_new(void) {
 
   COMPOSITE_KEY * ret = NULL;
@@ -106,6 +118,60 @@ err:
 
   // Error Condition
   return NULL;
+}
+
+int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val) {
+
+  if (!key || !key->components || !val) return 0;
+  
+  return sk_EVP_PKEY_push(key->components, val);
+}
+
+PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key) {
+
+  if (!key || !key->components) return NULL;
+  
+  return sk_EVP_PKEY_pop(key->components);
+}
+
+void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key) {
+
+  if (!key || !key->components) return;
+  
+  sk_EVP_PKEY_pop_free(key->components, EVP_PKEY_free);
+  key->components = NULL;
+
+}
+
+int COMPOSITE_KEY_num(COMPOSITE_KEY * key) {
+
+  if (!key || !key->components) return 0;
+  
+  return sk_EVP_PKEY_num(key->components);
+}
+
+PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num) {
+  if (!key || !key->components) return 0;
+  return sk_EVP_PKEY_value(key->components, num);
+}
+
+int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value, int num) {
+
+  if (!key || !key->components || !value) return PKI_ERR;
+  
+  return sk_EVP_PKEY_insert(key->components, value, num);
+}
+
+int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num) {
+
+  EVP_PKEY * tmp_pkey = NULL;
+
+  if (!key || !key->components) return PKI_ERR;
+
+  tmp_pkey = sk_EVP_PKEY_delete(key->components, num);
+  if (tmp_pkey) EVP_PKEY_free(tmp_pkey);
+
+  return PKI_OK;
 }
 
 // Free all components of the key

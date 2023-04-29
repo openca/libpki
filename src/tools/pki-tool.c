@@ -705,7 +705,7 @@ int pki_tool_save_object_data(PKI_X509 * obj, const char * uri, PKI_X509_DATA ty
 	PKI_X509_ALGOR_VALUE * val = NULL;
 		// Internal Value
 
-	const ASN1_BIT_STRING * data;
+	ASN1_BIT_STRING * data = NULL;
 		// Pointer to the Signature ASN1_BIT_STRING type
 
 	PKI_DATATYPE obj_type = PKI_DATATYPE_UNKNOWN;
@@ -777,7 +777,7 @@ int pki_tool_save_object_data(PKI_X509 * obj, const char * uri, PKI_X509_DATA ty
 	// pointer to save it into the out_mem
 	if (!out_mem) {
 		// Status Check
-		if (!data) {
+		if (!data || !data->data || data->length <= 0) {
 			fprintf(stderr, "\n    ERROR: Cannot extract the signature, aborting.\n\n");
 			exit(1);
 		}
