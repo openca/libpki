@@ -223,7 +223,7 @@ PKI_X509_PRQP_RESP * PKI_DISCOVER_get_resp_url ( PKI_X509_PRQP_REQ *p, URL *url 
 					(memcmp(line, "#", 1) == 0))
                                 		continue;
 
-			if(sscanf(line, "%1024s %1024s", name, addr ) > 1 ) {
+			if(sscanf(line, "%1023s %1023s", name, addr ) > 1 ) {
 				char *full_url_s = NULL;
 				size_t full_len = 0;
 

@@ -343,45 +343,62 @@ int PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj )
 
 	int i;
 
-	if ((st == NULL) || (num > st->elements) || (obj == NULL ))
-	{
+	// Input checks
+	if (st == NULL || obj == NULL) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_STACK_ERR;
 	}
 
+	if (num > st->elements) {
+		PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+		return PKI_STACK_ERR;
+	}
+
+	// Gets the head pointer
 	n = st->head;
 	i = 0;
-	while (n)
-	{
+
+	// Cycles through the nodes
+	while (n) {
+
+		// Stops at the i-th entry
 		if (i == num) break;
+
+		// Range check
 		if (i > num) return PKI_STACK_ERR;
 
+		// Gets the next entry
 		n = n->next;
 		i++;
 	}
 
-	if ((new_n = _PKI_STACK_NODE_new ( obj )) == NULL)
-	{
+	// Allocates the new node
+	if ((new_n = _PKI_STACK_NODE_new ( obj )) == NULL) {
 		return PKI_STACK_ERR;
 	}
 
+	// Adds the current i-th node to the new next
 	new_n->next = n;
 
+	// Updates the prev and next
 	if (n) {
 		new_n->prev = n->prev;
 		n->prev = new_n;
 	} 
 
-
-	if (num == 0)
-	{
+	// Updates the head
+	if (num == 0 || st->head == n) {
 		st->head = new_n;
-	}
-	else
-	{
+	} else {
 		new_n->prev->next = new_n;
 	}
 
+	// Updates the tail
+	if (num == st->elements || st->tail == n) {
+		st->tail = new_n;
+	}
+
+	// Updates the number of elements
 	st->elements++;
 	
 	return PKI_STACK_OK;
@@ -390,7 +407,7 @@ int PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj )
 /*!
  * \brief Pops a specific data element from a PKI_STACK
  *
- * This function detatches a specific element of a PKI_STACK and returns the
+ * This function detaches a specific element of a PKI_STACK and returns the
  * pointer to the associated data. The data is now no more linked in the
  * PKI_STACK and memory management is up to the calling application (i.e., the
  * calling application can now free the memory by calling the appropriate

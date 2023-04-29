@@ -584,6 +584,11 @@ int PKI_TOKEN_free( PKI_TOKEN *tk )
 		tk->hsm = NULL;
 	}
 
+	if (tk->oids) {
+		PKI_CONFIG_free(tk->oids);
+		tk->oids = NULL;
+	}
+
 	PKI_Free( tk );
 
 	return (PKI_OK);
@@ -999,8 +1004,11 @@ int PKI_TOKEN_load_config ( PKI_TOKEN * const tk, const char * const tk_name ) {
 
 end:
 	// Free Heap memory
-	if (tk_name) tk->name = strdup(tk_name);
+	if (tk->name) PKI_Free(tk->name);
+	tk->name = NULL;
+
 	if (config_file) PKI_Free(config_file);
+	config_file = NULL;
 
 	// All Done
 	return ret;

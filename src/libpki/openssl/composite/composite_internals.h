@@ -80,11 +80,14 @@ typedef struct _libpki_composite_ctx {
   // MD for signature calculation
   const EVP_MD * md;
 
-  // Stack of EVP PKEY CTX
+  // Key Components for Key Generation
   STACK_OF(EVP_PKEY) * components;
 
-  // Stack of Algorithm Identifiers
-  STACK_OF(X509_ALGOR) * params;
+  // Stack of Algorithm Identifiers for signatures
+  X509_ALGORS * params;
+
+  // K-of-N parameter
+  int k_of_n;
 
 } COMPOSITE_CTX;
 
@@ -119,7 +122,9 @@ int COMPOSITE_CTX_set_md(COMPOSITE_CTX * ctx, const PKI_DIGEST_ALG * md);
 const EVP_MD * COMPOSITE_CTX_get_md(COMPOSITE_CTX * ctx);
 
 /*! \brief Adds a new key to the CTX for Key Generation Ops */
-int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX * ctx, PKI_X509_KEYPAIR_VALUE * pkey);
+int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * ctx, 
+                            PKI_X509_KEYPAIR_VALUE * pkey,
+                            PKI_X509_ALGOR_VALUE   * alg);
 
 /*! \brief Removes and returns an entry from the stack of Keys */
 PKI_X509_KEYPAIR_VALUE * COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX * ctx);

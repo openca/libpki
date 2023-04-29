@@ -897,6 +897,9 @@ int PKI_verify_signature(const PKI_MEM              * data,
 	const PKI_DIGEST_ALG *dgst = NULL;
 		// Digest Algorithm
 
+	// PKI_ID pkey_type = EVP_PKEY_id(k_val);
+	// 	// Type of PKEY
+
 	// Input Checks
 	if (!data || !data->data || !sig || !sig->data ||
 		!alg  || !key || !k_val )  {
@@ -923,6 +926,8 @@ int PKI_verify_signature(const PKI_MEM              * data,
 	// that was returned for the algorithm
 	if (dgst != NULL && dgst != EVP_md_null()) {
 
+		EVP_PKEY_CTX * pctx = NULL;
+
 		// Creates and Initializes a new crypto context (CTX)
 		if ((ctx = EVP_MD_CTX_new()) == NULL) {
 			// Can not alloc memory, let's report the error
@@ -931,53 +936,6 @@ int PKI_verify_signature(const PKI_MEM              * data,
 
 		// Initializes the new CTX
 		EVP_MD_CTX_init(ctx);
-
-		//
-		// Verify (Old Approach) - Updated Apr 3, 2023
-		//
-		// // Initializes the Verify Function
-		// if ((EVP_VerifyInit_ex(ctx,dgst, NULL)) == 0) {
-
-		// 	// Error in initializing the signature verification function
-		// 	PKI_log_err("Signature Verify Initialization (Crypto Layer Error): %s (%d)", 
-		// 		HSM_get_errdesc(HSM_get_errno(NULL), NULL), 
-		// 		HSM_get_errno(NULL));
-
-		// 	// Done working
-		// 	goto err;
-		// }
-
-		// // Updates the Verify function
-		// if ((v_code = EVP_VerifyUpdate(ctx, (unsigned char *)data->data,
-		// 				data->size)) <= 0 ) {
-
-		// 	// Reports the error
-		// 	PKI_log_err("Signature Verify Update (Crypto Layer Error): %s (%d - %d)", 
-		// 		HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code, 
-		// 		HSM_get_errno(NULL));
-
-		// 	// Done working
-		// 	goto err;
-		// }
-
-		// // Finalizes the Verify function
-		// if ((v_code = EVP_VerifyFinal(ctx, (unsigned char *)sig->data,
-		// 					(unsigned int)sig->size, key->value )) <= 0 ) {
-
-		// 	// Reports the error
-		// 	PKI_log_err("Signature Verify Final Failed (Crypto Layer Error): %s (%d - %d)", 
-		// 		HSM_get_errdesc(HSM_get_errno(NULL), NULL), v_code,
-		// 		HSM_get_errno(NULL));
-
-		// 	// Done working
-		// 	goto err;
-		// }
-
-		//
-		// Verify (New) Method - Updated Apr 3, 2023
-		//
-
-		EVP_PKEY_CTX * pctx = NULL;
 
 		// Initializes the verify function
 		if (!EVP_DigestVerifyInit(ctx, &pctx, dgst, NULL, k_val)) {
@@ -1002,17 +960,17 @@ int PKI_verify_signature(const PKI_MEM              * data,
 		EVP_PKEY_CTX * pctx = EVP_PKEY_CTX_new(key->value, NULL);
 			// Context for the verify operation
 
+		// If we are in composite, we should attach the X509_ALGOR pointer
+		// to the application data for the PMETH verify() to pick that up
+		if (alg) {
+			PKI_DEBUG("Setting App Data (We Should use the CTRL interface?): %p", alg);
+			EVP_PKEY_CTX_set_app_data(pctx, (void *)alg);
+		}
+
 		// Initialize the Verify operation
 		if ((v_code = EVP_PKEY_verify_init(pctx)) <= 0) {
 			PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, "cannot initialize direct (no-hash) sig verification");
 			goto err;
-		}
-
-		// If we are in composite, we should attach the X509_ALGOR pointer
-		// to the application data for the PMETH verify() to pick that up
-		if (alg) {
-			PKI_DEBUG("Setting App Data: %p", alg);
-			EVP_PKEY_CTX_set_app_data(pctx, (void *)alg);
 		}
 
 		// Verifies the signature

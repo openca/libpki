@@ -31,27 +31,31 @@ PKI_X509_PROFILE * PKI_X509_PROFILE_load(const char *urlPath) {
      */
     LIBXML_TEST_VERSION
 
-    if( urlPath ) {
-        url = URL_new( urlPath );
+    if (urlPath) {
+        url = URL_new(urlPath);
     } else {
-        url = URL_new ( PKI_DEFAULT_PROFILE_DIR );
+        url = URL_new(PKI_DEFAULT_PROFILE_DIR);
     }
 
-    if( !url ) {
-	PKI_log_debug("ERROR, can not parse URL when loading profile (%s)!\n",
-							urlPath );
-	return(PKI_ERR);
+    if (!url) {
+		PKI_log_debug("ERROR, can not parse URL when loading profile (%s)!\n", urlPath);
+		return PKI_ERR;
     }
 
-    /*parse the file and get the DOM */
+    // Parse the File and get the DOM
     doc = (PKI_X509_PROFILE *) xmlReadFile(url->addr, NULL, 0);
 
+	// Free the URL memory
+	if (url) URL_free(url);
+
+	// Returns Error if no doc is returned
     if (doc == NULL) {
         PKI_log_debug("ERROR, could not parse file %s\n", url->addr);
-	return (PKI_ERR);
+		return PKI_ERR;
     }
 
-    return( doc );
+	// All Done
+    return (doc);
 }
 
 void PKI_X509_PROFILE_free_void ( void * doc ) {
