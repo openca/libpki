@@ -394,7 +394,7 @@ int PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj )
 	}
 
 	// Updates the tail
-	if (num == st->elements || st->tail == n) {
+	if (num == st->elements) {
 		st->tail = new_n;
 	}
 
