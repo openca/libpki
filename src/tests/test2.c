@@ -9,7 +9,6 @@ int gen_X509_Cert(int scheme, int bits, char *file );
 /* File_names */
 char *sc_list[] = {
 	"rsa",
-	"dsa",
 	"ecdsa"
 };
 
@@ -20,7 +19,7 @@ int main (int argc, char *argv[] ) {
 	int i = 0;
 
 	printf("\n\nlibpki Test - Massimiliano Pala <madwolf@openca.org>\n");
-	printf("(c) 2006 by Massimiliano Pala and OpenCA Project\n");
+	printf("(c) 2006-2021 by Massimiliano Pala and OpenCA Project\n");
 	printf("OpenCA Licensed Software\n\n");
 
 	PKI_init_all();
@@ -40,7 +39,6 @@ int main (int argc, char *argv[] ) {
 	printf("Certificate Generation testsuite (list size: %lu).\n\n", list_size);
 
 	gen_X509_Cert(PKI_SCHEME_RSA, 2048, "results/cert_rsa.pem");
-	gen_X509_Cert(PKI_SCHEME_DSA, 2048, "results/cert_dsa.pem");
 	gen_X509_Cert(PKI_SCHEME_ECDSA, 256, "results/cert_ecdsa.pem");
 
 	PKI_log_end();

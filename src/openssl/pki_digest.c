@@ -53,6 +53,12 @@ int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
 		mem_alloc = 1;
 	}
 
+	// Makes sure we have a good buffer
+	if (*dst_buf == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return 0;
+	}
+
 	// Initializes the Digest
 	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
 
@@ -66,8 +72,11 @@ int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
 			digest_size = EVP_MD_CTX_size(md_ctx);
 		}
 
-		// Let's clean everything up
+		// // Let's clean everything up
 		EVP_MD_CTX_reset(md_ctx);
+
+		// Free the CTX memory
+		EVP_MD_CTX_free(md_ctx);
 		md_ctx = NULL; // Safety
 	}
 
@@ -132,73 +141,6 @@ err:
 
 	// No digest was calculated, return the error
 	return NULL;
-
-	/*
-
-	// Allocate a new CTX
-	if ((md_ctx = EVP_MD_CTX_new()) == NULL) return NULL;
-
-	// Let's initialize the MD context
-	EVP_MD_CTX_init(md_ctx);
-	
-	// Initializes the Digest
-	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
-
-		// Updates the digest value
-		EVP_DigestUpdate(md_ctx, data, size);
-
-		// Allocates the output memory
-		if ((buf = PKI_Malloc (EVP_MAX_MD_SIZE)) != NULL) {
-
-			// Finalize the digest
-			if ((EVP_DigestFinal_ex(md_ctx, (unsigned char *) buf, NULL)) == 1) {
-
-				// Set the size of the md
-				digest_size = (size_t) EVP_MD_CTX_size(md_ctx);
-
-				// Allocate the return structure and the internal digest
-				if ((ret = PKI_Malloc(sizeof(PKI_DIGEST))) != NULL) {
-	
-					// Sets the real size of the digest
-					ret->size = digest_size;
-
-					// Transfers the ownership to the return data structure
-					ret->digest = buf;
-					buf = NULL; // Safety
-
-					// Sets the algorithm used
-					ret->algor = alg;
-
-					// Let's clean everything up
-					EVP_MD_CTX_reset(md_ctx);
-					EVP_MD_CTX_free(md_ctx);
-
-					// Return the Digest Data structure
-					return ret;
-				}
-			}
-		}
-	}
-
-	// If we get here, an error occurred and we just free
-	// the half-used resources and return NULL
-	if (md_ctx) {
-		// Cleanup the CTX
-		EVP_MD_CTX_reset(md_ctx);
-
-		// Free Memory
-		EVP_MD_CTX_free(md_ctx);
-	}
-
-	// Free the buffer
-	if (buf) PKI_Free(buf);
-
-	// Free Memory
-	if (ret) PKI_Free(ret);
-
-	// Nothing to return
-	return NULL;
-	*/
 }
 
 /*! \brief Calculates a digest over data buffer

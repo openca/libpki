@@ -30,7 +30,8 @@ check_PROGRAMS = \
 	test9 \
 	test10 \
 	test11 \
-	test12
+	test12 \
+	test13
 
 TESTS = $(check_PROGRAMS)
 
@@ -93,3 +94,9 @@ test12_SOURCES = test12.c
 test12_LDFLAGS = $(testLDFLAGS)
 test12_LDADD   = $(testLDADD)
 test12_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+
+test13_SOURCES = test13.c
+test13_LDFLAGS = $(testLDFLAGS)
+test13_LDADD   = $(testLDADD)
+test13_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+

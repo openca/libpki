@@ -601,28 +601,27 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pk
 
 	// Sets the Public Key
 	if(!X509_PUBKEY_set(&xpk, (EVP_PKEY *)pkey)) {
-		PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::Error building X509 "
-			"PUBKEY data");
+		PKI_DEBUG("Error building X509 PUBKEY data");
+		return NULL;
+	}
+
+	// Checks the results of the set operation
+	if (!xpk) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x1010000fL
 
-	/*
-	typedef struct X509_pubkey_st {
-	    X509_ALGOR *algor;
-	    ASN1_BIT_STRING *public_key;
-	    EVP_PKEY *pkey;
-	} X509_PUBKEY;
-	*/
-
 	buf = xpk->public_key->data;
 	buf_size = xpk->public_key->length;
+
 #else
 
 	if (1 != X509_PUBKEY_get0_param(NULL, 
 			(const unsigned char **)&buf, &buf_size, NULL, xpk)) {
 		PKI_log_err("Can not get the PublicKeyInfo from the KeyPair.");
+		X509_PUBKEY_free(xpk);
 		return NULL;
 	}
 
@@ -633,15 +632,16 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest (const PKI_X509_KEYPAIR_VALUE * pk
 
 		// Gets the Digest Value
 		if ((ret = PKI_DIGEST_new(md, buf, (size_t) buf_size)) == NULL) {
-			PKI_log_debug("PKI_X509_KEYPAIR_pub_digest()::%s",
-				ERR_error_string( ERR_get_error(), NULL ));
+			PKI_DEBUG("Crypto Error: %s", ERR_error_string( ERR_get_error(), NULL ));
+			X509_PUBKEY_free(xpk);
 			return NULL;
 		}
-
-		// Free the Buffer Memory
-		PKI_Free(buf);
 	}
 
+	// Free the X509_KEYPAIR memory
+	X509_PUBKEY_free(xpk);
+
+	// Success
 	return ret;
 }
 
