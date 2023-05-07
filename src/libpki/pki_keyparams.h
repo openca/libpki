@@ -18,20 +18,28 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
                             PKI_EC_KEY_FORM   curveForm,
                             PKI_EC_KEY_ASN1   ans1flags);
 
-#ifdef ENABLE_OQS
-
 // ========================
 // Composite Crypto Support
 // ========================
 
+#ifdef ENABLE_COMPOSITE
+
+/*! \brief Adds a key to the list of keys for Composite keys */
 int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key);
+
+/*! \brief Sets the k_of_n parameter for Composite keys */
+int PKI_KEYPARAMS_set_kofn(PKI_KEYPARAMS * kp, int kofn);
+
+#endif // End of ENABLE_COMPOSITE
 
 // =========================
 // Open Quantum Safe Support
 // =========================
 
+#ifdef ENABLE_OQS
+
 int PKI_KEYPARAMS_set_oqs_key_params(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam);
 
-#endif
+#endif // End of ENABLE_OQS
 
 #endif // _LIBPKI_PKI_KEYPARAMS_H

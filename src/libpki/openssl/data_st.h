@@ -51,10 +51,10 @@
 #endif
 
 //! \brief EVP CTRL to set the number of required valid signatures (K of N)
-#define COMPOSITE_PKEY_CTRL_SET_REQUIRED_VALID_SIGNATURES	0x301
+#define COMPOSITE_PKEY_CTRL_SET_K_OF_N	0x301
 
 //! \brief EVP CTRL to get the number of required valid signatures (K of N)
-#define COMPOSITE_PKEY_CTRL_GET_REQUIRED_VALID_SIGNATURES	0x302
+#define COMPOSITE_PKEY_CTRL_GET_K_OF_N	0x302
 
 //! \brief Type definition for ASN1_BIT_STRING
 typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
@@ -1160,6 +1160,7 @@ typedef struct pki_keyparams_st {
 #ifdef ENABLE_COMPOSITE
 	struct {
 		PKI_X509_KEYPAIR_STACK * k_stack;
+		ASN1_INTEGER * k_of_n;
 	} comp;
 #endif
 

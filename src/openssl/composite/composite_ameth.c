@@ -83,6 +83,18 @@ int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pub) {
     goto err;
   }
 
+  // Checks the parameter, if present
+  if (pub->algor->parameter) {
+    if (pub->algor->parameter->type != V_ASN1_INTEGER) {
+      PKI_ERROR(PKI_ERR_PARAM_TYPE, "Expecting an INTEGER for the parameter");
+      return 0;
+    }
+    if ((comp_key->params = ASN1_INTEGER_dup(pub->algor->parameter->value.integer)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameter INTEGER");
+      goto err;
+    }
+  }
+
   // Process each component
   for (int i = 0; i < sk_ASN1_TYPE_num(sk); i++) {
 
@@ -297,9 +309,16 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
+  // // We do not have parameters    
+  // if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
+  //                             V_ASN1_UNDEF, NULL, buff, buff_len)) {
+  //   PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot encode the parameter");
+  //   goto err;
+  // }
+
   // We do not have parameters    
   if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
-                              V_ASN1_UNDEF, NULL, buff, buff_len)) {
+                              V_ASN1_INTEGER, ASN1_INTEGER_dup(comp_key->params), buff, buff_len)) {
     PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot encode the parameter");
     goto err;
   }
@@ -345,14 +364,22 @@ int pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
 
   if (((comp_a = EVP_PKEY_get0(a)) == NULL) ||
       ((comp_b = EVP_PKEY_get0(b)) == NULL)) {
-
+    // If any of the two is NULL, we return -1
     return -1;
   }
 
+  // Checks the parameters
+  if (ASN1_INTEGER_cmp(comp_a->params, comp_b->params) != 0) {
+    // If the parameters are different, we return -1
+    return -1;
+  }
+
+  // If the number of keys is different, we return -1
   if (COMPOSITE_KEY_num(comp_a) != COMPOSITE_KEY_num(comp_b)) {
     return -1;
   }
 
+  // Compares all components
   for (int i = 0; i < COMPOSITE_KEY_num(comp_b); i++) {
     
     // 'get0' returns the i-th EVP_PKEY, then we apply
@@ -379,6 +406,8 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
   if (!BIO_indent(out, indent, 128))
     return 0;
 
+  PKI_ID pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+
   BIO_printf(out, "Composite Public Alternative Keys (%d Equivalent Keys):\n",
     COMPOSITE_KEY_num(comp_key));
 
@@ -401,6 +430,18 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
     } else {
       BIO_printf(out, "        <NO TEXT FORMAT SUPPORT>\n");
     }
+  }
+
+  if (pkey_id == OBJ_txt2nid("COMPOSITE_KEY") 
+#ifdef ENABLE_COMBINED
+      || pkey_id == OBJ_txt2nid("COMBINED_KEY")
+#endif
+      ) {
+    BIO_printf(out, "%*s", indent, "");
+    BIO_printf(out, "Required Valid Components Signatures (K-of-N): %d (%d-%d)\n",
+      comp_key->params ? ASN1_INTEGER_get(comp_key->params) : -1, 
+      comp_key->params ? ASN1_INTEGER_get(comp_key->params) : COMPOSITE_KEY_num(comp_key),
+      COMPOSITE_KEY_num(comp_key));
   }
 
   return 1;
@@ -961,7 +1002,7 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
   switch (op) {
 
-    case COMPOSITE_PKEY_CTRL_SET_REQUIRED_VALID_SIGNATURES: {
+    case COMPOSITE_PKEY_CTRL_SET_K_OF_N: {
       // Sets the Valid Signature Requirement
       if (arg2) {
         if (comp_key->params) ASN1_INTEGER_free(comp_key->params);
@@ -970,7 +1011,7 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
       }
     } break;
 
-    case COMPOSITE_PKEY_CTRL_GET_REQUIRED_VALID_SIGNATURES: {
+    case COMPOSITE_PKEY_CTRL_GET_K_OF_N: {
       // Gets the Valid Signature Requirement
       *(int *)arg2 = (int) ASN1_INTEGER_get(comp_key->params);
     } break;

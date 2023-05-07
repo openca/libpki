@@ -71,6 +71,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -digest <name>   - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
 #ifdef ENABLE_COMPOSITE
 	fprintf(stderr, "  -addkey <file>   - Key to be added to a composite key\n");
+	fprintf(stderr, "  -kofn <num>      - Minimum number of required valid component signatures (def. all)\n");
 #endif
 	fprintf(stderr, "  -newkey          - Generate new keypair when using genreq\n");
 	fprintf(stderr, "  -outkey <URI>    - URI where to store the new key\n");
@@ -252,7 +253,10 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		char *url_s, char *algor_opt, char *profile_s, PKI_DATA_FORMAT outFormVal, 
-		char *comp_keys[], int comp_keys_num, int batch ) {
+#ifdef ENABLE_COMPOSITE
+		char *comp_keys[], int comp_keys_num, int comp_kofn,
+#endif
+		int batch ) {
 
 	char *prompt = NULL;
 	// int outFormVal = PKI_DATA_FORMAT_PEM;
@@ -487,6 +491,14 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				break; 
 			}
 		}
+
+	    if (comp_kofn > 0) {
+			if (PKI_ERR == PKI_KEYPARAMS_set_kofn(kp, comp_kofn)) {
+				PKI_DEBUG("ERROR: Cannot set kofn (%d)", comp_kofn);
+				return PKI_ERR;
+			}
+		}
+
 	}
 
 	if (!batch)
@@ -1059,6 +1071,7 @@ int main (int argc, char *argv[] ) {
 	int token_slot = 0;
 	int selfsign = 0;
 	int newkey = 0;
+	int comp_kofn = 0;
 
 	char * algor_opt = NULL;
 	char * digest_opt = NULL;
@@ -1161,6 +1174,13 @@ int main (int argc, char *argv[] ) {
 				usage();
 			}
 			comp_keys[comp_keys_num++] = argv[i];
+		} else if ( strncmp_nocase("-kofn", argv[i], 5) == 0 ) {
+			if (argv[i++] == NULL) usage();
+			comp_kofn = atoi(argv[i]);
+			if (comp_kofn < 1) {
+				fprintf(stderr, "ERROR: Invalid kofn value (%d)\n\n", comp_kofn);
+				usage();
+			}
 #endif
 		} else if ( strncmp_nocase("-signkey", argv[i], 8 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
@@ -1739,6 +1759,7 @@ int main (int argc, char *argv[] ) {
 #ifdef ENABLE_COMPOSITE
 				 comp_keys,
 				 comp_keys_num,
+				 comp_kofn,
 #else
 				 NULL,
 				 0,
@@ -1767,7 +1788,7 @@ int main (int argc, char *argv[] ) {
 
 #ifdef ENABLE_COMPOSITE
 			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
-					profile, outFormVal, comp_keys, comp_keys_num, batch)) == PKI_ERR ) 
+					profile, outFormVal, comp_keys, comp_keys_num, comp_kofn, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);
