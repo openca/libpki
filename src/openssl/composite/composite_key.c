@@ -44,7 +44,7 @@ COMPOSITE_KEY * COMPOSITE_KEY_new(void) {
   }
 
   // Sets the validation param to default value
-  ret->params = 0;
+  ret->params = NULL;
 
   // All Done
   return ret;
@@ -65,7 +65,12 @@ COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key) {
   }
     
   // Copy the K param
-  ret->params = key->params;
+  ret->params = ASN1_INTEGER_dup(key->params);
+  if (!ret->params) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    COMPOSITE_KEY_free(ret);
+    return NULL;
+  }
 
   // Duplicates the stack
   for (int i = 0; i < COMPOSITE_KEY_STACK_num(key->components); i++) {
@@ -200,11 +205,9 @@ int COMPOSITE_KEY_clear(COMPOSITE_KEY *key) {
     if (tmp_x) EVP_PKEY_free(tmp_x);
   }
 
-  // Clears (no need to free) the stack of MD algorithms
-  while(sk_EVP_MD_num(key->params) > 0) {
-    // Removes one element from the stack
-    sk_EVP_MD_pop(key->params);
-  };
+  // Clears the params
+  if (key->params) ASN1_INTEGER_free(key->params);
+  key->params = NULL;
 
   // All Done
   return PKI_OK;
@@ -222,13 +225,7 @@ void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
   }
 
   // Clears the params
-  if (key->params) {
-    while (sk_EVP_MD_num(key->params) > 0) {
-      sk_EVP_MD_pop(key->params);
-    }
-    sk_EVP_MD_free(key->params);
-    key->params = NULL;
-  }
+  if (key->params) ASN1_INTEGER_free(key->params);
 
   // Free the memory
   PKI_ZFree(key, sizeof(COMPOSITE_KEY));
