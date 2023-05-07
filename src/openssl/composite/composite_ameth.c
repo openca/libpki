@@ -942,6 +942,14 @@ void pkey_free(EVP_PKEY *pk) {
 // Implemented
 int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
+  COMPOSITE_KEY * comp_key = NULL;
+    // Composite Key Pointer
+
+  // Gets the Key Bytes
+  if ((comp_key = (COMPOSITE_KEY *)EVP_PKEY_get0(pkey)) == NULL) {
+    return 0;
+  }
+
   /*
   # define ASN1_PKEY_CTRL_PKCS7_SIGN       0x1
   # define ASN1_PKEY_CTRL_PKCS7_ENCRYPT    0x2
@@ -952,6 +960,20 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
   */
 
   switch (op) {
+
+    case COMPOSITE_PKEY_CTRL_SET_REQUIRED_VALID_SIGNATURES: {
+      // Sets the Valid Signature Requirement
+      if (arg2) {
+        if (comp_key->params) ASN1_INTEGER_free(comp_key->params);
+        comp_key->params = ASN1_INTEGER_new();
+        ASN1_INTEGER_set(comp_key->params, *((int *)arg2));
+      }
+    } break;
+
+    case COMPOSITE_PKEY_CTRL_GET_REQUIRED_VALID_SIGNATURES: {
+      // Gets the Valid Signature Requirement
+      *(int *)arg2 = (int) ASN1_INTEGER_get(comp_key->params);
+    } break;
 
     case ASN1_PKEY_CTRL_PKCS7_SIGN:
     case ASN1_PKEY_CTRL_CMS_SIGN: {
@@ -1010,6 +1032,10 @@ int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, 
   // as a digest we have to query for the default hash of
   // the specific PKEY (or we can just use SHA256 as the
   // default).
+
+  // NOTE: The PKEY type provides you with all the details needed
+  //       for the signature verification (all key types and all
+  //       MD types)
   
   // const EVP_MD * md = EVP_MD_CTX_md(ctx);
   // EVP_PKEY * pkey_val = EVP_PKEY_CTX_get0_pkey(pctx);
@@ -1068,6 +1094,10 @@ int item_sign(EVP_MD_CTX      * ctx,
   // as a digest we have to query for the default hash of
   // the specific PKEY (or we can just use SHA256 as the
   // default).
+
+  // NOTE: The PKEY type provides you with all the details needed
+  //       for the signature verification (all key types and all
+  //       MD types)
   
   // const EVP_MD * md = EVP_MD_CTX_md(ctx);
   // EVP_PKEY * pkey_val = EVP_PKEY_CTX_get0_pkey(pctx);

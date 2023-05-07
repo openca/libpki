@@ -5,6 +5,7 @@
 
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
+#include <strings.h>
 
 #ifndef _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H
 #define _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H

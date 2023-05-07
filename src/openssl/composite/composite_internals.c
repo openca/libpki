@@ -44,7 +44,7 @@ COMPOSITE_KEY * COMPOSITE_KEY_new(void) {
   }
 
   // Sets the validation param to default value
-  ret->k = 0;
+  ret->params = 0;
 
   // All Done
   return ret;
@@ -59,53 +59,65 @@ COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key) {
   if (!key) return NULL;
 
   // Allocates the memory
-  if ((ret = PKI_Malloc(sizeof(COMPOSITE_KEY)))) {
+  if ((ret = COMPOSITE_KEY_new()) == NULL) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    return NULL;
+  }
     
-    // Copy the K param
-    ret->k = key->k;
+  // Copy the K param
+  ret->params = key->params;
 
-    // Duplicates the stack
-    for (int i = 0; i < COMPOSITE_KEY_STACK_num(key->components); i++) {
+  // Duplicates the stack
+  for (int i = 0; i < COMPOSITE_KEY_STACK_num(key->components); i++) {
 
-      PKI_X509_KEYPAIR_VALUE * val = NULL;
-        // Pointer to the element to duplicate
+    PKI_X509_KEYPAIR_VALUE * val = NULL;
+      // Pointer to the element to duplicate
 
-      PKI_X509_KEYPAIR * dup = NULL;
-        // Duplicated component's value
+    PKI_X509_KEYPAIR * dup = NULL;
+      // Duplicated component's value
 
-      PKI_MEM * buff = NULL;
-        // Temporary Buffer structure
+    PKI_MEM * buff = NULL;
+      // Temporary Buffer structure
 
-      PKI_X509 wrapper;
+    PKI_X509 wrapper;
+      // Wrapper for the duplicated value
 
-      // Retrieves the value to duplicate
-      if ((val = COMPOSITE_KEY_STACK_value(key->components, i)) == NULL) continue;
+    // Retrieves the value to duplicate
+    if ((val = COMPOSITE_KEY_STACK_value(key->components, i)) == NULL) continue;
 
-      // Duplicates the value by serializing and deserializing it
-      PKI_X509_KEYPAIR_put_mem(&wrapper, PKI_DATA_FORMAT_ASN1, &buff, NULL, NULL);
-      if (!buff) {
-        PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
-        goto err;
-      }
-
-      // De-Serializes the data from the buffer
-      dup = PKI_X509_KEYPAIR_get_mem(buff, PKI_DATA_FORMAT_ASN1, NULL);
-      if (!dup) { 
-        PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
-        goto err;
-      }
-
-      // Adds the value to the return object stack
-      if (!COMPOSITE_KEY_STACK_push(ret->components, PKI_X509_get_value(dup))) {
-        PKI_ERROR(PKI_ERR_HSM_KEYPAIR_IMPORT, NULL);
-        PKI_X509_free(dup);
-        goto err;
-      }
-
-      // Resets the dup data structure and free the memory
-      
-
+    // Duplicates the value by serializing and deserializing it
+    PKI_X509_KEYPAIR_put_mem(&wrapper, PKI_DATA_FORMAT_ASN1, &buff, NULL, NULL);
+    if (!buff) {
+      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+      goto err;
     }
+
+    // De-Serializes the data from the buffer
+    dup = PKI_X509_KEYPAIR_get_mem(buff, PKI_DATA_FORMAT_ASN1, NULL);
+    if (!dup) { 
+      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+      PKI_MEM_free(buff);
+      goto err;
+    }
+
+    // Free the buffer memory
+    PKI_MEM_free(buff);
+    buff = NULL;
+
+    // Adds the value to the return object stack
+    if (!COMPOSITE_KEY_STACK_push(ret->components, PKI_X509_get_value(dup))) {
+      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_IMPORT, NULL);
+      PKI_X509_free(dup);
+      goto err;
+    }
+
+    // Frees the memory
+    //
+    // NOTE: we don't free the wrapper, since it's a stack variable
+    //       and it will be freed automatically when the function
+    //       returns
+    //
+
   }
 
   // All Done

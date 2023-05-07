@@ -58,9 +58,17 @@ typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY_STACK;
  *        and validation param (K of N)
  */
 typedef struct _libpki_composite_key_st {
-  STACK_OF(EVP_PKEY) * components;
-  ASN1_INTEGER * k;
+  COMPOSITE_KEY_STACK * components;
+  ASN1_INTEGER * params;
 } COMPOSITE_KEY;
+
+/*!
+ * @brief Defines a stack of MDs
+ * @note  This is used to define the MDs used for
+ *        signature calculation
+ */
+DEFINE_STACK_OF(EVP_MD);
+typedef STACK_OF(EVP_MD) COMPOSITE_MD_STACK;
 
 /*!
  * @brief Defines a stack of PKEY contexts
@@ -72,22 +80,23 @@ DEFINE_STACK_OF(EVP_PKEY_CTX);
  */
 DEFINE_STACK_OF(EVP_MD_CTX);
 
+
 /*!
  * @brief Composite Key Context structure
 */
 typedef struct _libpki_composite_ctx {
-  
-  // MD for signature calculation
+
+  // MD for Hash-N-Sign
   const EVP_MD * md;
 
   // Key Components for Key Generation
-  STACK_OF(EVP_PKEY) * components;
+  COMPOSITE_KEY_STACK * components;
 
   // Stack of Algorithm Identifiers for signatures
-  X509_ALGORS * params;
+  COMPOSITE_MD_STACK * components_md;
 
-  // K-of-N parameter
-  int k_of_n;
+  // Key Generation Parameters
+  ASN1_INTEGER * params;
 
 } COMPOSITE_CTX;
 
@@ -122,18 +131,31 @@ int COMPOSITE_CTX_set_md(COMPOSITE_CTX * ctx, const PKI_DIGEST_ALG * md);
 const EVP_MD * COMPOSITE_CTX_get_md(COMPOSITE_CTX * ctx);
 
 /*! \brief Adds a new key to the CTX for Key Generation Ops */
-int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * ctx, 
+int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * comp_ctx, 
                             PKI_X509_KEYPAIR_VALUE * pkey,
-                            PKI_X509_ALGOR_VALUE   * alg);
+                            const PKI_DIGEST_ALG   * md);
 
 /*! \brief Removes and returns an entry from the stack of Keys */
-PKI_X509_KEYPAIR_VALUE * COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX * ctx);
+int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * ctx,
+                           PKI_X509_KEYPAIR_VALUE ** pkey,
+                           const PKI_DIGEST_ALG   ** md);
 
 /*! \brief Clears the stack of keys in the Composite CTX */
 int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * ctx);
 
 /*! \brief Returns a reference to the stack of keys from the CTX */
-STACK_OF(EVP_PKEY) * COMPOSITE_CTX_pkey_stack0(COMPOSITE_CTX * ctx);
+int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
+                                  const COMPOSITE_KEY_STACK ** const components,
+                                  const COMPOSITE_MD_STACK  ** components_md);
+
+/*! \brief Sets the MD for the Composite CTX */
+int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
+                                  COMPOSITE_KEY_STACK * const components,
+                                  COMPOSITE_MD_STACK  * const components_md);
+
+/*! \brief Sets the MD for the Composite CTX */
+int COMPOSITE_CTX_X509_get_algors(COMPOSITE_CTX  * ctx,
+                                  X509_ALGORS   ** algors);
 
 // COMPOSITE_KEY: Stack Aliases
 // ----------------------------

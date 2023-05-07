@@ -156,8 +156,8 @@ COMPOSITE_CTX * COMPOSITE_CTX_new_null() {
   ret = PKI_Malloc(sizeof(COMPOSITE_CTX));
   if (!ret) return NULL;
 
-  // Initializes the data structure
-  ret->md = NULL;
+  // Zeroizes the memory
+  memset(ret, 0, sizeof(COMPOSITE_CTX));
 
   // Initializes the stack of components
   ret->components = COMPOSITE_KEY_STACK_new();
@@ -168,15 +168,12 @@ COMPOSITE_CTX * COMPOSITE_CTX_new_null() {
   }
   
   // Initializes the stack of components
-  ret->params = sk_X509_ALGOR_new_null();
-  if (!ret->params) {
+  ret->components_md = sk_EVP_MD_new_null();
+  if (!ret->components_md) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
     if (ret) PKI_Free(ret);
     return NULL;
   }
-
-  // Initialises the k-of-n
-  ret->k_of_n = -1;
 
   // All Done
   return ret;
@@ -191,9 +188,9 @@ void COMPOSITE_CTX_free(COMPOSITE_CTX * comp_ctx) {
   if (comp_ctx->components) sk_EVP_PKEY_pop_free(comp_ctx->components, EVP_PKEY_free); 
   comp_ctx->components = NULL;
 
-  // Free Params Stack Memory
-  if (comp_ctx->params) sk_X509_ALGOR_pop_free(comp_ctx->params, X509_ALGOR_free);
-  comp_ctx->params = NULL;
+  // Free MD Stack Memory
+  if (comp_ctx->components_md) sk_EVP_MD_pop_free(comp_ctx->components_md, NULL);
+  comp_ctx->components_md = NULL;
 
   // Free the memory
   PKI_ZFree(comp_ctx, sizeof(COMPOSITE_CTX));
@@ -239,11 +236,15 @@ const EVP_MD * COMPOSITE_CTX_get_md(COMPOSITE_CTX * ctx) {
   return ctx->md;
 }
 
-int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX * comp_ctx, PKI_X509_KEYPAIR_VALUE * pkey, PKI_X509_ALGOR_VALUE * alg) {
+int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * comp_ctx, 
+                            PKI_X509_KEYPAIR_VALUE * pkey,
+                            const PKI_DIGEST_ALG   * md) {
 
-  PKI_X509_ALGOR_VALUE * algor = NULL;
-  PKI_X509_ALGOR_VALUE * dup_algor = NULL;
+  PKI_DIGEST_ALG * pkey_md = NULL;
       // Pointer to the duplicated algorithm
+  
+  PKI_ID algor_id = 0;
+      // Algorithm ID
 
   // Input Checks
   if (!comp_ctx || !pkey) {
@@ -257,69 +258,86 @@ int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX * comp_ctx, PKI_X509_KEYPAIR_VALUE * p
     return PKI_ERR;
   }
 
-  // Copies the input variable into the internal one
-  algor = alg;
-
-  // Pushes the new MD
-  if (!algor) {
-
-    PKI_ID algor_id = 0;
-      // Algorithm ID
-
-    // Builds a new algorithm
-    dup_algor = X509_ALGOR_new();
-    if (!dup_algor) return PKI_ERR;
-
-      if (!OBJ_find_sigid_by_algs(&algor_id, comp_ctx->md ? EVP_MD_type(comp_ctx->md) : NID_undef, EVP_PKEY_id(pkey))) {
-        // PKI_DEBUG("Cannot find algorithm OID for combination (MD: %d, PKEY: %d)",
-        //   EVP_MD_type(comp_ctx->md), EVP_PKEY_id(pkey));
-        if (dup_algor) PKI_Free(dup_algor);
-        return PKI_ERR;
-      }
-
-      if (!X509_ALGOR_set0(dup_algor, algor_id ? OBJ_nid2obj(algor_id) : NULL, V_ASN1_UNDEF, NULL)) {
-        PKI_DEBUG("Cannot set the parameters for the associated algorithm");
-        if (dup_algor) PKI_Free(dup_algor);
-        return PKI_ERR;
-      }
-
-  } else {
-
-    // Duplicates the X509_ALGOR for the key
-    dup_algor = X509_ALGOR_dup(algor);
-    if (!dup_algor) {
-      PKI_DEBUG("Cannot duplicate the X509_ALGOR for the key");
-      return PKI_ERR;
+  // Gets the MD for the PKEY
+  if ((pkey_md = (EVP_MD *)md) == NULL) {
+    int pkey_md_nid = 0;
+    pkey_md_nid = PKI_X509_KEYPAIR_VALUE_get_default_digest(pkey);
+    if (!pkey_md_nid) {
+      pkey_md = PKI_DIGEST_ALG_NULL;
+    } else {
+      pkey_md = (EVP_MD *)EVP_get_digestbynid(pkey_md_nid);
     }
   }
 
-  // Sanity Check
-  if (!dup_algor) {
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+  // Checks for a valid algorithm
+  if (!OBJ_find_sigid_by_algs(&algor_id, EVP_MD_type(pkey_md), EVP_PKEY_id(pkey))) {
+    PKI_DEBUG("Cannot find the algorithm for the given MD (%s) and PKEY (%s)", 
+              OBJ_nid2sn(EVP_MD_type(pkey_md)), OBJ_nid2sn(EVP_PKEY_id(pkey)));
     return PKI_ERR;
   }
 
   // Pushes the new component
   COMPOSITE_KEY_STACK_push(comp_ctx->components, pkey);
 
-  // Pushes the new algorithm
-  sk_X509_ALGOR_push(comp_ctx->params, dup_algor);
+  // Pushes the MD
+  sk_EVP_MD_push(comp_ctx->components_md, pkey_md);
 
-  // Frees the algor only if we allocated it
-  if (algor && !alg) X509_ALGOR_free(algor);
+  // Sets the key parameter (if not set)
+  if (comp_ctx->params == NULL) {
+    comp_ctx->params = ASN1_INTEGER_new();
+    ASN1_INTEGER_set(comp_ctx->params, 1);
+  }
 
   // All Done
   return PKI_OK;
 }
 
-PKI_X509_KEYPAIR_VALUE * COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX * comp_ctx) {
+int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * comp_ctx,
+                           PKI_X509_KEYPAIR_VALUE ** pkey,
+                           const PKI_DIGEST_ALG   ** md) {
+
+  PKI_X509_KEYPAIR_VALUE * x = NULL;
+      // Return pointer
+
+  PKI_DIGEST_ALG * x_md = NULL;
+      // Pointer to the MD associated with the PKEY
 
   // Input Checks
-  if (!comp_ctx || !comp_ctx->components)
-    return NULL;
+  if (!comp_ctx || !comp_ctx->components || !comp_ctx->components_md) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
+
+  // Checks for the number of components
+  if (sk_EVP_PKEY_num(comp_ctx->components) < 1  ||
+      sk_EVP_MD_num(comp_ctx->components_md) < 1 ||
+      sk_EVP_PKEY_num(comp_ctx->components) != sk_EVP_MD_num(comp_ctx->components_md)) {
+    // Something is wrong with the stacks
+    PKI_ERROR(PKI_ERR_GENERAL, "Inconsistency in number of elements in components stack");
+    return PKI_ERR;
+  }
 
   // Pops and returns the last component
-  return COMPOSITE_KEY_STACK_pop(comp_ctx->components);
+  x = COMPOSITE_KEY_STACK_pop(comp_ctx->components);
+  if (!x) {
+    // Cannot get the EVP_PKEY from the stack
+    PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the EVP_PKEY from the components stack");
+    return PKI_ERR;
+  }
+
+  // Also pops the MD from the MD stack
+  x_md = sk_EVP_MD_pop(comp_ctx->components_md);
+  if (!x_md) {
+    // Cannot get the EVP_MD from the stack
+    PKI_ERROR(PKI_ERR_GENERAL, "Cannot pop the EVP_MD from the digests components stack");
+  }
+
+  // Sets the output parameters
+  if (pkey) *pkey = x;
+  if (md) *md = x_md;
+
+  // All Done
+  return PKI_OK;
 }
 
 int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * comp_ctx) {
@@ -329,18 +347,115 @@ int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * comp_ctx) {
 
   // Clears the components
   if (comp_ctx->components) COMPOSITE_KEY_STACK_clear(comp_ctx->components);
+
+  // Clears the MDs
+  if (comp_ctx->components_md) sk_EVP_MD_pop_free(comp_ctx->components_md, NULL);
   
   // All Done
   return PKI_OK;
 }
 
-STACK_OF(EVP_PKEY) * COMPOSITE_CTX_pkey_stack0(COMPOSITE_CTX * ctx) {
+int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
+                                  const COMPOSITE_KEY_STACK ** const components,
+                                  const COMPOSITE_MD_STACK  ** components_md) {
 
   // Input Checks
-  if (!ctx) return NULL;
+  if (!ctx) return PKI_ERR;
 
-  // Returns the reference to the stack
-  return ctx->components;
+  // Sets the output parameters
+  if (ctx->components && components) *components = ctx->components;
+  if (ctx->components_md && components_md) *components_md = ctx->components_md;
+
+  // All Done
+  return PKI_OK;
+}
+
+int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
+                                  COMPOSITE_KEY_STACK * const components,
+                                  COMPOSITE_MD_STACK  * const components_md) {
+  // Input Checks
+  if (!ctx) return PKI_ERR;
+
+  // Sets the components
+  if (ctx->components) COMPOSITE_KEY_STACK_free(ctx->components);
+  ctx->components = components;
+
+  // Sets the MDs
+  if (ctx->components_md) sk_EVP_MD_pop_free(ctx->components_md, NULL);
+  ctx->components_md = components_md;
+
+  // All Done
+  return PKI_OK;
+}
+
+int COMPOSITE_CTX_X509_get_algors(COMPOSITE_CTX  * ctx,
+                                  X509_ALGORS   ** algors) {
+  
+  // Input Checks
+  if (!ctx || !algors) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
+
+  // Gets the X509_ALGORS from the internal context
+  if (*algors == NULL) {
+    if ((*algors = sk_X509_ALGOR_new_null()) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      return PKI_ERR;
+    }
+  }
+
+  // Cycles through the components and adds the algors
+  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(ctx->components); idx++) {
+
+    PKI_X509_KEYPAIR_VALUE * x = NULL;
+    const PKI_DIGEST_ALG * x_md = NULL;
+    int algid = PKI_ALGOR_ID_UNKNOWN;
+    PKI_X509_ALGOR_VALUE * algor = NULL;
+
+    // Gets the component
+    x = COMPOSITE_KEY_STACK_get0(ctx->components, idx);
+    if (!x) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the component from the stack");
+      return PKI_ERR;
+    }
+
+    // Gets the MD
+    x_md = sk_EVP_MD_value(ctx->components_md, idx);
+    if (!x_md) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the MD from the stack");
+      return PKI_ERR;
+    }
+
+    // Allocates a new X509_ALGOR
+    if ((algor = X509_ALGOR_new()) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      return PKI_ERR;
+    }
+
+    // Retrieves the algorithm identifier
+    if (!OBJ_find_sigid_by_algs(&algid, EVP_MD_type(x_md), EVP_PKEY_type(EVP_PKEY_id(x)))) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
+      X509_ALGOR_free(algor);
+      return PKI_ERR;
+    }
+
+    if (!X509_ALGOR_set0(algor, OBJ_nid2obj(algid), V_ASN1_UNDEF, NULL)) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the algorithm identifier");
+      X509_ALGOR_free(algor);
+      return PKI_ERR;
+    }
+
+    // Adds the algorithm to the stack
+    if (!sk_X509_ALGOR_push(*algors, algor)) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot push the algorithm to the stack");
+      X509_ALGOR_free(algor);
+      return PKI_ERR;
+    }
+  }
+
+  // All Done
+  return PKI_OK;
 }
 
 // =========================
@@ -382,13 +497,10 @@ static void cleanup(EVP_PKEY_CTX * ctx) {
   return;
 }
 
-// // Not Implemented
 // static int paramgen_init(EVP_PKEY_CTX * ctx) {
-//   PKI_DEBUG("Not implemented, yet.");
-//   return 0;
+//   return 1;
 // }
 
-// // Implemented
 // static int paramgen(EVP_PKEY_CTX * ctx,
 //                     EVP_PKEY     * pkey) {
 
@@ -447,7 +559,14 @@ static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   // }
 
   // Transfer the components from the CTX
+  if (key->components) COMPOSITE_KEY_STACK_free(key->components);
   key->components = comp_ctx->components;
+  comp_ctx->components = NULL;
+
+  // Transfers the parameter
+  if (key->params) ASN1_INTEGER_free(key->params);
+  key->params = comp_ctx->params;
+  comp_ctx->params = NULL;
 
   // Resets the list of components on the CTX
   comp_ctx->components = COMPOSITE_KEY_STACK_new_null();
