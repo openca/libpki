@@ -194,10 +194,17 @@ int COMPOSITE_KEY_clear(COMPOSITE_KEY *key) {
   EVP_PKEY * tmp_x;
       // Pointer to the individual key component
 
+  // Clears (and free) the stack of key components
   while ((tmp_x = sk_EVP_PKEY_pop(key->components)) != NULL) { 
     // Frees the component
     if (tmp_x) EVP_PKEY_free(tmp_x);
   }
+
+  // Clears (no need to free) the stack of MD algorithms
+  while(sk_EVP_MD_num(key->params) > 0) {
+    // Removes one element from the stack
+    sk_EVP_MD_pop(key->params);
+  };
 
   // All Done
   return PKI_OK;
@@ -212,6 +219,15 @@ void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
   if (key->components) {
     COMPOSITE_KEY_STACK_pop_free(key->components);
     key->components = NULL;
+  }
+
+  // Clears the params
+  if (key->params) {
+    while (sk_EVP_MD_num(key->params) > 0) {
+      sk_EVP_MD_pop(key->params);
+    }
+    sk_EVP_MD_free(key->params);
+    key->params = NULL;
   }
 
   // Free the memory
