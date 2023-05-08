@@ -6,12 +6,20 @@
 #ifndef _LIBPKI_COMPOSITE_UTILS_H
 #define _LIBPKI_COMPOSITE_UTILS_H
 
-#ifndef _LIBPKI_COMPOSITE_LOCAL_H
-#include <libpki/openssl/composite/composite_internals.h>
+#ifndef _LIBPKI_OS_H
+#include <libpki/os.h>
+#endif
+
+#ifndef _LIBPKI_OID_DEFS_H
+#include <libpki/openssl/pki_oid_defs.h>
 #endif
 
 #ifndef _LIBPKI_PKI_X509_H
 #include <libpki/pki_x509.h>
+#endif
+
+#ifndef _LIBPKI_KEYPAIR_H
+#include <libpki/pki_keypair.h>
 #endif
 
 BEGIN_C_DECLS

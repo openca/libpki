@@ -3,6 +3,10 @@
 #ifndef _LIBPKI_HSM_MAIN_H
 #define _LIBPKI_HSM_MAIN_H
 
+#ifndef _LIBPKI_HSM_ST_H
+#include <libpki/hsm_st.h>
+#endif
+
 /* Added MACRO to ease usage of the general signature function PKI_sign() */
 /*
 #define PKI_OBJ_sign( t,x,k,d ) PKI_sign (t,x,NULL,NULL,NULL,k,d)

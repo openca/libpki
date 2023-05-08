@@ -44,7 +44,7 @@
 #endif
 
 #ifndef _LIBPKI_COMPOSITE_ASN1_METH_H
-#include "composite_ameth.h"
+#include "composite_ameth_lcl.h"
 #endif
 
 // Composite Methods

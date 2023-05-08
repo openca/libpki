@@ -7,17 +7,21 @@
 #include <libpki/openssl/composite/composite_utils.h>
 #endif
 
+#ifndef _LIBPKI_COMPOSITE_KEY_H
+#include <libpki/openssl/composite/composite_key.h>
+#endif
+
 // ===============
 // Data Structures
 // ===============
 
 #ifndef _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H
-#include "composite_ossl_internals.h"
+#include "composite_ossl_lcl.h"
 #endif
 
-// ==================
-// Exported Functions
-// ==================
+// ==========================
+// Exported Functions: STACKs
+// ==========================
 
 void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
 
@@ -30,6 +34,45 @@ void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
   }
   
 }
+
+void COMPOSITE_MD_STACK_clear(COMPOSITE_MD_STACK * sk) {
+
+  // Free all the entries, but not the stack structure itself
+  PKI_DIGEST_ALG * tmp_x;
+
+  // Removes the entries from the stack but do not
+  // free them (they are all const pointers)
+  while (sk != NULL && sk_EVP_MD_num(sk) > 0) { 
+    tmp_x = sk_EVP_MD_pop(sk);
+    if (!tmp_x) continue;
+  }
+
+  // All Done
+  return;
+}
+
+void COMPOSITE_MD_STACK_pop_free(COMPOSITE_MD_STACK * sk) {
+
+  // Input Checks
+  if (!sk) return;
+
+  // Removes all the entries but do not free the memory
+  // because they are all const pointers
+  while (sk != NULL && sk_EVP_MD_num(sk) > 0) {
+    sk_EVP_MD_pop(sk);
+  }
+
+  // Free the STACK structure itself
+  sk_EVP_MD_free(sk);
+
+  // All Done
+  return;
+}
+
+
+// =======================
+// Exported Functions: KEY
+// =======================
 
 COMPOSITE_KEY * COMPOSITE_KEY_new(void) {
 
@@ -65,11 +108,13 @@ COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key) {
   }
     
   // Copy the K param
-  ret->params = ASN1_INTEGER_dup(key->params);
-  if (!ret->params) {
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-    COMPOSITE_KEY_free(ret);
-    return NULL;
+  if (key->params) {
+    ret->params = ASN1_INTEGER_dup(key->params);
+    if (!ret->params) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      COMPOSITE_KEY_free(ret);
+      return NULL;
+    }
   }
 
   // Duplicates the stack
@@ -141,52 +186,49 @@ int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val) {
 
   if (!key || !key->components || !val) return 0;
   
-  return sk_EVP_PKEY_push(key->components, val);
+  return COMPOSITE_KEY_STACK_push(key->components, val);
 }
 
 PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key) {
 
   if (!key || !key->components) return NULL;
   
-  return sk_EVP_PKEY_pop(key->components);
+  return COMPOSITE_KEY_STACK_pop(key->components);
 }
 
 void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key) {
 
   if (!key || !key->components) return;
   
-  sk_EVP_PKEY_pop_free(key->components, EVP_PKEY_free);
+  COMPOSITE_KEY_STACK_pop_free(key->components);
   key->components = NULL;
-
 }
+
 
 int COMPOSITE_KEY_num(COMPOSITE_KEY * key) {
 
   if (!key || !key->components) return 0;
   
-  return sk_EVP_PKEY_num(key->components);
+  return COMPOSITE_KEY_STACK_num(key->components);
 }
 
 PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num) {
   if (!key || !key->components) return 0;
-  return sk_EVP_PKEY_value(key->components, num);
+  return COMPOSITE_KEY_STACK_value(key->components, num);
 }
 
 int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value, int num) {
 
   if (!key || !key->components || !value) return PKI_ERR;
   
-  return sk_EVP_PKEY_insert(key->components, value, num);
+  return COMPOSITE_KEY_STACK_add(key->components, value, num);
 }
 
 int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num) {
 
-  EVP_PKEY * tmp_pkey = NULL;
-
   if (!key || !key->components) return PKI_ERR;
 
-  tmp_pkey = sk_EVP_PKEY_delete(key->components, num);
-  if (tmp_pkey) EVP_PKEY_free(tmp_pkey);
+  COMPOSITE_KEY_STACK_del(key->components, num);
 
   return PKI_OK;
 }
@@ -196,14 +238,8 @@ int COMPOSITE_KEY_clear(COMPOSITE_KEY *key) {
 
   if (!key) return PKI_ERR;
 
-  EVP_PKEY * tmp_x;
-      // Pointer to the individual key component
-
   // Clears (and free) the stack of key components
-  while ((tmp_x = sk_EVP_PKEY_pop(key->components)) != NULL) { 
-    // Frees the component
-    if (tmp_x) EVP_PKEY_free(tmp_x);
-  }
+  COMPOSITE_KEY_STACK_clear(key->components);
 
   // Clears the params
   if (key->params) ASN1_INTEGER_free(key->params);
@@ -213,16 +249,114 @@ int COMPOSITE_KEY_clear(COMPOSITE_KEY *key) {
   return PKI_OK;
 }
 
+
+int COMPOSITE_KEY_size(COMPOSITE_KEY * key) {
+
+  int i = 0;
+  int key_num = 0;  
+  int total_size = 0;
+
+  // Input Checks
+  if (!key) return -1;
+
+  // Retrieves the number of components
+  if ((key_num = COMPOSITE_KEY_num(key)) <= 0) return PKI_ERR;
+
+  // Process the individual keys
+  for (i = 0; i < key_num; i++) {
+
+    const EVP_PKEY * single_key = NULL;
+      // Pointer to the component
+
+    // Retrieves the component
+    if ((single_key = COMPOSITE_KEY_get0(key, i)) == NULL) {
+      PKI_DEBUG("ERROR: Cannot get key %d", i);
+      return 0;
+    }
+
+    // Updates the total size
+    total_size += EVP_PKEY_size(single_key);
+  }
+
+  // All Done
+  return total_size;
+}
+
+int COMPOSITE_KEY_bits(COMPOSITE_KEY * key) {
+
+  int i = 0;
+  int key_num = 0;  
+  int total_bits = 0;
+
+  // Input Checks
+  if (!key) return -1;
+
+  // Returns '0' if no components were found
+  if ((key_num = COMPOSITE_KEY_num(key)) <= 0) return 0;
+
+  // Process the individual components
+  for (i = 0; i < key_num; i++) {
+
+    const EVP_PKEY * single_key = NULL;
+      // Pointer for the component
+
+    if ((single_key = COMPOSITE_KEY_get0(key, i)) == NULL) {
+      PKI_DEBUG("ERROR: Cannot get key %d", i);
+      return -1;
+    }
+
+    // Updates the total size
+    total_bits += EVP_PKEY_bits(single_key);
+  }
+
+  // Total bits
+  return total_bits;
+}
+
+int COMPOSITE_KEY_security_bits(COMPOSITE_KEY * key) {
+
+  int i = 0;
+  int key_num = 0;  
+  int sec_bits = INT_MAX;
+  int component_sec_bits = INT_MAX;
+
+  // Input checks
+  if (!key) return -1;
+
+  // Checks we have at least one component
+  if ((key_num = COMPOSITE_KEY_num(key)) <= 0) return -1;
+
+  // Cycles through all the components
+  for (i = 0; i < key_num; i++) {
+
+    const EVP_PKEY * single_key;
+      // Pouinter to the individual component
+
+    // Retrieves the component key
+    if ((single_key = COMPOSITE_KEY_get0(key, i)) == NULL) {
+      PKI_DEBUG("ERROR: Cannot get key %d", i);
+      return -1;
+    }
+
+    // Retrieves the security bits for the component
+    component_sec_bits = EVP_PKEY_security_bits(single_key);
+
+    // Updates the composite security bits if the component's
+    // strength is higher than the previous components
+    if (sec_bits < component_sec_bits) sec_bits = component_sec_bits;
+  }
+
+  // All Done
+  return sec_bits;
+}
+
 void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
   
   // Input Checks
   if (!key) return;
 
   // Clears the components
-  if (key->components) {
-    COMPOSITE_KEY_STACK_pop_free(key->components);
-    key->components = NULL;
-  }
+  COMPOSITE_KEY_STACK_pop_free(key->components);
 
   // Clears the params
   if (key->params) ASN1_INTEGER_free(key->params);
@@ -230,5 +364,34 @@ void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
   // Free the memory
   PKI_ZFree(key, sizeof(COMPOSITE_KEY));
 }
+
+int COMPOSITE_KEY_set_kofn(COMPOSITE_KEY * comp_key, int kofn) {
+
+  // Input Checks
+  if (!comp_key) return PKI_ERR;
+
+  // Sets the K-of-N value  
+  if (!comp_key->params) ASN1_INTEGER_new();
+  ASN1_INTEGER_set(comp_key->params, kofn);
+
+  // All Done  
+  return PKI_OK;
+}
+
+int COMPOSITE_KEY_get_kofn(COMPOSITE_KEY * comp_key) {
+  
+  int ret = 0;
+    // Return value
+
+  // Input Checks
+  if (!comp_key) return PKI_ERR;
+  
+  // Returns the K-of-N value  
+  ret = (int) ASN1_INTEGER_get(comp_key->params);
+
+  // All Done
+  return ret;
+}
+
 
 // END: composite_internals.c

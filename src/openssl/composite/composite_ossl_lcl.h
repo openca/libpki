@@ -240,4 +240,4 @@ struct evp_pkey_method_st {
 #endif
 #endif
 
-/* END: composite_ossl_internals.h */
+/* END: composite_ossl_lcl.h */

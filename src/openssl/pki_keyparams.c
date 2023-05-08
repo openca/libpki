@@ -31,6 +31,8 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		return NULL;
 	}
 
+	kp->comp.k_of_n = NULL;
+
 #endif
 
 	if (prof) {

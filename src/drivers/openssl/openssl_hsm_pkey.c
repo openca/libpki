@@ -386,9 +386,12 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
 
     if ((k = COMPOSITE_KEY_new()) == NULL) {
         // Memory Allocation Error
-        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Too low Entropy");
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
         return NULL;
     }
+
+    fprintf(stderr, "[%s:%s():%d] Composite Key Param: pointer = 0x%p, value = %ld\n", 
+        __FILE__, __func__, __LINE__, kp->comp.k_of_n, ASN1_INTEGER_get(kp->comp.k_of_n));
 
     if (kp->comp.k_stack != NULL) {
 
@@ -409,6 +412,12 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
             //     goto err;
             // }
         }
+    }
+
+    // Adds the Parameter (k-of-n) to the key
+    if (kp->comp.k_of_n != NULL) {
+        if (k->params) ASN1_INTEGER_free(k->params);
+        k->params = ASN1_INTEGER_dup(kp->comp.k_of_n);
     }
 
     // All Done.
