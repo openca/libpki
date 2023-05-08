@@ -7,7 +7,7 @@
 #define _LIBPKI_COMPOSITE_UTILS_H
 
 #ifndef _LIBPKI_COMPOSITE_LOCAL_H
-#include <libpki/openssl/composite/composite_internals.h>
+#include <libpki/openssl/composite/composite_key.h>
 #endif
 
 #ifndef _LIBPKI_PKI_X509_H

@@ -1,8 +1,5 @@
-#include <libpki/pki.h>
-#include <libpki/scep/scep.h>
 
-#include <openssl/cms.h>
-#include <libpki/pki_x509_cms.h>
+#include <libpki/drivers/openssl/openssl_hsm_cb.h>
 
 const PKI_X509_CALLBACKS PKI_OPENSSL_X509_KEYPAIR_CALLBACKS = {
 	// Memory Management

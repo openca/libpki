@@ -1,10 +1,14 @@
 
-#ifndef _LIBPKI_TOKEN_H
-#define _LIBPKI_TOKEN_H
+#ifndef _LIBPKI_TOKEN_ST_H
+#define _LIBPKI_TOKEN_ST_H
 
+#ifndef _LIBPKI_CONF_H
+#include <libpki/pki_config.h>
+#endif
+
+#ifndef _LIBPKI_STACK_H
 #include <libpki/stack.h>
-#include <libpki/drivers/engine/engine_st.h>
-#include <libpki/hsm_st.h>
+#endif
 
 /* Structure for PKI_TOKEN definition */
 typedef struct pki_token_st {

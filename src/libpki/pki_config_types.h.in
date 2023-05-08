@@ -6,6 +6,9 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_CONF_TYPES_H
+#define _LIBPKI_CONF_TYPES_H
+
 #ifndef _LIBPKI_XMLINCLUDES_H
 # include <libxml/xmlmemory.h>
 # include <libxml/parser.h>
@@ -20,9 +23,6 @@
 #ifndef _LIBPKI_PKI_IO_H
 # include <libpki/pki_io.h>
 #endif
-
-#ifndef _LIBPKI_CONF_H
-#define _LIBPKI_CONF_H
 
 #define PKI_CONFIG                xmlDoc
 #define PKI_CONFIG_ELEMENT        xmlNode

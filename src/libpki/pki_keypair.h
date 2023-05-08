@@ -3,13 +3,17 @@
 #ifndef _LIBPKI_X509_KEYPAIR_HEADER_H
 #define _LIBPKI_X509_KEYPAIR_HEADER_H
 
-#ifdef _LIBPKI_HEADER_DATA_ST_H
-#include <libpki/openssl/data_st.h>
+#ifndef _LIBPKI_PKI_KEYPAIR_TYPES_H
+#include <libpki/pki_keypair_types.h>
 #endif
 
-#ifndef _LIBPKI_PKI_DATATYPES_H
-#include <libpki/datatypes.h>
-#endif
+// #ifdef _LIBPKI_HEADER_DATA_ST_H
+// #include <libpki/openssl/data_st.h>
+// #endif
+
+// #ifndef _LIBPKI_PKI_DATATYPES_H
+// #include <libpki/datatypes.h>
+// #endif
 
 typedef struct pw_cb_data {
 	const void *password;

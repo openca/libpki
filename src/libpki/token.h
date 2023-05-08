@@ -1,13 +1,15 @@
 /* token.h */
 
+#ifndef _LIBPKI_TOKEN_HEADERS_H
+#define _LIBPKI_TOKEN_HEADERS_H
+
 #ifndef _LIBPKI_X509_PROFILE_H
 # include <libpki/pki_x509_profile.h>
 #endif
 
-#ifndef _LIBPKI_TOKEN_HEADERS_H
-#define _LIBPKI_TOKEN_HEADERS_H
-
+#ifndef _LIBPKI_TOKEN_ST_H
 #include <libpki/token_st.h>
+#endif
 
 /* Memory related functions */
 PKI_TOKEN *PKI_TOKEN_new_null( void );

@@ -18808,7 +18808,7 @@ etc_dir=${prefix}/etc
 
 
 
-ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/composite/Makefile src/openssl/pqc/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
+ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/composite/Makefile src/openssl/pqc/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config_types.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
 
 
 cat >confcache <<\_ACEOF
@@ -19906,7 +19906,7 @@ do
     "src/tools/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/Makefile" ;;
     "src/scripts/libpki-config") CONFIG_FILES="$CONFIG_FILES src/scripts/libpki-config" ;;
     "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;
-    "src/libpki/pki_config.h") CONFIG_FILES="$CONFIG_FILES src/libpki/pki_config.h" ;;
+    "src/libpki/pki_config_types.h") CONFIG_FILES="$CONFIG_FILES src/libpki/pki_config_types.h" ;;
     "src/libpki/libpkiv.h") CONFIG_FILES="$CONFIG_FILES src/libpki/libpkiv.h" ;;
     "contrib/libpki.pc") CONFIG_FILES="$CONFIG_FILES contrib/libpki.pc" ;;
     "contrib/libpki-inst.xml") CONFIG_FILES="$CONFIG_FILES contrib/libpki-inst.xml" ;;

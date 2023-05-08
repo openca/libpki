@@ -15,15 +15,17 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(COND_INCLUDES)
 
 OPENSSL_INTERNAL_SRCS = \
-	composite_key.c \
-	composite_ossl_internals.h \
-	composite_ameth.h
+	composite_ossl_lcl.h \
+	composite_ameth_lcl.h \
+	composite_ameth.c \
+	composite_pmeth_lcl.h \
+	composite_pmeth.c
 
 nobase_include_HEADERS = 
 
 COMPOSITE_SRCS = \
-	composite_ameth.c \
-	composite_pmeth.c \
+	composite_key.c \
+	composite_ctx.c \
 	composite_err.c \
 	composite_utils.c \
 	composite_init.c \

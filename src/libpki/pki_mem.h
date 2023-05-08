@@ -14,25 +14,18 @@
 
 /* Functions prototypes*/
 
+#ifndef _LIBPKI_PKI_MEM_H
+#define _LIBPKI_PKI_MEM_H
+
+#ifndef _LIBPKI_PKI_MEM_TYPES_H
+#include <libpki/pki_mem_types.h>
+#endif
+
 #ifndef _LIBPKI_PKI_IO_H
 #include <libpki/pki_io.h>
 #endif
 
-#ifndef _LIBPKI_PKI_MEM_H
-#define _LIBPKI_PKI_MEM_H
-
-typedef struct pki_mem_st {
-	unsigned char * data;
-	// size_t current;
-	size_t size;
-} PKI_MEM;
-
 /* Function prototypes */
-
-void *PKI_Malloc( size_t size );
-void PKI_Free( void *ret );
-void PKI_ZFree ( void *pnt, size_t size );
-void PKI_ZFree_str ( char *str );
 
 PKI_MEM *PKI_MEM_new ( size_t size );
 

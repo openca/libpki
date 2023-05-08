@@ -3,13 +3,39 @@
 #ifndef _LIBPKI_PKI_X509_H
 #define _LIBPKI_PKI_X509_H
 
+#ifndef _LIBPKI_PKI_X509_TYPES_H
+#include <libpki/pki_x509_types.h>
+#endif
+
 #ifndef _LIBPKI_HSM_MAIN_H
 #include <libpki/drivers/hsm_main.h>
 #endif
 
-// ===================
-// Function Prototypes
-// ===================
+#ifndef _LIBPKI_PKI_STACK_H
+#include <libpki/stack.h>
+#endif
+
+						// =============================
+						// Stack Definition for PKI_X509
+						// =============================
+
+/* define for X509 stacks - implement object type casting */
+#define PKI_STACK_X509_new() (PKI_X509_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_free)
+#define PKI_STACK_X509_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
+#define PKI_STACK_X509_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
+#define PKI_STACK_X509_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
+#define PKI_STACK_X509_pop(p) (PKI_X509 *) PKI_STACK_pop( (PKI_STACK *) p )
+#define PKI_STACK_X509_get_num(p,n) \
+		(PKI_X509 *) PKI_STACK_get_num( (PKI_STACK *)p, n)
+#define PKI_STACK_X509_ins_num(p,n,obj) \
+		PKI_STACK_ins_num((PKI_STACK *)p,n,(void *)obj)
+#define PKI_STACK_X509_del_num(p,n) \
+		PKI_STACK_del_num((PKI_STACK *)p, n)
+#define PKI_STACK_X509_elements(p) PKI_STACK_elements((PKI_STACK *)p)
+
+					// ===================
+					// Function Prototypes
+					// ===================
 
 const PKI_X509_CALLBACKS *PKI_X509_CALLBACKS_get ( PKI_DATATYPE type, struct hsm_st *hsm );
 

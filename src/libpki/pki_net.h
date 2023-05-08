@@ -1,21 +1,10 @@
-/* I/O headers */
-
-#ifndef _LIBPKI_IO_H
-#define _LIBPKI_IO_H
+/* src/libpki/	pki_net.h */
+#ifndef _LIBPKI_NET_H
+#define _LIBPKI_NET_H
 
 #ifndef _LIBPKI_PKI_DATATYPES_H
 #include <libpki/datatypes.h>
 #endif
-
-#ifndef _LIBPKI_PKI_X509_IO_H
-#include <libpki/pki_net.h>
-#endif
-
-// =================
-// External Includes
-// =================
-
-#include <openssl/bio.h>
 
 // =====================
 // Local LibPKI Includes

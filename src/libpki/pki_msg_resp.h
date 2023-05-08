@@ -3,6 +3,18 @@
 #ifndef _LIBPKI_PKI_MSG_RESP_H
 #define _LIBPKI_PKI_MSG_RESP_H
 
+#ifndef _LIBPKI_PKI_DATATYPES_H
+#include <libpki/datatypes.h>
+#endif
+
+#ifndef _LIBPKI_HEADER_DATA_ST_H
+#include <libpki/openssl/data_st.h>
+#endif
+
+#ifndef _LIBPKI_SCEP_TYPES_H
+#include <libpki/scep/scep_types.h>
+#endif
+
 /* --------------------------- Functions -------------------------- */
 
 /*! \brief Returns an empty generic PKI response message */

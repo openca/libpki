@@ -2,6 +2,8 @@
 #ifndef _LIBPKI_THREADS_VARS_
 #define _LIBPKI_THREADS_VARS_
 
+#include <libpki/os.h>
+
 /* ------------------------ Generic Functions ---------------------- */
 
 struct timespec * PKI_clock_gettime ( void );

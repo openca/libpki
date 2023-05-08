@@ -1,18 +1,36 @@
+#ifndef _LIBPKI_HSM_ST_H
+#define _LIBPKI_HSM_ST_H
+
+
+#include <libpki/os.h>
+
+#ifndef _LIBPKI_PKI_KEYPAIR_TYPES_H
+#include <libpki/pki_keypair_types.h>
+#endif
 
 #ifndef _LIBPKI_URL_H
-# include <libpki/net/url.h>
+# include <libpki/net/url_types.h>
 #endif
 
 #ifndef _LIBPKI_PKI_CONFIG_H
-# include <libpki/pki_config.h>
+# include <libpki/pki_config_types.h>
 #endif
 
-#ifndef _LIBPKI_PKI_X509_DATATYPES_ST_H
-# include <libpki/pki_x509_data_st.h>
+#ifndef _LIBPKI_PKI_DATATYPES_H
+#include <libpki/pki_datatypes.h>
 #endif
 
-#ifndef _LIBPKI_HSM_ST_H
-#define _LIBPKI_HSM_ST_H
+#ifndef _LIBPKI_PKI_X509_TYPES_H
+# include <libpki/pki_x509_types.h>
+#endif
+
+#ifndef _LIBPKI_PKI_CRED_H
+#include <libpki/pki_cred.h>
+#endif
+
+#include <libpki/pki_keypair_types.h>
+
+#include <libpki/pki_mem_types.h>
 
 #define MANUFACTURER_ID_SIZE   32
 #define DESCRIPTION_SIZE       32
@@ -172,39 +190,40 @@ typedef struct hsm_slot_info_st {
 } HSM_SLOT_INFO;
 
 /* Forward Declarations */
-struct hsm_st;
-// typedef struct hsm_st HSM;
+// struct hsm_st;
+typedef struct hsm_st HSM;
 
-struct pki_mem_st;
-// typedef struct pki_mem_st PKI_MEM;
+// // struct pki_mem_st;
+typedef struct pki_mem_st PKI_MEM;
 
-#ifndef _LIBPKI_PKI_X509_DATA_ST_H
+// #ifndef _LIBPKI_PKI_X509_TYPES_H
 
-  /* Forward Declaration for PKI_X509 structure */
-  struct pki_x509_st;
-//  typedef struct pki_x509_st PKI_X509;
+//   /* Forward Declaration for PKI_X509 structure */
+//   struct pki_x509_st;
+ typedef struct pki_x509_st PKI_X509;
 
-  /* Forward Definition for PKI_X509_CERT */
-  #define PKI_X509_CERT PKI_X509
+//   /* Forward Definition for PKI_X509_CERT */
+//   #define PKI_X509_CERT PKI_X509
 
-  /* Forward Declaration of URL structure */
-  struct url_data_st;
-//  typedef struct url_data_st URL;
+//   /* Forward Declaration of URL structure */
+//   struct url_data_st;
+ typedef struct url_data_st URL;
 
-  /* Forward Declaration of PKI_STACK and PKI_X509_STACK */
-  struct pki_stack_st;
-//  typedef struct pki_stack_st PKI_STACK;
-//  typedef PKI_STACK PKI_X509_STACK;
+//   /* Forward Declaration of PKI_STACK and PKI_X509_STACK */
+//   struct pki_stack_st;
+// //  typedef struct pki_stack_st PKI_STACK;
+// //  typedef PKI_STACK PKI_X509_STACK;
 
-  /* Forward Declaration of PKI_X509_CALLBACKS structure */
-  struct pki_x509_callbacks_st;
-//  typedef struct pki_x509_callbacks_st PKI_X509_CALLBACKS;
+//   /* Forward Declaration of PKI_X509_CALLBACKS structure */
+//   struct pki_x509_callbacks_st;
+typedef struct pki_x509_callbacks_st PKI_X509_CALLBACKS;
 
-  /* Forward Declaration of PKI_X509_PROFILE structure */
-  struct _xmlDoc;
-//  typedef struct xmlDoc PKI_X509_PROFILE;
+//   /* Forward Declaration of PKI_X509_PROFILE structure */
+//   struct _xmlDoc;
+// //  typedef struct xmlDoc PKI_X509_PROFILE;
 
-#endif
+// #endif
+
 
 typedef struct callbacks_st {
   /* ------------- HSM Management functions --------------- */

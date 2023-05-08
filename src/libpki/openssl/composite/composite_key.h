@@ -3,159 +3,34 @@
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 
-#ifndef _LIBPKI_COMPOSITE_LOCAL_H
-#define _LIBPKI_COMPOSITE_LOCAL_H
+#ifndef _LIBPKI_COMPOSITE_KEY_H
+#define _LIBPKI_COMPOSITE_KEY_H
 
-#include <openssl/x509.h>
-#include <openssl/asn1t.h>
-#include <openssl/evp.h>
-
-#ifndef _LIBPKI_OID_DEFS_H
-#include <libpki/openssl/pki_oid_defs.h>
+#ifndef _LIBPKI_COMPOSITE_CTX_H
+#include <libpki/openssl/composite/composite_ctx.h>
 #endif
 
 #ifndef _LIBPKI_COMPAT_H
 #include <libpki/compat.h>
 #endif
 
-#ifndef _LIBPKI_LOG_H
-#include <libpki/pki_log.h>
+#ifndef _LIBPKI_COMPOSITE_UTILS_H
+#include <libpki/openssl/composite/composite_utils.h>
+#endif
+
+#ifndef _LIBPKI_HEADER_DATA_ST_H
+#include <libpki/openssl/data_st.h>
 #endif
 
 #ifndef _LIBPKI_ERRORS_H
 #include <libpki/pki_err.h>
 #endif
 
-#ifndef _LIBPKI_KEYPAIR_H
-#include <libpki/pki_keypair.h>
-#endif
-
 BEGIN_C_DECLS
-
-// ========================
-// Composite Crypto Support
-// ========================
-
-// Basic CTRL values for COMPOSITE support
-# define EVP_PKEY_CTRL_COMPOSITE_PUSH    0x201
-# define EVP_PKEY_CTRL_COMPOSITE_POP     0x202
-# define EVP_PKEY_CTRL_COMPOSITE_ADD     0x203
-# define EVP_PKEY_CTRL_COMPOSITE_DEL     0x204
-# define EVP_PKEY_CTRL_COMPOSITE_CLEAR   0x205
-
-// ==============================
-// Declarations & Data Structures
-// ==============================
-
-DEFINE_STACK_OF(EVP_PKEY);
-  // Provides the Definition for the stack of keys
-
-/*! \brief Stack of Composite Key Components (EVP_PKEY) */
-typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY_STACK;
-
-/*!
- * \brief Structure to hold the stack of key components
- *        and validation param (K of N)
- */
-typedef struct _libpki_composite_key_st {
-  COMPOSITE_KEY_STACK * components;
-  ASN1_INTEGER * params;
-} COMPOSITE_KEY;
-
-/*!
- * @brief Defines a stack of MDs
- * @note  This is used to define the MDs used for
- *        signature calculation
- */
-DEFINE_STACK_OF(EVP_MD);
-typedef STACK_OF(EVP_MD) COMPOSITE_MD_STACK;
-
-/*!
- * @brief Defines a stack of PKEY contexts
- */
-DEFINE_STACK_OF(EVP_PKEY_CTX);
-
-/*! 
- * @brief Defines a s tack of PKI_DIGEST_ALG contexts
- */
-DEFINE_STACK_OF(EVP_MD_CTX);
-
-
-/*!
- * @brief Composite Key Context structure
-*/
-typedef struct _libpki_composite_ctx {
-
-  // MD for Hash-N-Sign
-  const EVP_MD * md;
-
-  // Key Components for Key Generation
-  COMPOSITE_KEY_STACK * components;
-
-  // Stack of Algorithm Identifiers for signatures
-  COMPOSITE_MD_STACK * components_md;
-
-  // Key Generation Parameters
-  ASN1_INTEGER * params;
-
-} COMPOSITE_CTX;
-
-// // Used to Concatenate the encodings of the different
-// // components when encoding via the ASN1 meth (priv_encode)
-// DEFINE_STACK_OF(ASN1_OCTET_STRING)
-
-// Used to Concatenate the encodings of the different
-// components when encoding via the ASN1 meth (priv_encode)
-DEFINE_STACK_OF(ASN1_BIT_STRING)
 
 // ====================
 // Functions Prototypes
 // ====================
-
-// COMPOSITE_CTX: Utility Functions
-// --------------------------------
-
-/*! \brief Allocates a new Composite CTX */
-COMPOSITE_CTX * COMPOSITE_CTX_new_null();
-
-/*! \brief Frees the memory associated with a Composite CTX */
-void COMPOSITE_CTX_free(COMPOSITE_CTX * ctx);
-
-/*! \brief Allocates a new Composite CTX from an MD */
-COMPOSITE_CTX * COMPOSITE_CTX_new(const PKI_DIGEST_ALG * md);
-
-/*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_set_md(COMPOSITE_CTX * ctx, const PKI_DIGEST_ALG * md);
-
-/*! \brief Returns the MD set for the CTX */
-const EVP_MD * COMPOSITE_CTX_get_md(COMPOSITE_CTX * ctx);
-
-/*! \brief Adds a new key to the CTX for Key Generation Ops */
-int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * comp_ctx, 
-                            PKI_X509_KEYPAIR_VALUE * pkey,
-                            const PKI_DIGEST_ALG   * md);
-
-/*! \brief Removes and returns an entry from the stack of Keys */
-int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * ctx,
-                           PKI_X509_KEYPAIR_VALUE ** pkey,
-                           const PKI_DIGEST_ALG   ** md);
-
-/*! \brief Clears the stack of keys in the Composite CTX */
-int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * ctx);
-
-/*! \brief Returns a reference to the stack of keys from the CTX */
-int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
-                                  const COMPOSITE_KEY_STACK ** const components,
-                                  const COMPOSITE_MD_STACK  ** components_md);
-
-/*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
-                                  COMPOSITE_KEY_STACK * const components,
-                                  COMPOSITE_MD_STACK  * const components_md);
-
-/*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_X509_get_algors(COMPOSITE_CTX  * ctx,
-                                  X509_ALGORS   ** algors);
 
 // COMPOSITE_KEY: Stack Aliases
 // ----------------------------
@@ -200,6 +75,51 @@ int COMPOSITE_CTX_X509_get_algors(COMPOSITE_CTX  * ctx,
 /// @brief Pops and free all components from the stack
 /// @param key The stack to empty
 void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk);
+
+// COMPOSITE_MD: Stack Aliases
+// ----------------------------
+
+#define COMPOSITE_MD_STACK_new()                sk_EVP_MD_new_null()
+  // Allocates a new stack of EVP_PKEY
+
+#define COMPOSITE_MD_STACK_free(p)              PKI_STACK_free ((PKI_STACK *)p)
+  // Free a stack of EVP_PKEYs
+
+#define COMPOSITE_MD_STACK_new_null()           sk_EVP_MD_new_null()
+  // Allocates a new stack of EVP_PKEY
+
+#define COMPOSITE_MD_STACK_push(key, val)       sk_EVP_MD_push(key, val)
+  // Pushes a new EVP_PKEY to the key
+
+#define COMPOSITE_MD_STACK_pop(key)             sk_EVP_MD_pop(key)
+  // Removes the last EVP_PKEY from the key
+
+#define COMPOSITE_MD_STACK_num(key)             sk_EVP_MD_num(key)
+  // Gets the number of components of a key
+
+#define COMPOSITE_MD_STACK_value(key, num)      sk_EVP_MD_value(key, num)
+  // Returns the num-th EVP_PKEY in the stack
+
+#define COMPOSITE_MD_STACK_add(key, value, num) sk_EVP_MD_insert(key, value, num)
+  // Adds a component at num-th position
+
+#define COMPOSITE_MD_STACK_del(key, num)        sk_EVP_MD_delete(key, num)
+  // Deletes the num-th component from the key
+
+#define COMPOSITE_MD_STACK_get0(key, num)       sk_EVP_MD_value(key, num)
+  // Alias for the COMPOSITE_KEY_num() define
+
+#define COMPOSITE_MD_STACK_dup(key)             sk_EVP_MD_dup(key)
+  // Duplicates (deep copy) the key
+
+//! @brief Free all the entries, but not the stack structure itself
+//! @brief Pops and free all components from the stack
+//! @param key The stack to empty
+void COMPOSITE_MD_STACK_clear(COMPOSITE_MD_STACK * sk);
+
+//! @brief Free all the entries together with the stack structure itself
+//! @param key The stack to empty
+void COMPOSITE_MD_STACK_pop_free(COMPOSITE_MD_STACK * sk);
 
 // COMPOSITE_KEY: Allocation and management functions
 // --------------------------------------------------

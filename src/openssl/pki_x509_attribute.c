@@ -1,6 +1,7 @@
 /* src/openssl/pki_x509_attribute.c */
 
-#include <libpki/pki.h>
+#include <libpki/pki_x509_attribute.h>
+
 #include "internal/x509_data_st.h"
 
 /*! \brief Frees the memory associated with a PKI_X509_ATTRIBUTE */

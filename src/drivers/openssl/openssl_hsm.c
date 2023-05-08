@@ -1,7 +1,24 @@
 /* HSM Object Management Functions */
 
-// Single Include
+#ifndef _LIBPKI_HSM_OPENSSL_H
 #include <libpki/drivers/openssl/openssl_hsm.h>
+#endif
+
+#ifndef _LIBPKI_HEADERS_OPENSSL_PKEY_H
+#include <libpki/drivers/openssl/openssl_hsm_pkey.h>
+#endif
+
+#ifndef _LIBPKI_OPENSSL_HSM_CB_H
+#include <libpki/drivers/openssl/openssl_hsm_cb.h>
+#endif
+
+#ifndef _LIBPKI_ERR_H
+#include <libpki/pki_err.h>
+#endif
+
+#ifndef HEADER_ERR_H
+#include <openssl/err.h>
+#endif
 
 /* Callbacks for Software OpenSSL HSM */
 const HSM_CALLBACKS openssl_hsm_callbacks = {

@@ -1,0 +1,69 @@
+/*
+ * OpenCA SCEP 
+ *
+ * (c) 2002-2009 by Massimiliano Pala and OpenCA Labs
+ *
+ * Thanks to the OpenSCEP group for their work and help
+ *
+ */
+
+#ifndef _LIBPKI_SCEP_TYPES_H_
+#define _LIBPKI_SCEP_TYPES_H_
+
+#define TRANS_ID_SIZE				16
+
+typedef struct scep_oid_st {
+	int  attr_type;
+	char *oid_s;
+	char *descr;
+	char *long_descr;
+	int  nid;
+} SCEP_CONF_ATTRIBUTE;
+
+/* These should be in the same order than the SCEP_ATTRIBUTE_list in scep_attrs.c */
+typedef enum {
+	SCEP_ATTRIBUTE_TYPE_UNKNOWN			= -1,
+	SCEP_ATTRIBUTE_MESSAGE_TYPE 		= 0,
+	SCEP_ATTRIBUTE_PKI_STATUS,
+	SCEP_ATTRIBUTE_FAIL_INFO,
+	SCEP_ATTRIBUTE_SENDER_NONCE,
+	SCEP_ATTRIBUTE_RECIPIENT_NONCE,
+	SCEP_ATTRIBUTE_TRANS_ID,
+	SCEP_ATTRIBUTE_EXTENSION_REQ,
+	SCEP_ATTRIBUTE_PROXY_AUTH
+} SCEP_ATTRIBUTE_TYPE;
+
+typedef enum {
+	PKI_X509_SCEP_MSG_UNKNOWN 			= -1,
+	PKI_X509_SCEP_MSG_V2REQUEST 		= 17,
+	PKI_X509_SCEP_MSG_V2PROXY 			= 18,
+	PKI_X509_SCEP_MSG_PKCSREQ 			= 19,
+	PKI_X509_SCEP_MSG_CERTREP 			= 3,
+	PKI_X509_SCEP_MSG_GETCERTINITIAL 	= 20,
+	PKI_X509_SCEP_MSG_GETCERT 			= 21,
+	PKI_X509_SCEP_MSG_GETCRL 			= 22
+} SCEP_MESSAGE_TYPE;
+
+typedef enum {
+	SCEP_STATUS_SUCCESS			= 0,
+	SCEP_STATUS_FAILURE			= 2,
+	SCEP_STATUS_PENDING			= 3
+} SCEP_STATUS;
+
+typedef enum {
+	SCEP_FAILURE_BADALG				= 0,
+	SCEP_FAILURE_BADMESSAGECHECK	= 1,
+	SCEP_FAILURE_BADREQUEST			= 2,
+	SCEP_FAILURE_BADTIME			= 3,
+	SCEP_FAILURE_BADCERTID			= 4
+} SCEP_FAILURE;
+
+#define SCEP_NONCE						PKI_MEM
+#define NONCE_SIZE						16
+
+#define PKI_X509_SCEP_MSG_VALUE			PKCS7
+#define PKI_X509_SCEP_DATA				PKI_X509_PKCS7
+#define	PKI_X509_SCEP_MSG				PKI_X509_PKCS7
+
+#endif
+

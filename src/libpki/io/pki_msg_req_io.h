@@ -5,7 +5,7 @@
 #endif
 
 #ifndef _LIBPKI_PKI_MSG_H
-# include <libpki/pki_msg.h>
+# include <libpki/pki_msg_types.h>
 #endif
 
 #ifndef _LIBPKI_PKI_CRED_H

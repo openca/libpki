@@ -141,8 +141,9 @@ libpki_la_DEPENDENCIES = $(CRYPTO_SRC_PREFIX)/libpki-openssl.la \
 	drivers/libpki-token.la io/libpki-io.la net/libpki-net.la \
 	cmc/libpki-cmc.la est/libpki-est.la scep/libpki-scep.la \
 	prqp/libpki-prqp.la
-am__objects_1 = libpki_la-banners.lo libpki_la-pki_init.lo \
-	libpki_la-stack.lo libpki_la-pki_mem.lo libpki_la-pki_cred.lo \
+am__objects_1 = libpki_la-banners.lo libpki_la-stack.lo \
+	libpki_la-pki_init.lo libpki_la-pki_memory.lo \
+	libpki_la-pki_mem.lo libpki_la-pki_cred.lo \
 	libpki_la-pki_err.lo libpki_la-pki_log.lo \
 	libpki_la-pki_threads_vars.lo libpki_la-pki_threads.lo \
 	libpki_la-token.lo libpki_la-token_id.lo \
@@ -184,6 +185,7 @@ am__depfiles_remade = ./$(DEPDIR)/libpki_la-banners.Plo \
 	./$(DEPDIR)/libpki_la-pki_init.Plo \
 	./$(DEPDIR)/libpki_la-pki_log.Plo \
 	./$(DEPDIR)/libpki_la-pki_mem.Plo \
+	./$(DEPDIR)/libpki_la-pki_memory.Plo \
 	./$(DEPDIR)/libpki_la-pki_msg_req.Plo \
 	./$(DEPDIR)/libpki_la-pki_msg_resp.Plo \
 	./$(DEPDIR)/libpki_la-pki_threads.Plo \
@@ -568,8 +570,9 @@ nobase_include_HEADERS = \
 
 SRCS = \
 	banners.c\
-	pki_init.c \
 	stack.c \
+	pki_init.c \
+	pki_memory.c \
 	pki_mem.c \
 	pki_cred.c \
 	pki_err.c \
@@ -732,6 +735,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_init.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_log.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_mem.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_memory.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_msg_req.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_msg_resp.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_la-pki_threads.Plo@am__quote@ # am--include-marker
@@ -783,6 +787,13 @@ libpki_la-banners.lo: banners.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -c -o libpki_la-banners.lo `test -f 'banners.c' || echo '$(srcdir)/'`banners.c
 
+libpki_la-stack.lo: stack.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -MT libpki_la-stack.lo -MD -MP -MF $(DEPDIR)/libpki_la-stack.Tpo -c -o libpki_la-stack.lo `test -f 'stack.c' || echo '$(srcdir)/'`stack.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_la-stack.Tpo $(DEPDIR)/libpki_la-stack.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='stack.c' object='libpki_la-stack.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -c -o libpki_la-stack.lo `test -f 'stack.c' || echo '$(srcdir)/'`stack.c
+
 libpki_la-pki_init.lo: pki_init.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -MT libpki_la-pki_init.lo -MD -MP -MF $(DEPDIR)/libpki_la-pki_init.Tpo -c -o libpki_la-pki_init.lo `test -f 'pki_init.c' || echo '$(srcdir)/'`pki_init.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_la-pki_init.Tpo $(DEPDIR)/libpki_la-pki_init.Plo
@@ -790,12 +801,12 @@ libpki_la-pki_init.lo: pki_init.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -c -o libpki_la-pki_init.lo `test -f 'pki_init.c' || echo '$(srcdir)/'`pki_init.c
 
-libpki_la-stack.lo: stack.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -MT libpki_la-stack.lo -MD -MP -MF $(DEPDIR)/libpki_la-stack.Tpo -c -o libpki_la-stack.lo `test -f 'stack.c' || echo '$(srcdir)/'`stack.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_la-stack.Tpo $(DEPDIR)/libpki_la-stack.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='stack.c' object='libpki_la-stack.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_la-pki_memory.lo: pki_memory.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -MT libpki_la-pki_memory.lo -MD -MP -MF $(DEPDIR)/libpki_la-pki_memory.Tpo -c -o libpki_la-pki_memory.lo `test -f 'pki_memory.c' || echo '$(srcdir)/'`pki_memory.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_la-pki_memory.Tpo $(DEPDIR)/libpki_la-pki_memory.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_memory.c' object='libpki_la-pki_memory.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -c -o libpki_la-stack.lo `test -f 'stack.c' || echo '$(srcdir)/'`stack.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -c -o libpki_la-pki_memory.lo `test -f 'pki_memory.c' || echo '$(srcdir)/'`pki_memory.c
 
 libpki_la-pki_mem.lo: pki_mem.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_la_CFLAGS) $(CFLAGS) -MT libpki_la-pki_mem.lo -MD -MP -MF $(DEPDIR)/libpki_la-pki_mem.Tpo -c -o libpki_la-pki_mem.lo `test -f 'pki_mem.c' || echo '$(srcdir)/'`pki_mem.c
@@ -1161,6 +1172,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libpki_la-pki_init.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_log.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_mem.Plo
+	-rm -f ./$(DEPDIR)/libpki_la-pki_memory.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_msg_req.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_msg_resp.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_threads.Plo
@@ -1227,6 +1239,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libpki_la-pki_init.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_log.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_mem.Plo
+	-rm -f ./$(DEPDIR)/libpki_la-pki_memory.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_msg_req.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_msg_resp.Plo
 	-rm -f ./$(DEPDIR)/libpki_la-pki_threads.Plo

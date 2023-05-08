@@ -1792,7 +1792,7 @@ AC_CONFIG_FILES(
 	src/tools/Makefile
 	src/scripts/libpki-config
 	src/tests/Makefile
-	src/libpki/pki_config.h
+	src/libpki/pki_config_types.h
 	src/libpki/libpkiv.h
 	contrib/libpki.pc
 	contrib/libpki-inst.xml

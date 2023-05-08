@@ -1129,43 +1129,6 @@ typedef enum {
 // Default for ASN1 flag
 #define PKI_EC_KEY_ASN1_DEFAULT			PKI_EC_KEY_ASN1_NAMED_CURVE
 
-typedef struct pki_keyparams_st {
-	int bits;
-	PKI_SCHEME_ID scheme;
-	// RSA scheme parameters
-	struct {
-		int exponent;
-	} rsa;
-	// DSA scheme parameters
-
-#ifdef OPENSSL_NO_DSA
-	struct {} dsa;
-#endif
-
-#ifdef ENABLE_ECDSA
-	// EC scheme parameters
-	struct {
-		int curve;
-		PKI_EC_KEY_FORM form;
-		int asn1flags;
-	} ec;
-#endif // ENABLE_ECDSA
-
-#ifdef ENABLE_OQS
-	struct {
-		PKI_ALGOR_ID algId;
-	} oqs;
-#endif // ENABLE_OQS
-
-#ifdef ENABLE_COMPOSITE
-	struct {
-		PKI_X509_KEYPAIR_STACK * k_stack;
-		ASN1_INTEGER * k_of_n;
-	} comp;
-#endif
-
-} PKI_KEYPARAMS;
-
 #ifdef ENABLE_OQS
 
 typedef enum {
@@ -1188,8 +1151,8 @@ typedef struct pki_store_st {
         void	*store_ptr;
 } PKI_STORE;
 
-#define PKI_X509_KEYPAIR_VALUE  EVP_PKEY
-#define PKI_X509_KEYPAIR        PKI_X509
+// #define PKI_X509_KEYPAIR_VALUE  EVP_PKEY
+// #define PKI_X509_KEYPAIR        PKI_X509
 
 #define PKI_X509_CERT_VALUE     X509 	
 #define PKI_X509_CERT           PKI_X509 	
@@ -1244,8 +1207,8 @@ typedef enum {
 #define PKI_X509_PRQP_RESP_VALUE PKI_PRQP_RESP
 #define PKI_X509_PRQP_RESP       PKI_X509
 
-#include <libpki/hsm_st.h>
-#include <libpki/token_st.h>
+// #include <libpki/hsm_st.h>
+// #include <libpki/token_st.h>
 
 #define __B64_write_bio_internal(type,bio,data,p) ({ BIO *b64; int r;\
                 b64 = BIO_new(BIO_f_base64()) ; \

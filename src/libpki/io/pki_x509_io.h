@@ -1,19 +1,35 @@
 /* PKI_X509 I/O management */
 
+#ifndef _LIBPKI_PKI_X509_IO_H
+#define  _LIBPKI_PKI_X509_IO_H
+
+#ifndef _LIBPKI_OS_H
+#include <libpki/os.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_TYPES_H
+#include <libpki/pki_x509_types.h>
+#endif
+
 #ifndef _LIBPKI_PKI_DATATYPES_H
-# include <libpki/datatypes.h>
+#include <libpki/pki_datatypes.h>
+#endif
+
+#ifndef _LIBPKI_HSM_ST_H
+#include <libpki/hsm_st.h>
 #endif
 
 #ifndef _LIBPKI_PKI_URL_H
 # include <libpki/net/url.h>
 #endif
 
+#ifndef _LIBPKI_PKI_URL_TYPES_H
+# include <libpki/net/url_types.h>
+#endif
+
 #ifndef _LIBPKI_PKI_CRED_H
 # include <libpki/pki_cred.h>
 #endif
-
-#ifndef _LIBPKI_PKI_X509_IO_H
-#define  _LIBPKI_PKI_X509_IO_H
 
 /* ---------------------------- X509 get (read) ----------------------- */
 

@@ -387,6 +387,7 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
 
 		default:
 			// Non-Post Quantum
+			PKI_DEBUG("Scheme %d is not Post-Quantum", id);
 			return PKI_ERR;
 	}
 

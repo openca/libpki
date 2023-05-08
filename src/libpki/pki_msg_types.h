@@ -1,7 +1,11 @@
 /* src/libpki/pki_msg.h - General PKI message */
 
-#ifndef _LIBPKI_PKI_MSG_H
-#define _LIBPKI_PKI_MSG_H
+#ifndef _LIBPKI_PKI_MSG_TYPES_H
+#define _LIBPKI_PKI_MSG_TYPES_H
+
+#ifndef _LIBPKI_PKI_KEYPAIR_TYPES_H
+#include <libpki/pki_keypair_types.h>
+#endif
 
 /* --------------------------- Enums -------------------------- */
 

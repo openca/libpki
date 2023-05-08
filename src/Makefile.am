@@ -45,8 +45,9 @@ nobase_include_HEADERS = \
 
 SRCS = \
 	banners.c\
-	pki_init.c \
 	stack.c \
+	pki_init.c \
+	pki_memory.c \
 	pki_mem.c \
 	pki_cred.c \
 	pki_err.c \

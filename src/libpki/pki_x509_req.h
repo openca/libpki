@@ -3,6 +3,46 @@
 #ifndef _LIBPKI_PKI_X509_REQ_H
 #define _LIBPKI_PKI_X509_REQ_H
 
+// ================
+// OpenSSL Includes
+// ================
+
+#ifndef HEADER_X509_H
+#include <openssl/x509.h>
+#endif
+
+#ifndef HEADER_X509V3_H
+#include <openssl/x509v3.h>
+#endif
+
+// ===============
+// LibPKI Includes
+// ===============
+
+#ifndef _LIBPKI_OS_H
+#include <libpki/os.h>
+#endif
+
+#ifndef _LIBPKI_ERR_H
+#include <libpki/pki_err.h>
+#endif
+
+#ifndef _LIBPKI_X509_ATTRIBUTE_H_
+#include <libpki/pki_x509_attribute.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_TYPES_H
+#include <libpki/pki_x509_types.h>
+#endif
+
+#ifndef _LIBPKI_HEADER_DATA_ST_H
+#include <libpki/openssl/data_st.h>
+#endif
+
+// ====================
+// Function Definitions
+// ====================
+
 /* Create/Destroy REQ objects */
 PKI_X509_REQ * PKI_X509_REQ_new_null ( void );
 

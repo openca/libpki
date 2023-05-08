@@ -15,31 +15,9 @@
 #ifndef _LIBPKI_PKI_SOCKET_H_
 #define _LIBPKI_PKI_SOCKET_H_
 
-#include <libpki/net/ssl.h>
-
-typedef enum {
-	PKI_SOCKET_TYPE_UNKNOWN = -1,
-	PKI_SOCKET_FD	   = 0,
-	PKI_SOCKET_SSL	   = 1,
-} PKI_SOCKET_TYPE;
-
-typedef enum {
-	PKI_SOCKET_DISCONNECTED		= 0,
-	PKI_SOCKET_CONNECTED		= 1,
-} PKI_SOCKET_STATUS;
-
-typedef struct pki_socket_st {
-	PKI_SOCKET_TYPE type;
-	int status;
-
-	int fd;
-	PKI_SSL *ssl;
-
-	URL *url;
-
-} PKI_SOCKET;
-
-// #include <libpki/net/url.h>
+#ifndef _LIBPKI_PKI_SOCKET_TYPES_H
+#include <libpki/net/pki_socket_types.h>
+#endif
 
 /* PKI_SOCKET management functions */
 PKI_SOCKET *PKI_SOCKET_new ( void );

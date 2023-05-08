@@ -9,7 +9,7 @@
  */
 
 PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, 
-				  const PKI_X509_PROFILE *prof ) {
+				  				  const PKI_X509_PROFILE *prof ) {
 
 	PKI_KEYPARAMS *kp = NULL;
 		// Pointer to the data structure
@@ -30,6 +30,8 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		OPENSSL_free(kp);
 		return NULL;
 	}
+
+	kp->comp.k_of_n = NULL;
 
 #endif
 

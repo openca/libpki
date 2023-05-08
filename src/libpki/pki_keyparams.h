@@ -3,6 +3,14 @@
 #ifndef _LIBPKI_PKI_KEYPARAMS_H
 #define _LIBPKI_PKI_KEYPARAMS_H
 
+#ifndef _LIBPKI_PKI_DATATYPES_H
+#include <libpki/datatypes.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_KEYPAIR_H
+#include <libpki/pki_keypair_types.h>
+#endif
+
 /* Memory Management */
 PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID scheme,
 				 const PKI_X509_PROFILE *prof);

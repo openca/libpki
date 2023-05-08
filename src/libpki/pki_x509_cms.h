@@ -90,7 +90,13 @@ void PKI_X509_CMS_VALUE_free(PKI_X509_CMS_VALUE *cms);
 
 PKI_X509_CMS_VALUE *PKI_PEM_read_bio_CMS( BIO *bp );
 
-// int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o );
+// #if OPENSSL_VERSION_NUMBER <= 0x10101000L
+  
+  int PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o );
+
+  PKI_X509_CMS_VALUE *PEM_read_bio_CMS( PKI_IO *bp );
+
+// #endif
 
 /* ---------------------------- Functions ------------------------------- */
 

@@ -108,8 +108,9 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
 	$(top_builddir)/src/libpki/libpki_enables.h
-CONFIG_CLEAN_FILES = src/scripts/libpki-config src/libpki/pki_config.h \
-	src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml \
+CONFIG_CLEAN_FILES = src/scripts/libpki-config \
+	src/libpki/pki_config_types.h src/libpki/libpkiv.h \
+	contrib/libpki.pc contrib/libpki-inst.xml \
 	examples/prqp/Makefile examples/profiles/Makefile \
 	examples/token/Makefile examples/url/Makefile \
 	examples/crl/Makefile examples/pkcs11/Makefile \
@@ -398,7 +399,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/compile \
 	$(top_srcdir)/src/libpki/config.h.in \
 	$(top_srcdir)/src/libpki/libpki_enables.h.in \
 	$(top_srcdir)/src/libpki/libpkiv.h.in \
-	$(top_srcdir)/src/libpki/pki_config.h.in \
+	$(top_srcdir)/src/libpki/pki_config_types.h.in \
 	$(top_srcdir)/src/scripts/libpki-config.in AUTHORS COPYING \
 	ChangeLog INSTALL NEWS README TODO build/compile \
 	build/config.guess build/config.sub build/depcomp \
@@ -830,7 +831,7 @@ distclean-hdr:
 	-rm -f src/libpki/config.h src/libpki/stamp-h1 src/libpki/libpki_enables.h src/libpki/stamp-h2
 src/scripts/libpki-config: $(top_builddir)/config.status $(top_srcdir)/src/scripts/libpki-config.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
-src/libpki/pki_config.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/pki_config.h.in
+src/libpki/pki_config_types.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/pki_config_types.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 src/libpki/libpkiv.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/libpkiv.h.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

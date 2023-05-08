@@ -3,9 +3,27 @@
 #ifndef _LIBPKI_X509_ATTRIBUTE_H_
 #define _LIBPKI_X509_ATTRIBUTE_H_
 
+#ifndef _LIBPKI_STACK_TYPES_H
+#include <libpki/stack_types.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_TYPES_H
+#include <libpki/pki_x509_types.h>
+#endif
+
+#ifndef _LIBPKI_STRING_H
+#include <libpki/pki_string.h>
+#endif
+
+// ============================
+// Definition of X509_ATTRIBUTE
+// ============================
+
 #define PKI_X509_ATTRIBUTE	X509_ATTRIBUTE
 
-/* ------------------- PKI_X509_ATTRIBUTE_STACK ops -------------------- */
+// =========================================
+// Definition of the STACK of X509_ATTRIBUTE
+// =========================================
 
 #define PKI_X509_ATTRIBUTE_STACK 	STACK_OF(X509_ATTRIBUTE)
 
@@ -16,6 +34,9 @@
 #define PKI_STACK_X509_ATTRIBUTE_new_null() sk_X509_ATTRIBUTE_new_null()
 #define PKI_STACK_X509_ATTRIBUTE_push(a,b) sk_X509_ATTRIBUTE_push(a,b)
 
+// =========================
+// X509_ATTRIBUTE Management
+// =========================
 
 /* --------------------- PKI_X509_ATTRIBUTE_STACK ---------------------- */
 void PKI_X509_ATTRIBUTE_free ( PKI_X509_ATTRIBUTE *a );

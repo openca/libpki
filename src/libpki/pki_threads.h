@@ -2,6 +2,8 @@
 #ifndef _LIBPKI_THREADS_
 #define _LIBPKI_THREADS_
 
+#include <libpki/os.h>
+
 /* ------------------------ Generic Functions ---------------------- */
 
 int PKI_THREAD_create ( PKI_THREAD *th, PKI_THREAD_ATTR *attr,

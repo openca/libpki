@@ -20,7 +20,7 @@ src/drivers/pkcs11/utils/.dirstamp
 src/global-vars
 src/libpki/config.h
 src/libpki/libpkiv.h
-src/libpki/pki_config.h
+src/libpki/pki_config_types.h
 src/libpki/stamp-h1
 src/scripts/libpki-config
 src/tools/pki-cert

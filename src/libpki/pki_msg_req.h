@@ -3,6 +3,10 @@
 #ifndef _LIBPKI_PKI_MSG_REQ_H
 #define _LIBPKI_PKI_MSG_REQ_H
 
+#ifndef _LIBPKI_MSG_TYPES_H
+#include <libpki/pki_msg_types.h>
+#endif
+
 /* --------------------------- Functions -------------------------- */
 
 /*! \brief Returns an empty generic PKI request message */

@@ -1,13 +1,16 @@
 /* PKI_X509 object management */
 
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-
-#include <libpki/pki.h>
-#include <sys/utsname.h>
+#include <libpki/pki_x509_req.h>
 
 #include "internal/x509_data_st.h"
-#include <libpki/openssl/data_st.h>
+
+// #include <openssl/x509.h>
+// #include <openssl/x509v3.h>
+
+// #include <libpki/pki.h>
+// #include <sys/utsname.h>
+
+// #include <libpki/openssl/data_st.h>
 
 PKI_X509_REQ * PKI_X509_REQ_new_null ( void ) {
 	return (PKI_X509_REQ *) PKI_X509_new ( PKI_DATATYPE_X509_REQ, NULL );
