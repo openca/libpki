@@ -108,8 +108,10 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libpki_composite_la_LIBADD =
-am__objects_1 = libpki_composite_la-composite_internals.lo
-am__objects_2 = libpki_composite_la-composite_ameth.lo \
+am__objects_1 =
+am__objects_2 = libpki_composite_la-composite_key.lo \
+	libpki_composite_la-composite_ctx.lo \
+	libpki_composite_la-composite_ameth.lo \
 	libpki_composite_la-composite_pmeth.lo \
 	libpki_composite_la-composite_err.lo \
 	libpki_composite_la-composite_utils.lo \
@@ -141,9 +143,10 @@ depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
 	./$(DEPDIR)/libpki_composite_la-composite_ameth.Plo \
+	./$(DEPDIR)/libpki_composite_la-composite_ctx.Plo \
 	./$(DEPDIR)/libpki_composite_la-composite_err.Plo \
 	./$(DEPDIR)/libpki_composite_la-composite_init.Plo \
-	./$(DEPDIR)/libpki_composite_la-composite_internals.Plo \
+	./$(DEPDIR)/libpki_composite_la-composite_key.Plo \
 	./$(DEPDIR)/libpki_composite_la-composite_pmeth.Plo \
 	./$(DEPDIR)/libpki_composite_la-composite_utils.Plo
 am__mv = mv -f
@@ -476,12 +479,13 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(COND_INCLUDES)
 
 OPENSSL_INTERNAL_SRCS = \
-	composite_internals.c \
-	composite_ossl_internals.h \
-	composite_ameth.h
+	composite_ossl_lcl.h \
+	composite_ameth_lcl.h
 
 nobase_include_HEADERS = 
 COMPOSITE_SRCS = \
+	composite_key.c \
+	composite_ctx.c \
 	composite_ameth.c \
 	composite_pmeth.c \
 	composite_err.c \
@@ -547,9 +551,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_ameth.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_ctx.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_err.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_init.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_internals.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_key.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_pmeth.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_composite_la-composite_utils.Plo@am__quote@ # am--include-marker
 
@@ -582,6 +587,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libpki_composite_la-composite_key.lo: composite_key.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -MT libpki_composite_la-composite_key.lo -MD -MP -MF $(DEPDIR)/libpki_composite_la-composite_key.Tpo -c -o libpki_composite_la-composite_key.lo `test -f 'composite_key.c' || echo '$(srcdir)/'`composite_key.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_composite_la-composite_key.Tpo $(DEPDIR)/libpki_composite_la-composite_key.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='composite_key.c' object='libpki_composite_la-composite_key.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -c -o libpki_composite_la-composite_key.lo `test -f 'composite_key.c' || echo '$(srcdir)/'`composite_key.c
+
+libpki_composite_la-composite_ctx.lo: composite_ctx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -MT libpki_composite_la-composite_ctx.lo -MD -MP -MF $(DEPDIR)/libpki_composite_la-composite_ctx.Tpo -c -o libpki_composite_la-composite_ctx.lo `test -f 'composite_ctx.c' || echo '$(srcdir)/'`composite_ctx.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_composite_la-composite_ctx.Tpo $(DEPDIR)/libpki_composite_la-composite_ctx.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='composite_ctx.c' object='libpki_composite_la-composite_ctx.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -c -o libpki_composite_la-composite_ctx.lo `test -f 'composite_ctx.c' || echo '$(srcdir)/'`composite_ctx.c
 
 libpki_composite_la-composite_ameth.lo: composite_ameth.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -MT libpki_composite_la-composite_ameth.lo -MD -MP -MF $(DEPDIR)/libpki_composite_la-composite_ameth.Tpo -c -o libpki_composite_la-composite_ameth.lo `test -f 'composite_ameth.c' || echo '$(srcdir)/'`composite_ameth.c
@@ -617,13 +636,6 @@ libpki_composite_la-composite_init.lo: composite_init.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='composite_init.c' object='libpki_composite_la-composite_init.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -c -o libpki_composite_la-composite_init.lo `test -f 'composite_init.c' || echo '$(srcdir)/'`composite_init.c
-
-libpki_composite_la-composite_internals.lo: composite_internals.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -MT libpki_composite_la-composite_internals.lo -MD -MP -MF $(DEPDIR)/libpki_composite_la-composite_internals.Tpo -c -o libpki_composite_la-composite_internals.lo `test -f 'composite_internals.c' || echo '$(srcdir)/'`composite_internals.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_composite_la-composite_internals.Tpo $(DEPDIR)/libpki_composite_la-composite_internals.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='composite_internals.c' object='libpki_composite_la-composite_internals.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_composite_la_CFLAGS) $(CFLAGS) -c -o libpki_composite_la-composite_internals.lo `test -f 'composite_internals.c' || echo '$(srcdir)/'`composite_internals.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -783,9 +795,10 @@ clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/libpki_composite_la-composite_ameth.Plo
+	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_ctx.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_err.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_init.Plo
-	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_internals.Plo
+	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_key.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_pmeth.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_utils.Plo
 	-rm -f Makefile
@@ -834,9 +847,10 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/libpki_composite_la-composite_ameth.Plo
+	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_ctx.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_err.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_init.Plo
-	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_internals.Plo
+	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_key.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_pmeth.Plo
 	-rm -f ./$(DEPDIR)/libpki_composite_la-composite_utils.Plo
 	-rm -f Makefile

@@ -12,7 +12,7 @@
 // ===============
 
 #ifndef _LIBPKI_COMPOSITE_OPENSSL_LOCAL_H
-#include "composite_ossl_internals.h"
+#include "composite_ossl_lcl.h"
 #endif
 
 // ==================

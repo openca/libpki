@@ -31,6 +31,8 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 		return NULL;
 	}
 
+	kp->comp.k_of_n = NULL;
+
 #endif
 
 	if (prof) {
@@ -992,6 +994,23 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 	}
 
 	// All Done
+	return PKI_OK;
+}
+
+/*! \brief Sets the k_of_n parameter for Composite keys */
+int PKI_KEYPARAMS_set_kofn(PKI_KEYPARAMS * kp, int kofn) {
+
+	if (!kp) return PKI_ERR;
+
+	kp->comp.k_of_n = ASN1_INTEGER_new();
+	if (!kp->comp.k_of_n) return PKI_ERR;
+
+	if (kofn > 0) {
+		ASN1_INTEGER_set(kp->comp.k_of_n, kofn);
+	} else {
+		ASN1_INTEGER_set(kp->comp.k_of_n, 1);
+	}
+
 	return PKI_OK;
 }
 

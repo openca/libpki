@@ -35,10 +35,6 @@
 #include <oqs/oqs.h>
 #endif
 
-// #ifndef _LIBPKI_COMPOSITE_LOCAL_H
-// #include <libpki/composite/composite_internals.h>
-// #endif
-
 #if OPENSSL_VERSION_NUMBER > 0x1010000fL
 # define DECLARE_STACK_OF DEFINE_STACK_OF
 #endif
@@ -54,6 +50,13 @@
 # define HMAC_CTX_reset HMAC_CTX_cleanup
 #endif
 
+//! \brief EVP CTRL to set the number of required valid signatures (K of N)
+#define COMPOSITE_PKEY_CTRL_SET_K_OF_N	0x301
+
+//! \brief EVP CTRL to get the number of required valid signatures (K of N)
+#define COMPOSITE_PKEY_CTRL_GET_K_OF_N	0x302
+
+//! \brief Type definition for ASN1_BIT_STRING
 typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Some useful Key definitions */
@@ -76,14 +79,14 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define  PKI_ID_UNKNOWN		NID_undef
 
 #define  PKI_DIGEST_ALG				EVP_MD
-// #define	 PKI_ALGOR        	X509_ALGOR
-// #define	 PKI_ALGORITHM		X509_ALGOR
-#define  PKI_X509_ALGOR_VALUE 	X509_ALGOR
-#define  PKI_CIPHER       		EVP_CIPHER
 
-#define PKI_X509_NAME			X509_NAME
+#define  PKI_X509_ALGOR_VALUE 		X509_ALGOR
 
-#define PKI_DIGEST_ALG_NULL  	(PKI_DIGEST_ALG *) EVP_md_null()
+#define  PKI_CIPHER       			EVP_CIPHER
+
+#define PKI_X509_NAME				X509_NAME
+
+#define PKI_DIGEST_ALG_NULL  		(PKI_DIGEST_ALG *) EVP_md_null()
 #define PKI_DIGEST_ALG_ID_NULL		NID_undef
 
 #define PKI_DIGEST_ALG_UNKNOWN 		(PKI_DIGEST_ALG *) NULL
@@ -1157,6 +1160,7 @@ typedef struct pki_keyparams_st {
 #ifdef ENABLE_COMPOSITE
 	struct {
 		PKI_X509_KEYPAIR_STACK * k_stack;
+		ASN1_INTEGER * k_of_n;
 	} comp;
 #endif
 

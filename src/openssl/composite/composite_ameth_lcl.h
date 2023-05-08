@@ -9,8 +9,6 @@
 // Composite Crypto authentication methods.
 // (c) 2021 by Massimiliano Pala
 
-#include <stdio.h>
-
 #ifndef HEADER_X509_H
 #include <openssl/x509.h>
 #endif
@@ -31,12 +29,16 @@
 #include <openssl/opensslv.h>
 #endif
 
-#ifndef _LIBPKI_COMPOSITE_UTILS_H
-#include <libpki/openssl/composite/composite_utils.h>
+#ifndef _LIBPKI_OS_H
+#include <libpki/os.h>
 #endif
 
-#ifndef _LIBPKI_COMPAT_H
-#include <libpki/compat.h>
+#ifndef _LIBPKI_COMPOSITE_KEY_H
+#include <libpki/openssl/composite/composite_key.h>
+#endif
+
+#ifndef _LIBPKI_COMPOSITE_UTILS_H
+#include <libpki/openssl/composite/composite_utils.h>
 #endif
 
 BEGIN_C_DECLS
@@ -48,9 +50,6 @@ BEGIN_C_DECLS
 // ======================
 // MACRO & Other Oddities
 // ======================
-
-// Sets the ID of a ASN1 method
-int EVP_PKEY_asn1_meth_set_id(EVP_PKEY_ASN1_METHOD * pkey_ameth, int pkey_id);
 
 END_C_DECLS
 

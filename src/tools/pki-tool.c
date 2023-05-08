@@ -71,6 +71,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -digest <name>   - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
 #ifdef ENABLE_COMPOSITE
 	fprintf(stderr, "  -addkey <file>   - Key to be added to a composite key\n");
+	fprintf(stderr, "  -kofn <num>      - Minimum number of required valid component signatures (def. all)\n");
 #endif
 	fprintf(stderr, "  -newkey          - Generate new keypair when using genreq\n");
 	fprintf(stderr, "  -outkey <URI>    - URI where to store the new key\n");
@@ -252,7 +253,10 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		char *url_s, char *algor_opt, char *profile_s, PKI_DATA_FORMAT outFormVal, 
-		char *comp_keys[], int comp_keys_num, int batch ) {
+#ifdef ENABLE_COMPOSITE
+		char *comp_keys[], int comp_keys_num, int comp_kofn,
+#endif
+		int batch ) {
 
 	char *prompt = NULL;
 	// int outFormVal = PKI_DATA_FORMAT_PEM;
@@ -328,6 +332,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 #ifdef ENABLE_OQS
 	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme, bits);
+	PKI_DEBUG("Key to be generated is composite? %s", scheme == PKI_SCHEME_COMPOSITE ? "YES" : "NO");
 #endif
 
 	// Checks for Parameters for Key Generation
@@ -335,18 +340,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 		switch ( kp->scheme )
 		{
-			// case PKI_SCHEME_RSA:
-			// case PKI_SCHEME_DSA:
-			// 	// No parameters to set
-			// 	break;
-
-			// case PKI_SCHEME_RSAPSS: {
-			// 	// Shall we set the parameters?
-			// } break;
-
-			// case PKI_SCHEME_DH: {
-			// 	// No parameters to set
-			// } break;
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA:
@@ -373,101 +366,69 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				break;
 #endif
 
-// #ifdef ENABLE_OQS
-// 			// Post Quantum Digital Signature Switches
-// 			case PKI_SCHEME_FALCON:
-// 			case PKI_SCHEME_PICNIC:
-// 			case PKI_SCHEME_SPHINCS:
-// 			case PKI_SCHEME_DILITHIUM: {
-// 				// No parameters to set
-// 			} break;
+#ifdef ENABLE_COMPOSITE
 
-// 			// Experimental
-// 			case PKI_SCHEME_DILITHIUMX3:{
-// 				// No parameters to set
-// 			} break;
+			case PKI_SCHEME_COMPOSITE: {
+				fprintf(stderr, "[%s:%s():%d] DEBUG: Processing COMPOSITE parameters\n",
+						__FILE__, __func__, __LINE__);
 
-// #ifdef ENABLE_COMPOSITE
-// 			// Generic Composite Crypto Combinations
-// 			case PKI_SCHEME_COMPOSITE:
+				// Processes the K-of-N parameter option
+				if (strncmp_nocase( param_s, "kofn:", 5) == 0 ) {
+						// Get the Name of the Curve
+						if (sscanf(param_s + 5, "%d", &comp_kofn) < 1) {
+								PKI_DEBUG("ERROR: Cannot get kofn from the key param, please use 'kofn:<int>' (%s)", param_s);
+								return PKI_ERR;
+						}
+				}
+				// Parsed Value for K-of-N
+				fprintf(stderr, "[%s:%s():%d] DEBUG: Using %d as the value for K-of-N\n",
+						__FILE__, __func__, __LINE__, comp_kofn);
 
-// 			// Explicit Composite Crypto Combinations
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
-// 			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
-// 				// No parameters to set
-// 			} break;
-// #endif
+				// If the parameter is set, then set it in the keyparams
+				if (comp_kofn > 0) {
+						if (PKI_ERR == PKI_KEYPARAMS_set_kofn(kp, comp_kofn)) {
+								PKI_DEBUG("ERROR: Cannot set kofn (%d)", comp_kofn);
+								return PKI_ERR;
+						}
+				}
 
-// #ifdef ENABLE_COMBINED
-// 			case PKI_SCHEME_COMBINED:{
-// 				// No parameters to set
-// 			} break;
-// #endif
+				fprintf(stderr, "[%s:%s():%d] DEBUG: Composite Parameter Set Value (0x%p - %ld)\n",
+						__FILE__, __func__, __LINE__, kp->comp.k_of_n, ASN1_INTEGER_get(kp->comp.k_of_n) );
 
-// 			// KEMs
-// 			case PKI_SCHEME_NTRU_PRIME:
-// 			case PKI_SCHEME_BIKE:
-// 			case PKI_SCHEME_FRODOKEM:
-// 			case PKI_SCHEME_CLASSIC_MCELIECE:
-// 			case PKI_SCHEME_KYBER: {
-// 				// No parameters to set
-// 			} break;
+			} break;
 
-// 			case PKI_SCHEME_UNKNOWN: {
-// 				PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-// 				return PKI_ERR;
-// 			} break;
-// #endif
+# ifdef ENABLE_OQS
+
+               // Post Quantum Cryptography - Composite Crypto
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: 
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
+               case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+                       // Explicit Composite Combinations, nothing to do
+                       PKI_DEBUG("Generating components for explicit composite scheme %d", kp->scheme);
+                       fprintf(stderr, "\n    ERROR, explicit composite schemes not supported yet!\n\n");
+                       return PKI_ERR;
+               } break;
+# endif
+#endif
 
 			default: {
-				fprintf(stderr, "ERROR: Scheme not supported (%d)\n\n", kp->scheme);
-				return PKI_ERR;
+				// Nothing to do here
 			}
 		}
 	}
 
-	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)
-
-// #ifdef ENABLE_COMPOSITE
-
-// 	if (kp->scheme == PKI_SCHEME_COMPOSITE
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA
-// #ifdef ENABLE_COMBINED
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
-// #endif
-											) {
+	// This processes the key components
+    if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
+        // Adds the components keys
 
 		char * url = NULL;
 		int i = 0;
-
-		PKI_DEBUG("Multiple Key Components Scheme Detected");
 
 		while ((url = comp_keys[i]) != NULL) {
 
@@ -487,10 +448,13 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 				break; 
 			}
 		}
+
+	} else if (PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
+		// anything to do here (?)
 	}
 
-	if (!batch)
-	{
+	if (!batch)	{
+
 		fprintf(stderr, "\nThis will generate a new keypair on the "
 							"Token.\n");
 		fprintf(stderr, "\nDetails:\n");
@@ -505,27 +469,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #endif
 
 #ifdef ENABLE_COMPOSITE
-	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)
-// 	if (   kp->scheme == PKI_SCHEME_COMPOSITE
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_P256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_P256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
-// #ifdef ENABLE_COMBINED
-// 		|| kp->scheme == PKI_SCHEME_COMPOSITE_OR
-// #endif
-	 ) {
+	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)) {
 		fprintf(stderr, "  - Number of Keys..: %d\n", 
 			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
 	}
@@ -1059,6 +1003,7 @@ int main (int argc, char *argv[] ) {
 	int token_slot = 0;
 	int selfsign = 0;
 	int newkey = 0;
+	int comp_kofn = 0;
 
 	char * algor_opt = NULL;
 	char * digest_opt = NULL;
@@ -1161,6 +1106,13 @@ int main (int argc, char *argv[] ) {
 				usage();
 			}
 			comp_keys[comp_keys_num++] = argv[i];
+		} else if ( strncmp_nocase("-kofn", argv[i], 5) == 0 ) {
+			if (argv[i++] == NULL) usage();
+			comp_kofn = atoi(argv[i]);
+			if (comp_kofn < 1) {
+				fprintf(stderr, "ERROR: Invalid kofn value (%d)\n\n", comp_kofn);
+				usage();
+			}
 #endif
 		} else if ( strncmp_nocase("-signkey", argv[i], 8 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
@@ -1739,6 +1691,7 @@ int main (int argc, char *argv[] ) {
 #ifdef ENABLE_COMPOSITE
 				 comp_keys,
 				 comp_keys_num,
+				 comp_kofn,
 #else
 				 NULL,
 				 0,
@@ -1767,7 +1720,7 @@ int main (int argc, char *argv[] ) {
 
 #ifdef ENABLE_COMPOSITE
 			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
-					profile, outFormVal, comp_keys, comp_keys_num, batch)) == PKI_ERR ) 
+					profile, outFormVal, comp_keys, comp_keys_num, comp_kofn, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);

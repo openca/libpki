@@ -12,12 +12,24 @@
 #ifndef _LIBPKI_COMPOSITE_PKEY_METH_H
 #define _LIBPKI_COMPOSITE_PKEY_METH_H
 
+#ifndef _LIBPKI_OS_H
+#include <libpki/os.h>
+#endif
+
 #ifndef _LIBPKI_COMPOSITE_UTILS_H
 #include <libpki/openssl/composite/composite_utils.h>
 #endif
 
-#ifndef _LIBPKI_COMPOSITE_INTERNALS_H
-#include <libpki/openssl/composite/composite_internals.h>
+#ifndef _LIBPKI_COMPOSITE_TYPES_H
+#include <libpki/openssl/composite/composite_types.h>
+#endif
+
+#ifndef _LIBPKI_COMPOSITE_KEY_H
+#include <libpki/openssl/composite/composite_key.h>
+#endif
+
+#ifndef _LIBPKI_COMPOSITE_CTX_H
+#include <libpki/openssl/composite/composite_ctx.h>
 #endif
 
 #ifndef HEADER_ENVELOPE_H
