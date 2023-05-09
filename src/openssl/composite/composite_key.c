@@ -38,7 +38,7 @@ void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
 void COMPOSITE_MD_STACK_clear(COMPOSITE_MD_STACK * sk) {
 
   // Free all the entries, but not the stack structure itself
-  PKI_DIGEST_ALG * tmp_x;
+  const PKI_DIGEST_ALG * tmp_x;
 
   // Removes the entries from the stack but do not
   // free them (they are all const pointers)

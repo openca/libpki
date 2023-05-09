@@ -201,32 +201,43 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 		default: {
 #ifdef ENABLE_COMPOSITE
 
-			// Generic Composite
-			if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
-				return PKI_SCHEME_COMPOSITE;
-			// Explicit Composite
-			} else if (   pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID)
-					   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)
-					   ) {
-				return (PKI_SCHEME_ID)pkey_type;
-		   }
-#endif
-#ifdef ENABLE_COMBINED
-			if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_ALT_OID)) {
-				return PKI_SCHEME_COMBINED;
+			PKI_DEBUG("Looking up the pkey_type (%d) in the composite list", pkey_type);
+			if (OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME) == NID_undef) {
+				PKI_DEBUG("Composite OID cannot be converted! Check it out (%s)", 
+				OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
 			}
+
+			// Generic Composite
+			if (PKI_ID_is_composite(pkey_type)) {
+				ret = PKI_SCHEME_COMPOSITE;
+			} else if (PKI_ID_is_explicit_composite(pkey_type, &ret)) {
+				// Scheme ID and PKEY types are the same
+				// Nothing to do, ret was already retrieved
+			} else {
+				PKI_DEBUG("Cannot select the scheme for pkey_type %d", pkey_type);
+				ret = PKI_SCHEME_UNKNOWN;
+			}
+
+		// 	if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+		// 		return PKI_SCHEME_COMPOSITE;
+		// 	// Explicit Composite
+		// 	} else if (   pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID)
+		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)
+		// 			   ) {
+		// 		return (PKI_SCHEME_ID)pkey_type;
+		//    }
 #endif
 		} // End of default
 
@@ -358,11 +369,26 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 	// size = PKI_X509_KEYPAIR_VALUE_get_size(pVal);
 	// // PKI_DEBUG("Detected a 0 Key size");
 
-	// PKI_SCHEME_ID scheme_id = PKI_ALGOR_VALUE_get_scheme(pVal);
-	// 	// Gets the Scheme ID
-
 	int def_ret = -1, def_nid = -1;
 		// OpenSSL return code
+
+	PKI_DEBUG("*****************************");
+	PKI_DEBUG("EVP_PKEY_id = %d, EVP_PKEY_type = %d", EVP_PKEY_type(EVP_PKEY_id(pVal)), EVP_PKEY_id(pVal));
+
+	PKI_SCHEME_ID scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(pVal);
+	PKI_DEBUG("SCHEME ID = %d", scheme);
+
+	if (PKI_SCHEME_ID_is_explicit_composite(scheme)) {
+		// Gets the Composite Key
+		COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pVal);
+		// Let's detect the explicit
+		if (comp_key->algorithm) {
+			const char * alg_str = PKI_OID_get_descr(PKI_OID_new_id(comp_key->algorithm));
+			PKI_DEBUG("KEY IS COMPOSITE --> KEY IS EXPLICIT COMPOSITE --> Algorithm String = %s", alg_str);
+		}
+	} else {
+		PKI_DEBUG("SCHEME is not a composite ");
+	}
 	
 	// Retrieves the default digest
 	def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
@@ -375,16 +401,20 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 		// Digest supported, let's use it
 		if (!OBJ_find_sigid_by_algs(&algId, def_nid, EVP_PKEY_id(pVal))) {
 			// No default algorithm found, let's return the PKEY id
-			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-			return NULL;
+			PKI_DEBUG("No default algorithm found (%d), using the PKEY as the Algorithm ID");
+			ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_id(pVal));
+			if (!ret) {
+				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+				return NULL;
+			}
 		}
-		PKI_DEBUG("Got a new Algorithm ID from the key and def_nid");
+		PKI_DEBUG("Got the default signing algorithm ID from the KEY value");
 		// Gets the algorithm
 		ret = PKI_X509_ALGOR_VALUE_new_type(algId);
     }
 
 	// Debugging
-	PKI_DEBUG("algId: %d, ret: %p", algId, ret);
+	PKI_DEBUG("------> algId: %d, ret: %p", algId, ret);
 
 	// All Done
 	return ret;

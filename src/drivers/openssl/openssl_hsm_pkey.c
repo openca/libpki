@@ -390,8 +390,12 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
         return NULL;
     }
 
-    fprintf(stderr, "[%s:%s():%d] Composite Key Param: pointer = 0x%p, value = %ld\n", 
-        __FILE__, __func__, __LINE__, kp->comp.k_of_n, ASN1_INTEGER_get(kp->comp.k_of_n));
+    PKI_DEBUG("Creating a Composite Key");
+    PKI_DEBUG("Scheme: %d (%s)", kp->scheme, PKI_SCHEME_ID_get_parsed(kp->scheme));
+
+    PKI_DEBUG("OQS Alg ID: %d (%s)", kp->oqs.algId, OBJ_nid2sn(kp->oqs.algId));
+
+    k->algorithm = kp->oqs.algId;
 
     if (kp->comp.k_stack != NULL) {
 
@@ -682,75 +686,5 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 
     // All Done
     return kVal;
-
-
-//     if ((ret = EVP_PKEY_new()) == NULL) return NULL;
-
-//     if (!EVP_PKEY_copy_parameters(ret, kVal)) return NULL;
-
-//     switch (EVP_PKEY_type(EVP_PKEY_id(kVal)))
-//     {
-
-//         case EVP_PKEY_RSA: {
-//             RSA *rsa = NULL;
-// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-//             if (((rsa = EVP_PKEY_get0_RSA(kVal)) == NULL) ||
-// #else
-//             if (((rsa = (RSA *)EVP_PKEY_get0(kVal)) == NULL) ||
-// #endif
-//                                    (!EVP_PKEY_set1_RSA(ret, rsa))) {
-//                 return NULL;
-//             }
-//         } break;
-
-//         case EVP_PKEY_DH: {
-//             DH *dh = NULL;
-// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-//             if ( ((dh = EVP_PKEY_get0_DH(kVal)) == NULL) ||
-// #else
-//             if ( ((dh = (DH *)EVP_PKEY_get0(kVal)) == NULL) ||
-// #endif
-//                                    (!EVP_PKEY_set1_DH(ret, dh))) {
-//                 return NULL;
-//             }
-//         } break;
-
-// #ifdef ENABLE_ECDSA
-//         case EVP_PKEY_EC: {
-//             EC_KEY * ec = NULL;
-// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-//             if (((ec = EVP_PKEY_get0_EC_KEY(kVal)) == NULL) ||
-// #else
-//             if (((ec = (EC_KEY *)EVP_PKEY_get0(kVal)) == NULL) ||
-// #endif
-//                                  (!EVP_PKEY_set1_EC_KEY(ret, ec))) {
-//                 return NULL;
-//             }
-//         } break;
-// #endif
-
-// #ifdef ENABLE_DSA
-//         case EVP_PKEY_DSA: {
-//             DSA *dsa = NULL;
-// #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-//             if ( ((dsa = EVP_PKEY_get0_DSA(kVal)) == NULL) ||
-// #else
-//             if ( ((dsa = (DSA *)EVP_PKEY_get0(kVal)) == NULL) ||
-// #endif
-//                                  (!EVP_PKEY_set1_DSA(ret, dsa))) {
-//                 return NULL;
-//             }
-//         } break;
-// #endif
-
-//         default: {
-//             PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-//             return NULL;
-//         } break;
-//     }
-
-    // return ret;
-
-
 };
 

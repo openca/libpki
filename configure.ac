@@ -1,6 +1,6 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2022 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2023 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf

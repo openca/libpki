@@ -17,6 +17,10 @@
 #ifndef _LIBPKI_STACK_H
 #define _LIBPKI_STACK_H
 
+#ifndef HEADER_SAFESTACK_H
+#include <openssl/safestack.h>
+#endif
+
 #ifndef _LIBPKI_PKI_DATATYPES_H
 # include <libpki/datatypes.h>
 #endif

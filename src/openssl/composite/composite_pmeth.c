@@ -163,16 +163,11 @@ static int sign(EVP_PKEY_CTX        * ctx,
                 const unsigned char * tbs,
                 size_t                tbslen) {
 
-  // NOTE: The passed CTX (ctx->data) is not the same as when the key
-  // was created or loaded. This means that the comp_ctx that is
-  // available here is actually empty. We need to reconstruct the
-  // different EVP_PKEY_CTX here.
+  X509_ALGORS * sig_algs = NULL;
+    // Pointer to the signature algorithms
 
-  void * app_data = 0;
-  app_data = EVP_PKEY_CTX_get_app_data(ctx);
-  fprintf(stderr, "PKEY: SIGN: APP DATA => %p", app_data);
-
-  COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+  COMPOSITE_CTX * comp_ctx = NULL;
+  COMPOSITE_KEY * comp_key = NULL;
     // Pointer to inner key structure
 
   EVP_PKEY_CTX * pkey_ctx = NULL;
@@ -182,15 +177,15 @@ static int sign(EVP_PKEY_CTX        * ctx,
   EVP_MD_CTX * md_ctx = NULL;
     // Digest Context
 
-  const int signature_size = EVP_PKEY_size(ctx->pkey); /* WARN: This does not account for extra space for parameters */
-    // The total signature size
-
   STACK_OF(ASN1_TYPE) *sk = NULL;
     // Stack of ASN1_OCTET_STRINGs
 
   ASN1_BIT_STRING * bit_string = NULL;
     // Output Signature to be added
     // to the stack of signatures
+
+  int signature_size = -1;
+    // The total signature size
 
   ASN1_TYPE * aType = NULL;
     // ASN1 generic wrapper
@@ -210,11 +205,46 @@ static int sign(EVP_PKEY_CTX        * ctx,
     // Total Signature Size
 
   // Input Checks
+  if (!ctx || !tbs || !tbslen) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return -1;
+  }
+
+  // Gets the composite context
+  comp_ctx = ctx->data;
+  if (!comp_ctx) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, "No composite context found");
+    return -1;
+  }
+
+  sig_algs = comp_ctx->sig_algs;
+
+  PKI_DEBUG("Composite X509_ALGORS: %p", sig_algs);
+  PKI_DEBUG("Composite X509_ALGORS: %d", sk_X509_ALGOR_num(sig_algs));
+
+  // Gets the internal key
+  evp_pkey = EVP_PKEY_CTX_get0_pkey(ctx);
+  if (!evp_pkey) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, "No public key found in the context");
+    return -1;
+  }
+  
+  // Gets the internal key
+  comp_key = EVP_PKEY_get0(evp_pkey);
+  if (!comp_key) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, "No composite key found in the public key");
+    return -1;
+  }
+
+  // Checks we have a good stack of components
   comp_key_num = COMPOSITE_KEY_num(comp_key);
   if (comp_key_num <= 0) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the Composite key inner structure");
     return 0;
   }
+
+  /* WARNING: This does not account for extra space for parameters */
+  signature_size = EVP_PKEY_size(ctx->pkey); 
 
   // Input checks -> Destination Buffer Pointer
   if (sig == NULL) {

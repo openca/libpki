@@ -54,10 +54,15 @@ int COMPOSITE_CTX_set_md(COMPOSITE_CTX * ctx, const PKI_DIGEST_ALG * md);
 /*! \brief Returns the MD set for the CTX */
 const EVP_MD * COMPOSITE_CTX_get_md(COMPOSITE_CTX * ctx);
 
+/*! \brief Sets the default MD for the Generic Composite with no hash-n-sign */
+int COMPOSITE_CTX_set_default_md(COMPOSITE_CTX * ctx, const EVP_MD * md);
+
+/*! \brief Returns the default MD that is used in Generic Composite with no hash-n-sign */
+const EVP_MD * COMPOSITE_CTX_get_default_md(COMPOSITE_CTX * ctx);
+
 /*! \brief Adds a new key to the CTX for Key Generation Ops */
 int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * comp_ctx, 
-                            PKI_X509_KEYPAIR_VALUE * pkey,
-                            const PKI_DIGEST_ALG   * md);
+                            PKI_X509_KEYPAIR_VALUE * pkey);
 
 /*! \brief Removes and returns an entry from the stack of Keys */
 int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * ctx,
@@ -69,17 +74,15 @@ int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * ctx);
 
 /*! \brief Returns a reference to the stack of keys from the CTX */
 int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
-                                  const COMPOSITE_KEY_STACK ** const components,
-                                  const COMPOSITE_MD_STACK  ** components_md);
+                                  const COMPOSITE_KEY_STACK ** const components);
 
 /*! \brief Sets the MD for the Composite CTX */
 int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
-                                  COMPOSITE_KEY_STACK * const components,
-                                  COMPOSITE_MD_STACK  * const components_md);
+                                  COMPOSITE_KEY_STACK * const components);
 
 /*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_X509_get_algors(COMPOSITE_CTX  * ctx,
-                                  X509_ALGORS   ** algors);
+int COMPOSITE_CTX_get_algors(COMPOSITE_CTX  * ctx,
+                             X509_ALGORS   ** algors);
 
 /*! \brief Sets the K-of-N for the Composite CTX */
 int COMPOSITE_CTX_set_kofn(COMPOSITE_CTX * ctx, int kofn);

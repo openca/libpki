@@ -16,6 +16,8 @@ BEGIN_C_DECLS
 
 int PKI_COMPOSITE_init();
 
+int PKI_EXPLICIT_COMPOSITE_init();
+
 int PKI_COMPOSITE_PKEY_new(char * name, int flags);
 
 END_C_DECLS

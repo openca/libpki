@@ -325,14 +325,16 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 	// Checks that the bits value is not negative (at least!)
 	if (PKI_KEYPARAMS_set_bits(kp, bits) != PKI_OK) {
-		fprintf(stderr, "\n    ERROR, requested security bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
+		fprintf(stderr, "\n    WARNING, requested security bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
 			bits, PKI_SCHEME_ID_get_parsed(scheme), kp->bits);
 		exit(1);
 	}
 
-#ifdef ENABLE_OQS
+#ifdef ENABLE_COMPOSITE
 	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme, bits);
-	PKI_DEBUG("Key to be generated is composite? %s", scheme == PKI_SCHEME_COMPOSITE ? "YES" : "NO");
+	PKI_DEBUG("Key to be generated is composite? %s", PKI_SCHEME_ID_is_composite(scheme) ? "YES" : "NO");
+	PKI_DEBUG("Key to be generated is explicit composite? %s", PKI_SCHEME_ID_is_explicit_composite(scheme) ? "YES" : "NO");
+	PKI_DEBUG("Parsed Scheme ID is => %s", PKI_SCHEME_ID_get_parsed(scheme));
 #endif
 
 	// Checks for Parameters for Key Generation
@@ -1516,58 +1518,10 @@ int main (int argc, char *argv[] ) {
 		// Logs into the token
 		PKI_TOKEN_login( tk );
 
-		// Algor Option (default)
-		if (!algor_opt) {
-			algor_opt = "RSA";
-			if (bits < 128) bits = 128;
-		// RSA Option
-		} else if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
-			algor_opt = "RSA";
-			if (bits < 128) bits = 128;
-		// EC Option
-		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
-			algor_opt = "EC";
-			if (bits < 128) bits = 128;
-		// DSA
-		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
-			algor_opt = "DSA";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUMX3", 11) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUMX3")) {
-			algor_opt = "DILITHIUMX3";
-			if (bits < 192) bits = 192;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM2", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM2")) {
-			algor_opt = "Dilithium2";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM3", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM3")) {
-			algor_opt = "Dilithium3";
-			if (bits < 192) bits = 192;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM5", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM5")) {
-			algor_opt = "Dilithium5";
-			if (bits < 256) bits = 256;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM")) {
-			// Default option for Dilithium
-			algor_opt = "Dilithium2";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "FALCON512", 9) == 0
-				   && strlen(algor_opt) == strlen("FALCON512")) {
-			algor_opt = "FALCON512";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "FALCON1024", 10) == 0
-				   && strlen(algor_opt) == strlen("FALCON1024")) {
-			algor_opt = "FALCON1024";
-			if (bits < 256) bits = 256;
-		} else if (strncmp_nocase(algor_opt, "FALCON", 7) == 0
-				   && strlen(algor_opt) == strlen("FALCON")) {
-			// Default option for Falcon
-			algor_opt = "FALCON512";
-			if (bits < 128) bits = 128;
+		PKI_DEBUG("Generating Key Pair: option %s", algor_opt );
+
 		// Explicit Composite - DILITHIUM3-P256
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)) == 0 ||
+		if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)) == 0 ||
  				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME)) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM3-ECDSA", 16) == 0 ||
 				   strncmp_nocase(algor_opt, "DILITHIUM3-EC", 13) == 0 ||
@@ -1674,6 +1628,56 @@ int main (int argc, char *argv[] ) {
 				   strncmp_nocase(algor_opt, "DILITHIUM-FALCON-P521", 21) == 0) {
 			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME;
 			if (!digest_opt) digest_opt = "null";
+		// Algor Option (default)
+		} else if (!algor_opt) {
+			algor_opt = "RSA";
+			if (bits < 128) bits = 128;
+		// RSA Option
+		} else if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
+			algor_opt = "RSA";
+			if (bits < 128) bits = 128;
+		// EC Option
+		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
+			algor_opt = "EC";
+			if (bits < 128) bits = 128;
+		// DSA
+		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
+			algor_opt = "DSA";
+			if (bits < 128) bits = 128;
+		} else if (strncmp_nocase(algor_opt, "DILITHIUMX3", 11) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUMX3")) {
+			algor_opt = "DILITHIUMX3";
+			if (bits < 192) bits = 192;
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM2", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM2")) {
+			algor_opt = "Dilithium2";
+			if (bits < 128) bits = 128;
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM3", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM3")) {
+			algor_opt = "Dilithium3";
+			if (bits < 192) bits = 192;
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM5", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM5")) {
+			algor_opt = "Dilithium5";
+			if (bits < 256) bits = 256;
+		} else if (strncmp_nocase(algor_opt, "DILITHIUM", 10) == 0
+				   && strlen(algor_opt) == strlen("DILITHIUM")) {
+			// Default option for Dilithium
+			algor_opt = "Dilithium2";
+			if (bits < 128) bits = 128;
+		} else if (strncmp_nocase(algor_opt, "FALCON512", 9) == 0
+				   && strlen(algor_opt) == strlen("FALCON512")) {
+			algor_opt = "FALCON512";
+			if (bits < 128) bits = 128;
+		} else if (strncmp_nocase(algor_opt, "FALCON1024", 10) == 0
+				   && strlen(algor_opt) == strlen("FALCON1024")) {
+			algor_opt = "FALCON1024";
+			if (bits < 256) bits = 256;
+		} else if (strncmp_nocase(algor_opt, "FALCON", 7) == 0
+				   && strlen(algor_opt) == strlen("FALCON")) {
+			// Default option for Falcon
+			algor_opt = "FALCON512";
+			if (bits < 128) bits = 128;
 		} else {
 			// This should be a catch all for new algos
 			if (debug) fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);

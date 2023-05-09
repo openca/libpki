@@ -133,12 +133,10 @@ int PKI_init_all( void ) {
 		PKI_PQC_init();
 #endif
 #ifdef ENABLE_COMPOSITE
-		// Initializes Composite (Generic and Explicit)
+		// Generic Composite Crypto (both AND and OR)
 		PKI_COMPOSITE_init();
-		// // Generic Composite Crypto (multi-keys AND)
-		// _init_generic_composite();
 		// // Explicit Composite Crypto
-		// _init_explicit_composite();
+		PKI_EXPLICIT_COMPOSITE_init();
 #endif
 #ifdef ENABLE_COMBINED
 		// Multikey Crypto (multi-keys OR)

@@ -37,8 +37,16 @@
 #include <libpki/openssl/composite/composite_key.h>
 #endif
 
+#ifndef _LIBPKI_COMPOSITE_CTX_H
+#include <libpki/openssl/composite/composite_ctx.h>
+#endif
+
 #ifndef _LIBPKI_COMPOSITE_UTILS_H
 #include <libpki/openssl/composite/composite_utils.h>
+#endif
+
+#ifndef _LIBPKI_PKI_ALGOR_VALUE_H
+#include <libpki/pki_algor.h>
 #endif
 
 BEGIN_C_DECLS

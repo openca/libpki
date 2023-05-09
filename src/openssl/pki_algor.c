@@ -331,10 +331,7 @@ int PKI_SCHEME_ID_supports_multiple_components(PKI_SCHEME_ID id) {
 
 #ifdef ENABLE_COMPOSITE
 	if (PKI_SCHEME_ID_is_composite(id) == PKI_OK) return PKI_OK;
-#endif
-
-#ifdef ENABLE_COMBINED
-	if (PKI_SCHEME_ID_is_combined(id) == PKI_OK) return PKI_OK;
+	if (PKI_SCHEME_ID_is_explicit_composite(id) == PKI_OK) return PKI_OK;
 #endif
 
 	// No multiple components supported
@@ -348,14 +345,57 @@ int PKI_SCHEME_ID_is_composite(PKI_SCHEME_ID id) {
 
 #ifdef ENABLE_COMPOSITE
 	// Generic or Explicit
-	if (id == PKI_SCHEME_COMPOSITE || PKI_OK == PKI_SCHEME_ID_is_explicit_composite(id)) {
-		// Either Generic or Explicit composite
+	if (id == PKI_SCHEME_COMPOSITE) {
 		return PKI_OK;
 	}
 #endif
 	
 	// Neither
 	return PKI_ERR;
+}
+
+int PKI_SCHEME_ID_is_explicit_composite(PKI_SCHEME_ID id) {
+
+	// Input Checks
+	if (id <= 0) return PKI_ERR;
+
+	// Checks for Explicit Composite OIDs
+	switch(id) {
+
+#ifdef ENABLE_COMPOSITE
+# ifdef ENABLE_OQS
+		// Post Quantum Cryptography - Composite Crypto
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: 
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA:
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+			// Explicit Composite Combinations, nothing to do
+		} break;
+# endif
+#endif
+
+		default: {
+			// Non-Explicit Composite Scheme detected
+			return PKI_ERR;
+		}
+	}
+
+	// All done
+	return PKI_OK;
 }
 
 int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
@@ -421,93 +461,6 @@ int PKI_SCHEME_ID_requires_digest(PKI_SCHEME_ID id) {
 
 	// No Digest Required
 	return PKI_ERR;
-}
-
-int PKI_SCHEME_ID_is_combined(PKI_SCHEME_ID id) {
-
-	// Input checks
-	if (id <= 0) return PKI_ERR;
-
-#ifdef ENABLE_COMBINED
-	// Generic or Explicit
-	if (id == PKI_SCHEME_COMBINED || PKI_OK == PKI_SCHEME_ID_is_explicit_combined(id)) {
-		// Either Generic or Explicit composite
-		return PKI_OK;
-	}
-#endif
-	
-	// Neither
-	return PKI_ERR;
-}
-
-int PKI_SCHEME_ID_is_explicit_composite(PKI_SCHEME_ID id) {
-
-	// Input Checks
-	if (id <= 0) return PKI_ERR;
-
-	// Checks for Explicit Composite OIDs
-	switch(id) {
-
-#ifdef ENABLE_COMPOSITE
-# ifdef ENABLE_OQS
-		// Post Quantum Cryptography - Composite Crypto
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
-			// Explicit Composite Combinations, nothing to do
-		} break;
-# endif
-#endif
-
-		default: {
-			// Non-Explicit Composite Scheme detected
-			return PKI_ERR;
-		}
-	}
-
-	// All done
-	return PKI_OK;
-}
-
-int PKI_SCHEME_ID_is_explicit_combined(PKI_SCHEME_ID id) {
-
-	// Input Checks
-	if (id <= 0) return PKI_ERR;
-
-	// Checks for Explicit Composite OIDs
-	switch(id) {
-
-#ifdef ENABLE_COMBINED
-# ifdef ENABLE_OQS
-		// Post Quantum Cryptography - Composite Crypto
-		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_P256:
-		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_BRAINPOOL256:
-		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_ED25519:
-		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM3_RSA:
-		case PKI_SCHEME_COMBINED_EXPLICIT_FALCON512_P256:
-		case PKI_SCHEME_COMBINED_EXPLICIT_FALCON512_ED25519:
-		case PKI_SCHEME_COMBINED_EXPLICIT_FALCON512_RSA: 
-		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM5_FALCON1024_P521:
-		case PKI_SCHEME_COMBINED_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
-			// Explicit Combined schemes, nothing to do
-		} break;
-# endif
-#endif
-
-		default: {
-			// Non-Combined scheme detected
-			return PKI_ERR;
-		}
-	}
-
-	// All Done
-	return PKI_OK;
 }
 
 const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
@@ -707,24 +660,7 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 #ifdef ENABLE_ECDSA
 		} else if (strncmp_nocase("EC", data, 2) == 0) {
 			return PKI_SCHEME_ECDSA;
-		// OQS Post-Quantum
-		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME, data, 11) == 0
-					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME, data, 11) == 0
-					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME, data, 11) == 0) {
-			return PKI_SCHEME_DILITHIUM;
-		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON512_NAME, data, 9) == 0
-					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME, data, 10) == 0) {
-			return PKI_SCHEME_FALCON;
-		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
-			return PKI_SCHEME_DILITHIUM;
-		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
-			return PKI_SCHEME_SPHINCS;
 #endif
-#ifdef ENABLE_COMBINED
-		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
-			return PKI_SCHEME_COMBINED;
-#endif
-
 # ifdef ENABLE_COMPOSITE
 		// Generic Composite
 		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
@@ -771,6 +707,25 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
 			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA;
 # endif // End of ENABLE_OQS
 #endif // End of ENABLE_COMPOSITE
+
+#ifdef ENABLE_OQS
+		// OQS Post-Quantum
+		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME, data, 11) == 0
+					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME, data, 11) == 0
+					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME, data, 11) == 0) {
+			return PKI_SCHEME_DILITHIUM;
+		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON512_NAME, data, 9) == 0
+					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME, data, 10) == 0) {
+			return PKI_SCHEME_FALCON;
+		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
+			return PKI_SCHEME_DILITHIUM;
+		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
+			return PKI_SCHEME_SPHINCS;
+#endif
+#ifdef ENABLE_COMBINED
+		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
+			return PKI_SCHEME_COMBINED;
+#endif
 
 #ifdef ENABLE_OQS
 		// Dilithium Algorithm
@@ -977,9 +932,7 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		return PKI_SCHEME_FALCON;
 
 	} else if (pkey_type == PKI_ID_get_by_name("dilithium3")
-			   || pkey_type == PKI_ID_get_by_name("dilithium3-AES")
-			   || pkey_type == PKI_ID_get_by_name("dilithium5")
-			   || pkey_type == PKI_ID_get_by_name("dilithium5-AES")) {
+			   || pkey_type == PKI_ID_get_by_name("dilithium5")) {
 		// DILITHIUM
 		return PKI_SCHEME_DILITHIUM;
 	}  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {

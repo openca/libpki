@@ -8,6 +8,8 @@
 // Local Include
 #include "composite_ameth_lcl.h"
 
+#include <libpki/pki_oid.h>
+
 // ===============
 // Data Structures
 // ===============
@@ -337,16 +339,9 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
-  // // We do not have parameters    
-  // if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
-  //                             V_ASN1_UNDEF, NULL, buff, buff_len)) {
-  //   PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot encode the parameter");
-  //   goto err;
-  // }
-
   // Encode the parameters (if any)
   if (comp_key->params) {
-    fprintf(stderr, "[%s:%d] DEBUG: Detected k-of-n parameter, processing it...\n", __func__, __LINE__);
+    PKI_DEBUG("Detected k-of-n parameter, processing it...\n");
     key_param_type = V_ASN1_INTEGER;
     key_param = ASN1_INTEGER_dup(comp_key->params);
     if (!key_param) {
@@ -354,8 +349,6 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
       return 0;
     }
   }
-
-  fprintf(stderr, "[%s:%d] DEBUG: key_param_type = %d, key_param = %p\n", __func__, __LINE__, key_param_type, key_param);
 
   // We do not have parameters    
   if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
@@ -408,6 +401,14 @@ int pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
   if (((comp_a = EVP_PKEY_get0(a)) == NULL) ||
       ((comp_b = EVP_PKEY_get0(b)) == NULL)) {
     // If any of the two is NULL, we return -1
+    return -1;
+  }
+
+  // Checks both have (or not) parameters
+  if ((comp_a->params && !comp_b->params) ||
+      (!comp_a->params && comp_b->params) ) {
+    // If one has parameters and the other not, we
+    // return an error
     return -1;
   }
 
@@ -624,15 +625,25 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
         return 0;
   };
 
+  const ASN1_OBJECT * alg_oid;
+
   // Gets the type and the parameters
-  X509_ALGOR_get0(NULL, &pkey_type, &params_value, pkey_alg);
+  X509_ALGOR_get0(&alg_oid, &pkey_type, &params_value, pkey_alg);
   if (params_value) {
+    
+    // Free current allocated params, if any
+    if (comp_key->params) ASN1_INTEGER_free(comp_key->params);
+    comp_key->params = NULL;
+
     // If we have parameters, we need to save them to the key
     if ((comp_key->params = ASN1_INTEGER_dup((ASN1_INTEGER *)params_value)) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameters");
       goto err;
     }
   };
+
+  PKI_DEBUG("GOT THE KEY Algorithm OID: %d", OBJ_obj2nid(alg_oid));
+    if (alg_oid) comp_key->algorithm = OBJ_obj2nid(alg_oid);
 
   // Free the stack memory
   while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
@@ -781,7 +792,6 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       goto err;
     }
-
   }
 
   buff = NULL;
@@ -807,9 +817,19 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     }
   }
 
+  PKI_DEBUG("PRIV. KEY. ENCODING: COMPOSITE KEY - algorithm = %d", comp_key->algorithm);
+  PKI_DEBUG("PRIV. KEY. ENCODING: EVP_PKEY TYPE - pk->type = %d, pk->save_type = %d", pk->type, pk->save_type);
+  PKI_DEBUG("PRIV. KEY. ENCODING: PKEY_AMETH - pkey_id = %d", pk->ameth->pkey_id);
+  // if (!EVP_PKEY_set_type(pk, comp_key->algorithm)) {
+  //   PKI_DEBUG("Cannot set the algorithm for the key");
+  // }
+  int my_nid = pk->save_type;
+  PKI_DEBUG("PRIV. KEY. ENCODING: my_nid = %d", my_nid);
+  ASN1_OBJECT * obj = OBJ_nid2obj(my_nid);
+  PKI_DEBUG("PRIV. KEY. ENCODING: OBJ_nid2obj(%d) = %s", pk->save_type || pk->ameth->pkey_id, PKI_OID_get_descr(obj));
+
   // Sets the params for the P8
-  if (!PKCS8_pkey_set0(p8, OBJ_nid2obj(pk->ameth->pkey_id), 
-                       0, key_param_type, key_param, buff, buff_len)) {
+  if (!PKCS8_pkey_set0(p8, obj, 0, key_param_type, key_param, buff, buff_len)) {
     PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the P8 null parameters contents");
     goto err;
   }
@@ -1034,10 +1054,33 @@ int pkey_security_bits(const EVP_PKEY *pk) {
 
 // Implemented
 int param_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
-  // Since we do not have any parameters, we always
-  // return 1 to avoid errors in the p_lib.c:90
-  // (EVP_PKEY_copy_parameters() function)
-  return 1;
+
+  COMPOSITE_KEY * comp_a = NULL;
+  COMPOSITE_KEY * comp_b = NULL;
+    // Pointers to the inner data structure
+
+  int param_a = -1;
+  int param_b = -1;
+    // Holds the parameters' values
+
+  // Input Checks
+  if (a == NULL || b == NULL) return -1;
+
+  if ((comp_a = EVP_PKEY_get0(a)) == NULL ||
+      (comp_b = EVP_PKEY_get0(b)) == NULL) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot retrieve the Composite Key");
+    return -1;
+  }
+
+  // Gets the parameters' values
+  if (comp_a->params) param_a = (int) ASN1_INTEGER_get(comp_a->params);
+  if (comp_b->params) param_b = (int) ASN1_INTEGER_get(comp_b->params);
+
+  // Compares the values
+  if (param_a == param_b) return 0;
+  
+  // All Done
+  return (param_a > param_b ? 1 : -1);
 }
 
 // // Not Implemented
@@ -1218,6 +1261,20 @@ int item_sign(EVP_MD_CTX      * ctx,
               X509_ALGOR      * alg2, 
               ASN1_BIT_STRING * sig) {
 
+  EVP_PKEY_CTX * pctx = NULL;
+  EVP_PKEY * pkey_val = NULL;
+    // OpenSSL's context
+
+  COMPOSITE_CTX * comp_ctx = NULL;
+  COMPOSITE_KEY * comp_key = NULL;
+    // Composite Key and CTX pointers
+
+  X509_ALGORS * sig_algs = NULL;
+    // List of signature algorithms
+
+  int signature_id = NID_undef;
+    // Signature ID
+
   /*
   * Return value meanings:
   * <=0: error.
@@ -1228,43 +1285,106 @@ int item_sign(EVP_MD_CTX      * ctx,
   * See ASN1_item_sign_ctx() at OPENSSL/crypto/asn1/a_sign.c:140
   */
 
-  // Here we should build the parameters when NULL is used
-  // as a digest we have to query for the default hash of
-  // the specific PKEY (or we can just use SHA256 as the
-  // default).
+  // Get the EVP_PKEY_CTX from the EVP_MD_CTX
+  pctx = EVP_MD_CTX_pkey_ctx(ctx);
+  if (!pctx) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the EVP_PKEY_CTX from the EVP_MD_CTX");
+    return -1;
+  }
 
-  // NOTE: The PKEY type provides you with all the details needed
-  //       for the signature verification (all key types and all
-  //       MD types)
-  
-  // const EVP_MD * md = EVP_MD_CTX_md(ctx);
-  // EVP_PKEY * pkey_val = EVP_PKEY_CTX_get0_pkey(pctx);
-  EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
+  // Gets the Composite Context
+  comp_ctx = pctx->data;
+  if (!comp_ctx) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Context from the EVP_PKEY_CTX");
+    return -1;
+  }
 
-  // COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pctx && pctx->pkey ? pctx->pkey : NULL);
-  //   // Pointer to inner key structure
+  // Get the Composite Key from the EVP_PKEY_CTX
+  if ((pkey_val = EVP_PKEY_CTX_get0_pkey(pctx)) != NULL) {
+    comp_key = EVP_PKEY_get0(pkey_val);
+  }
+  if (!comp_key) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Key from the EVP_PKEY_CTX");
+  }
 
-  PKI_DEBUG("MISSING CODE: Build the parameters and set the algorithm identifiers (with the parameters)");
+  // Gets the PKI_SCHEME_ID from the Composite Key
+  PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey_val);
 
-  // Once the parameters are built, we can pass the list of
-  // algorithms to use in the 'app_data' portion of the
-  // EVP_MD_CTX.
-  // PKI_DEBUG("MISSING CODE: Add the pointer to the X509_ALGOR to the app_data");
+  // Here we shall generate and validate the list of components
+  // when the pkey_id is one of the explicit composite
+  if (PKI_SCHEME_ID_is_explicit_composite(scheme_id) == PKI_OK) {
+    PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
+    PKI_DEBUG("MISSING CODE FOR AUTO-GENERATING THE X509_ALGORS LIST");
+    PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
+    signature_id = EVP_PKEY_id(pkey_val);
+  }
 
-  // Update: Actually, instead of using the 'app_data' it seems
-  // architecturally more sound to leverage the CTRL interface
-  // where we can set a parameter such as the list of MD NIDs.
-  //
-  // Something like:
-  // EVP_PKEY_CTX_ctrl(pctx, EVP_PKEY_type(pkey_val), EVP_PKEY_OP_SIGN, EVP_PKEY_CTRL_COMPOSITE_SET_VERIFYMD, )
+  // Checks if we build the list of algorithms with defaults
+  // or if we use the pre-configured list of algorithms
+  if (comp_ctx->sig_algs) {
+    // Use pre-configured list of algorithms
+    sig_algs = comp_ctx->sig_algs;
+  } else {
+    // Let's use the list of keys from the Composite Key (attach)
+    int success = COMPOSITE_CTX_components_set0(comp_ctx, comp_key->components);
+    if (success == PKI_ERR) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of keys from the Composite Key");
+      return -1;
+    }
+    // Build the list with defaults
+    success = COMPOSITE_CTX_get_algors(comp_ctx, &sig_algs);
+    if (!success || !sig_algs) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
+      // Removes the list of components from the context
+      comp_ctx->components = NULL;
+      return -1;
+    }
+    // Removes the list of components from the context
+    comp_ctx->components = NULL;
+  }
 
-  PKI_DEBUG("MISSING CODE: Call the CTRL interface and set the list of X509_ALGOR for the sign operation.");
+  // PKI_DEBUG("Retrieved List of X509_ALGOR => %d elements", sk_X509_ALGOR_num(sig_algs));
+  // for (int i = 0; i < sk_X509_ALGOR_num(sig_algs); i++) {
+  //   X509_ALGOR * t = sk_X509_ALGOR_value(sig_algs, i);
+  //   PKI_DEBUG("ALG[%d]: %s", i, t && t->algorithm ? (OBJ_nid2sn(OBJ_obj2nid(t->algorithm))) : "NULL");
+  // }
 
-  // This is needed to pass the list of algorithms
-  EVP_PKEY_CTX_set_app_data(pctx, (void *)alg1);
+  if (signature_id == PKI_ID_UNKNOWN) {
+    // Retrieves the Digest
+    const EVP_MD * md = EVP_MD_CTX_md(ctx);
+    
+    // Gets the ID for the algorithm components
+    int digest_id = md != NULL ? EVP_MD_nid(md) : PKI_DIGEST_ALG_ID_DEFAULT;
+    int pkey_id = EVP_PKEY_id(pkey_val);
 
-  // Test
-  return 2;
+    // Search for the Algorithm ID
+    if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
+        digest_id, pkey_id);
+      return -1;
+    }
+  }
+
+  ASN1_STRING * param_str = NULL;
+  param_str = ASN1_item_pack(sig_algs, ASN1_ITEM_rptr(X509_ALGORS), NULL);
+  if (!param_str) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not pack the list of algorithms");
+    return -1;
+  }
+
+  // Sets the Algorithm IDs
+  if (alg1 != NULL)
+    X509_ALGOR_set0(alg1, OBJ_nid2obj(signature_id), V_ASN1_SEQUENCE, param_str);
+
+  if (alg2 != NULL) {
+    // We need to duplicate the parameter string
+    ASN1_STRING * param_str_dup = ASN1_STRING_dup(param_str);
+    X509_ALGOR_set0(alg2, OBJ_nid2obj(signature_id), V_ASN1_SEQUENCE, param_str_dup);
+  }
+
+  // Should return 3 to indicate that the algorithm identifiers
+  // are already set.
+  return 3;
 
   // EVP_PKEY_CTX * pkey_ctx = EVP_MD_CTX_pkey_ctx(ctx);
   //   // Public Key CTX

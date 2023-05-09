@@ -72,8 +72,8 @@ int PKI_SCHEME_ID_supports_multiple_components(PKI_SCHEME_ID id);
 /*!
  * \brief Determines if the passed scheme is composite.
  *
- * This function checks if the passed PKI_SCHEME_ID is indeed a composite type,
- * either a Generic or an Explicit Composite.
+ * This function checks if the passed PKI_SCHEME_ID is indeed a
+ * Generic Composite.
  * 
  * @param id The scheme that is being checked
  * @retval Returns PKI_OK if the scheme is composite, PKI_ERR otherwise
@@ -91,17 +91,6 @@ int PKI_SCHEME_ID_is_composite(PKI_SCHEME_ID id);
  * @retval Returns PKI_OK if the scheme is explicit composite, PKI_ERR otherwise
  */
 int PKI_SCHEME_ID_is_explicit_composite(PKI_SCHEME_ID id);
-
-/*!
- * \brief Determines if the passed scheme is combined (alternative keys).
- *
- * This function checks if the passed PKI_SCHEME_ID is indeed a combined type,
- * either a Generic an Explicit Combined type.
- * 
- * @param id The scheme that is being checked
- * @retval Returns PKI_OK if the scheme is combined, PKI_ERR otherwise
- */
-int PKI_SCHEME_ID_is_combined(PKI_SCHEME_ID id);
 
 /*!
  * \brief Determines if the passed scheme is post-quantum.
@@ -125,6 +114,9 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id);
  * @retval Returns PKI_OK if the scheme requires a digest, PKI_ERR otherwise.
  */
 int PKI_SCHEME_ID_requires_digest(PKI_SCHEME_ID id);
+
+
+
 
 // ------------------------------ PKI_DIGEST_ALG ------------------------------- //
 

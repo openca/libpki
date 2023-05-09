@@ -489,136 +489,142 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 		// Explicit Composite Crypto Schemes
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
+			PKI_DEBUG("%s - %s", OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME,
+				OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID);
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
+			PKI_DEBUG("OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME) = %d",
+				kp->oqs.algId);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256: {
-			// Combination bits check
-			if (bits > 192) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 192;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME);
+			// Combination bits check
+			if (bits > 192) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256: {
-			// Combination bits check
-			if (bits > 192) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 192;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME);
+			// Combination bits check
+			if (bits > 192) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519: {
-			if (bits > 192) {
-				PKI_DEBUG("Only 128 sec bits supported by this scheme (%d).", kp->scheme);
-				return PKI_ERR;
-			}
 			kp->bits = 192;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME);
+			// Combination bits check
+			if (bits > 192) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384: {
-			// Combination bits check
-			if (bits > 256) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME);
+			// Combination bits check
+			if (bits > 256) return PKI_ERR;
 		} break;
 		
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384: {
-			// Combination bits check
-			if (bits > 256) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME);
+			// Combination bits check
+			if (bits > 256) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448: {
-			// Combination bits check
-			if (bits > 256) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME);
+			// Combination bits check
+			if (bits > 256) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
 			// Updates key parameters
 			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID);
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME);
+			// Combination bits check
+			if (bits > 128) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
 			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID);
+			kp->bits = 512;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME);
+			// Combination bits check
+			if (bits > 512) return PKI_ERR;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
 			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_OID);
+			kp->bits = 512;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME);
+			// Combination bits check
+			if (bits > 512) return PKI_ERR;
 		} break;
 
 # endif // ENABLE_COMPOSITE
