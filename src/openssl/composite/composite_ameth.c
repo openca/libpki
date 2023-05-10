@@ -483,7 +483,7 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
 #endif
       ) {
     BIO_printf(out, "%*s", indent, "");
-    BIO_printf(out, "Required Valid Components Signatures (K-of-N): %d (%d-%d)\n",
+    BIO_printf(out, "Required Valid Components Signatures (K-of-N): %ld (%ld-%d)\n",
       comp_key->params ? ASN1_INTEGER_get(comp_key->params) : -1, 
       comp_key->params ? ASN1_INTEGER_get(comp_key->params) : COMPOSITE_KEY_num(comp_key),
       COMPOSITE_KEY_num(comp_key));

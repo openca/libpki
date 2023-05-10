@@ -59,22 +59,6 @@ extern const long LIBPKI_OS_DETAILS;
 #include <fcntl.h>
 #endif
 
-#if defined (__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
-	/* Ok, Semafores are correctly supported */
-#elif defined (_SYS_SEM_H_)
-	/* OpenBSD is not a GNU_LIBRARY but knows semaphores */
-#else
-	/* We should define here the structure */
-	union semun {
-             int val;                  /* value for SETVAL */
-             struct semid_ds *buf;     /* buffer for IPC_STAT, IPC_SET */
-             unsigned short *array;    /* array for GETALL, SETALL */
-                                       /* Linux specific part: */
-             struct seminfo *__buf;    /* buffer for IPC_INFO */
-       };
-
-#endif
-
 BEGIN_C_DECLS
 
 #define PKI_NAMESPACE_PREFIX		"pki"
@@ -92,8 +76,6 @@ BEGIN_C_DECLS
 #define ENV_OPENCA_ENGINE_POST		"engine_post"
 #endif
 
-// #define PKI_IO				BIO
-
 /* Imports the library's datatypes */
 #ifndef _LIBPKI_PKI_DATATYPES_H
 # include <libpki/datatypes.h>
@@ -102,10 +84,6 @@ BEGIN_C_DECLS
 #ifdef ENABLE_COMPOSITE
 #include <libpki/openssl/composite/composite_pmeth.h>
 #endif
-
-// #ifdef ENABLE_COMBINED
-// #include <libpki/openssl/combined/combined_pmeth.h>
-// #endif
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 
@@ -140,62 +118,11 @@ typedef enum {
 	PKI_X509_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER	= 0xA3,
 } PKI_X509_CRL_REASON;
 
-/*
-typedef enum {
-	PKI_CRL_REASON_HOLD_INSTRUCTION_REJECT		= 0xA2,
-	PKI_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER	= 0xA3,
-} PKI_X509_CRL_HOLD_INSTRUCTION;
-*/
-
 typedef struct __pkiCrlReasonCodes_st {
 	int code;
 	const char *name;
 	const char *descr;
 } PKI_X509_CRL_REASON_CODE;
-
-
-// typedef enum {
-// 	PKI_HTTP_METHOD_UNKNOWN		= 0,
-// 	PKI_HTTP_METHOD_GET,
-// 	PKI_HTTP_METHOD_POST,
-// 	PKI_HTTP_METHOD_HTTP
-// } PKI_HTTP_METHOD;
-
-// #define PKI_HTTP_METHOD_POST_TXT	"POST"
-// #define PKI_HTTP_METHOD_GET_TXT		"GET"
-// #define PKI_HTTP_METHOD_HTTP_TXT	"HTTP"
-
-// #define APP_PASS_LEN    			1024
-
-// #define PKI_CONFIG  			xmlDoc
-// #define PKI_CONFIG_ELEMENT  	xmlNode
-
-/* Misc Define */
-/*
-#define PKI_X509_CERT_BEGIN_ARMOUR	"-----BEGIN CERTIFICATE-----"
-#define PKI_X509_CERT_END_ARMOUR	"-----END CERTIFICATE-----"
-
-#define PKI_X509_REQ_BEGIN_ARMOUR	"-----BEGIN CERTIFICATE REQUEST-----"
-#define PKI_X509_REQ_END_ARMOUR		"-----END CERTIFICATE REQUEST-----"
-
-#define PKI_X509_CRL_BEGIN_ARMOUR	"-----BEGIN CRL-----"
-#define PKI_X509_CRL_END_ARMOUR		"-----END CRL-----"
-
-#define PKI_KEYPAIR_BEGIN_ARMOUR	"-----BEGIN KEYPAIR-----"
-#define PKI_KEYPAIR_END_ARMOUR		"-----END KEYPAIR-----"
-
-#define PKI_PUBKEY_BEGIN_ARMOUR		"-----BEGIN PUBKEY-----"
-#define PKI_PUBKEY_END_ARMOUR		"-----END PUBKEY-----"
-
-#define PKI_PRIVKEY_BEGIN_ARMOUR	"-----BEGIN PRIVKEY-----"
-#define PKI_PRIVKEY_END_ARMOUR		"-----END PRIVKEY-----"
-
-#define PKI_X509_OCSP_REQ_BEGIN_ARMOUR	"-----BEGIN OCSP REQUEST-----"
-#define PKI_X509_OCSP_REQ_END_ARMOUR	"-----END OCSP REQUEST-----"
-
-#define PKI_X509_OCSP_RESP_BEGIN_ARMOUR	"-----BEGIN OCSP RESPONSE-----"
-#define PKI_X509_OCSP_RESP_END_ARMOUR	"-----END OCSP RESPONSE-----"
-*/
 
 typedef enum {
 	PKI_MUTEX_READ		= 0,
