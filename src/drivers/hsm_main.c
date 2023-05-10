@@ -621,7 +621,8 @@ int PKI_X509_sign(PKI_X509               * x,
 								&sig_asn1,
 								x->value,
 								pkey,
-								((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
+								digest);
+								// ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
 	if (!success || !sig_asn1.data || !sig_asn1.length) {
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not sign the data");

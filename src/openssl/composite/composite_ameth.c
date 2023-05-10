@@ -333,10 +333,11 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   }
 
   // Free the stack's memory
-  while ((sk != NULL) && (sk_ASN1_TYPE_num(sk) > 0) && ((aType = sk_ASN1_TYPE_pop(sk)) != NULL)) {
-    ASN1_TYPE_free(aType);
-  }
-  sk_ASN1_TYPE_free(sk);
+  if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
+  // while ((sk != NULL) && (sk_ASN1_TYPE_num(sk) > 0) && ((aType = sk_ASN1_TYPE_pop(sk)) != NULL)) {
+  //   ASN1_TYPE_free(aType);
+  // }
+  // sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
   // Encode the parameters (if any)
@@ -1309,6 +1310,10 @@ int item_sign(EVP_MD_CTX      * ctx,
 
   // Gets the PKI_SCHEME_ID from the Composite Key
   PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey_val);
+  if (scheme_id <= PKI_SCHEME_UNKNOWN) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the PKI_SCHEME_ID from the Composite Key");
+    return -1;
+  }
 
   // Here we shall generate and validate the list of components
   // when the pkey_id is one of the explicit composite
@@ -1316,7 +1321,35 @@ int item_sign(EVP_MD_CTX      * ctx,
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
     PKI_DEBUG("MISSING CODE FOR AUTO-GENERATING THE X509_ALGORS LIST");
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
-    signature_id = EVP_PKEY_id(pkey_val);
+    signature_id = EVP_PKEY_type(EVP_PKEY_id(pkey_val));
+
+  } else if (signature_id == PKI_ID_UNKNOWN) {
+    
+    // Retrieves the Digest
+    const EVP_MD * md = EVP_MD_CTX_md(ctx);
+    
+    // Gets the ID for the algorithm components
+    int digest_id = NID_undef;
+    int pkey_id = EVP_PKEY_id(pkey_val);
+
+    if (md == PKI_DIGEST_ALG_NULL) {
+      digest_id = NID_undef;
+    } else if (md == NULL) {
+      digest_id = PKI_DIGEST_ALG_ID_DEFAULT;
+    } else {
+      digest_id = EVP_MD_type(md);
+    }
+
+    PKI_DEBUG("***** Original Digest %d - Digest ID: %d", EVP_MD_type(md), digest_id);
+
+    // Search for the Algorithm ID
+    if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
+        digest_id, pkey_id);
+      return -1;
+    }
+
+    PKI_DEBUG("***** Found the Signature ID: %d", signature_id);
   }
 
   // Checks if we build the list of algorithms with defaults
@@ -1332,39 +1365,18 @@ int item_sign(EVP_MD_CTX      * ctx,
       return -1;
     }
     // Build the list with defaults
-    success = COMPOSITE_CTX_get_algors(comp_ctx, &sig_algs);
+    success = COMPOSITE_CTX_algors_new0(comp_ctx, signature_id, &sig_algs);
     if (!success || !sig_algs) {
       PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
       // Removes the list of components from the context
-      comp_ctx->components = NULL;
+      COMPOSITE_CTX_components_detach(comp_ctx, NULL);
       return -1;
     }
     // Removes the list of components from the context
-    comp_ctx->components = NULL;
+    COMPOSITE_CTX_components_detach(comp_ctx, NULL);
   }
 
-  // PKI_DEBUG("Retrieved List of X509_ALGOR => %d elements", sk_X509_ALGOR_num(sig_algs));
-  // for (int i = 0; i < sk_X509_ALGOR_num(sig_algs); i++) {
-  //   X509_ALGOR * t = sk_X509_ALGOR_value(sig_algs, i);
-  //   PKI_DEBUG("ALG[%d]: %s", i, t && t->algorithm ? (OBJ_nid2sn(OBJ_obj2nid(t->algorithm))) : "NULL");
-  // }
-
-  if (signature_id == PKI_ID_UNKNOWN) {
-    // Retrieves the Digest
-    const EVP_MD * md = EVP_MD_CTX_md(ctx);
-    
-    // Gets the ID for the algorithm components
-    int digest_id = md != NULL ? EVP_MD_nid(md) : PKI_DIGEST_ALG_ID_DEFAULT;
-    int pkey_id = EVP_PKEY_id(pkey_val);
-
-    // Search for the Algorithm ID
-    if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
-        digest_id, pkey_id);
-      return -1;
-    }
-  }
-
+  // Pack the list of algorithms
   ASN1_STRING * param_str = NULL;
   param_str = ASN1_item_pack(sig_algs, ASN1_ITEM_rptr(X509_ALGORS), NULL);
   if (!param_str) {
@@ -1385,50 +1397,6 @@ int item_sign(EVP_MD_CTX      * ctx,
   // Should return 3 to indicate that the algorithm identifiers
   // are already set.
   return 3;
-
-  // EVP_PKEY_CTX * pkey_ctx = EVP_MD_CTX_pkey_ctx(ctx);
-  //   // Public Key CTX
-  
-  // EVP_PKEY * pkey = pkey_ctx ? EVP_PKEY_CTX_get0_pkey(pkey_ctx) : NULL;
-  //   // Public Key
-
-  // int signature_id = -1;
-  // int digest_id = -1;
-  // int pkey_id = -1;
-
-  // // Input checks
-  // if (!pkey || !pkey_ctx) {
-  //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Missing PKEY or PKEY context");
-  //   return -1;
-  // }
-
-  // // Retrieves the Digest
-  // const EVP_MD * md = EVP_MD_CTX_md(ctx);
-  
-  // // Gets the ID for the algorithm components
-  // digest_id = md != NULL ? EVP_MD_nid(md) : PKI_DIGEST_ALG_ID_DEFAULT;
-  // pkey_id = EVP_PKEY_id(pkey);
-
-  // PKI_DEBUG("PKEY ID: %d", pkey_id);
-
-  // // Search for the Algorithm ID
-  // if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
-  //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
-  //     digest_id, pkey_id);
-  //   return -1;
-  // }
-
-  // PKI_DEBUG("SIGNATURE ID: %d", signature_id);
-
-  // // Sets the Algorithm IDs
-  // if (alg1 != NULL)
-  //   X509_ALGOR_set0(alg1, OBJ_nid2obj(signature_id), V_ASN1_UNDEF, NULL);
-
-  // if (alg2 != NULL)
-  //     X509_ALGOR_set0(alg2, OBJ_nid2obj(signature_id), V_ASN1_UNDEF, NULL);
-
-  // // Algorithm identifier set: carry on as normal
-  // return 3;
 }
 
 // Not Implemented

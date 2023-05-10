@@ -42,11 +42,20 @@ BEGIN_C_DECLS
 /*! \brief Allocates a new Composite CTX */
 COMPOSITE_CTX * COMPOSITE_CTX_new_null();
 
+/*!
+ * @brief Allocates a new Composite CTX and sets the default digest
+ *
+ * This function allocates a new Composite CTX and sets the default
+ * digest algorithm to be used when no digest is specified for the
+ * composite operation and one or more components require a digest.
+ * 
+ * @param alg The digest algorithm to be used as default
+ * @retval The new Composite CTX or NULL in case of errors
+ */
+COMPOSITE_CTX * COMPOSITE_CTX_new(const PKI_DIGEST_ALG * md);
+
 /*! \brief Frees the memory associated with a Composite CTX */
 void COMPOSITE_CTX_free(COMPOSITE_CTX * ctx);
-
-/*! \brief Allocates a new Composite CTX from an MD */
-COMPOSITE_CTX * COMPOSITE_CTX_new(const PKI_DIGEST_ALG * md);
 
 /*! \brief Sets the MD for the Composite CTX */
 int COMPOSITE_CTX_set_md(COMPOSITE_CTX * ctx, const PKI_DIGEST_ALG * md);
@@ -80,9 +89,123 @@ int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
 int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
                                   COMPOSITE_KEY_STACK * const components);
 
-/*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_get_algors(COMPOSITE_CTX  * ctx,
-                             X509_ALGORS   ** algors);
+/*! \brief Detaches the components from the CTX */
+int COMPOSITE_CTX_components_detach(COMPOSITE_CTX        * ctx, 
+                                    COMPOSITE_KEY_STACK ** const components);
+
+/*! \brief Generates and returns the list of signature algorithms 
+ * 
+ * This function generates the list of signature algorithms for the
+ * set of configured keys inside the context.
+ * 
+ * For each key in the components stack, the algorithm is selected
+ * by the following criteria:
+ * - If the key is an explicit composite, the algorithm selection is
+ *   determined by the signature OID itself that must match the key
+ *   type (OID).
+ * - If the key is a generic composite, the algorithm selection is
+ *   determined by looking at the presence of the ctx->md algorithm
+ *   that indicates the use of has-n-sign (all algorithms will use
+ *   the same digest). If the ctx->md is not set, then the default
+ *   algorithm (ctx->default_md) is used when the algorithm does not
+ *   support direct signing.
+ * 
+ * The ownership of the returned structure is not transferred to
+ * the caller, so the caller should not free it.
+ * 
+ * @param ctx The Composite CTX to use for signing operation
+ * @param algors The return pointer that references the internal structure
+ * @retval Returns PKI_OK on success, PKI_ERR on failure
+*/
+int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
+                              const int        pkey_type,
+                              X509_ALGORS   ** algors);
+
+/*! \brief Generates and returns the list of explicit algorithms 
+ * 
+ * This function generates the list of signature algorithms for the
+ * set of configured keys inside the context.
+ * 
+ * For each key in the components stack, the algorithm is selected
+ * by looking at the pkey_type (same ID for Keys and Signatures).
+ * 
+ * The ownership of the returned structure is not transferred to
+ * the caller, so the caller should not free it.
+ * 
+ * @param ctx The Composite CTX to use for signing operation
+ * @param algors The return pointer that references the internal structure
+ * @retval Returns PKI_OK on success, PKI_ERR on failure
+*/
+int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
+                                       const int        pkey_type,
+                                       X509_ALGORS   ** algors);
+
+/*! \brief Clears the list of signature algorithms */
+int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx);
+
+/*!
+ * @brief Returns a reference the list of signature algorithms
+ *
+ * This function returns a reference to the list of signature algorithms
+ * that are supported by the Composite CTX. The list is returned as a
+ * pointer to a X509_ALGORS structure.
+ * 
+ * For each key in the components stack, the algorithm is selected
+ * by the following criteria:
+ * - If the key is an explicit composite, the algorithm selection is
+ *   determined by the signature OID itself that must match the key
+ *   type (OID).
+ * - If the key is a generic composite, the algorithm selection is
+ *   determined by looking at the presence of the ctx->md algorithm
+ *   that indicates the use of has-n-sign (all algorithms will use
+ *   the same digest). If the ctx->md is not set, then the default
+ *   algorithm (ctx->default_md) is used when the algorithm does not
+ *   support direct signing.
+ * 
+ * The ownership of the returned structure is transferred to the
+ * ctx, so the caller should not free it.
+ * 
+ * @param ctx The Composite CTX to use for signing operation
+ * @param algors The pointer to the X509_ALGORS structure
+ * @return 
+ */
+int COMPOSITE_CTX_algors_set0(COMPOSITE_CTX * const ctx,
+                              X509_ALGORS   * const algors);
+
+/*!
+ * @brief Returns a reference the list of signature algorithms
+ *
+ * This function returns a reference to the list of configured
+ * signature algorithms. The list is returned as a pointer to a
+ * X509_ALGORS structure.
+ * 
+ * The ownership of the returned structure is not transferred to
+ * the ctx, so the caller should free it.
+ * 
+ * @param ctx The Composite CTX to use for signing operation
+ * @param algors The return pointer to the internal structure
+ * @retval Returns PKI_OK on success, PKI_ERR on failure
+ */
+int COMPOSITE_CTX_algors_get0(const COMPOSITE_CTX  * const ctx,
+                              const X509_ALGORS   ** const algors);
+
+/*!
+ * @brief Detaches the list of signature algorithms
+ *
+ * This function returns a reference to the list of configured
+ * signature algorithms and detaches it from the ctx. The list is
+ * returned as a pointer to a X509_ALGORS structure.
+ * 
+ * The ownership of the returned structure is transferred to
+ * the ctx, so the caller should manage it (i.e., free it if 
+ * it was allocated or simply discarded).
+ * 
+ * @param ctx The Composite CTX to use for signing operation
+ * @param algors The return pointer to the internal structure
+ * @retval Returns PKI_OK on success, PKI_ERR on failure
+ */
+int COMPOSITE_CTX_algors_detach(COMPOSITE_CTX  * const ctx,
+                                X509_ALGORS   ** const algors);
 
 /*! \brief Sets the K-of-N for the Composite CTX */
 int COMPOSITE_CTX_set_kofn(COMPOSITE_CTX * ctx, int kofn);

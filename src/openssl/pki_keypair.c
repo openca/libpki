@@ -147,14 +147,14 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 		return ret;
 	}
 
+	// Let's get the type of the keypair
 	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+	if ( pkey_type == PKI_ID_UNKNOWN) {
+		PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme!");
+		return ret;
+	}
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-	pkey_type = EVP_PKEY_type(pVal->type);
-#else
-	pkey_type = EVP_PKEY_type(EVP_PKEY_id(pVal));
-#endif
-
+	// Maps the type of the keypair to the scheme
 	switch(pkey_type) {
 
 		case PKI_ALGOR_DSA:
@@ -202,20 +202,18 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 #ifdef ENABLE_COMPOSITE
 
 			PKI_DEBUG("Looking up the pkey_type (%d) in the composite list", pkey_type);
-			if (OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME) == NID_undef) {
-				PKI_DEBUG("Composite OID cannot be converted! Check it out (%s)", 
-				OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
-			}
 
 			// Generic Composite
 			if (PKI_ID_is_composite(pkey_type)) {
 				ret = PKI_SCHEME_COMPOSITE;
+				PKI_DEBUG("Found a composite type (%d)", ret);
 			} else if (PKI_ID_is_explicit_composite(pkey_type, &ret)) {
 				// Scheme ID and PKEY types are the same
 				// Nothing to do, ret was already retrieved
+				PKI_DEBUG("Found an explicit composite type (%d)", ret);
 			} else {
-				PKI_DEBUG("Cannot select the scheme for pkey_type %d", pkey_type);
 				ret = PKI_SCHEME_UNKNOWN;
+				PKI_DEBUG("Cannot select the scheme for pkey_type = %d (%d)", pkey_type, ret);
 			}
 
 		// 	if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
@@ -278,11 +276,22 @@ int PKI_X509_KEYPAIR_get_id(const PKI_X509_KEYPAIR * key) {
 
 int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey) {
 
+	int pkey_type = PKI_ID_UNKNOWN;
+
 	// Input Check
-	if (!pkey) return PKI_ID_UNKNOWN;
+	if (!pkey) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ID_UNKNOWN;
+	}
+
+#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+	pkey_type = EVP_PKEY_type(pVal->type);
+#else
+	pkey_type = EVP_PKEY_type(EVP_PKEY_id(pkey));
+#endif
 
 	// Returns the PKEY ID
-	return EVP_PKEY_id(pkey);
+	return pkey_type;
 }
 
 int PKI_X509_KEYPAIR_get_default_digest(const PKI_X509_KEYPAIR * key) {
@@ -372,47 +381,61 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 	int def_ret = -1, def_nid = -1;
 		// OpenSSL return code
 
-	PKI_DEBUG("*****************************");
-	PKI_DEBUG("EVP_PKEY_id = %d, EVP_PKEY_type = %d", EVP_PKEY_type(EVP_PKEY_id(pVal)), EVP_PKEY_id(pVal));
-
 	PKI_SCHEME_ID scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(pVal);
 	PKI_DEBUG("SCHEME ID = %d", scheme);
 
 	if (PKI_SCHEME_ID_is_explicit_composite(scheme)) {
-		// Gets the Composite Key
-		COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pVal);
-		// Let's detect the explicit
-		if (comp_key->algorithm) {
-			const char * alg_str = PKI_OID_get_descr(PKI_OID_new_id(comp_key->algorithm));
-			PKI_DEBUG("KEY IS COMPOSITE --> KEY IS EXPLICIT COMPOSITE --> Algorithm String = %s", alg_str);
-		}
-	} else {
-		PKI_DEBUG("SCHEME is not a composite ");
-	}
-	
-	// Retrieves the default digest
-	def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
-	if (def_ret <= 0 || def_nid == NID_undef) {
-		// Error or No digest is supported
-		algId = EVP_PKEY_id(pVal);
-		PKI_DEBUG("Using the PKEY as the Algorithm ID");
-		ret = PKI_X509_ALGOR_VALUE_new_type(algId);
-	} else if (def_nid != NID_undef) {
-		// Digest supported, let's use it
-		if (!OBJ_find_sigid_by_algs(&algId, def_nid, EVP_PKEY_id(pVal))) {
-			// No default algorithm found, let's return the PKEY id
-			PKI_DEBUG("No default algorithm found (%d), using the PKEY as the Algorithm ID");
-			ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_id(pVal));
-			if (!ret) {
-				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-				return NULL;
-			}
-		}
-		PKI_DEBUG("Got the default signing algorithm ID from the KEY value");
-		// Gets the algorithm
-		ret = PKI_X509_ALGOR_VALUE_new_type(algId);
-    }
 
+		PKI_DEBUG("*****************************");
+		PKI_DEBUG("EVP_PKEY_id = %d, EVP_PKEY_type = %d", EVP_PKEY_type(EVP_PKEY_id(pVal)), EVP_PKEY_id(pVal));
+
+		// Gets the Composite Key
+		// COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pVal);
+		// // Let's detect the explicit
+		// if (comp_key->algorithm) {
+		// 	const char * alg_str = PKI_OID_get_descr(PKI_OID_new_id(comp_key->algorithm));
+		// 	PKI_DEBUG("KEY IS COMPOSITE --> KEY IS EXPLICIT COMPOSITE --> Algorithm String = %s", alg_str);
+		// }
+
+		// Explicit does not use any global hash algorithm
+		// we can safely use the same ID as the PKEY for the
+		// signature algorithm
+		algId = EVP_PKEY_type(EVP_PKEY_id(pVal));
+
+		// Gets the algorithm
+		ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_type(EVP_PKEY_id(pVal)));
+		if (!ret) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return NULL;
+		}
+		
+	} else {
+
+		PKI_DEBUG("SCHEME is not a composite ");
+	
+		// Retrieves the default digest
+		def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
+
+		if (def_ret <= 0 || def_nid == NID_undef) {
+			// Error or No digest is supported
+			algId = EVP_PKEY_id(pVal);
+			PKI_DEBUG("Using the PKEY as the Algorithm ID");
+			ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+		} else if (def_nid != NID_undef) {
+			// Digest supported, let's use it
+			if (!OBJ_find_sigid_by_algs(&algId, def_nid, EVP_PKEY_id(pVal))) {
+				// No default algorithm found, let's return the PKEY id
+				ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_type(EVP_PKEY_id(pVal)));
+				if (!ret) {
+					PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+					return NULL;
+				}
+			}
+			PKI_DEBUG("Got the default signing algorithm ID from the KEY value");
+			// Gets the algorithm
+			ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+		}
+	}
 	// Debugging
 	PKI_DEBUG("------> algId: %d, ret: %p", algId, ret);
 

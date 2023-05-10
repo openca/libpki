@@ -74,20 +74,6 @@ static void cleanup(EVP_PKEY_CTX * ctx) {
   return;
 }
 
-// static int paramgen_init(EVP_PKEY_CTX * ctx) {
-//   return 1;
-// }
-
-// static int paramgen(EVP_PKEY_CTX * ctx,
-//                     EVP_PKEY     * pkey) {
-
-//   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
-//     // Pointer to inner key structure
-
-//   // Success
-//   return 1;
-// }
-
 // Implemented
 static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
 
@@ -163,6 +149,8 @@ static int sign(EVP_PKEY_CTX        * ctx,
                 const unsigned char * tbs,
                 size_t                tbslen) {
 
+  // int counter = 0;
+
   X509_ALGORS * sig_algs = NULL;
     // Pointer to the signature algorithms
 
@@ -193,6 +181,11 @@ static int sign(EVP_PKEY_CTX        * ctx,
   int comp_key_num = 0;
     // Number of components
 
+  int use_global_hash = 0;
+  unsigned char global_hash[EVP_MAX_MD_SIZE];
+  size_t global_hashlen = 0;
+    // Temp Variables
+
   unsigned char * buff = NULL;
   unsigned char * pnt  = NULL;
   int buff_len =  0;
@@ -201,11 +194,12 @@ static int sign(EVP_PKEY_CTX        * ctx,
   int ret_code = 0;
     // Return Code for external calls
 
+  int index = 0;
   int total_size = 0;
     // Total Signature Size
 
   // Input Checks
-  if (!ctx || !tbs || !tbslen) {
+  if (!ctx || !tbs) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return -1;
   }
@@ -217,6 +211,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     return -1;
   }
 
+  // Gets the signature algorithms
   sig_algs = comp_ctx->sig_algs;
 
   PKI_DEBUG("Composite X509_ALGORS: %p", sig_algs);
@@ -246,11 +241,31 @@ static int sign(EVP_PKEY_CTX        * ctx,
   /* WARNING: This does not account for extra space for parameters */
   signature_size = EVP_PKEY_size(ctx->pkey); 
 
-  // Input checks -> Destination Buffer Pointer
+  // If no signature buffer is passed, we just return the size
   if (sig == NULL) {
     *siglen = (size_t)signature_size;
     return 1;
   }
+
+  // If we use the hash-n-sign method, we need to hash the data
+  // only once, let's do it before the loop in this case
+  if (comp_ctx->md && comp_ctx->md != PKI_DIGEST_ALG_NULL) {
+
+    // Indicates we do not need to hash the data again
+    use_global_hash = 1;
+
+    // Calculates the Digest (since we use custom digest, the data is not
+    // hashed when it is passed to this function)
+    int ossl_ret = EVP_Digest(tbs, tbslen, &global_hash[0], (unsigned int *)&global_hashlen, comp_ctx->md, NULL);
+    if (ossl_ret == 0) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+      return 0;
+    }
+  }
+
+  // ================================
+  // Components' Signature Generation
+  // ================================
 
   // Allocates the Stack for the signatures
   if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
@@ -259,20 +274,49 @@ static int sign(EVP_PKEY_CTX        * ctx,
   }
 
   // Generates Each Signature Independently
-  for (int idx = 0; idx < comp_key_num; idx++) {
+  for (index = 0; index < comp_key_num; index++) {
 
-    PKI_DEBUG("Generating Signature Component #%d", idx);
+    PKI_X509_ALGOR_VALUE * alg = NULL;
+      // Temp Algorithm Pointer
+
+    PKI_DEBUG("Generating Signature Component #%d", index);
 
     // Retrieves the i-th component
-    if ((evp_pkey = COMPOSITE_KEY_get0(comp_key, idx)) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component from Key", idx);
+    if ((evp_pkey = COMPOSITE_KEY_get0(comp_key, index)) == NULL) {
+      // PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component from Key", index);
       goto err;
     }
 
     // Let's build a PKEY CTX and assign it to the MD CTX
     pkey_ctx = EVP_PKEY_CTX_new(evp_pkey, NULL);
     if (!pkey_ctx) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d PKEY CTX component", idx);
+      // PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d PKEY CTX component", index);
+      goto err;
+    }
+
+    // Initializes the Signing process
+    ret_code = EVP_PKEY_sign_init(pkey_ctx);
+    if (ret_code != 1) {
+      // PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
+      //   "Cannot initialize %d component signature (EVP_PKEY_sign_init code %d)", 
+      //   index, ret_code);
+      goto err;
+    }
+
+    // Retrieves the i-th algorithm
+    if ((alg = sk_X509_ALGOR_value(sig_algs, index)) == NULL) {
+      // PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th algorithm from Composite Key", index);
+      goto err;
+    }
+
+    // Checks we have the same algorithm for the key
+    int algorithm_pkey_type = 0;
+    int md_type = 0;
+
+    OBJ_find_sigid_algs(OBJ_obj2nid(alg->algorithm), &md_type, &algorithm_pkey_type);
+    if (algorithm_pkey_type != EVP_PKEY_type(EVP_PKEY_id(evp_pkey))) {
+      // PKI_DEBUG("Algorithm %d does not match the key's algorithm %d when processing component #%d", 
+      //   algorithm_pkey_type, EVP_PKEY_id(evp_pkey), index);
       goto err;
     }
 
@@ -281,24 +325,64 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
     // Allocate the buffer for the single signature
     if ((pnt = buff = OPENSSL_malloc((size_t)buff_len)) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d-th component signature's buffer");
+      // PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate the %d-th component signature's buffer");
       goto err;
     }
 
-    // Initializes the Signing process
-    ret_code = EVP_PKEY_sign_init(pkey_ctx);
-    if (ret_code != 1) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, 
-        "Cannot initialize %d component signature (EVP_PKEY_sign_init code %d)", 
-        idx, ret_code);
-      goto err;
-    }
+    // Hash-n-Sign Method
+    if (use_global_hash) {
 
-    // Signature's generation
-    ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen);
-    if (ret_code != 1) {
-      DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", idx, ret_code);
-      goto err;
+      // PKI_DEBUG("Using Hash-n-Sign method for component #%d", index);
+      
+      // Signature's generation
+      ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, global_hash, global_hashlen);
+      if (ret_code != 1) {
+        DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", index, ret_code);
+        goto err;
+      }
+
+      // PKI_DEBUG("END: Using Hash-n-Sign method for component #%d", index);
+
+    } else {
+      
+      // Checks if we need to hash the data first
+      if (md_type != PKI_ID_UNKNOWN) {
+
+        // PKI_DEBUG("Using DIGEST (%d) signing method for component #%d", md_type, index);
+
+        unsigned char hash_data[EVP_MAX_MD_SIZE];
+        size_t hash_data_len = 0;
+        
+        // Calculates the Digest (since we use custom digest, the data is not
+        // hashed when it is passed to this function)
+        int ossl_ret = EVP_Digest(tbs, tbslen, hash_data, (unsigned int *)hash_data_len, EVP_get_digestbynid(md_type), NULL);
+        if (ossl_ret == 0) {
+          PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+          goto err;
+        }
+
+        // Sign the hashed data
+        ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, hash_data, hash_data_len);
+        if (ret_code != 1) {
+          // DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", index, ret_code);
+          goto err;
+        }
+
+        // PKI_DEBUG("END: Using DIGEST (%d) signing method for component #%d", md_type, index);
+
+      } else {
+
+        // PKI_DEBUG("Using NO DIGEST (direct signing) method for component #%d", index);
+        
+        // Sign the data directly
+        ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen);
+        if (ret_code != 1) {
+          // DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", index, ret_code);
+          goto err;
+        }
+
+        // PKI_DEBUG("END: Using NO DIGEST (direct signing) method for component #%d", index);
+      }
     }
 
     // Removes the reference to the key. This is
@@ -313,13 +397,11 @@ static int sign(EVP_PKEY_CTX        * ctx,
     // Updates the overall real size
     total_size += buff_len;
 
-    PKI_DEBUG("Generated Signature for Component #%d Successfully (size: %d)", idx, buff_len);
+    PKI_DEBUG("Generated Signature for Component #%d Successfully (size: %d)", index, buff_len);
     PKI_DEBUG("Signature Total Size [So Far] ... %d", total_size);
 
     if ((bit_string = ASN1_BIT_STRING_new()) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, 
-                "Cannot allocate the wrapping OCTET STRING for signature's %d component",
-                idx);
+      PKI_DEBUG("Cannot allocate the wrapping OCTET STRING for signature's %d component", index);
       goto err;
     }
 
@@ -339,16 +421,19 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
     // Adds the component to the stack
     if (!sk_ASN1_TYPE_push(sk, aType)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot push the signature's %d component", idx);
+      PKI_DEBUG("Cannot push the signature's %d component", index);
       goto err;
     }
 
     // Transfers ownership
     aType = NULL;
 
-    PKI_DEBUG("Done Processing Composite component %d", idx);
-
+    // PKI_DEBUG("Done Processing Composite component %d, counter = %d", index, counter);
+    // counter++;
   }
+
+  PKI_DEBUG("End of Signature Generation for All Components (%d)", index);
+  PKI_DEBUG("End of Signature Generation for All Components");
 
   if ((*siglen = (size_t) i2d_ASN1_SEQUENCE_ANY(sk, &sig)) <= 0) {
     PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, "Cannot generate DER representation of the sequence of signatures");
@@ -392,12 +477,6 @@ err:
   // Error
   return 0;
 }
-
-// // Not Implemented
-// static int verify_init(EVP_PKEY_CTX *ctx) {
-//   PKI_DEBUG("Not implemented, yet.");
-//   return 0;
-// }
 
 // Implemented
 static int verify(EVP_PKEY_CTX        * ctx,
@@ -601,144 +680,6 @@ err:
   return 0;
 }
 
-// // Not Implemented
-// static int verify_recover_init(EVP_PKEY_CTX *ctx) {
-//   PKI_DEBUG("Not implemented, yet.");
-//   return 0;
-// }
-
-// // Not Implemented
-// static int verify_recover(EVP_PKEY_CTX        * ctx,
-//                           unsigned char       * rout,
-//                           size_t              * routlen,
-//                           const unsigned char * sig,
-//                           size_t                siglen) {
-//   PKI_DEBUG("Not implemented, yet.");
-//   return 0;
-// }
-
-// Implemented
-// static int signctx_init(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
-
-//   return 1;
-
-
-//   COMPOSITE_CTX * comp_ctx = ctx->data;
-//     // Algorithm specific CTX
-
-//   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx->pkey);
-//     // Pointer to inner structure
-
-//   // Input Checks
-//   if (!ctx || !comp_ctx) return 0;
-
-//   for (int i = 0; i < COMPOSITE_KEY_num(comp_key); i++) {
-
-//     EVP_MD_CTX * md_ctx = NULL;
-//       // Digest context
-
-//     EVP_PKEY_CTX * pkey_ctx = NULL;
-//       // Component specific CTX
-
-//     EVP_PKEY * pkey = COMPOSITE_KEY_get0(comp_key, i);
-//       // Component specific key
-
-//     // Let' check we have the right data
-//     if (!COMPOSITE_CTX_get0(comp_ctx, i, &pkey_ctx, &md_ctx)) {
-//       DEBUG("ERROR: Cannot Retrieve CTX for component #%d", i);
-//       return 0;
-//     }
-
-//     // Checks on the pointers
-//     if (!pkey || !pkey_ctx) return 0;
-
-//     if (mctx) {
-      
-//       if (!md_ctx && 
-//           ((md_ctx = EVP_MD_CTX_new()) == NULL)) {
-//         DEBUG("ERROR: Cannot Allocate the MD CTX for Component #%d", i);
-//       }
-
-//       // Initializes the EVP_MD (alias to EVP_MD_reset)
-//       EVP_MD_CTX_init(md_ctx);
-
-//       // Copy the MD to the specific component
-//       if ((mctx->digest != NULL) && 
-//           (EVP_MD_CTX_copy(md_ctx, mctx) <= 0)) {
-//         // This is ok, it fails when the mctx->digest is NULL
-//         DEBUG("ERROR: Cannot copy the MD CTX for Component #%d", i);
-//         return 0;
-//       }
-//     }
-
-//     if (pkey_ctx->pmeth->signctx_init != NULL &&
-//         (pkey_ctx->pmeth->signctx_init(pkey_ctx, 
-//                                        md_ctx) != 1)) {
-//       DEBUG("ERROR: Cannot Initialize Signature for Component #%d", i);
-//       return 0;
-//     }
-//   }
-
-//   // All Components have been initialized
-//   return 1;
-// }
-
-// Implemented
-static int signctx (EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, EVP_MD_CTX *mctx) {
-
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-
-// Implemented
-static int verifyctx_init(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Implemented
-static int verifyctx (EVP_PKEY_CTX *ctx, const unsigned char *sig, int siglen, EVP_MD_CTX *mctx) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Not Implemented
-static int encrypt_init(EVP_PKEY_CTX *ctx) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Not Implemented
-static int encrypt_pmeth(EVP_PKEY_CTX *ctx, unsigned char *out, size_t *outlen, const unsigned char *in, size_t inlen) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Not Implemented
-static int decrypt_init(EVP_PKEY_CTX *ctx) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Not Implemented
-static int decrypt(EVP_PKEY_CTX *ctx, unsigned char *out, size_t *outlen, const unsigned char *in, size_t inlen) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Not Implemented
-static int derive_init(EVP_PKEY_CTX *ctx) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
-// Not Implemented
-static int derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen) {
-  DEBUG("Not implemented, yet.");
-  return 0;
-}
-
 // Implemented
 static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
 
@@ -919,10 +860,6 @@ static int digestsign(EVP_MD_CTX          * ctx,
                       const unsigned char * tbs,
                       size_t                tbslen) {
 
-  unsigned char tbs_hash[EVP_MAX_MD_SIZE];
-  unsigned int tbs_hash_len = 0;
-    // Container for the Hashed value
-
   int ossl_ret = 0;
     // OpenSSL return code
 
@@ -934,178 +871,267 @@ static int digestsign(EVP_MD_CTX          * ctx,
     return 0;
   }
 
-  // Calculates the Digest (since we use custom digest, the data is not
-  // hashed when it is passed to this function)
-  ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
+  ossl_ret = sign(p_ctx, sig, siglen, tbs, tbslen);
   if (ossl_ret == 0) {
     PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
     return 0;
   }
 
-  // Signs and Returns the result
-  ossl_ret = sign(p_ctx, sig, siglen, tbs_hash, (size_t)tbs_hash_len);
-  if (ossl_ret == 0) {
-    PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
-    return 0;
-  }
-
-  // Success
   return 1;
 
-  /*
-  COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
-    // Pointer to inner key structure
+//   // We need to get the algorithms from the PKEY_CTX
+//   EVP_PKEY * pkey = EVP_PKEY_CTX_get0_pkey(p_ctx);
+//     // PKEY
 
-  COMPOSITE_CTX * comp_ctx = ctx->data;
-    // Pointer to algorithm specific CTX
+//   COMPOSITE_CTX * comp_ctx = p_ctx->data;
+//     // Composite Context
 
-  const int signature_size = EVP_PKEY_size(ctx->pkey);
-    // The total signature size
+//   PKI_DEBUG("DigestSign: Data To Sign = 0x%p, Size = %lu", tbs, tbslen);
+//   PKI_DEBUG("Digest (EVP_md_null()? => %s) to use for signing: %s (%d)", md == EVP_md_null() ? "YES" : "NO", EVP_MD_name(md), EVP_MD_type(md));
 
-  STACK_OF(ASN1_TYPE) *sk = NULL;
-    // Stack of ASN1_OCTET_STRINGs
+//   //
+//   // Issue: When we do not use the hash-n-sign, we need to pass the
+//   //        digest to the sign function. This is not possible with
+//   //        the current implementation.
+//   //
+//   //        We need to create a new function that does not use the
+//   //        digest and sign the data directly but uses a STACK of
+//   //        values to sign.
+//   //
+//   //        Let's create a new sign_ex() function with the following
+//   //        signature:
+//   //
+//   //        int sign_ex(EVP_PKEY_CTX   * ctx, 
+//   //                    unsigned char  * sig,
+//   //                    size_t         * siglen,
+//   //                    PKI_MEM_STACK  * tbs_stack);
+//   //
 
-  ASN1_OCTET_STRING * oct_string = NULL;
-    // Output Signature to be added
-    // to the stack of signatures
+//   if (comp_ctx->md) {
 
-  ASN1_TYPE * aType = NULL;
-    // ASN1 generic wrapper
+//     unsigned char * tbs_hash = NULL;
+//     unsigned int tbs_hash_len = 0;
+//       // Container for the Hashed value
 
-  int comp_key_num = 0;
-    // Number of components
+//     // If we are using hash-n-sign, just calculate the hash
+//     // and use a single tbs entry in the tbs stack for all the
+//     // components
+//     md = comp_ctx->md;
 
-  unsigned char * buff = NULL;
-  unsigned char * pnt  = NULL;
-  int buff_len =  0;
-    // Temp Pointers
+//     // Hash the contents only if we have a non-NULL digest
+//     if (md != EVP_md_null()) {
 
-  int total_size = 0;
-    // Total Signature Size
+//       PKI_MEM * tbs_mem = PKI_MEM_new_null();
+//       if (!tbs_mem) {
+//         PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+//         return 0;
+//       }
 
-  if ((comp_key == NULL) || 
-      ((comp_key_num = COMPOSITE_KEY_num(comp_key)) <= 0)) {
-    DEBUG("ERROR: Cannot get the Composite key inner structure");
-    return 0;
-  }
+//       // Calculates the Digest (since we use custom digest, the data is not
+//       // hashed when it is passed to this function)
+//       ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, md, NULL);
+//       if (ossl_ret == 0) {
+//         PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+//         return 0;
+//       }
 
-  if (sig == NULL) {
-    *siglen = (size_t)signature_size;
-    return 1;
-  }
+//     } else {
+//       tbs_hash = (unsigned char *) tbs;
+//       tbs_hash_len = tbslen;
+//     }
 
-  if ((size_t)signature_size > (*siglen)) {
-    DEBUG("ERROR: Buffer is too small");
-    return 0;
-  }
+//     // Signs and Returns the result
+//     ossl_ret = sign(p_ctx, sig, siglen, tbs_hash, (size_t)tbs_hash_len);
+//     if (ossl_ret == 0) {
+//       PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+//       return 0;
+//     }
 
-  if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
-    DEBUG("ERROR: Memory Allocation");
-    return 0;
-  }
+//     // Success
+//     return 1;
 
-  for (int i = 0; i < comp_key_num; i++) {
+//   } else {
 
-    EVP_PKEY_CTX * pkey_ctx = NULL;
+//     // Here we are not using the hash-n-sign method
+//   }
+  
 
-    EVP_MD_CTX * md_ctx = NULL;
+//   // // Calculates the Digest (since we use custom digest, the data is not
+//   // // hashed when it is passed to this function)
+//   // ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
+//   // if (ossl_ret == 0) {
+//   //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+//   //   return 0;
+//   // }
 
-    if (!COMPOSITE_CTX_get0(comp_ctx, i, &pkey_ctx, &md_ctx)) {
-      DEBUG("ERROR: Cannot get %d-th component from CTX", i);
-      return 0;
-    }
+//   // PKI_DEBUG("DigestSign: After Calculation - Data To Sign = 0x%p, Size = %lu", tbs, tbslen);
 
-    DEBUG("Determining Signature Size for Component #%d", i);
+//   // PKI_DEBUG("DigestSign: After Calculation - tbs_hash_len = %d", tbs_hash_len);
 
-    // Let's get the size of the single signature
-    if (EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen) != 1) {
-      DEBUG("ERROR: Null Size reported from Key Component #%d", i);
-      goto err;
-    }
+//   // // Signs and Returns the result
+//   // ossl_ret = sign(p_ctx, sig, siglen, tbs_hash, (size_t)tbs_hash_len);
+//   // if (ossl_ret == 0) {
+//   //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
+//   //   return 0;
+//   // }
 
-    // Allocate the buffer for the single signature
-    if ((pnt = buff = OPENSSL_malloc(buff_len)) == NULL) {
-      DEBUG("ERROR: Memory Allocation");
-      goto err;
-    }
+//   // Success
+//   return 1;
 
-    DEBUG("PNT = %p, BUFF = %p", pnt, buff);
+//   /*
+//   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+//     // Pointer to inner key structure
 
-    // Generates the single signature
-    if (EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen) != 1) {
-      DEBUG("ERROR: Component #%d cannot generate signatures", i);
-      goto err;
-    }
+//   COMPOSITE_CTX * comp_ctx = ctx->data;
+//     // Pointer to algorithm specific CTX
 
-    DEBUG("PNT = %p, BUFF = %p", pnt, buff);
+//   const int signature_size = EVP_PKEY_size(ctx->pkey);
+//     // The total signature size
 
-    // Updates the overall real size
-    total_size += buff_len;
+//   STACK_OF(ASN1_TYPE) *sk = NULL;
+//     // Stack of ASN1_OCTET_STRINGs
 
-    DEBUG("Generated Signature for Component #%d Successfully (size: %d)", i, buff_len);
-    DEBUG("Signature Total Size [So Far] ... %d", total_size);
+//   ASN1_OCTET_STRING * oct_string = NULL;
+//     // Output Signature to be added
+//     // to the stack of signatures
 
-    if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
-      DEBUG("ERROR: Memory Allocation");
-      goto err;
-    }
+//   ASN1_TYPE * aType = NULL;
+//     // ASN1 generic wrapper
 
-    // This sets the internal pointers
-    ASN1_STRING_set0(oct_string, buff, buff_len);
+//   int comp_key_num = 0;
+//     // Number of components
 
-    // Resets the pointer and length after ownership transfer
-    buff = NULL; buff_len = 0;
+//   unsigned char * buff = NULL;
+//   unsigned char * pnt  = NULL;
+//   int buff_len =  0;
+//     // Temp Pointers
 
-    // Let's now generate the ASN1_TYPE and add it to the stack
-    if ((aType = ASN1_TYPE_new()) == NULL) {
-      DEBUG("ERROR: Memory Allocation");
-      goto err;
-    }
+//   int total_size = 0;
+//     // Total Signature Size
 
-    // Transfer Ownership to the aType structure
-    ASN1_TYPE_set(aType, V_ASN1_OCTET_STRING, oct_string);
-    oct_string = NULL;
+//   if ((comp_key == NULL) || 
+//       ((comp_key_num = COMPOSITE_KEY_num(comp_key)) <= 0)) {
+//     DEBUG("ERROR: Cannot get the Composite key inner structure");
+//     return 0;
+//   }
 
-    // Adds the component to the stack
-    if (!sk_ASN1_TYPE_push(sk, aType)) {
-      DEBUG("ERROR: Cannot push the new Type");
-      goto err;
-    }
+//   if (sig == NULL) {
+//     *siglen = (size_t)signature_size;
+//     return 1;
+//   }
 
-    // Transfers ownership
-    aType = NULL;
-  }
+//   if ((size_t)signature_size > (*siglen)) {
+//     DEBUG("ERROR: Buffer is too small");
+//     return 0;
+//   }
 
-  if ((buff_len = i2d_ASN1_SEQUENCE_ANY(sk, &buff)) <= 0) {
-    DEBUG("ERROR: Cannot ASN1 encode the Overall Composite Key");
-    goto err;
-  }
+//   if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
+//     DEBUG("ERROR: Memory Allocation");
+//     return 0;
+//   }
 
-  // Reporting the total size
-  DEBUG("Total Signature Size: %d (reported: %d)", total_size, EVP_PKEY_size(ctx->pkey))
+//   for (int i = 0; i < comp_key_num; i++) {
 
-  // Free the stack's memory
-  while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
-    ASN1_TYPE_free(aType);
-  }
-  sk_ASN1_TYPE_free(sk);
-  sk = NULL;
+//     EVP_PKEY_CTX * pkey_ctx = NULL;
 
-  // Sets the output buffer
-  sig = buff;
-  *siglen = buff_len;
+//     EVP_MD_CTX * md_ctx = NULL;
 
-  // All Done
-  return 1;
+//     if (!COMPOSITE_CTX_get0(comp_ctx, i, &pkey_ctx, &md_ctx)) {
+//       DEBUG("ERROR: Cannot get %d-th component from CTX", i);
+//       return 0;
+//     }
 
-err:
+//     DEBUG("Determining Signature Size for Component #%d", i);
 
-  DEBUG("ERROR: Signing failed");
+//     // Let's get the size of the single signature
+//     if (EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen) != 1) {
+//       DEBUG("ERROR: Null Size reported from Key Component #%d", i);
+//       goto err;
+//     }
 
-  // Here we need to cleanup the memory
+//     // Allocate the buffer for the single signature
+//     if ((pnt = buff = OPENSSL_malloc(buff_len)) == NULL) {
+//       DEBUG("ERROR: Memory Allocation");
+//       goto err;
+//     }
 
-  return 0;
-  */
+//     DEBUG("PNT = %p, BUFF = %p", pnt, buff);
+
+//     // Generates the single signature
+//     if (EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen) != 1) {
+//       DEBUG("ERROR: Component #%d cannot generate signatures", i);
+//       goto err;
+//     }
+
+//     DEBUG("PNT = %p, BUFF = %p", pnt, buff);
+
+//     // Updates the overall real size
+//     total_size += buff_len;
+
+//     DEBUG("Generated Signature for Component #%d Successfully (size: %d)", i, buff_len);
+//     DEBUG("Signature Total Size [So Far] ... %d", total_size);
+
+//     if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
+//       DEBUG("ERROR: Memory Allocation");
+//       goto err;
+//     }
+
+//     // This sets the internal pointers
+//     ASN1_STRING_set0(oct_string, buff, buff_len);
+
+//     // Resets the pointer and length after ownership transfer
+//     buff = NULL; buff_len = 0;
+
+//     // Let's now generate the ASN1_TYPE and add it to the stack
+//     if ((aType = ASN1_TYPE_new()) == NULL) {
+//       DEBUG("ERROR: Memory Allocation");
+//       goto err;
+//     }
+
+//     // Transfer Ownership to the aType structure
+//     ASN1_TYPE_set(aType, V_ASN1_OCTET_STRING, oct_string);
+//     oct_string = NULL;
+
+//     // Adds the component to the stack
+//     if (!sk_ASN1_TYPE_push(sk, aType)) {
+//       DEBUG("ERROR: Cannot push the new Type");
+//       goto err;
+//     }
+
+//     // Transfers ownership
+//     aType = NULL;
+//   }
+
+//   if ((buff_len = i2d_ASN1_SEQUENCE_ANY(sk, &buff)) <= 0) {
+//     DEBUG("ERROR: Cannot ASN1 encode the Overall Composite Key");
+//     goto err;
+//   }
+
+//   // Reporting the total size
+//   DEBUG("Total Signature Size: %d (reported: %d)", total_size, EVP_PKEY_size(ctx->pkey))
+
+//   // Free the stack's memory
+//   while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
+//     ASN1_TYPE_free(aType);
+//   }
+//   sk_ASN1_TYPE_free(sk);
+//   sk = NULL;
+
+//   // Sets the output buffer
+//   sig = buff;
+//   *siglen = buff_len;
+
+//   // All Done
+//   return 1;
+
+// err:
+
+//   DEBUG("ERROR: Signing failed");
+
+//   // Here we need to cleanup the memory
+
+//   return 0;
+//   */
 }
 
 // Implemented

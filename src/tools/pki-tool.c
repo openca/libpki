@@ -605,8 +605,20 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 
 	} else {
 
-		// Use the default algorithm if NULL was used
-		digest = PKI_DIGEST_ALG_DEFAULT;
+		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
+			// Internal Value
+
+		int pkey_type = EVP_PKEY_type(EVP_PKEY_id(p_val));
+			// Key Type
+
+		// Explicit does not allow for hash-n-sign
+		if (PKI_ID_is_explicit_composite(pkey_type, NULL)) {
+			// Use the NULL digest method
+			digest = PKI_DIGEST_ALG_NULL;
+		} else {
+			// Use the default algorithm if NULL was used
+			digest = PKI_DIGEST_ALG_DEFAULT;
+		}
 	}
 
 	// Assigns the digest algorithm to the token
