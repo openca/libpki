@@ -294,11 +294,15 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 		// Security Bits
 
 	// Input Checks
-	if (!kp) return
+	if (!kp) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
 
-	if (kp->scheme == PKI_SCHEME_UNKNOWN)
-		return PKI_ERROR(PKI_ERR_GENERAL, "Unknown scheme when setting the bits size");
+	if (kp->scheme == PKI_SCHEME_UNKNOWN) {
+		PKI_ERROR(PKI_ERR_GENERAL, "Unknown scheme when setting the bits size");
+		return PKI_ERR;
+	}
 
 	// Assigns the Bits
 	if (kp->bits <= 0 && bits > 0) kp->bits = bits;
@@ -311,9 +315,13 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 	// Let's update the key params, if we got good values
 	// (i.e., the scheme is not just a generic one)
-	if (sec_bits >= 0) {
-		if (kp->bits <= 0) kp->bits = sec_bits;
-		else if (kp->bits < sec_bits) kp->bits = sec_bits;
+	if (sec_bits > 0) {
+
+		// Sets the bits size from the security bits
+		kp->bits = PKI_SCHEME_ID_get_bitsize(kp->scheme, sec_bits);
+
+		// Returns the bits size
+		return PKI_OK;
 	}
 
 	// Checks for modifiers
