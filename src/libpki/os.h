@@ -18,6 +18,8 @@
 # include <unistd.h>
 # include <string.h>
 
+#include <stdlib.h>
+
 #include <limits.h>
 #include <syslog.h>
 #include <ctype.h>

@@ -2,6 +2,15 @@
 
 #include <libpki/pki.h>
 
+#ifdef max
+#undef max
+#endif
+
+#ifndef max
+#define max(a,b) \
+	(((a) > (b)) ? (a) : (b))
+#endif
+
 /* List of supported digest algorithms grouped by scheme */
 const PKI_ALGOR_ID PKI_ALGOR_ID_LIST_RSA[] = {
 //	PKI_ALGOR_RSA_MD2,
@@ -647,152 +656,671 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 	return ret;
 }
 
-PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data) {
+int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits) {
 
-	if (data) {
+	int ret = 0;
+	int scheme_sec_bits = 0;
+	  // Return value
 
-		int data_len = (int)strlen(data);
-
-		if (strncmp_nocase("RSA", data, 3) == 0) {
-			return PKI_SCHEME_RSA;
-		} else if (strncmp_nocase("DSA", data, 3) == 0) {
-			return PKI_SCHEME_DSA;
-#ifdef ENABLE_ECDSA
-		} else if (strncmp_nocase("EC", data, 2) == 0) {
-			return PKI_SCHEME_ECDSA;
-#endif
-# ifdef ENABLE_COMPOSITE
-		// Generic Composite
-		} else if (strncmp_nocase("COMPOSITE", data, 9) == 0) {
-			return PKI_SCHEME_COMPOSITE;
-#ifdef ENABLE_OQS
-		// Explicit Composite
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521 ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA ;
-		} else if (strncmp_nocase(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_NAME, data, data_len) == 0) {
-			return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA;
-# endif // End of ENABLE_OQS
-#endif // End of ENABLE_COMPOSITE
-
-#ifdef ENABLE_OQS
-		// OQS Post-Quantum
-		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME, data, 11) == 0
-					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME, data, 11) == 0
-					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME, data, 11) == 0) {
-			return PKI_SCHEME_DILITHIUM;
-		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON512_NAME, data, 9) == 0
-					|| strncmp_nocase(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME, data, 10) == 0) {
-			return PKI_SCHEME_FALCON;
-		} else if (strncmp_nocase("DILITHIUM", data, 9) == 0) {
-			return PKI_SCHEME_DILITHIUM;
-		} else if (strncmp_nocase("SPHINCS", data, 7) == 0) {
-			return PKI_SCHEME_SPHINCS;
-#endif
-#ifdef ENABLE_COMBINED
-		} else if (strncmp_nocase("MULTIKEY", data, 9) == 0) {
-			return PKI_SCHEME_COMBINED;
-#endif
-
-#ifdef ENABLE_OQS
-		// Dilithium Algorithm
-		// Experimental: LibPKI PQC Native
-		} else if (    strncmp_nocase(OPENCA_ALG_PKEY_EXP_DILITHIUMX_NAME, data, 11) == 0) {
-			return PKI_SCHEME_DILITHIUMX3;
-#endif
-
-		} else {
-			PKI_DEBUG("Cannot Convert [%s] into a recognized OID.", data);
-		}
-
+	// Input checks
+	if (scheme_id <= 0 || sec_bits <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return -1;
 	}
 
-	// No supported scheme found
-	return PKI_SCHEME_UNKNOWN;
+	// Let's get the default security bits for
+	// the scheme. If we get a positive value,
+	// the scheme only support that size and we
+	// return that. 
+	//
+	// Otherwise we will return the/ bits value
+	// from the combination of the input 
+	// (scheme/sec_bits)
+	if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &scheme_sec_bits, NULL)) {
+		PKI_DEBUG("Can not get security bits for scheme %d", scheme_id);
+		return -1;
+	}
+	
+	// If the returned value is positive, it means the
+	// scheme only supports a single value for the size,
+	// we return that value.
+	if (scheme_sec_bits > 0) {
+		return scheme_sec_bits;
+	}
+
+	// If the scheme supports more than one value (i.e., -1),
+	// it means that we need to look in the switch below.
+	switch (scheme_id) {
+
+		case PKI_SCHEME_DSA: {
+			if (sec_bits <= 1024) { ret = 1024; }
+			else if (sec_bits <= 2048) { ret = 2048; }
+			else if (sec_bits <= 3072) { ret = 3072; }
+			else { ret = sec_bits; }
+		} break;
+
+		case PKI_SCHEME_RSA: {
+			if (sec_bits <= 0) { ret = 2048; }
+			// Sec sec_bits Sizes
+			else if (sec_bits <= 128 ) { ret = 2048; }
+			else if (sec_bits <= 192 ) { ret = 3072; }
+			else if (sec_bits <= 256 ) { ret = 4096; }
+			else if (sec_bits <= 384 ) { ret = 8192; }
+			else if (sec_bits <= 521 ) { ret = 16384; }
+			// Classical Sizes
+			else if (sec_bits <= 512 ) { ret = 512;  }
+			else if (sec_bits <= 756 ) { ret = 756;  }
+			else if (sec_bits <= 1024) { ret = 1024; }
+			else if (sec_bits <= 2048) { ret = 2048; }
+			else if (sec_bits <= 4096) { ret = 4096; }
+			else if (sec_bits <= 8192) { ret = 8192; }
+			else if (sec_bits <= 16384) { ret = 16384; }
+			else { ret = sec_bits; }
+		} break;
+
+		case PKI_SCHEME_ECDSA: {
+			if (sec_bits <= 224) { ret = 224; } 
+			else if (sec_bits <= 256) { ret = 256; } 
+			else if (sec_bits <= 384) { ret = 384; }
+			else if (sec_bits <= 521) { ret = 521; }
+			else { ret = sec_bits; }
+		} break;
+
+#ifdef ENABLE_COMPOSITE
+
+		// =============================
+		// Native Composite Cryptography
+		// =============================
+
+		case PKI_SCHEME_COMPOSITE: {
+			// No need to translate, same sec bits for
+			// the generation of all components, if they
+			// support it.
+			ret = sec_bits;
+		} break;
+#endif
+
+#ifdef ENABLE_COMBINED
+		case PKI_SCHEME_COMBINED: {
+			// No need to translate, output the input
+			ret = sec_bits;
+		} break;
+#endif
+
+#ifdef ENABLE_OQS
+
+		// =============================================
+		// Post Quantum Cryptography: Digital Signatures
+		// =============================================
+
+		case PKI_SCHEME_FALCON: {
+
+			if (sec_bits <= 128) {
+				ret = 128;
+			} else {
+				ret = 256;
+			}
+		} break;
+		
+		case PKI_SCHEME_DILITHIUM: {
+			if (sec_bits <= 128) {
+				ret = 128;
+			} else if (sec_bits <= 192) {
+				ret = 192;
+			} else {
+				ret = 256;
+			}
+		} break;
+
+		// TODO: We need to change from the robust to the
+		//       fast implementations as the robust is not
+		//       going to be standardized
+		case PKI_SCHEME_SPHINCS: {
+			if (sec_bits <= 128) {
+				ret = 128;
+			} else if (sec_bits <= 192) {
+				ret = 192;
+			} else {
+				ret = 256;
+			}
+		} break;
+
+#endif // ENABLE_OQS
+
+		default: {
+			// Sets the sec_bits
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Scheme not supported (%d)", scheme_id);
+			return PKI_ERR;
+		}
+	}
+
+	// All Done
+	return ret;
+}
+
+int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id, 
+                                int                 * classic_sec_bits, 
+                                int                 * quantum_sec_bits) {
+
+	if (scheme_id <= 0) {
+		if (classic_sec_bits) *classic_sec_bits = 0;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_SCHEME_UNKNOWN;
+	}
+
+	switch (scheme_id) {
+
+	// Classic/Modern Cryptography
+	case PKI_SCHEME_UNKNOWN: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+	case PKI_SCHEME_RSA: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+	case PKI_SCHEME_RSAPSS: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+	case PKI_SCHEME_DSA: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#ifdef ENABLE_ECDSA
+	// ECDSA signature scheme
+	case PKI_SCHEME_ECDSA: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+	// ED signature schemes
+	case PKI_SCHEME_ED448: {
+		if (classic_sec_bits) *classic_sec_bits = 224;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+	} break;
+
+	case PKI_SCHEME_ED25519: {
+		if (classic_sec_bits) *classic_sec_bits = 128;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+	} break;
+
+	// Key-Exchange based on Diffie-Hellman
+	case PKI_SCHEME_DH: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+	// Key-Exchange based on ED
+	case PKI_SCHEME_X448: {
+		if (classic_sec_bits) *classic_sec_bits = 224;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+	} break;
+
+	case PKI_SCHEME_X25519: {
+		if (classic_sec_bits) *classic_sec_bits = 128;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+	} break;
+
+#ifdef ENABLE_OQS
+	// Post Quantum Cryptography - KEMS
+#ifdef OQS_ENABLE_KEM_NTRU
+	
+	case PKI_SCHEME_NTRU_PRIME: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+
+#ifdef OQS_ENABLE_KEM_BIKE
+	case PKI_SCHEME_BIKE: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+#ifdef OQS_ENABLE_KEM_FRODOKEM
+	case PKI_SCHEME_FRODOKEM: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
+	case PKI_SCHEME_CLASSIC_MCELIECE: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+#ifdef OQS_ENABLE_KEM_KYBER
+	case PKI_SCHEME_KYBER: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+
+	// Post Quantum Cryptography - Digital Signatures
+#ifdef OQS_ENABLE_SIG_FALCON
+	case PKI_SCHEME_FALCON: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+#endif
+
+	case PKI_SCHEME_SPHINCS: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#ifdef OQS_ENABLE_SIG_DILITHIUM
+	case PKI_SCHEME_DILITHIUM: {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+	// Experimental Only - To Be Removed (DilithiumX)
+	case PKI_SCHEME_DILITHIUMX3:  {
+		if (classic_sec_bits) *classic_sec_bits = 192;
+		if (quantum_sec_bits) *quantum_sec_bits = 192;
+	} break;
+
+#endif
+#ifdef OQS_ENABLE_SIG_PICNIC
+	case PKI_SCHEME_PICNIC:  {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+#endif // End of ENABLE_OQS
+
+#ifdef ENABLE_COMPOSITE
+	// Composite Crypto Schemes
+	case PKI_SCHEME_COMPOSITE:  {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+	// Explicit Composite Crypto Schemes
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:  {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:  {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:  {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:  {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 384);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 384);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 224);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519:  {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS:  {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA:  {
+		if (classic_sec_bits) *classic_sec_bits = max(128, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(128, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
+		if (classic_sec_bits) *classic_sec_bits = max(max(256, 256), max(256, 521));
+		if (quantum_sec_bits) *quantum_sec_bits = max(max(256, 256), max(256, 0));
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA: {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+	} break;
+
+	case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+		if (classic_sec_bits) *classic_sec_bits = max(max(256, 256), max(256, 128));
+		if (quantum_sec_bits) *quantum_sec_bits = max(max(256, 256), max(256, 0));
+	} break;
+
+#endif
+#ifdef ENABLE_COMPOSITE
+	// Combined Crypto Schemes
+	case PKI_SCHEME_COMBINED:  {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+	} break;
+
+#endif
+
+		default:
+			PKI_DEBUG("ERROR, unknown scheme (%d)", scheme_id);
+			return PKI_ERR;	
+	}
+
+	// All Done
+	return PKI_OK;
+}
+
+PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits, int *quantum_sec_bits) {
+
+	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
+		// Return value
+
+	// Input Checks
+	if (!data) {
+		if (classic_sec_bits) *classic_sec_bits = 0;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_SCHEME_UNKNOWN;
+	}
+
+	// Explicit Composite - DILITHIUM3-P256
+	if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, 0, 1) == 0 ||
+		str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, 0, 1) == 0 ||
+		str_cmp_ex(data, "DILITHIUM3-ECDSA", 0, 1) == 0 ||
+		str_cmp_ex(data, "DILITHIUM3-EC", 0, 1) == 0 ||
+		str_cmp_ex(data, "DILITHIUM-P256", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256;
+	// Explicit Composite - DILITHIUM3-RSA
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID, 0, 1) == 0 ||
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-RSA", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM3-RSA", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA;
+	// Explicit Composite - DILITHIUM3-BRAINPOOL256
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM-BRAINPOOL", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM3-BRAINPOOL", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM3-B256", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM-ED25519", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-25519", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM3-ED25519", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM3-25519", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM3-25519", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM5-ECDSA", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM5-EC", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-P384", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM5-P384", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 384);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM5-BRAINPOOL", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM5-B384", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 384);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM5-448", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-ED448", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-448", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 224);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON512-P256", 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-ECDSA", 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-P256", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(128, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(128, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON512-BRAINPOOL", 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-BRAINPOOL256", 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-BRAINPOOL", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(128, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(128, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, 0, 1) == 0 ||
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON512-25519", 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-ED25519", 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-25519", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(128, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(128, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS256-ECDSA", 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS-ECDSA", 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS-P256", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS256-BRAINPOOL", 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS-BRAINPOOL", 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS-B256", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 256);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS256-25519", 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS-ED25519", 0, 1) == 0 || 
+				str_cmp_ex(data, "SPHINCS-25519", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(256, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM3-RSAPSS", 0, 1) == 0 || 
+				str_cmp_ex(data, "DILITHIUM-RSAPSS", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS;
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID, 0, 1) == 0 || 
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, 0, 1) == 0 || 
+				str_cmp_ex(data, "FALCON-RSA", 0, 1) == 0 ||
+				str_cmp_ex(data, "FALCON512-RSA", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(192, 128);
+		if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA;
+	// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-P521
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID, 0, 1) == 0 ||
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-FALCON-EC", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-FALCON-P521", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(max(256, 256), max(256, 521));
+		if (quantum_sec_bits) *quantum_sec_bits = max(max(256, 256), max(256, 0));
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521;
+	// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-RSA
+	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_OID, 0, 1) == 0 ||
+				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME, 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-FALCON-EC", 0, 1) == 0 ||
+				str_cmp_ex(data, "DILITHIUM-FALCON-P521", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = max(max(256, 256), max(256, 128));
+		if (quantum_sec_bits) *quantum_sec_bits = max(max(256, 256), max(256, 0));
+		return PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
+	// RSA Option
+	} else if (str_cmp_ex(data, "RSA", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+		return PKI_SCHEME_RSA;
+	} else if (str_cmp_ex(data, "RSAPSS", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+		return PKI_SCHEME_RSAPSS;
+	// EC Option
+	} else if (str_cmp_ex(data, "EC", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+		return PKI_SCHEME_ECDSA;
+	// DSA
+	} else if (str_cmp_ex(data, "DSA", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = 0;
+		return PKI_SCHEME_DSA;
+	} else if (str_cmp_ex(data, "DILITHIUMX3", 0, 1) == 0) { 
+		if (classic_sec_bits) *classic_sec_bits = 192;
+		if (quantum_sec_bits) *quantum_sec_bits = 192;
+		return PKI_SCHEME_DILITHIUMX3;
+	} else if (str_cmp_ex(data, "DILITHIUM2", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = 128;
+		if (quantum_sec_bits) *quantum_sec_bits = 128;
+		return PKI_SCHEME_DILITHIUM;
+	} else if (str_cmp_ex(data, "DILITHIUM3", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = 192;
+		if (quantum_sec_bits) *quantum_sec_bits = 192;
+		return PKI_SCHEME_DILITHIUM;
+	} else if (str_cmp_ex(data, "DILITHIUM5", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = 256;
+		if (quantum_sec_bits) *quantum_sec_bits = 256;
+		return PKI_SCHEME_DILITHIUM;
+	} else if (str_cmp_ex(data, "DILITHIUM", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+		return PKI_SCHEME_DILITHIUM;
+	} else if (str_cmp_ex(data, "FALCON512", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = 128;
+		if (quantum_sec_bits) *quantum_sec_bits = 128;
+		return PKI_SCHEME_FALCON;
+	} else if (str_cmp_ex(data, "FALCON1024", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = 256;
+		if (quantum_sec_bits) *quantum_sec_bits = 256;
+		return PKI_SCHEME_FALCON;
+	} else if (str_cmp_ex(data, "FALCON", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+		return PKI_SCHEME_FALCON;
+	} else if (str_cmp_ex(data, "COMPOSITE", 0, 1) == 0) {
+		if (classic_sec_bits) *classic_sec_bits = -1;
+		if (quantum_sec_bits) *quantum_sec_bits = -1;
+		return PKI_SCHEME_COMPOSITE;
+	}
+
+	if (!ret) {
+		// Some debugging
+		PKI_DEBUG("Cannot Convert [%s] into a recognized OID.", data);
+	}
+
+	// Returns the scheme
+	return ret;
 }
 
 /*!
  * \brief Build a PKI_ALGOR structure from its ID
  */
 
-PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get( PKI_ALGOR_ID algor ) {
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get(PKI_ALGOR_ID algor) {
 
-	PKI_X509_ALGOR_VALUE *ret 	= NULL;
-	  // Return Value
-
-	int alg_nid 	              = PKI_ALGOR_ID_UNKNOWN;
-	  // Algorithm Identifier
-
-	int hash_nid = 0, pkey_nid = 0;
-		// Identifiers for breaking down the algorithm
-
-	// Retrieves the ID from the internal DB
-	if ((alg_nid = OBJ_obj2nid(OBJ_nid2obj(algor))) == PKI_ALGOR_ID_UNKNOWN) {
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Algorithm ID unknown (%d)", algor);
+	// Input Checks
+	if (algor <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "No Algorithm ID provided!");
 		return NULL;
 	}
 
-	// If the Algorithm ID is known, let's generate the
-	// PKIX algorithm data structure
-	if (alg_nid == PKI_ALGOR_ID_UNKNOWN) {
-		// Unknown or unsupported Algorithm
-		PKI_DEBUG("Unknown algorithm [ Algor ID: %d ]", algor);
-		goto err;
+	// Let's return the PKIX X509 Algorithm Data structure
+	return PKI_X509_ALGOR_VALUE_new_type(algor);
+}
+
+/*!
+ * \brief Build a PKI_ALGOR structure from its ID
+ */
+
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_ex(PKI_ALGOR_ID pubkey_id, PKI_ALGOR_ID digest_id) {
+
+	int alg_nid = PKI_ALGOR_ID_UNKNOWN;
+	  // Algorithm Identifier
+
+	// Input Checks
+	if (pubkey_id <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "No Algorithm ID provided!");
+		return NULL;
+	}
+	if (!EVP_get_digestbynid(digest_id)) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Digest Algorithm ID unknown (%d)", digest_id);
+		return NULL;
 	}
 
-	// Finds if this NID is a X509_ALGOR nid, if not let's return NULL
-	if (!OBJ_find_sigid_algs(alg_nid, &hash_nid, &pkey_nid)) {
-		PKI_DEBUG("Cannot Find Signature Algorithm %d, using Public Key algorithm identifier (%s)", 
-			alg_nid, OBJ_nid2sn(alg_nid));
+	// Gets the combined algorithm ID
+	if (!OBJ_find_sigid_by_algs(&alg_nid, digest_id, pubkey_id)) {
+		PKI_DEBUG("Cannot find an algorithm for the pubkey (%d) and hash (%d) combination",
+			pubkey_id, digest_id);
+		return NULL;
 	}
 
 	// Let's return the PKIX X509 Algorithm Data structure
-	ret = PKI_X509_ALGOR_VALUE_new_type(alg_nid);
-
-	// Return the resul of the instantiation
-	return ret;
-
-err:
-
-  // Free Allocated Memory  
-	if (ret) PKI_X509_ALGOR_VALUE_free(ret);
-	ret = NULL;
-
-	// Returns NULL
-	return PKI_ALGOR_NULL;
+	return PKI_X509_ALGOR_VALUE_new_type(alg_nid);
 }
 
 /* ! \brief Get a PKI_ALGOR from an PKI_ALGOR object */
@@ -863,7 +1391,6 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id(const PKI_X509_ALGOR_VALUE *algo
 }
 
 /*! \brief Returns the PKI_SCHEME_ID (signature scheme ID) of the algorithm */
-
 PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor) {
 
 	PKI_ALGOR_ID id, pkey_id, digest_id;
@@ -1092,18 +1619,6 @@ const PKI_DIGEST_ALG *PKI_DIGEST_ALG_get_by_name( const char *name ) {
 
 	// Returns the digest from the name
 	return EVP_get_digestbyname(name);
-
-	// // Check if the object is a valid OID
-	// if ((alg_id = OBJ_sn2nid(name)) == PKI_ALGOR_ID_UNKNOWN ) {
-	// 	// Checks for the long name/description
-	// 	if((alg_id = OBJ_ln2nid( name )) == PKI_ALGOR_ID_UNKNOWN ) {
-	// 		// No matching OID found for the algorithm 'name'
-	// 		return ( PKI_DIGEST_ALG_UNKNOWN );
-	// 	}
-	// }
-
-	// // Returns the algorithm
-	// return PKI_DIGEST_ALG_get(alg_id);
 }
 
 /*! \brief Returns the string representation of a digest algorithm */

@@ -502,6 +502,9 @@ int PKI_X509_sign(PKI_X509               * x,
 	PKI_STRING * sigPtr = NULL;
 	  // Pointer for the Signature in the PKIX data
 
+	PKI_SCHEME_ID pkey_scheme = PKI_SCHEME_UNKNOWN;
+	  // Signature Scheme
+
 	PKI_X509_KEYPAIR_VALUE * pkey = NULL;
 	  // Internal Value
 
@@ -541,13 +544,10 @@ int PKI_X509_sign(PKI_X509               * x,
 		}
 
 	} else {
-
-		// Gets the key type
-		PKI_SCHEME_ID scheme_id = 0; // PKI_X509_KEYPAIR_get_scheme(key);
 		
 		if (PKI_ID_requires_digest(EVP_PKEY_id(pkey) == PKI_OK)) {
 			PKI_DEBUG("%s does not support arbitrary signing, hashing is required",
-					  PKI_SCHEME_ID_get_parsed(scheme_id));
+					  PKI_SCHEME_ID_get_parsed(pkey_scheme));
 			// Error condition
 			return PKI_ERR;
 		}
@@ -614,6 +614,14 @@ int PKI_X509_sign(PKI_X509               * x,
 	ASN1_BIT_STRING sig_asn1 = { 0x0 };
 		// Pointer to the ASN1_BIT_STRING structure for the signature
 
+	// Note that only COMPOSITE can properly handle passing the EVP_md_null()
+	// for indicating that we do not need a digest algorithm, however that is
+	// not well supported by OQS. Let's just pass NULL if the algorithm is not
+	// composite and the requested ditest is EVP_md_null().
+	if (!PKI_SCHEME_ID_is_composite(pkey_scheme) && digest == PKI_DIGEST_ALG_NULL) {
+		digest = NULL;
+	}
+
 	// Sets the right OID for the signature
 	int success = ASN1_item_sign(x->it, 
 								PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
@@ -625,7 +633,9 @@ int PKI_X509_sign(PKI_X509               * x,
 								// ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
 	if (!success || !sig_asn1.data || !sig_asn1.length) {
-		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Can not sign the data");
+		PKI_DEBUG("Error while creating the signature: %s",
+			ERR_error_string(ERR_get_error(), NULL));
+		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 		return PKI_ERR;
 	}
 

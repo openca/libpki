@@ -17,8 +17,11 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type );
 /*! \brief Returns a new PKI_X509_ALGORITHM_VALIE from the passed PKI_DIGEST_ALG structure */
 PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg );
 
-/*! \brief Get the SCHEME algorithm (e.g., RSA-SHA256, DSA-SHA1, ECDSA-SHA224) */
+/*! \brief Get PKI_X509_ALGOR (AlgorithmIdentifier) from a specified algorithm ID */
 PKI_X509_ALGOR_VALUE *PKI_X509_ALGOR_VALUE_get ( PKI_ALGOR_ID algor );
+
+/*! \brief Get the PKI_X509_ALGOR (AlgorithmIdentifier) for a pubkey and digest combination */
+PKI_X509_ALGOR_VALUE *PKI_X509_ALGOR_VALUE_get_ex(PKI_ALGOR_ID pubkey_id, PKI_ALGOR_ID digest_id);
 
 /*! \brief Build a PKI_ALGOR structure from its name (char *)
  *
@@ -43,16 +46,24 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *alg
  */
 const char * PKI_X509_ALGOR_VALUE_get_parsed (const PKI_X509_ALGOR_VALUE * algor );
 
-// ------------------------------- PKI_SCHEME_ID ------------------------------- //
-
 PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE * algor );
+
+// ------------------------------- PKI_SCHEME_ID ------------------------------- //
 
 /*!
  * \brief Returns the PKI_SCHEME_ID from the passed string
  */
-PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme_by_txt(const char * data);
+PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int * classic_sec_bits, int * quantum_sec_bits);
 
-const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id );
+/*!
+ * @brief Returns the string representation of the passed PKI_SCHEME_ID
+ *
+ * This function returns the string representation of the passed PKI_SCHEME_ID.
+ * 
+ * @param id The PKI_SCHEME_ID that is being parsed
+ * @return The string representation of the passed PKI_SCHEME_ID
+ */
+const char * PKI_SCHEME_ID_get_parsed(PKI_SCHEME_ID id);
 
 /*!
  * \brief Determines if the passed scheme supports multiple key components.
@@ -115,7 +126,21 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id);
  */
 int PKI_SCHEME_ID_requires_digest(PKI_SCHEME_ID id);
 
+int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id, 
+                                int                 * classic_sec_bits, 
+                                int                 * quantum_sec_bits);
 
+/*!
+ * @brief Translates the security bits into key-gen bit sizes
+ *
+ * This function translates the security bits into the key-gen bit sizes
+ * for the passed scheme.
+ * 
+ * @param scheme_id The scheme that is being checked
+ * @param sec_bits The requested security bits
+ * @return The key-gen bit size
+ */
+int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits);
 
 
 // ------------------------------ PKI_DIGEST_ALG ------------------------------- //

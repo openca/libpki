@@ -93,30 +93,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 					PKI_Free (tmp_s);
 				};
 			} break;
-
-			case PKI_SCHEME_DILITHIUMX3: {
-				kp->bits = 192;
-			} break;
-
-			case PKI_SCHEME_CLASSIC_MCELIECE:
-				break;
-
-			case PKI_SCHEME_SPHINCS:
-				break;
-
-#endif // ENABLE OQS
-
-#ifdef ENABLE_COMPOSITE
-
-			case PKI_SCHEME_COMPOSITE:
-				break;
-
-#ifdef ENABLE_COMBINED
-			case PKI_SCHEME_COMBINED:
-				break;
 #endif
-
-#endif // ENABLE_COMPOSITE
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA: {
@@ -179,79 +156,31 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 	} else {
 		
+		int sec_bits = -1;
+			// Security Bits for the scheme
+
 		if ( scheme <= 0 ) {
 			kp->scheme = PKI_SCHEME_DEFAULT;
 		} else {
 			kp->scheme = scheme;
 		};
 
-		PKI_DEBUG("Checking Bits for SCHEME %d", kp->scheme);
+		if (PKI_ERR == PKI_SCHEME_ID_security_bits(kp->scheme, &sec_bits, NULL)) {
+			PKI_DEBUG("Can not get security bits for scheme %d", kp->scheme);
+			PKI_KEYPARAMS_free(kp);
+			return NULL;
+		}
+
+		// Translates the security bits into key-gen bit size
+		if (sec_bits > 0) {
+			kp->bits = PKI_SCHEME_ID_get_bitsize(kp->scheme, sec_bits);
+		};
+
+		PKI_DEBUG("Got default Security Bits for the SCHEME (%d) => %d", kp->scheme, kp->bits);
+
+		PKI_DEBUG("Setting Additional Properties for the Key Params");
 
 		switch(kp->scheme) {
-
-			// Classic or Modern Cryptography - Digital Signatures
-			case PKI_SCHEME_RSA:
-			case PKI_SCHEME_DSA: {
-				kp->bits = -1;
-			} break;
-
-#ifdef ENABLE_OQS
-			// Post Quantum Cryptography - KEMS
-			case PKI_SCHEME_NTRU_PRIME:
-			case PKI_SCHEME_BIKE:
-			case PKI_SCHEME_FRODOKEM: {
-				kp->bits = -1;
-			} break;
-
-			// Post Quantum Cryptography - Digital Signatures
-			case PKI_SCHEME_FALCON:
-			case PKI_SCHEME_DILITHIUM:
-			case PKI_SCHEME_SPHINCS: {
-				kp->bits = 128;
-			} break;
-
-			case PKI_SCHEME_CLASSIC_MCELIECE:
-			case PKI_SCHEME_KYBER: {
-				kp->bits = 128;
-			}
-
-			case PKI_SCHEME_DILITHIUMX3: {
-				kp->bits = 128;
-			}
-
-# ifdef ENABLE_COMPOSITE
-			// Post Quantum Cryptography - Composite Crypto
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256:
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519:
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
-				kp->bits = 192;
-			} break;
-
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
-				kp->bits = 128;
-			} break;
-
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
-			case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
-				kp->bits = 256;
-			} break;
-# endif
-#endif // ENABLE_OQS
-
-#ifdef ENABLE_COMPOSITE
-			case PKI_SCHEME_COMPOSITE: {
-				kp->bits = -1;
-			} break;
-#endif // ENABLE_COMPOSITE
-
-#ifdef ENABLE_COMBINED
-			case PKI_SCHEME_COMBINED: {
-				kp->bits = 128;
-			} break;
-#endif // ENABLE_COMBINED
 
 #ifdef ENABLE_ECDSA
 			case PKI_SCHEME_ECDSA: {
@@ -259,13 +188,13 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 				kp->ec.curve 	= -1;
 				kp->ec.form 	= PKI_EC_KEY_FORM_UNKNOWN;
 				kp->ec.asn1flags = -1;
+				PKI_DEBUG("Initializing ECDSA additional properties");
 			} break;
 #endif // ENABLE_ECDSA
 
 			default:
-				if (kp) PKI_KEYPARAMS_free(kp);
-				PKI_log(PKI_LOG_ERR, "Error: scheme %d is not supported!", kp->scheme);
-				return NULL;
+				PKI_DEBUG("No additional properties for scheme %d", kp->scheme);
+				break;
 		}
 	}
 
@@ -361,6 +290,9 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
 /*! \brief Sets the bits size for key generation */
 int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
+	int sec_bits = 0;
+		// Security Bits
+
 	// Input Checks
 	if (!kp) return
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -370,6 +302,19 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 	// Assigns the Bits
 	if (kp->bits <= 0 && bits > 0) kp->bits = bits;
+
+	// Retrieves the default bits size for the scheme (sec level)
+	if (!PKI_SCHEME_ID_security_bits(kp->scheme, &sec_bits, NULL)) {
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve the default sec bits for scheme %d", kp->scheme);
+		return PKI_ERR;
+	}
+
+	// Let's update the key params, if we got good values
+	// (i.e., the scheme is not just a generic one)
+	if (sec_bits >= 0) {
+		if (kp->bits <= 0) kp->bits = sec_bits;
+		else if (kp->bits < sec_bits) kp->bits = sec_bits;
+	}
 
 	// Checks for modifiers
 	switch (kp->scheme) {
@@ -489,13 +434,9 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 
 		// Explicit Composite Crypto Schemes
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
-			PKI_DEBUG("%s - %s", OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME,
-				OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID);
 			// Updates key parameters
-			kp->bits = 128;
 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
-			PKI_DEBUG("OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME) = %d",
-				kp->oqs.algId);
+			if (bits > kp->bits) return PKI_ERR;
 			// Combination bits check
 			if (bits > 128) return PKI_ERR;
 		} break;

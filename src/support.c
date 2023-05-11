@@ -114,6 +114,27 @@ int strcmp_nocase(const char * st1,
 	return strncmp_nocase(st1, st2, 0);
 }
 
+int str_cmp_ex(const char * st1, const char * st2, int max_len, int no_case) {
+
+	// Input checks
+	if (!st1 || !st2) return (-1);
+
+	if (max_len <= 0) {
+		// Compares the length(s)
+		if (strlen(st1) != strlen(st2)) return (-1);
+		// Compares the strings
+		if (no_case) return strncmp_nocase(st1, st2, (int)strlen(st1));
+		else return strncmp(st1, st2, strlen(st1));
+	} else {
+		// Just compares the strings
+		if (no_case) return strncmp_nocase(st1, st2, (int)max_len);
+		else return strncmp(st1, st2, (size_t)max_len);
+	}
+
+	// Should never get here
+	return (-1);
+}
+
 int strncmp_nocase(const char * st1,
 		           const char * st2,
 				   int          n) {

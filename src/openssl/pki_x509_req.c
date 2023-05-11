@@ -50,13 +50,11 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 
 	/* We need at least the private key for the request */
 	if( !k || !k->value ) {
-		PKI_log_debug("ERROR, no key for PKI_X509_REQ_new()!");
-		return (NULL);
+		PKI_DEBUG("ERROR, no key for PKI_X509_REQ_new()!");
+		return NULL;
 	}
 	kVal = (EVP_PKEY *) PKI_X509_get_value(k);
 
-	// Debug Info
-	PKI_DEBUG("Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Let's set the digest for the right signature scheme */
 	// Open Quantum Safe Algos do not offer Digests, we are now
@@ -69,9 +67,6 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 		// Let's use the NULL one
 		digest = EVP_md_null();
 	}
-
-	// Debug Info
-	PKI_DEBUG("Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	/* This has to be fixed, to work on every option */
 	if( subj_s ) {
@@ -212,13 +207,13 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 		goto err;
 	}
 
-	PKI_DEBUG("Calling PKI_X509_sign() with Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
+	// PKI_DEBUG("Calling PKI_X509_sign() with Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Signs the Request
 	rv = PKI_X509_sign(req, digest, k);
 	if (rv != PKI_OK ) {
 		/* Error Signing the request */
-		PKI_log_debug("REQ::ERROR %d signing the Request [%s]", rv,
+		PKI_DEBUG("ERROR %d while signing the Request [%s]", rv,
 			ERR_error_string( ERR_get_error(), NULL ));
 		goto err;
 	}
@@ -296,20 +291,6 @@ int PKI_X509_REQ_add_extension(PKI_X509_REQ * x, PKI_X509_EXTENSION * ext) {
 
 	// All Done
 	return PKI_OK;
-
-	/*
-	if((sk = sk_X509_EXTENSION_new_null()) == NULL ) 
-						return (PKI_ERR);
-
-	sk_X509_EXTENSION_push( sk, ext->value );
-
-	if( !X509_REQ_add_extensions((X509_REQ *)x->value, sk )) 
-						return (PKI_ERR);
-
-	if( sk ) sk_X509_EXTENSION_pop_free ( sk, X509_EXTENSION_free );
-
-	return (PKI_OK);
-	*/
 }
 
 

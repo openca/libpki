@@ -58,6 +58,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
   PKI_DIGEST_ALG *digest = NULL;
   PKI_X509_KEYPAIR_VALUE *signingKey = NULL;
   PKI_TOKEN *tk = NULL;
+  PKI_SCHEME_ID scheme;
 
   PKI_X509_KEYPAIR_VALUE  *certPubKeyVal = NULL;
 
@@ -429,7 +430,6 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
   if (conf) {
 
     PKI_KEYPARAMS *kParams = NULL;
-    PKI_SCHEME_ID scheme;
 
     scheme = PKI_X509_ALGOR_VALUE_get_scheme( algor );
 
@@ -463,25 +463,8 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
           }
           break;
 #endif
-        case PKI_SCHEME_RSA:
-        case PKI_SCHEME_DSA:
-          break;
-
         default:
-
-#ifdef ENABLE_OQS
-
-          // We should check for dynamic
-          // ones - like the PQC or Composite
-          PKI_DEBUG("Unhandled Scheme: %d", scheme);
-          break;
-
-#else
-         // Nothing to do
-          PKI_DEBUG("Signing Scheme Uknown %d!", kParams->scheme);
-          break;
-
-#endif
+          PKI_DEBUG("No special configuration for scheme %d", kParams->scheme);
        }
     }
   }
@@ -540,14 +523,22 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
 
   // PKI_DEBUG("Calling PKI_X509_sign() with Digest => %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
-  if (!digest) {
+  scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(signingKey);
+  if (!scheme) {
+    PKI_log_debug("ERROR, unknown public key algorithm (scheme)!");
+    goto err;
+  }
 
-    digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(algor);
-    if (!digest) {
-      PKI_DEBUG("ERROR when trying to retrieve the digest from the algor (%s)",
-        PKI_X509_ALGOR_VALUE_get_parsed(algor));
-      goto err;
-    }
+  if (!digest && PKI_SCHEME_ID_requires_digest(scheme)) {
+
+    PKI_DEBUG("ERROR, no digest provided for scheme (%d), but it is required by the key (%d)", scheme, PKI_X509_KEYPAIR_VALUE_get_id);
+
+    // digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(algor);
+    // if (!digest) {
+    //   PKI_DEBUG("ERROR when trying to retrieve the digest from the algor (%s)",
+    //     PKI_X509_ALGOR_VALUE_get_parsed(algor));
+    //   goto err;
+    // }
 
     // PKI_DEBUG("Got DIGEST (%s) from ALGOR (%s)", PKI_DIGEST_ALG_get_parsed(digest), PKI_X509_ALGOR_VALUE_get_parsed(algor));
 
