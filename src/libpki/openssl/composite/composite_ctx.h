@@ -167,7 +167,7 @@ int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx);
  * 
  * @param ctx The Composite CTX to use for signing operation
  * @param algors The pointer to the X509_ALGORS structure
- * @return 
+ * @retval Returns PKI_OK on success, PKI_ERR on failure
  */
 int COMPOSITE_CTX_algors_set0(COMPOSITE_CTX * const ctx,
                               X509_ALGORS   * const algors);

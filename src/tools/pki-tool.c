@@ -192,29 +192,7 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 		return 0;
 	}
 
-	if (!PKI_SCHEME_ID_supports_multiple_components(kp->scheme)
-
-// 	if (kp->scheme != PKI_SCHEME_COMPOSITE
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_RSA
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_P256
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_BRAINPOOL256
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM3_ED25519
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_P384
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_BRAINPOOL384
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_ED448
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_P256
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_BRAINPOOL256
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_ED25519
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_P256
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_BRAINPOOL256
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_SPHINCS256_ED25519
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_FALCON512_RSA
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_P521
-// 	    && kp->scheme != PKI_SCHEME_COMPOSITE_DILITHIUM5_FALCON1024_RSA
-// #ifdef ENABLE_COMBINED
-// 		&& kp->scheme != PKI_SCHEME_COMBINED
-// #endif
-		) {
+	if (!PKI_SCHEME_ID_supports_multiple_components(kp->scheme)) {
 		PKI_DEBUG("ERROR while adding a component key to a non-composite algorithm (%d)", kp->scheme);
 		return 0;
 	}

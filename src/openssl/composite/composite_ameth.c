@@ -818,16 +818,15 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     }
   }
 
-  PKI_DEBUG("PRIV. KEY. ENCODING: COMPOSITE KEY - algorithm = %d", comp_key->algorithm);
-  PKI_DEBUG("PRIV. KEY. ENCODING: EVP_PKEY TYPE - pk->type = %d, pk->save_type = %d", pk->type, pk->save_type);
-  PKI_DEBUG("PRIV. KEY. ENCODING: PKEY_AMETH - pkey_id = %d", pk->ameth->pkey_id);
-  // if (!EVP_PKEY_set_type(pk, comp_key->algorithm)) {
-  //   PKI_DEBUG("Cannot set the algorithm for the key");
-  // }
+  // PKI_DEBUG("PRIV. KEY. ENCODING: COMPOSITE KEY - algorithm = %d", comp_key->algorithm);
+  // PKI_DEBUG("PRIV. KEY. ENCODING: EVP_PKEY TYPE - pk->type = %d, pk->save_type = %d", pk->type, pk->save_type);
+  // PKI_DEBUG("PRIV. KEY. ENCODING: PKEY_AMETH - pkey_id = %d", pk->ameth->pkey_id);
+
   int my_nid = pk->save_type;
-  PKI_DEBUG("PRIV. KEY. ENCODING: my_nid = %d", my_nid);
   ASN1_OBJECT * obj = OBJ_nid2obj(my_nid);
-  PKI_DEBUG("PRIV. KEY. ENCODING: OBJ_nid2obj(%d) = %s", pk->save_type || pk->ameth->pkey_id, PKI_OID_get_descr(obj));
+
+  // PKI_DEBUG("PRIV. KEY. ENCODING: my_nid = %d", my_nid);
+  // PKI_DEBUG("PRIV. KEY. ENCODING: OBJ_nid2obj(%d) = %s", pk->save_type || pk->ameth->pkey_id, PKI_OID_get_descr(obj));
 
   // Sets the params for the P8
   if (!PKCS8_pkey_set0(p8, obj, 0, key_param_type, key_param, buff, buff_len)) {
@@ -1208,39 +1207,92 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 // ==================================
 
 // Implemented
-int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, ASN1_BIT_STRING *sig, EVP_PKEY *pkey) {
+int item_verify(EVP_MD_CTX      * ctx, 
+                const ASN1_ITEM * it, 
+                void            * asn, 
+                X509_ALGOR      * algor,
+                ASN1_BIT_STRING * sig,
+                EVP_PKEY        * pkey) {
 
-  // Here we should build the parameters when NULL is used
-  // as a digest we have to query for the default hash of
-  // the specific PKEY (or we can just use SHA256 as the
-  // default).
+  EVP_PKEY_CTX * pctx = NULL;
+  EVP_PKEY * pkey_val = NULL;
+    // OpenSSL's context
 
-  // NOTE: The PKEY type provides you with all the details needed
-  //       for the signature verification (all key types and all
-  //       MD types)
-  
-  // const EVP_MD * md = EVP_MD_CTX_md(ctx);
-  // EVP_PKEY * pkey_val = EVP_PKEY_CTX_get0_pkey(pctx);
-  EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
+  COMPOSITE_CTX * comp_ctx = NULL;
+  COMPOSITE_KEY * comp_key = NULL;
+    // Composite Key and CTX pointers
 
-  // COMPOSITE_KEY * comp_key = EVP_PKEY_get0(pctx && pctx->pkey ? pctx->pkey : NULL);
-  //   // Pointer to inner key structure
+  // Get the EVP_PKEY_CTX from the EVP_MD_CTX
+  pctx = EVP_MD_CTX_pkey_ctx(ctx);
+  if (!pctx) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the EVP_PKEY_CTX from the EVP_MD_CTX");
+    return -1;
+  }
 
-  PKI_DEBUG("MISSING CODE: Build the parameters and set the algorithm identifiers (with the parameters)");
+  // Gets the Composite Context
+  comp_ctx = pctx->data;
+  if (!comp_ctx) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Context from the EVP_PKEY_CTX");
+    return -1;
+  }
 
-  // Once the parameters are built, we can pass the list of
-  // algorithms to use in the 'app_data' portion of the
-  // EVP_MD_CTX.
-  // PKI_DEBUG("MISSING CODE: Add the pointer to the X509_ALGOR to the app_data");
+  // Get the Composite Key from the EVP_PKEY_CTX
+  if ((pkey_val = EVP_PKEY_CTX_get0_pkey(pctx)) != NULL) {
+    comp_key = EVP_PKEY_get0(pkey_val);
+  }
+  if (!comp_key) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Key from the EVP_PKEY_CTX");
+  }
 
-  // Update: Actually, instead of using the 'app_data' it seems
-  // architecturally more sound to leverage the CTRL interface
-  // where we can set a parameter such as the list of MD NIDs.
-  //
-  // Something like:
-  // EVP_PKEY_CTX_ctrl(pctx, EVP_PKEY_type(pkey_val), EVP_PKEY_OP_VERIFY, EVP_PKEY_CTRL_COMPOSITE_MD_LIST, )
+  // Gets the PKI_SCHEME_ID from the Composite Key
+  PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey_val);
+  if (scheme_id <= PKI_SCHEME_UNKNOWN) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the PKI_SCHEME_ID from the Composite Key");
+    return -1;
+  }
 
-  PKI_DEBUG("MISSING CODE: Call the CTRL interface and set the list of X509_ALGOR for the sign operation.");
+  // ======================
+  // Process Key Parameters
+  // ======================
+
+  int pkey_type = 0;
+  int md_type = 0;
+    // Public Key Type and Algorithms
+
+  const void *params_value = NULL;
+    // Value for the parameters
+
+  const PKI_OID *pkey_oid = NULL;
+    // OID for the public key
+
+  // Gets the type and the parameters
+  X509_ALGOR_get0(&pkey_oid, &pkey_type, &params_value, algor);
+  if (!params_value) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the parameters from the X509_ALGOR");
+    return -1;
+  };
+
+  // Let's copy the parameters into the EVP_PKEY_CTX
+  int success = COMPOSITE_CTX_algors_set0(comp_ctx,
+                                          sk_X509_ALGOR_dup((X509_ALGORS *)params_value));
+  if (!success) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the parameters into the EVP_PKEY_CTX");
+    return -1;
+  }
+
+  // Let's see if we are using the hash-n-sign scheme
+  // so that we can calculate the digest only once
+  if (!OBJ_find_sigid_algs(OBJ_obj2nid(pkey_oid), &md_type, NULL)) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not find the signature algorithm");
+    return -1;
+  }
+
+  // Sets the algorithm in the COMPOSITE_CTX that we use in
+  // the PKEY_METH (digestverify).
+  if (PKI_ERR == COMPOSITE_CTX_set_md(comp_ctx, EVP_get_digestbynid(md_type))) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the digest algorithm in the COMPOSITE context");
+    return -1;
+  }
 
   /*
    * Return value of 2 means carry on, anything else means we exit
@@ -1248,8 +1300,8 @@ int item_verify(EVP_MD_CTX *ctx, const ASN1_ITEM *it, void *asn, X509_ALGOR *a, 
    * routine handles all verification.
    */
 
-  // This is needed to pass the list of algorithms
-  EVP_PKEY_CTX_set_app_data(pctx, (void *)a);
+  // // This is needed to pass the list of algorithms
+  // EVP_PKEY_CTX_set_app_data(pctx, (void *)a);
 
   return 2;
 }

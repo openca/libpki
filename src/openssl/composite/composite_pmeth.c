@@ -484,14 +484,12 @@ static int verify(EVP_PKEY_CTX        * ctx,
                   size_t                siglen,
                   const unsigned char * tbs,
                   size_t                tbslen) {
-
-  PKI_X509_ALGOR_VALUE * algor = NULL;
-    // X509_ALGOR structure
  
-  X509_ALGORS * params = NULL;
+  const X509_ALGORS * params = NULL;
     // Pointer to parameters
 
-  COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
+  COMPOSITE_CTX * comp_ctx = NULL;
+  COMPOSITE_KEY * comp_key = NULL;
     // Pointer to inner key structure
 
   STACK_OF(ASN1_TYPE) *sk = NULL;
@@ -520,19 +518,32 @@ static int verify(EVP_PKEY_CTX        * ctx,
     return 0;
   }
 
-  // Retrieve the app data (if any)
-  algor = (PKI_X509_ALGOR_VALUE *)EVP_PKEY_CTX_get_app_data(ctx);
-  if (!algor) {
-    PKI_DEBUG("No App Data Found, using SHA512 as default.");
-    PKI_DEBUG("We should add the CTRL interface to set the default MD.");
+  // Gets the Composite Context
+  comp_ctx = (ctx ? ctx->data : NULL);
+  if (!comp_ctx) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Context from the EVP_PKEY_CTX");
+    return -1;
   }
 
-  if (algor) {
+  // Get the Composite Key from the EVP_PKEY_CTX
+  if ((evp_pkey = EVP_PKEY_CTX_get0_pkey(ctx)) != NULL) {
+    comp_key = EVP_PKEY_get0(evp_pkey);
+  }
+  if (!comp_key) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Key from the EVP_PKEY_CTX");
+  }
 
-    const ASN1_OBJECT * obj;
+  // Gets the PKI_SCHEME_ID from the Composite Key
+  PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(evp_pkey);
+  if (scheme_id <= PKI_SCHEME_UNKNOWN) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the PKI_SCHEME_ID from the Composite Key");
+    return -1;
+  }
 
-    X509_ALGOR_get0(&obj, NULL, (const void **)&params, algor);
-    PKI_DEBUG("Parsing the Parameters: #%d", sk_X509_ALGOR_num(params));
+  // Gets the Parameters from the Composite CTX
+  if (PKI_ERR == COMPOSITE_CTX_algors_get0(comp_ctx, &params)) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Parameters from the Composite Context");
+    return -1;
   }
 
   // Let's use the aOctetStr to avoid the internal
@@ -554,14 +565,45 @@ static int verify(EVP_PKEY_CTX        * ctx,
 
   // Checks we have the right number of components
   if (sk_ASN1_TYPE_num(sk) != comp_key_num) {
-    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, 
-      "Wrong number of signature's components (%d instead of %d)",
+    PKI_DEBUG("Wrong number of signature's components (%d instead of %d)",
       sk_ASN1_TYPE_num(sk), comp_key_num);
+    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
     goto err;
+  }
+  if (sk_X509_ALGOR_num(params) != comp_key_num) {
+    PKI_DEBUG("Wrong number of signature's components (%d instead of %d)",
+      sk_X509_ALGOR_num(params), comp_key_num);
+    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+    goto err;
+  }
+
+  // Retrieves the K-of-N parameter from the Composite Key
+  int required_validations = COMPOSITE_KEY_get_kofn(comp_key);
+  if (required_validations <= 0 || required_validations > comp_key_num) {
+    PKI_DEBUG("Wrong K-of-N parameter for the Composite Key detected (%d)", required_validations);
+    return -1;
   }
 
   // Process the internal components
   for (int i = 0; i < sk_ASN1_TYPE_num(sk); i++) {
+
+    unsigned char hashed_data[EVP_MAX_MD_SIZE];
+    unsigned int hashed_data_len = 0;
+      // Hashed data
+
+    const unsigned char * tbs_data = NULL;
+    size_t tbs_datalen = 0;
+      // Signature data
+
+    X509_ALGOR * sig_param = NULL;
+      // Inividual signature's parameters
+
+    const ASN1_OBJECT * sig_oid;
+      // Signature OID
+
+    int sig_pkey_id = 0;
+    int md_id = 0;
+      // Signature and Hashing Algorithm IDs
 
     // Gets the single values
     if ((aType = sk_ASN1_TYPE_value(sk, i)) == NULL) {
@@ -576,22 +618,85 @@ static int verify(EVP_PKEY_CTX        * ctx,
       return 0;
     }
 
-    PKI_MEM * mem = NULL;
-    char buff[1024];
-    snprintf(buff, sizeof(buff), "%d_signature_to_verify.bin", i);
-    mem = PKI_MEM_new_data((size_t)aType->value.sequence->length, aType->value.sequence->data);
-    URL_put_data(buff, mem, NULL, NULL, 0, 0, NULL);
-    PKI_MEM_free(mem);
+    // PKI_MEM * mem = NULL;
+    // char buff[1024];
+    // snprintf(buff, sizeof(buff), "%d_signature_to_verify.bin", i);
+    // mem = PKI_MEM_new_data((size_t)aType->value.sequence->length, aType->value.sequence->data);
+    // URL_put_data(buff, mem, NULL, NULL, 0, 0, NULL);
+    // PKI_MEM_free(mem);
 
-    snprintf(buff, sizeof(buff), "%d_data_to_verify.bin", i);
-    mem = PKI_MEM_new_data((size_t)tbslen, tbs);
-    URL_put_data("data_to_verify.bin", mem, NULL, NULL, 0, 0, NULL);
-    PKI_MEM_free(mem);
+    // snprintf(buff, sizeof(buff), "%d_data_to_verify.bin", i);
+    // mem = PKI_MEM_new_data((size_t)tbslen, tbs);
+    // URL_put_data("data_to_verify.bin", mem, NULL, NULL, 0, 0, NULL);
+    // PKI_MEM_free(mem);
+
+    // Retrieves the i-th parameter to get the specific
+    // algorithm to use for hashing, signing, and parameters
+    // generation for the individual signatures.
+    if ((sig_param = sk_X509_ALGOR_value(params, i)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component of signature parameters", i);
+      goto err;
+    }
 
     // Retrieves the i-th component
     if ((evp_pkey = COMPOSITE_KEY_get0(comp_key, i)) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get %d-th component from Key", i);
       goto err;
+    }
+
+    // STRATEGY:
+    //
+    // Check if we are using hash-n-sing, if so, the data was
+    // already hashed, let's just sign it
+    if (comp_ctx->md) {
+      // Global Hash-n-Sign (already hashed, just sign the data)
+      tbs_data = tbs;
+      tbs_datalen = tbslen;
+    } else {
+
+      int success = 0;
+        // Return code for the hashing function
+
+      const EVP_MD * md = NULL;
+        // MD to use for hashing
+
+      // Global Direct Signing (i.e., hashing is performed on a 
+      /// per algorithm basis). Let's get the MD.
+      X509_ALGOR_get0(&sig_oid, &sig_pkey_id, NULL, sig_param);
+      if (sig_pkey_id != EVP_PKEY_type(EVP_PKEY_id(evp_pkey))) {
+        PKI_DEBUG("Signature component #%d is not of the right type, expected (%d) but found (%d)", 
+          i, EVP_PKEY_type(EVP_PKEY_id(evp_pkey)), sig_pkey_id);
+        goto err;
+      }
+      // Let's retrieve the MD to use for hashing
+      if (!OBJ_find_sigid_algs(OBJ_obj2nid(sig_oid), &md_id, NULL)) {
+        PKI_DEBUG("Cannot find the MD for signature component #%d", i);
+        goto err;
+      }
+      // Let's check that, if the MD is NULL, the algorithm can support it
+      if (md_id == NID_undef && PKI_ID_requires_digest(sig_pkey_id)) {
+        PKI_DEBUG("MD for signature component #%d is NULL, but the pkey (%d) requires a digest", i);
+        goto err;
+      }
+
+      // Let's calculate the Digest, if needed
+      if (md_id != NID_undef) {
+        md = EVP_get_digestbynid(md_id);
+        if (!md) {
+          PKI_DEBUG("Cannot get the MD for signature component #%d", i);
+          goto err;
+        }
+        // Calculates the Digest (since we use custom digest, the data is not
+        // hashed when it is passed to this function)
+        success = EVP_Digest(tbs, tbslen, hashed_data, &hashed_data_len, md, NULL);
+        if (success <= 0) {
+          PKI_DEBUG("Cannot calculate the digest for signature component #%d", i);
+          PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+          return 0;
+        }
+        tbs_data = hashed_data;
+        tbs_datalen = hashed_data_len;
+      }
     }
 
     // Let's build a PKEY CTX and assign it to the MD CTX
@@ -604,10 +709,22 @@ static int verify(EVP_PKEY_CTX        * ctx,
     // Initializes the Verify operation
     ret_code = EVP_PKEY_verify_init(pkey_ctx);
     if (ret_code != 1) {
+
       PKI_DEBUG("Cannot initialize %d component signature (ret code: %d)", i, ret_code);
-      // goto err;
-      PKI_DEBUG("TEMPORARY DEBUG TEST - SKIPPING COMPONENT");
+      
+      // // We might need to remove the pkey reference before freeing the pkey_ctx
+      // pkey_ctx->pkey = NULL;
       if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+      pkey_ctx = NULL; // Safety
+
+      // Checks if we have enough signatures to validate the data
+      if (required_validations >= (comp_key_num - i)) {
+        PKI_DEBUG("[%d/%d] Composite verify failure (required validations: %d, remaining: %d)",
+          i, comp_key_num, required_validations, (comp_key_num - i - 1));
+        goto err;
+      }
+
+      // Skip this component and continue with the next one
       continue;
     }
 
@@ -615,40 +732,53 @@ static int verify(EVP_PKEY_CTX        * ctx,
     ret_code = EVP_PKEY_verify(pkey_ctx, 
                                aType->value.sequence->data,
                                (size_t)aType->value.sequence->length,
-                               tbs,
-                               (size_t)tbslen);
+                               tbs_data,
+                               (size_t)tbs_datalen);
     
-    // Checks the results of the verify
-    if (ret_code != 1) {
-      PKI_DEBUG("Cannot initialize signature for %d component (EVP_PKEY_verify code is %d)", 
-        i, ret_code);
-      // goto err;
-      PKI_DEBUG("TEMPORARY DEBUG TEST - SKIPPING COMPONENT #%d", i);
-      if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
-      continue;
-    }
-
-    // Removes the reference to the pkey. This is needed
-    // because the EVP_PKEY_CTX_free() will otherwise
-    // try to free the memory of the pkey
-    pkey_ctx->pkey = NULL;
-
-    // Free the EVP_PKEY_CTX
+    // // We might need to remove the pkey reference before freeing the pkey_ctx
+    // pkey_ctx->pkey = NULL;
     if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
     pkey_ctx = NULL; // Safety
 
+    // Checks the results of the verify
+    if (ret_code != 1) {
+      // Checks if we have enough signatures to validate the data
+    if (required_validations >= (comp_key_num - i)) {
+      PKI_DEBUG("[%d/%d] Composite verify failure (required validations: %d, remaining: %d)",
+        i, comp_key_num, required_validations, (comp_key_num - i - 1));
+      goto err;
+    }
+    // Skip this component and continue with the next one
+    continue;
+    }
+
+    // // Removes the reference to the pkey. This is needed
+    // // because the EVP_PKEY_CTX_free() will otherwise
+    // // try to free the memory of the pkey
+    // pkey_ctx->pkey = NULL;
+
+    // // Free the EVP_PKEY_CTX
+    // if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+    // pkey_ctx = NULL; // Safety
+    
     // Debugging
     PKI_DEBUG("Signature Component #%d Validated Successfully!", i);
+
+    // Updates the counter for the required validations
+    required_validations--;
+
+    // Checks if we can declare victory or if we still have
+    // to validate more signatures
+    if (required_validations <= 0) {
+      PKI_DEBUG("All required signatures validated successfully, skipping the remaining ones (%d)",
+        (comp_key_num - i - 1));
+      break;
+    }
   }
 
   // Free the stack memory
   if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
   sk = NULL;
-
-  // while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
-  //   ASN1_TYPE_free(aType);
-  // } sk_ASN1_TYPE_free(sk);
-  // sk = NULL; // Safety
 
   // Debugging
   PKI_DEBUG("PMETH Verify Completed Successfully!");
@@ -660,14 +790,6 @@ err:
 
   // Debugging
   PKI_DEBUG("PMETH Verify Error Condition, releasing resources.");
-
-  // // Free the stack memory
-  // if (sk != NULL) {
-  //   while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
-  //     ASN1_TYPE_free(aType);
-  //   } sk_ASN1_TYPE_free(sk);
-  //   sk = NULL; // Safety
-  // }
 
   // Free the stack memory
   if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
@@ -878,260 +1000,6 @@ static int digestsign(EVP_MD_CTX          * ctx,
   }
 
   return 1;
-
-//   // We need to get the algorithms from the PKEY_CTX
-//   EVP_PKEY * pkey = EVP_PKEY_CTX_get0_pkey(p_ctx);
-//     // PKEY
-
-//   COMPOSITE_CTX * comp_ctx = p_ctx->data;
-//     // Composite Context
-
-//   PKI_DEBUG("DigestSign: Data To Sign = 0x%p, Size = %lu", tbs, tbslen);
-//   PKI_DEBUG("Digest (EVP_md_null()? => %s) to use for signing: %s (%d)", md == EVP_md_null() ? "YES" : "NO", EVP_MD_name(md), EVP_MD_type(md));
-
-//   //
-//   // Issue: When we do not use the hash-n-sign, we need to pass the
-//   //        digest to the sign function. This is not possible with
-//   //        the current implementation.
-//   //
-//   //        We need to create a new function that does not use the
-//   //        digest and sign the data directly but uses a STACK of
-//   //        values to sign.
-//   //
-//   //        Let's create a new sign_ex() function with the following
-//   //        signature:
-//   //
-//   //        int sign_ex(EVP_PKEY_CTX   * ctx, 
-//   //                    unsigned char  * sig,
-//   //                    size_t         * siglen,
-//   //                    PKI_MEM_STACK  * tbs_stack);
-//   //
-
-//   if (comp_ctx->md) {
-
-//     unsigned char * tbs_hash = NULL;
-//     unsigned int tbs_hash_len = 0;
-//       // Container for the Hashed value
-
-//     // If we are using hash-n-sign, just calculate the hash
-//     // and use a single tbs entry in the tbs stack for all the
-//     // components
-//     md = comp_ctx->md;
-
-//     // Hash the contents only if we have a non-NULL digest
-//     if (md != EVP_md_null()) {
-
-//       PKI_MEM * tbs_mem = PKI_MEM_new_null();
-//       if (!tbs_mem) {
-//         PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-//         return 0;
-//       }
-
-//       // Calculates the Digest (since we use custom digest, the data is not
-//       // hashed when it is passed to this function)
-//       ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, md, NULL);
-//       if (ossl_ret == 0) {
-//         PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
-//         return 0;
-//       }
-
-//     } else {
-//       tbs_hash = (unsigned char *) tbs;
-//       tbs_hash_len = tbslen;
-//     }
-
-//     // Signs and Returns the result
-//     ossl_ret = sign(p_ctx, sig, siglen, tbs_hash, (size_t)tbs_hash_len);
-//     if (ossl_ret == 0) {
-//       PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
-//       return 0;
-//     }
-
-//     // Success
-//     return 1;
-
-//   } else {
-
-//     // Here we are not using the hash-n-sign method
-//   }
-  
-
-//   // // Calculates the Digest (since we use custom digest, the data is not
-//   // // hashed when it is passed to this function)
-//   // ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
-//   // if (ossl_ret == 0) {
-//   //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
-//   //   return 0;
-//   // }
-
-//   // PKI_DEBUG("DigestSign: After Calculation - Data To Sign = 0x%p, Size = %lu", tbs, tbslen);
-
-//   // PKI_DEBUG("DigestSign: After Calculation - tbs_hash_len = %d", tbs_hash_len);
-
-//   // // Signs and Returns the result
-//   // ossl_ret = sign(p_ctx, sig, siglen, tbs_hash, (size_t)tbs_hash_len);
-//   // if (ossl_ret == 0) {
-//   //   PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
-//   //   return 0;
-//   // }
-
-//   // Success
-//   return 1;
-
-//   /*
-//   COMPOSITE_KEY * comp_key = EVP_PKEY_get0(ctx && ctx->pkey ? ctx->pkey : NULL);
-//     // Pointer to inner key structure
-
-//   COMPOSITE_CTX * comp_ctx = ctx->data;
-//     // Pointer to algorithm specific CTX
-
-//   const int signature_size = EVP_PKEY_size(ctx->pkey);
-//     // The total signature size
-
-//   STACK_OF(ASN1_TYPE) *sk = NULL;
-//     // Stack of ASN1_OCTET_STRINGs
-
-//   ASN1_OCTET_STRING * oct_string = NULL;
-//     // Output Signature to be added
-//     // to the stack of signatures
-
-//   ASN1_TYPE * aType = NULL;
-//     // ASN1 generic wrapper
-
-//   int comp_key_num = 0;
-//     // Number of components
-
-//   unsigned char * buff = NULL;
-//   unsigned char * pnt  = NULL;
-//   int buff_len =  0;
-//     // Temp Pointers
-
-//   int total_size = 0;
-//     // Total Signature Size
-
-//   if ((comp_key == NULL) || 
-//       ((comp_key_num = COMPOSITE_KEY_num(comp_key)) <= 0)) {
-//     DEBUG("ERROR: Cannot get the Composite key inner structure");
-//     return 0;
-//   }
-
-//   if (sig == NULL) {
-//     *siglen = (size_t)signature_size;
-//     return 1;
-//   }
-
-//   if ((size_t)signature_size > (*siglen)) {
-//     DEBUG("ERROR: Buffer is too small");
-//     return 0;
-//   }
-
-//   if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
-//     DEBUG("ERROR: Memory Allocation");
-//     return 0;
-//   }
-
-//   for (int i = 0; i < comp_key_num; i++) {
-
-//     EVP_PKEY_CTX * pkey_ctx = NULL;
-
-//     EVP_MD_CTX * md_ctx = NULL;
-
-//     if (!COMPOSITE_CTX_get0(comp_ctx, i, &pkey_ctx, &md_ctx)) {
-//       DEBUG("ERROR: Cannot get %d-th component from CTX", i);
-//       return 0;
-//     }
-
-//     DEBUG("Determining Signature Size for Component #%d", i);
-
-//     // Let's get the size of the single signature
-//     if (EVP_PKEY_sign(pkey_ctx, NULL, (size_t *)&buff_len, tbs, tbslen) != 1) {
-//       DEBUG("ERROR: Null Size reported from Key Component #%d", i);
-//       goto err;
-//     }
-
-//     // Allocate the buffer for the single signature
-//     if ((pnt = buff = OPENSSL_malloc(buff_len)) == NULL) {
-//       DEBUG("ERROR: Memory Allocation");
-//       goto err;
-//     }
-
-//     DEBUG("PNT = %p, BUFF = %p", pnt, buff);
-
-//     // Generates the single signature
-//     if (EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen) != 1) {
-//       DEBUG("ERROR: Component #%d cannot generate signatures", i);
-//       goto err;
-//     }
-
-//     DEBUG("PNT = %p, BUFF = %p", pnt, buff);
-
-//     // Updates the overall real size
-//     total_size += buff_len;
-
-//     DEBUG("Generated Signature for Component #%d Successfully (size: %d)", i, buff_len);
-//     DEBUG("Signature Total Size [So Far] ... %d", total_size);
-
-//     if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
-//       DEBUG("ERROR: Memory Allocation");
-//       goto err;
-//     }
-
-//     // This sets the internal pointers
-//     ASN1_STRING_set0(oct_string, buff, buff_len);
-
-//     // Resets the pointer and length after ownership transfer
-//     buff = NULL; buff_len = 0;
-
-//     // Let's now generate the ASN1_TYPE and add it to the stack
-//     if ((aType = ASN1_TYPE_new()) == NULL) {
-//       DEBUG("ERROR: Memory Allocation");
-//       goto err;
-//     }
-
-//     // Transfer Ownership to the aType structure
-//     ASN1_TYPE_set(aType, V_ASN1_OCTET_STRING, oct_string);
-//     oct_string = NULL;
-
-//     // Adds the component to the stack
-//     if (!sk_ASN1_TYPE_push(sk, aType)) {
-//       DEBUG("ERROR: Cannot push the new Type");
-//       goto err;
-//     }
-
-//     // Transfers ownership
-//     aType = NULL;
-//   }
-
-//   if ((buff_len = i2d_ASN1_SEQUENCE_ANY(sk, &buff)) <= 0) {
-//     DEBUG("ERROR: Cannot ASN1 encode the Overall Composite Key");
-//     goto err;
-//   }
-
-//   // Reporting the total size
-//   DEBUG("Total Signature Size: %d (reported: %d)", total_size, EVP_PKEY_size(ctx->pkey))
-
-//   // Free the stack's memory
-//   while ((aType = sk_ASN1_TYPE_pop(sk)) == NULL) {
-//     ASN1_TYPE_free(aType);
-//   }
-//   sk_ASN1_TYPE_free(sk);
-//   sk = NULL;
-
-//   // Sets the output buffer
-//   sig = buff;
-//   *siglen = buff_len;
-
-//   // All Done
-//   return 1;
-
-// err:
-
-//   DEBUG("ERROR: Signing failed");
-
-//   // Here we need to cleanup the memory
-
-//   return 0;
-//   */
 }
 
 // Implemented
@@ -1145,34 +1013,57 @@ static int digestverify(EVP_MD_CTX          * ctx,
   unsigned int tbs_hash_len = 0;
     // Container for the Hashed value
 
+  const unsigned char * tbs_data = NULL;
+  size_t tbs_datalen = 0;
+    // Pointer to the actual data to be signed
+    // (hash-n-sign or direct signing)
+
   int ossl_ret = 0;
     // OpenSSL return code
 
-  EVP_PKEY_CTX * p_ctx = EVP_MD_CTX_pkey_ctx(ctx);
+  EVP_PKEY_CTX * pctx = EVP_MD_CTX_pkey_ctx(ctx);
     // PKEY context
 
-  if (!p_ctx) {
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+  COMPOSITE_CTX * comp_ctx = NULL;
+    // Composite Context
+
+  if (!ctx || !pctx) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return 0;
   }
 
-  // Calculates the Digest (since we use custom digest, the data is not
-  // hashed when it is passed to this function)
-  ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
-  if (ossl_ret == 0) {
-    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+  // Gets the Composite Context
+  comp_ctx = pctx->data;
+  if (!comp_ctx) {
+    PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
     return 0;
+  }
+
+  // Checks if we have a digest-n-sign situation or if
+  // we are directly signing the data
+  if (!EVP_PKEY_CTX_get_signature_md(pctx, NULL)) {
+    // No Hash-n-Sign requested, we use the data directly
+    tbs_data = tbs;
+    tbs_datalen = tbslen;
+  } else {
+    // Calculates the Digest (since we use custom digest, the data is not
+    // hashed when it is passed to this function)
+    ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
+    if (ossl_ret == 0) {
+      PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
+      return 0;
+    }
+    // Use the Digest as the data to be signed
+    tbs_data = tbs_hash;
+    tbs_datalen = tbs_hash_len;
   }
 
   // Verifies and Returns the result
-  ossl_ret = verify(p_ctx, sig, siglen, tbs_hash, tbs_hash_len);
-  if (ossl_ret == 0) {
-    PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
-    return 0;
-  }
+  ossl_ret = verify(pctx, sig, siglen, tbs_data, tbs_datalen);
+  if (ossl_ret == 0) PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
 
-  // Success
-  return 1;
+  // Returns the result
+  return ossl_ret;
 }
 
 // // Not Implemented

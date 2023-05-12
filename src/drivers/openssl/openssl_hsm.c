@@ -24,9 +24,13 @@ const HSM_CALLBACKS openssl_hsm_callbacks = {
 		/* Fips operation mode */
 		HSM_OPENSSL_is_fips_mode, 
 		/* General Sign */
-		HSM_OPENSSL_sign,
+		NULL, // HSM_OPENSSL_sign()
+		/* ASN1 Sign */
+		NULL, // HSM_OPENSSL_sign_asn1()
 		/* General Verify */
-		NULL, /* HSM_OPENSSL_verify, */
+		NULL, // HSM_OPENSSL_verify()
+		/* ASN1 Verify */
+		NULL, // HSM_OPENSSL_veify_asn1()
 		/* Key Generation */
 		HSM_OPENSSL_X509_KEYPAIR_new,
 		/* Free Keypair Function */

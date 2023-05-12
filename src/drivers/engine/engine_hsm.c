@@ -33,8 +33,12 @@ HSM_CALLBACKS engine_hsm_callbacks = {
 		NULL, // HSM_OPENSSL_is_fips_mode, 
 		/* General Sign */
 		NULL, // HSM_ENGINE_sign,
+		/* ASN.1 Sign */
+		NULL, // HSM_ENGINE_sign_asn1,
 		/* General Verify */
 		NULL,
+		/* ASN.1 Verify */
+		NULL, // HSM_ENGINE_verify_asn1
 		/* Key Generation */
 		HSM_ENGINE_X509_KEYPAIR_new,
 		/* Key Free Function - Let's fall back to default

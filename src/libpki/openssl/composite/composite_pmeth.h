@@ -12,6 +12,22 @@
 #ifndef _LIBPKI_COMPOSITE_PKEY_METH_H
 #define _LIBPKI_COMPOSITE_PKEY_METH_H
 
+#ifndef HEADER_ENVELOPE_H
+#include <openssl/evp.h>
+#endif
+
+#ifndef _LIBPKI_COMPAT_H
+#include <libpki/compat.h>
+#endif
+
+#ifndef HEADER_X509_H
+#include <openssl/x509.h>
+#endif
+
+#ifndef	_STDIO_H_
+#include <stdio.h>
+#endif
+
 #ifndef _LIBPKI_OS_H
 #include <libpki/os.h>
 #endif
@@ -32,20 +48,8 @@
 #include <libpki/openssl/composite/composite_ctx.h>
 #endif
 
-#ifndef HEADER_ENVELOPE_H
-#include <openssl/evp.h>
-#endif
-
-#ifndef _LIBPKI_COMPAT_H
-#include <libpki/compat.h>
-#endif
-
-#ifndef HEADER_X509_H
-#include <openssl/x509.h>
-#endif
-
-#ifndef	_STDIO_H_
-#include <stdio.h>
+#ifndef _LIBPKI_ID_H
+#include <libpki/pki_id.h>
 #endif
 
 BEGIN_C_DECLS

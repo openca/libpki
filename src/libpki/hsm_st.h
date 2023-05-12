@@ -237,11 +237,16 @@ typedef struct callbacks_st {
 
   /* ------------- Signing functions --------------- */
   /* General Signing function */
-  PKI_MEM * (*sign) (PKI_MEM *, PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
+  PKI_MEM * (*sign) (const PKI_MEM *, const PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
+
+  /* ASN.1 Signing function */
+  PKI_MEM * (*sign_asn1) (const PKI_X509 *, const PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
 
   /* General Verify Function */
-  int    (*verify)(PKI_MEM *, PKI_MEM *, PKI_X509_ALGOR_VALUE *,
-              PKI_X509_KEYPAIR * );
+  int (*verify)(const PKI_MEM *, const PKI_MEM *, PKI_X509_ALGOR_VALUE *, PKI_X509_KEYPAIR * );
+
+  /* ASN.1 Verify Function */
+  int (*verify_asn1)(const PKI_X509 *, const PKI_X509_KEYPAIR *);
 
   /* ------------- Key Management functions --------------- */
 
