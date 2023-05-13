@@ -59,9 +59,8 @@ BEGIN_C_DECLS
 // ==========================
 
 
-#ifdef  __cplusplus
-}
-#endif
+END_C_DECLS
+
 #endif // _LIBPKI_COMPOSITE_PKEY_METH_H
 
 /* END: composite_pmeth.h */
