@@ -389,15 +389,11 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 	// This processes the key components
-    if (PKI_SCHEME_ID_is_composite(kp->scheme) || PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
+    if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
         // Adds the components keys
 
 		char * url = NULL;
 		int i = 0;
-
-		if (PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
-			PKI_DEBUG("WARNING: Adding separate components to an explicit composite scheme %d, please make sure the composition is correct.", kp->scheme);
-		}
 
 		while ((url = comp_keys[i]) != NULL) {
 
