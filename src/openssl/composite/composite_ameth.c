@@ -972,7 +972,7 @@ int pkey_security_bits(const EVP_PKEY *pk) {
   // we should report the maximum sec_bits level
   // as all of the keys must be used.
 
-  int sec_bits = INT_MAX;
+  int sec_bits = 0;
     // Security Bits, we start with
     // the max value and return the lowest
 
@@ -996,17 +996,21 @@ int pkey_security_bits(const EVP_PKEY *pk) {
     int tmp_pkey_sec_bits = INT_MAX;
       // Security Bits, starts from INT_MAX
 
-    if (tmp_pkey && tmp_pkey->ameth->pkey_security_bits) {
-      // Checks if it is composite (OR) and use the lowest
-      // of the current or pkey values
-      tmp_pkey_sec_bits = 
-          tmp_pkey->ameth->pkey_security_bits(tmp_pkey);
-    }
+    // if (tmp_pkey && tmp_pkey->ameth->pkey_security_bits) {
+    //   // Checks if it is composite (OR) and use the lowest
+    //   // of the current or pkey values
+    //   tmp_pkey_sec_bits = 
+    //       tmp_pkey->ameth->pkey_security_bits(tmp_pkey);
+    // }
 
-    // If the current sec_bits is larger, let's get the
-    // new (smaller) value
-    sec_bits > tmp_pkey_sec_bits ? 
-      sec_bits = tmp_pkey_sec_bits : sec_bits;
+    tmp_pkey_sec_bits = EVP_PKEY_security_bits(tmp_pkey);
+
+    // If the current sec_bits is smaller, let's get the
+    // new (larger) value (Composite Keys are for auth
+    // and not for encryption)
+    if (sec_bits < tmp_pkey_sec_bits) {
+      sec_bits = tmp_pkey_sec_bits;
+     }
   }
 
   // If there are no components, we return '0'
