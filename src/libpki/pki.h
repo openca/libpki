@@ -272,6 +272,7 @@ typedef enum {
 #include <libpki/pki_string.h>
 #include <libpki/pki_init.h>
 #include <libpki/pki_algor.h>
+#include <libpki/pki_asn1.h>
 #include <libpki/pki_id.h>
 #include <libpki/pki_oid.h>
 #include <libpki/pki_digest.h>

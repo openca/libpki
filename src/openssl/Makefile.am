@@ -37,6 +37,7 @@ OPENSSL_SRCS = \
 	${NOINST_SRCS} \
 	pthread_init.c \
 	pki_id.c \
+	pki_asn1.c \
 	pki_oid.c \
 	pki_oid_defs.c \
 	pki_algor.c \

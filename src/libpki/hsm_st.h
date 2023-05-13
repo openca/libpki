@@ -11,6 +11,10 @@
 # include <libpki/pki_x509_data_st.h>
 #endif
 
+#ifndef _LIBPKI_PKI_STRING
+#include <libpki/pki_string.h>
+#endif
+
 #ifndef _LIBPKI_HSM_ST_H
 #define _LIBPKI_HSM_ST_H
 
@@ -237,10 +241,10 @@ typedef struct callbacks_st {
 
   /* ------------- Signing functions --------------- */
   /* General Signing function */
-  PKI_MEM * (*sign) (const PKI_MEM *, const PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
+  int (*sign) (const PKI_MEM *, const PKI_DIGEST_ALG *, PKI_BIT_STRING * sig, const PKI_X509_KEYPAIR *);
 
   /* ASN.1 Signing function */
-  PKI_MEM * (*sign_asn1) (const PKI_X509 *, const PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
+  int (*sign_asn1) (const PKI_X509 *, const PKI_DIGEST_ALG *, PKI_BIT_STRING * sig, const PKI_X509_KEYPAIR *);
 
   /* General Verify Function */
   int (*verify)(const PKI_MEM *, const PKI_MEM *, PKI_X509_ALGOR_VALUE *, PKI_X509_KEYPAIR * );

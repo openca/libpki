@@ -507,18 +507,18 @@ int PKI_X509_sign(PKI_X509               * x,
 	int sig_nid = -1;
 		// Signature Algorithm identifier
 
-	// Input Checks
-	if (!x || !x->value || !key || !key->value ) 
-		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	int ret = 0;
+		// Return value
 
-	// Sets the default Algorithm if none is provided
-	if (!digest) {
-		PKI_DEBUG("No digest was used, getting the default for the key");
-		digest = PKI_DIGEST_ALG_get_default(key);
+	// If no HSM is provided, let's get the default one
+	// const HSM * hsm = (key->hsm != NULL ? key->hsm : HSM_get_default());
+
+	// Input Checks
+	if (!x || !x->value || !key || !key->value) { 
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
 	}
 
-	PKI_DEBUG("Digest Algorithm set to %s", PKI_DIGEST_ALG_get_parsed(digest));
-	
 	// Extracts the internal value
 	pkey = PKI_X509_get_value(key);
 	if (!pkey) {
@@ -526,12 +526,19 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
-
 	// Handles the weirdness of OpenSSL - we want to check if the signing algorithm
 	// is actually allowed with the selected public key
-	if (digest != NULL && digest != PKI_DIGEST_ALG_NULL) {
+	if (PKI_SCHEME_ID_is_explicit_composite(pkey_scheme)) {
+		// Note that only COMPOSITE can properly handle passing the EVP_md_null()
+		// for indicating that we do not need a digest algorithm, however that is
+		// not well supported by OQS. Let's just pass NULL if the algorithm is not
+		// composite and the requested ditest is EVP_md_null().
+		sig_nid = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+		digest = NULL;
 
-		// Finds the associated signing algorithm identifier, if any
+	} else if (digest != NULL && digest != PKI_DIGEST_ALG_NULL) {
+
+		// Checks if the requested combination of PKEY/Digest is supported
 		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_nid(digest), EVP_PKEY_id(pkey)) != 1) {
 			PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
 				PKI_ID_get_txt(PKI_X509_KEYPAIR_VALUE_get_id(pkey)), digest ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
@@ -540,13 +547,22 @@ int PKI_X509_sign(PKI_X509               * x,
 		}
 
 	} else {
-		
+
+		// Here we have no digest and we want to make sure that the NULL
+		// digest is supported - so we check if digest is required and, if so,
+		// we return an error
 		if (PKI_ID_requires_digest(EVP_PKEY_id(pkey) == PKI_OK)) {
 			PKI_DEBUG("%s does not support arbitrary signing, hashing is required",
 					  PKI_SCHEME_ID_get_parsed(pkey_scheme));
 			// Error condition
 			return PKI_ERR;
 		}
+
+		// Sets it to null
+		digest = NULL;
+
+		// Let's use the Key OID as the default signing algorithm
+		sig_nid = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
 	}
 
 	// Debugging Information
@@ -569,25 +585,35 @@ int PKI_X509_sign(PKI_X509               * x,
 	ASN1_BIT_STRING sig_asn1 = { 0x0 };
 		// Pointer to the ASN1_BIT_STRING structure for the signature
 
-	// Note that only COMPOSITE can properly handle passing the EVP_md_null()
-	// for indicating that we do not need a digest algorithm, however that is
-	// not well supported by OQS. Let's just pass NULL if the algorithm is not
-	// composite and the requested ditest is EVP_md_null().
-	if (!PKI_SCHEME_ID_is_composite(pkey_scheme) && digest == PKI_DIGEST_ALG_NULL) {
-		digest = NULL;
-	}
+	// // Use the callback if it is available
+	// if (hsm && hsm->callbacks && hsm->callbacks->sign_asn1) {
+		
+	// 	// Using the HSM callback
+	// 	PKI_log_debug("Using the HSM callback for signing");
+	// 	ret = hsm->callbacks->sign_asn1(x, digest, &sig_asn1, key);
+
+	// } else {
+	// 	// Sets the right OID for the signature
+	// 	ret = ASN1_item_sign(x->it, 
+	// 						PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+	// 						PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
+	// 						&sig_asn1,
+	// 						x->value,
+	// 						pkey,
+	// 						digest);
+	// 							// ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
+	// }
 
 	// Sets the right OID for the signature
-	int success = ASN1_item_sign(x->it, 
-								PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
-								PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
-								&sig_asn1,
-								x->value,
-								pkey,
-								digest);
-								// ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
+	ret = ASN1_item_sign(x->it, 
+						PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+						PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
+						&sig_asn1,
+						x->value,
+						pkey,
+						digest);
 
-	if (!success || !sig_asn1.data || !sig_asn1.length) {
+	if (!ret || !sig_asn1.data || !sig_asn1.length) {
 		PKI_DEBUG("Error while creating the signature: %s",
 			ERR_error_string(ERR_get_error(), NULL));
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
@@ -625,6 +651,9 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
 	PKI_MEM *sig = NULL;
 	const HSM *hsm = NULL;
 
+	PKI_BIT_STRING sig_string = { 0x0 };
+	int ret = 0;
+
 	// Input check
 	if (!der || !der->data || !key || !key->value)	{
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -641,14 +670,12 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
 	// Requires the use of the HSM's sign callback
 	if (hsm && hsm->callbacks && hsm->callbacks->sign) {
 
-		// Generates the signature by using the HSM callback
-		if ((sig = hsm->callbacks->sign(
-			           (PKI_MEM *)der, 
-			           (PKI_DIGEST_ALG *)alg, 
-			           (PKI_X509_KEYPAIR *)key)) == NULL) {
-
-			// Error: Signature was not generated
-			PKI_DEBUG("Can not generate signature (returned from sign cb)");
+		// Using the HSM callback
+		ret = hsm->callbacks->sign(der, alg, &sig_string, key);
+		if (!ret) {
+			PKI_ERROR(PKI_ERR_SIGNATURE_CREATE_CALLBACK,
+				"Can not generate signature (returned from sign cb)");
+			return PKI_ERR;
 		}
 
 	} else {
@@ -672,7 +699,8 @@ PKI_MEM *PKI_sign(const PKI_MEM          * der,
  * \brief Verifies a PKI_X509 by using a key from a certificate
  */
 
-int PKI_X509_verify_cert(const PKI_X509 *x, const PKI_X509_CERT *cert) {
+int PKI_X509_verify_cert(const PKI_X509 	 * x, 
+						 const PKI_X509_CERT * cert) {
 
 	const PKI_X509_KEYPAIR *kval = NULL;
 
@@ -714,13 +742,11 @@ int PKI_X509_verify_cert(const PKI_X509 *x, const PKI_X509_CERT *cert) {
  * \brief Verifies a signature on a PKI_X509 object (not for PKCS7 ones)
  */
 
-int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
+int PKI_X509_verify(const PKI_X509         * x, 
+					const PKI_X509_KEYPAIR * key) {
 
 	int ret = PKI_ERR;
 	const HSM *hsm = NULL;
-
-	// PKI_MEM *data = NULL;
-	// PKI_MEM *sig = NULL;
 
 	PKI_STRING *sig_value = NULL;
 	PKI_X509_ALGOR_VALUE *alg = NULL;
@@ -762,82 +788,20 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 		// Let's use the HSM's verify callback
 		ret = hsm->callbacks->verify_asn1(x, key);
 	} else {
-		// Verifies the signature
+		// // Verifies the signature
 		ret = ASN1_item_verify(x->it,
 					           alg,
 			                   sig_value,
 						       PKI_X509_get_value(x),
 						       PKI_X509_get_value(key));
+
+		// // Verifies the signature
+		// ret = PKI_ASN1_item_verify(x->it,
+		// 			           alg,
+		// 	                   sig_value,
+		// 				       PKI_X509_get_value(x),
+		// 				       PKI_X509_get_value(key));
 	}
-								   
-	// // Gets the DER representation of the data to be signed
-
-	// // if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
-	// // if ((data = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
-	// if ((data = PKI_X509_get_tbs_asn1(x)) == NULL) {
-	// 	return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, 
-	// 		"Can not get To Be signed object!");
-	// }
-
-	// // Gets a reference to the Signature field in the X509 structure
-	// if ((sig_value = PKI_X509_get_data(x, 
-	// 				PKI_X509_DATA_SIGNATURE)) == NULL) {
-
-	// 	// Free the memory
-	// 	PKI_MEM_free(data);
-
-	// 	// We could not get the reference to the signature field
-	// 	return PKI_ERROR(PKI_ERR_POINTER_NULL,
-	// 		"Can not get Signature field from the X509 object!");
-	// }
-
-	// // Copies the signature data structure from the sig_value (PKI_STRING)
-	// // of the X509 structure to the sig one (PKI_MEM)
-	// if ((sig = PKI_MEM_new_data((size_t)sig_value->length,
-	// 						(unsigned char *)sig_value->data)) == NULL) {
-
-	// 	// Free memory
-	// 	PKI_MEM_free(data);
-
-	// 	// Reports the memory error
-	// 	return PKI_ERR;
-	// }
-
-	// // Uses the callback to verify the signature that was copied
-	// // in the sig (PKI_MEM) structure
-	// if (hsm && hsm->callbacks && hsm->callbacks->verify) {
-
-	// 	// Debugging Info
-	// 	PKI_log_debug( "HSM verify() callback called " );
-
-	// 	// Calls the callback function
-	// 	ret = hsm->callbacks->verify(data,
-	// 				     sig,
-	// 				     alg,
-	// 				     (PKI_X509_KEYPAIR *)key );
-
-	// } else {
-
-	// 	// // Debugging
-	// 	// FILE * fp = fopen("signature_verify.der", "w");
-	// 	// if (fp) {
-	// 	// 	fwrite(sig->data, sig->size, 1, fp);
-	// 	// 	fclose(fp);
-	// 	// }
-	// 	// fp = fopen("signed_data_verify.der", "w");
-	// 	// if (fp) {
-	// 	// 	fwrite(data->data, data->size, 1, fp);
-	// 	// 	fclose(fp);
-	// 	// }
-
-	// 	// If there is no verify callback, let's call the internal one
-	// 	ret = PKI_verify_signature(data, sig, alg, x->it, key);
-
-	// }
-
-	// // Free the allocated memory
-	// if ( data ) PKI_MEM_free ( data );
-	// if ( sig  ) PKI_MEM_free ( sig  );
 
 	// Provides some additional information in debug mode
 	if (ret != PKI_OK) {
@@ -868,9 +832,6 @@ int PKI_verify_signature(const PKI_MEM              * data,
 	const PKI_DIGEST_ALG *dgst = NULL;
 		// Digest Algorithm
 
-	// PKI_ID pkey_type = EVP_PKEY_id(k_val);
-	// 	// Type of PKEY
-
 	// Input Checks
 	if (!data || !data->data || !sig || !sig->data ||
 		!alg  || !key || !k_val )  {
@@ -883,15 +844,6 @@ int PKI_verify_signature(const PKI_MEM              * data,
 		// Reports the error
 		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,  NULL);
 	}
-
-	// PKI_DEBUG("Executing ASN1_item_verify()");
-
-	// ASN1_BIT_STRING signature;
-	// signature.data = sig->data;
-	// signature.length = (int)sig->size;
-
-	// ASN1_item_verify(it, (X509_ALGOR *)alg, &signature, NULL, k_val);
-	// PKI_DEBUG("Done with ASN1_item_verify()");
 
 	// Only use digest when we have not digest id
 	// that was returned for the algorithm
@@ -981,8 +933,11 @@ err:
 
 /*! \brief Gets a stack of X509 objects from the URL in the HSM */
 
-PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url, 	
-						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_STACK *HSM_X509_STACK_get_url (PKI_DATATYPE      type, 
+										URL 			* url, 	
+										PKI_DATA_FORMAT   format,
+										PKI_CRED 		* cred, 
+										HSM 			* hsm) {
 
 	PKI_STACK *ret = NULL;
 

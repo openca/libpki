@@ -334,10 +334,6 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
 
   // Free the stack's memory
   if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
-  // while ((sk != NULL) && (sk_ASN1_TYPE_num(sk) > 0) && ((aType = sk_ASN1_TYPE_pop(sk)) != NULL)) {
-  //   ASN1_TYPE_free(aType);
-  // }
-  // sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
   // Encode the parameters (if any)
@@ -1141,6 +1137,11 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
   switch (op) {
 
+    case ASN1_PKEY_CTRL_DEFAULT_MD_NID: {
+      // Deafault MD for the algorithm
+      *(int *)arg2 = NID_undef; // NID_sha512;
+    } break;
+
     case COMPOSITE_PKEY_CTRL_SET_K_OF_N: {
       // Sets the Valid Signature Requirement
       if (arg2) {
@@ -1168,11 +1169,6 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
     case ASN1_PKEY_CTRL_CMS_RI_TYPE: {
       // CMS RI Type Operation
-    } break;
-
-    case ASN1_PKEY_CTRL_DEFAULT_MD_NID: {
-      // Deafault MD for the algorithm
-      *(int *)arg2 = NID_sha512;
     } break;
 
     default: {
@@ -1210,7 +1206,7 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 int item_verify(EVP_MD_CTX      * ctx, 
                 const ASN1_ITEM * it, 
                 void            * asn, 
-                X509_ALGOR      * algor,
+                X509_ALGOR      * sigalg,
                 ASN1_BIT_STRING * sig,
                 EVP_PKEY        * pkey) {
 
@@ -1259,26 +1255,20 @@ int item_verify(EVP_MD_CTX      * ctx,
   int md_type = 0;
     // Public Key Type and Algorithms
 
-  const void *params_value = NULL;
+  X509_ALGORS * params = NULL;
+
+  const void * packed_sequence;
     // Value for the parameters
 
   const PKI_OID *pkey_oid = NULL;
     // OID for the public key
 
   // Gets the type and the parameters
-  X509_ALGOR_get0(&pkey_oid, &pkey_type, &params_value, algor);
-  if (!params_value) {
+  X509_ALGOR_get0(&pkey_oid, &pkey_type, (const void **)&packed_sequence, sigalg);
+  if (!packed_sequence) {
     PKI_ERROR(PKI_ERR_GENERAL, "Can not get the parameters from the X509_ALGOR");
     return -1;
   };
-
-  // Let's copy the parameters into the EVP_PKEY_CTX
-  int success = COMPOSITE_CTX_algors_set0(comp_ctx,
-                                          sk_X509_ALGOR_dup((X509_ALGORS *)params_value));
-  if (!success) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the parameters into the EVP_PKEY_CTX");
-    return -1;
-  }
 
   // Let's see if we are using the hash-n-sign scheme
   // so that we can calculate the digest only once
@@ -1291,6 +1281,21 @@ int item_verify(EVP_MD_CTX      * ctx,
   // the PKEY_METH (digestverify).
   if (PKI_ERR == COMPOSITE_CTX_set_md(comp_ctx, EVP_get_digestbynid(md_type))) {
     PKI_ERROR(PKI_ERR_GENERAL, "Can not set the digest algorithm in the COMPOSITE context");
+    return -1;
+  }
+  // Now we need to unpack the sequence of algorithms
+  params = ASN1_TYPE_unpack_sequence(&X509_ALGORS_it, packed_sequence);
+  if (params == NULL) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not unpack the sequence of algorithms");
+    return -1;
+  }
+
+  PKI_DEBUG("params_value = %p (num = %d)", params, sk_X509_ALGOR_num(params));
+
+  // Let's copy the parameters into the EVP_PKEY_CTX
+  int success = COMPOSITE_CTX_algors_set0(comp_ctx, sk_X509_ALGOR_dup(params));
+  if (!success) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the parameters into the EVP_PKEY_CTX");
     return -1;
   }
 
@@ -1370,15 +1375,24 @@ int item_sign(EVP_MD_CTX      * ctx,
   // Here we shall generate and validate the list of components
   // when the pkey_id is one of the explicit composite
   if (PKI_SCHEME_ID_is_explicit_composite(scheme_id) == PKI_OK) {
+
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
     PKI_DEBUG("MISSING CODE FOR AUTO-GENERATING THE X509_ALGORS LIST");
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
     signature_id = EVP_PKEY_type(EVP_PKEY_id(pkey_val));
 
-  } else if (signature_id == PKI_ID_UNKNOWN) {
+  } else {
     
     // Retrieves the Digest
     const EVP_MD * md = EVP_MD_CTX_md(ctx);
+    if (!md) {
+      // MD was not initialized by OpenSSL (this is due to the use of the
+      // EVP_PKEY_FLAG_SIGCTX_CUSTOM flag in the EVP_PKEY_CTX)
+      if (!EVP_DigestInit_ex(ctx, comp_ctx->md, NULL)) {
+        PKI_ERROR(PKI_ERR_GENERAL, "Can not initialize the digest");
+        return 0;
+      }
+    }
     
     // Gets the ID for the algorithm components
     int digest_id = NID_undef;

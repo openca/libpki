@@ -108,8 +108,8 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 libpki_openssl_la_DEPENDENCIES = $(OBJECTS)
 am__objects_1 =
 am__objects_2 = $(am__objects_1) libpki_openssl_la-pthread_init.lo \
-	libpki_openssl_la-pki_id.lo libpki_openssl_la-pki_oid.lo \
-	libpki_openssl_la-pki_oid_defs.lo \
+	libpki_openssl_la-pki_id.lo libpki_openssl_la-pki_asn1.lo \
+	libpki_openssl_la-pki_oid.lo libpki_openssl_la-pki_oid_defs.lo \
 	libpki_openssl_la-pki_algor.lo libpki_openssl_la-pki_digest.lo \
 	libpki_openssl_la-pki_hmac.lo libpki_openssl_la-pki_string.lo \
 	libpki_openssl_la-pki_time.lo libpki_openssl_la-pki_integer.lo \
@@ -155,6 +155,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo \
+	./$(DEPDIR)/libpki_openssl_la-pki_asn1.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_digest.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_hmac.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_id.Plo \
@@ -543,6 +544,7 @@ OPENSSL_SRCS = \
 	${NOINST_SRCS} \
 	pthread_init.c \
 	pki_id.c \
+	pki_asn1.c \
 	pki_oid.c \
 	pki_oid_defs.c \
 	pki_algor.c \
@@ -627,6 +629,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_asn1.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_digest.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_hmac.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_id.Plo@am__quote@ # am--include-marker
@@ -696,6 +699,13 @@ libpki_openssl_la-pki_id.lo: pki_id.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_id.c' object='libpki_openssl_la-pki_id.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_id.lo `test -f 'pki_id.c' || echo '$(srcdir)/'`pki_id.c
+
+libpki_openssl_la-pki_asn1.lo: pki_asn1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_asn1.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_asn1.Tpo -c -o libpki_openssl_la-pki_asn1.lo `test -f 'pki_asn1.c' || echo '$(srcdir)/'`pki_asn1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_openssl_la-pki_asn1.Tpo $(DEPDIR)/libpki_openssl_la-pki_asn1.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_asn1.c' object='libpki_openssl_la-pki_asn1.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_asn1.lo `test -f 'pki_asn1.c' || echo '$(srcdir)/'`pki_asn1.c
 
 libpki_openssl_la-pki_oid.lo: pki_oid.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_oid.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_oid.Tpo -c -o libpki_openssl_la-pki_oid.lo `test -f 'pki_oid.c' || echo '$(srcdir)/'`pki_oid.c
@@ -1069,6 +1079,7 @@ clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 
 distclean: distclean-recursive
 		-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo
+	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_asn1.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_digest.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_hmac.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_id.Plo
@@ -1140,6 +1151,7 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
 		-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo
+	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_asn1.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_digest.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_hmac.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_id.Plo

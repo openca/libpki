@@ -511,13 +511,6 @@ static int verify(EVP_PKEY_CTX        * ctx,
   EVP_PKEY * evp_pkey = NULL;
     // The keypair and context references
 
-  // Input Checks
-  comp_key_num = COMPOSITE_KEY_num(comp_key);
-  if (comp_key_num <= 0) {
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the Composite key inner structure");
-    return 0;
-  }
-
   // Gets the Composite Context
   comp_ctx = (ctx ? ctx->data : NULL);
   if (!comp_ctx) {
@@ -533,6 +526,13 @@ static int verify(EVP_PKEY_CTX        * ctx,
     PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Key from the EVP_PKEY_CTX");
   }
 
+  // Input Checks
+  comp_key_num = COMPOSITE_KEY_num(comp_key);
+  if (comp_key_num <= 0) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the Composite key inner structure");
+    return 0;
+  }
+
   // Gets the PKI_SCHEME_ID from the Composite Key
   PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(evp_pkey);
   if (scheme_id <= PKI_SCHEME_UNKNOWN) {
@@ -545,6 +545,8 @@ static int verify(EVP_PKEY_CTX        * ctx,
     PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Parameters from the Composite Context");
     return -1;
   }
+
+  PKI_DEBUG("Algors are %p (num: %d)", params, sk_X509_ALGOR_num(params));
 
   // Let's use the aOctetStr to avoid the internal
   // p8 pointers to be modified
@@ -571,7 +573,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
     goto err;
   }
   if (sk_X509_ALGOR_num(params) != comp_key_num) {
-    PKI_DEBUG("Wrong number of signature's components (%d instead of %d)",
+    PKI_DEBUG("Wrong number of parameters' components (%d instead of %d)",
       sk_X509_ALGOR_num(params), comp_key_num);
     PKI_ERROR(PKI_ERR_SIGNATURE_VERIFY, NULL);
     goto err;
@@ -743,13 +745,13 @@ static int verify(EVP_PKEY_CTX        * ctx,
     // Checks the results of the verify
     if (ret_code != 1) {
       // Checks if we have enough signatures to validate the data
-    if (required_validations >= (comp_key_num - i)) {
-      PKI_DEBUG("[%d/%d] Composite verify failure (required validations: %d, remaining: %d)",
-        i, comp_key_num, required_validations, (comp_key_num - i - 1));
-      goto err;
-    }
-    // Skip this component and continue with the next one
-    continue;
+      if (required_validations >= (comp_key_num - i)) {
+        PKI_DEBUG("[%d/%d] Composite verify failure (required validations: %d, remaining: %d)",
+          i, comp_key_num, required_validations, (comp_key_num - i - 1));
+        goto err;
+      }
+      // Skip this component and continue with the next one
+      continue;
     }
 
     // // Removes the reference to the pkey. This is needed
@@ -824,8 +826,8 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
     return 0;
   }
 
-  // PKI_DEBUG("PKEY_CTRL: Setting (ctrl) (type = %d) (key_id = %d, value = %p)",
-  //       type, key_id, value);
+  PKI_DEBUG("PKEY_CTRL: Setting (ctrl) (type = %d) (key_id = %d, value = %p)",
+        type, key_id, value);
 
   switch (type) {
 
@@ -834,7 +836,9 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
     // ===================
 
     case EVP_PKEY_CTRL_GET_MD: {
-      *(const EVP_MD **)value = comp_ctx->md;
+      PKI_DEBUG("PKEY_CTRL: Getting MD (type = %d) (key_id = %d, value = %p)",
+        type, key_id, value);
+      if (value) *(const EVP_MD **)value = comp_ctx->md;
     } break;
 
     case EVP_PKEY_CTRL_MD: {
@@ -845,8 +849,10 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
 
       // Input checks
       if (!value) {
-        PKI_DEBUG("Missing 2nd parameter (value)");
-        return 0;
+        // Assuming we are not going to do hash-n-sign
+        // based on the setting of (NULL) value
+        comp_ctx->md = NULL;
+        return 1;
       }
 
       // Sets the MD
@@ -872,6 +878,7 @@ static int ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
     } break;
 
     case EVP_PKEY_CTRL_DIGESTINIT: {
+      PKI_DEBUG("Called CTRL with DIGESTINIT");
       return 1;
     } break;
 
@@ -1009,6 +1016,9 @@ static int digestverify(EVP_MD_CTX          * ctx,
                         const unsigned char * tbs,
                         size_t                tbslen) {
 
+  const PKI_DIGEST_ALG * digest_alg;
+    // Digest Algorithm for hash-n-sign
+
   unsigned char tbs_hash[EVP_MAX_MD_SIZE];
   unsigned int tbs_hash_len = 0;
     // Container for the Hashed value
@@ -1039,13 +1049,25 @@ static int digestverify(EVP_MD_CTX          * ctx,
     return 0;
   }
 
+  // Gets the Digest Algorithm for the hash-n-sign (if any)
+  digest_alg = COMPOSITE_CTX_get_md(comp_ctx);
+
   // Checks if we have a digest-n-sign situation or if
   // we are directly signing the data
-  if (!EVP_PKEY_CTX_get_signature_md(pctx, NULL)) {
+  // if (!EVP_PKEY_CTX_get_signature_md(pctx, NULL)) {
+  if (digest_alg == NULL || digest_alg == PKI_DIGEST_ALG_NULL) {
+    
     // No Hash-n-Sign requested, we use the data directly
     tbs_data = tbs;
     tbs_datalen = tbslen;
+
   } else {
+
+    // Initializes the Digest - this is needed because we are using 
+    // a custom digest (see the us of EVP_PKEY_FLAG_SIGCTX_CUSTOM
+    // in the EVP_PKEY_METHOD definition)
+    if (!EVP_DigestInit_ex(ctx, digest_alg, NULL)) return 0;
+
     // Calculates the Digest (since we use custom digest, the data is not
     // hashed when it is passed to this function)
     ossl_ret = EVP_Digest(tbs, tbslen, tbs_hash, &tbs_hash_len, EVP_MD_CTX_md(ctx), NULL);
@@ -1113,7 +1135,12 @@ static int digestverify(EVP_MD_CTX          * ctx,
 
 EVP_PKEY_METHOD composite_pkey_meth = {
     0,              // int pkey_id; // EVP_PKEY_COMPOSITE
-    0,              // int flags; //EVP_PKEY_FLAG_SIGCTX_CUSTOM
+    
+    // 0,           // int flags; //EVP_PKEY_FLAG_SIGCTX_CUSTOM
+                    // The use of the SIGCTX_CUSTOM flag will prevent the do_sig_ver()
+                    // to look for a default digest (do_sigver_init() at m_sigver.c:25)
+    EVP_PKEY_FLAG_SIGCTX_CUSTOM, // int flags; //EVP_PKEY_FLAG_SIGCTX_CUSTOM
+
     init,           // int (*init)(EVP_PKEY_CTX *ctx);
     0, // copy,     // int (*copy)(EVP_PKEY_CTX *dst, EVP_PKEY_CTX *src);
     cleanup,        // void (*cleanup)(EVP_PKEY_CTX *ctx);
