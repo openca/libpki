@@ -302,9 +302,10 @@ int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx) {
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
-                                       const int        pkey_type,
-                                       X509_ALGORS   ** algors) {
+int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
+                                       const int                    pkey_type,
+                                       const COMPOSITE_KEY_STACK  * const components,
+                                       X509_ALGORS               ** algors) {
 
   X509_ALGORS * sk = NULL;
   X509_ALGOR algor = { 0x0 };
@@ -324,7 +325,8 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     return PKI_ERR;
   }
 
-  PKI_DEBUG("Scheme %d is an explicit composite (number of components = %d)", scheme, COMPOSITE_KEY_STACK_num(ctx->components));
+  PKI_DEBUG("Scheme %d is an explicit composite (number of components = %d)", 
+    scheme, COMPOSITE_KEY_STACK_num(components));
 
   sk = sk_X509_ALGOR_new_null();
   if (!sk) {
@@ -502,9 +504,9 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
   }
 
   // Checks the number of components and algorithms to be the same
-  if (sk_X509_ALGOR_num(sk) != COMPOSITE_KEY_STACK_num(ctx->components)) {
+  if (sk_X509_ALGOR_num(sk) != COMPOSITE_KEY_STACK_num(components)) {
     PKI_DEBUG("Number of components (%d) and algorithms (%d) do not match",
-              COMPOSITE_KEY_STACK_num(ctx->components), sk_X509_ALGOR_num(ctx->sig_algs));
+              COMPOSITE_KEY_STACK_num(components), sk_X509_ALGOR_num(ctx->sig_algs));
     sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
     return PKI_ERR;
   }
@@ -512,7 +514,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
   PKI_DEBUG("Same number of components and algorithms (%d)", sk_X509_ALGOR_num(sk));
 
   // Cycles through the components and checks the pkey algors
-  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(ctx->components); idx++) {
+  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
 
     X509_ALGOR * algor = NULL;
       // Pointer to a X509_ALGOR in the stack
@@ -528,7 +530,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     PKI_DEBUG("Validating component #%d", idx);
 
     // Gets the component and the algorithm
-    pkey = COMPOSITE_KEY_STACK_value(ctx->components, idx);
+    pkey = COMPOSITE_KEY_STACK_value(components, idx);
     if (!pkey) {
       PKI_DEBUG("Cannot retrieve Key Component #%d", idx);
       return PKI_ERR;
@@ -552,9 +554,9 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     }
 
     // Make sure that the pkey type is the same
-    if (pkey_id != EVP_PKEY_type(EVP_PKEY_id(pkey))) {
+    if (pkey_id != pkey_type) {
       PKI_DEBUG("PKEY type (%d) and algorithm (%d) do not match in component #%d",
-                pkey_id, EVP_PKEY_type(EVP_PKEY_id(pkey)), idx);
+                pkey_id, pkey_type, idx);
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       return PKI_ERR;
     }
@@ -574,9 +576,10 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
-                              const int        signature_id,
-                              X509_ALGORS   ** algors) {
+int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
+                              const int                     pkey_type,
+                              const COMPOSITE_KEY_STACK  * const components,
+                              X509_ALGORS               ** algors) {
   
   PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
     // Scheme of the key
@@ -591,14 +594,14 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
   }
 
   // Warns about missing pkey_type
-  if (signature_id == PKI_ID_UNKNOWN) {
+  if (pkey_type == PKI_ID_UNKNOWN) {
     PKI_DEBUG("Missing pkey_type when building the list of X509_ALGORS, using defaults");
   }
 
   // Checks if the key is of the explicit composite type
-  if (PKI_ID_is_explicit_composite(signature_id, &scheme)) {
+  if (PKI_ID_is_explicit_composite(pkey_type, &scheme)) {
     // If it is, then we can use the explicit algors
-    return COMPOSITE_CTX_explicit_algors_new0(ctx, signature_id, algors);  
+    return COMPOSITE_CTX_explicit_algors_new0(ctx, pkey_type, components, algors);  
   }
 
   // Allocates a new stack of X509_ALGOR
@@ -608,7 +611,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
   }
 
   // Cycles through the components and adds the algors
-  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(ctx->components); idx++) {
+  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
 
     PKI_X509_KEYPAIR_VALUE * x = NULL;
     const PKI_DIGEST_ALG * x_md = NULL;
@@ -616,7 +619,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
     PKI_X509_ALGOR_VALUE * algor = NULL;
 
     // Gets the component
-    x = COMPOSITE_KEY_STACK_get0(ctx->components, idx);
+    x = COMPOSITE_KEY_STACK_get0(components, idx);
     if (!x) {
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the component from the stack");
@@ -639,7 +642,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
         PKI_DEBUG("Digest IS REQUIRED for component #%d", idx);
 
         // Checks if a default hash was configured
-        if(ctx->default_md) {
+        if (ctx->default_md) {
           // Use the configured default
           x_md = ctx->default_md;
           PKI_DEBUG("Using configured default digest (%d) for component #%d", EVP_MD_type(x_md), idx);
@@ -648,7 +651,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
           int md_nid = 0;
           // Search for a default digest for the type of key
           if (!EVP_PKEY_get_default_digest_nid(x, &md_nid) || !md_nid) {
-            PKI_DEBUG("No default exists for component #%d, using library default");
+            PKI_DEBUG("No default exists for component #%d, using library default (%d)",
+              idx, EVP_MD_type(PKI_DIGEST_ALG_DEFAULT));
             // Use the library default MD
             x_md = PKI_DIGEST_ALG_DEFAULT;
           } else {
@@ -664,9 +668,11 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
 
     // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
     // we use a different approach
-    if (!x_md && x_md != PKI_DIGEST_ALG_NULL && PKI_ID_is_pqc(EVP_PKEY_type(EVP_PKEY_id(x)))) {
+    if (PKI_ID_is_pqc(pkey_type, NULL) ||
+        PKI_ID_is_explicit_composite(pkey_type, NULL)) {
 
-      algid = EVP_PKEY_type(EVP_PKEY_id(x));
+      // Use the same ID for key and algorithm
+      algid = pkey_type;
 
     } else {
 

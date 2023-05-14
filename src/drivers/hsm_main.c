@@ -502,6 +502,7 @@ int PKI_X509_sign(PKI_X509               * x,
 	PKI_STRING * sigPtr = NULL;
 	  // Pointer for the Signature in the PKIX data
 
+	int pkey_type = NID_undef;
 	PKI_SCHEME_ID pkey_scheme = PKI_SCHEME_UNKNOWN;
 	  // Signature Scheme
 
@@ -530,26 +531,52 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
+	// Gets the PKEY type
+	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	if (pkey_type == NID_undef) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key's Internal Value");
+		return PKI_ERR;
+	}
 
 	// Handles the weirdness of OpenSSL - we want to check if the signing algorithm
 	// is actually allowed with the selected public key
 	if (digest != NULL && digest != PKI_DIGEST_ALG_NULL) {
 
 		// Finds the associated signing algorithm identifier, if any
-		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_nid(digest), EVP_PKEY_id(pkey)) != 1) {
+		if (OBJ_find_sigid_by_algs(&sig_nid, EVP_MD_nid(digest), pkey_type) != 1) {
 			PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
-				PKI_ID_get_txt(PKI_X509_KEYPAIR_VALUE_get_id(pkey)), digest ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
+				PKI_ID_get_txt(pkey_type), digest ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
 			// Fatal Error
 			return PKI_ERR;
 		}
 
 	} else {
 		
-		if (PKI_ID_requires_digest(EVP_PKEY_id(pkey) == PKI_OK)) {
-			PKI_DEBUG("%s does not support arbitrary signing, hashing is required",
+		if (PKI_ID_requires_digest(pkey_type) == PKI_OK) {
+			PKI_DEBUG("%s scheme does not support arbitrary signing, hashing is required",
 					  PKI_SCHEME_ID_get_parsed(pkey_scheme));
 			// Error condition
 			return PKI_ERR;
+		}
+
+		// Checks if we can use the NULL digest
+		if (PKI_ID_is_composite(pkey_type, NULL) || 
+		    PKI_ID_is_explicit_composite(pkey_type, NULL)) {
+
+			// Finds the associated signing algorithm identifier, if any
+			if (OBJ_find_sigid_by_algs(&sig_nid, NID_undef, pkey_type) != 1) {
+				PKI_DEBUG("Cannot Get The Signing Algorithm for %s with %s",
+					PKI_ID_get_txt(pkey_type), digest ? PKI_DIGEST_ALG_get_parsed(digest) : "NULL");
+				// Fatal Error
+				return PKI_ERR;
+			}
+			// Use the appropriate digest to avoid the OpenSSL weirdness
+			digest = EVP_md_null();
+
+		} else if (PKI_ID_is_pqc(pkey_type, NULL)) {
+
+			// Use the Same ID for Key and Signature
+			sig_nid = pkey_type;
 		}
 
 		// if (PKI_ID_requires_digest(EVP_PKEY_id(pkey) == PKI_OK)) {

@@ -154,95 +154,109 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 		return ret;
 	}
 
-	// Maps the type of the keypair to the scheme
-	switch(pkey_type) {
+	if (PKI_ID_is_composite(pkey_type, &ret)) {
+		return ret;
+	} else if (PKI_ID_is_explicit_composite(pkey_type, &ret)) {
+		return ret;
+	} else if (PKI_ID_is_pqc(pkey_type, &ret)) {
+		return ret;
+	} else if (PKI_ID_is_traditional(pkey_type, &ret)) {
+		return ret;
+	}
 
-		case PKI_ALGOR_DSA:
-			ret = PKI_SCHEME_DSA;
-			break;
-
-		case PKI_ALGOR_RSA:
-		case PKI_ALGOR_RSAPSS:
-			ret = PKI_SCHEME_RSA;
-			break;
-
-#ifdef ENABLE_ECDSA
-		case PKI_ALGOR_ECDSA:
-			ret = PKI_SCHEME_ECDSA;
-			break;
-#endif
-
-#ifdef ENABLE_OQS
-
-		case PKI_ALGOR_DILITHIUM2:
-		case PKI_ALGOR_DILITHIUM3:
-		case PKI_ALGOR_DILITHIUM5: {
-			ret = PKI_SCHEME_DILITHIUM;
-		} break;
-
-		case PKI_ALGOR_FALCON512:
-		case PKI_ALGOR_FALCON1024: {
-			ret = PKI_SCHEME_FALCON;
-		} break;
-
-		case PKI_ALGOR_KYBER512:
-		case PKI_ALGOR_KYBER768:
-		case PKI_ALGOR_KYBER1024: {
-			ret = PKI_SCHEME_KYBER;
-		} break;
-
-		case PKI_ALGOR_SPHINCS_SHA256_128_R:
-		case PKI_ALGOR_SPHINCS_SHAKE256_128_R: {
-			ret = PKI_SCHEME_SPHINCS;
-		} break;
-
-#endif
-
-		default: {
-#ifdef ENABLE_COMPOSITE
-
-			PKI_DEBUG("Looking up the pkey_type (%d) in the composite list", pkey_type);
-
-			// Generic Composite
-			if (PKI_ID_is_composite(pkey_type)) {
-				ret = PKI_SCHEME_COMPOSITE;
-				PKI_DEBUG("Found a composite type (%d)", ret);
-			} else if (PKI_ID_is_explicit_composite(pkey_type, &ret)) {
-				// Scheme ID and PKEY types are the same
-				// Nothing to do, ret was already retrieved
-				PKI_DEBUG("Found an explicit composite type (%d)", ret);
-			} else {
-				ret = PKI_SCHEME_UNKNOWN;
-				PKI_DEBUG("Cannot select the scheme for pkey_type = %d (%d)", pkey_type, ret);
-			}
-
-		// 	if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
-		// 		return PKI_SCHEME_COMPOSITE;
-		// 	// Explicit Composite
-		// 	} else if (   pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID)
-		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)
-		// 			   ) {
-		// 		return (PKI_SCHEME_ID)pkey_type;
-		//    }
-#endif
-		} // End of default
-
-	} // End of switch()
-
-	// All done.
+	// If we are here, the key ID is not recognized
+	PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme!");
 	return ret;
+	
+
+// 	// Maps the type of the keypair to the scheme
+// 	switch(pkey_type) {
+
+// 		case PKI_ALGOR_DSA:
+// 			ret = PKI_SCHEME_DSA;
+// 			break;
+
+// 		case PKI_ALGOR_RSA:
+// 		case PKI_ALGOR_RSAPSS:
+// 			ret = PKI_SCHEME_RSA;
+// 			break;
+
+// #ifdef ENABLE_ECDSA
+// 		case PKI_ALGOR_ECDSA:
+// 			ret = PKI_SCHEME_ECDSA;
+// 			break;
+// #endif
+
+// #ifdef ENABLE_OQS
+
+// 		case PKI_ALGOR_DILITHIUM2:
+// 		case PKI_ALGOR_DILITHIUM3:
+// 		case PKI_ALGOR_DILITHIUM5: {
+// 			ret = PKI_SCHEME_DILITHIUM;
+// 		} break;
+
+// 		case PKI_ALGOR_FALCON512:
+// 		case PKI_ALGOR_FALCON1024: {
+// 			ret = PKI_SCHEME_FALCON;
+// 		} break;
+
+// 		case PKI_ALGOR_KYBER512:
+// 		case PKI_ALGOR_KYBER768:
+// 		case PKI_ALGOR_KYBER1024: {
+// 			ret = PKI_SCHEME_KYBER;
+// 		} break;
+
+// 		case PKI_ALGOR_SPHINCS_SHA256_128_R:
+// 		case PKI_ALGOR_SPHINCS_SHAKE256_128_R: {
+// 			ret = PKI_SCHEME_SPHINCS;
+// 		} break;
+
+// #endif
+
+// 		default: {
+// #ifdef ENABLE_COMPOSITE
+
+// 			PKI_DEBUG("Looking up the pkey_type (%d) in the composite list", pkey_type);
+
+// 			// Generic Composite
+// 			if (PKI_ID_is_composite(pkey_type, &ret)) {
+// 				PKI_DEBUG("Found a composite type (%d)", ret);
+// 			} else if (PKI_ID_is_explicit_composite(pkey_type, &ret)) {
+// 				// Scheme ID and PKEY types are the same
+// 				// Nothing to do, ret was already retrieved
+// 				PKI_DEBUG("Found an explicit composite type (%d)", ret);
+// 			} else {
+// 				ret = PKI_SCHEME_UNKNOWN;
+// 				PKI_DEBUG("Cannot select the scheme for pkey_type = %d (%d)", pkey_type, ret);
+// 			}
+
+// 		// 	if ( pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
+// 		// 		return PKI_SCHEME_COMPOSITE;
+// 		// 	// Explicit Composite
+// 		// 	} else if (   pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID)
+// 		// 			   || pkey_type == OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)
+// 		// 			   ) {
+// 		// 		return (PKI_SCHEME_ID)pkey_type;
+// 		//    }
+// #endif
+// 		} // End of default
+
+// 	} // End of switch()
+
+// 	// All done.
+// 	return ret;
 };
 
 /*!

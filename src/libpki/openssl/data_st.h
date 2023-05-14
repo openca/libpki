@@ -149,6 +149,53 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif 
 /* End - NID_X9_62_id_ecPublicKey or EVP_PKEY_EC */
 
+						// =============
+						// Family: ED448
+						// =============
+
+/* Begin - ED 448 or EVP_PKEY_ED448 */
+#ifdef EVP_PKEY_X448
+#define PKI_ALGOR_X448	  		EVP_PKEY_X448
+#define PKI_ALGOR_ID_X448		EVP_PKEY_X448
+#else
+#define PKI_ALGOR_X448			NID_undef
+#define PKI_ALGOR_ID_X448		NID_undef
+#endif 
+/* End - ED 448 or EVP_PKEY_ED448 */
+
+/* Begin - ED 448 or EVP_PKEY_ED448 */
+#ifdef EVP_PKEY_EC
+#define PKI_ALGOR_ED448	  		EVP_PKEY_ED448
+#define PKI_ALGOR_ID_ED448		EVP_PKEY_ED448
+#else
+#define PKI_ALGOR_ED448			NID_undef
+#define PKI_ALGOR_ID_ED448		NID_undef
+#endif 
+/* End - ED 448 or EVP_PKEY_ED448 */
+
+						// ===============
+						// Family: ED25519
+						// ===============
+
+/* Begin - X25519 or EVP_PKEY_X25519 */
+#ifdef EVP_PKEY_X25519
+#define PKI_ALGOR_X25519  		EVP_PKEY_X25519
+#define PKI_ALGOR_ID_X25519		EVP_PKEY_X25519
+#else
+#define PKI_ALGOR_X25519		NID_undef
+#define PKI_ALGOR_ID_X25519		NID_undef
+#endif 
+/* End - X25591 or EVP_PKEY_X25519 */
+
+/* Begin - ED 25519 or EVP_PKEY_ED25519 */
+#ifdef EVP_PKEY_ED25519
+#define PKI_ALGOR_ED25519 		EVP_PKEY_ED25519
+#define PKI_ALGOR_ID_ED25519	EVP_PKEY_ED25519
+#else
+#define PKI_ALGOR_ED25519		NID_undef
+#define PKI_ALGOR_ID_ED25519	NID_undef
+#endif 
+/* End - ED 25519 or EVP_PKEY_ED25519 */
 
 						// =================
 						// Digest Algorithms

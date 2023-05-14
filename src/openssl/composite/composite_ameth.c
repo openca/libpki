@@ -1281,11 +1281,17 @@ int item_verify(EVP_MD_CTX      * ctx,
     return -1;
   }
 
-  // Sets the algorithm in the COMPOSITE_CTX that we use in
-  // the PKEY_METH (digestverify).
-  if (PKI_ERR == COMPOSITE_CTX_set_md(comp_ctx, EVP_get_digestbynid(md_type))) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the digest algorithm in the COMPOSITE context");
-    return -1;
+  // Sets the algorithm in the COMPOSITE_CTX that we use in the PKEY_METH (digestverify).
+  if (md_type != NID_undef) {
+    if (PKI_ERR == COMPOSITE_CTX_set_md(comp_ctx, EVP_get_digestbynid(md_type))) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not set the digest algorithm in the COMPOSITE context");
+      return -1;
+    }
+  } else {
+    if (PKI_ERR == COMPOSITE_CTX_set_md(comp_ctx, EVP_md_null())) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not set the digest algorithm in the COMPOSITE context");
+      return -1;
+    }
   }
   // Now we need to unpack the sequence of algorithms
   params = ASN1_TYPE_unpack_sequence(&X509_ALGORS_it, packed_sequence);
@@ -1325,6 +1331,7 @@ int item_sign(EVP_MD_CTX      * ctx,
 
   EVP_PKEY_CTX * pctx = NULL;
   EVP_PKEY * pkey_val = NULL;
+  int pkey_type = 0;
     // OpenSSL's context
 
   COMPOSITE_CTX * comp_ctx = NULL;
@@ -1333,6 +1340,9 @@ int item_sign(EVP_MD_CTX      * ctx,
 
   X509_ALGORS * sig_algs = NULL;
     // List of signature algorithms
+
+  PKI_SCHEME_ID scheme_id = PKI_SCHEME_UNKNOWN;
+    // Signature Scheme ID
 
   int signature_id = NID_undef;
     // Signature ID
@@ -1369,16 +1379,19 @@ int item_sign(EVP_MD_CTX      * ctx,
     PKI_ERROR(PKI_ERR_GENERAL, "Can not get the Composite Key from the EVP_PKEY_CTX");
   }
 
-  // Gets the PKI_SCHEME_ID from the Composite Key
-  PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey_val);
-  if (scheme_id <= PKI_SCHEME_UNKNOWN) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the PKI_SCHEME_ID from the Composite Key");
-    return -1;
-  }
+  // Retrieves the Composite Public Key Type
+  pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey_val);
+
+  // // Gets the PKI_SCHEME_ID from the Composite Key
+  // PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey_val);
+  // if (scheme_id <= PKI_SCHEME_UNKNOWN) {
+  //   PKI_ERROR(PKI_ERR_GENERAL, "Can not get the PKI_SCHEME_ID from the Composite Key");
+  //   return -1;
+  // }
 
   // Here we shall generate and validate the list of components
   // when the pkey_id is one of the explicit composite
-  if (PKI_SCHEME_ID_is_explicit_composite(scheme_id) == PKI_OK) {
+  if (PKI_ID_is_explicit_composite(pkey_type, &scheme_id) == PKI_OK) {
 
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
     PKI_DEBUG("MISSING CODE FOR AUTO-GENERATING THE X509_ALGORS LIST");
@@ -1386,36 +1399,24 @@ int item_sign(EVP_MD_CTX      * ctx,
     signature_id = EVP_PKEY_type(EVP_PKEY_id(pkey_val));
 
   } else {
-    
-    // Retrieves the Digest
-    const EVP_MD * md = EVP_MD_CTX_md(ctx);
-    if (!md) {
-      // MD was not initialized by OpenSSL (this is due to the use of the
-      // EVP_PKEY_FLAG_SIGCTX_CUSTOM flag in the EVP_PKEY_CTX)
-      if (!EVP_DigestInit_ex(ctx, comp_ctx->md, NULL)) {
-        PKI_ERROR(PKI_ERR_GENERAL, "Can not initialize the digest");
-        return 0;
-      }
-    }
-    
+
     // Gets the ID for the algorithm components
     int digest_id = NID_undef;
-    int pkey_id = EVP_PKEY_id(pkey_val);
 
-    if (md == PKI_DIGEST_ALG_NULL) {
+    if (comp_ctx->md == PKI_DIGEST_ALG_NULL) {
       digest_id = NID_undef;
-    } else if (md == NULL) {
-      digest_id = PKI_DIGEST_ALG_ID_DEFAULT;
+    } else if (comp_ctx->md == NULL) {
+      digest_id = comp_ctx->default_md ? EVP_MD_type(comp_ctx->default_md) : PKI_DIGEST_ALG_ID_DEFAULT;
     } else {
-      digest_id = EVP_MD_type(md);
+      digest_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey_val);
     }
 
-    PKI_DEBUG("***** Original Digest %d - Digest ID: %d", EVP_MD_type(md), digest_id);
+    PKI_DEBUG("***** Selected Digest ID: %d", digest_id);
 
     // Search for the Algorithm ID
-    if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_id)) {
+    if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_type)) {
       PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
-        digest_id, pkey_id);
+        digest_id, pkey_type);
       return -1;
     }
 
@@ -1425,27 +1426,27 @@ int item_sign(EVP_MD_CTX      * ctx,
   // Checks if we build the list of algorithms with defaults
   // or if we use the pre-configured list of algorithms
   if (comp_ctx->sig_algs) {
+    
     PKI_DEBUG("Using pre-configured list of algorithms");
     // Use pre-configured list of algorithms
     sig_algs = comp_ctx->sig_algs;
+
   } else {
-    PKI_DEBUG("Building the list of algorithms for signing");
-    // Let's use the list of keys from the Composite Key (attach)
-    int success = COMPOSITE_CTX_components_set0(comp_ctx, comp_key->components);
-    if (success == PKI_ERR) {
-      PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of keys from the Composite Key");
-      return -1;
-    }
+
+    // PKI_DEBUG("Building the list of algorithms for signing");
+    // // Let's use the list of keys from the Composite Key (attach)
+    // int success = COMPOSITE_CTX_components_set0(comp_ctx, comp_key->components);
+    // if (success == PKI_ERR) {
+    //   PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of keys from the Composite Key");
+    //   return -1;
+    // }
+
     // Build the list with defaults
-    success = COMPOSITE_CTX_algors_new0(comp_ctx, signature_id, &sig_algs);
+    int success = COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, comp_key->components, &sig_algs);
     if (!success || !sig_algs) {
       PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
-      // Removes the list of components from the context
-      COMPOSITE_CTX_components_detach(comp_ctx, NULL);
       return -1;
     }
-    // Removes the list of components from the context
-    COMPOSITE_CTX_components_detach(comp_ctx, NULL);
   }
 
   // Pack the list of algorithms
