@@ -1371,6 +1371,9 @@ int item_sign(EVP_MD_CTX      * ctx,
     return -1;
   }
 
+  // Copies the ASN1_ITEM into the Composite Context
+  comp_ctx->asn1_item = it;
+
   // Get the Composite Key from the EVP_PKEY_CTX
   if ((pkey_val = EVP_PKEY_CTX_get0_pkey(pctx)) != NULL) {
     comp_key = EVP_PKEY_get0(pkey_val);
@@ -1404,19 +1407,20 @@ int item_sign(EVP_MD_CTX      * ctx,
     int digest_id = NID_undef;
 
     if (comp_ctx->md == PKI_DIGEST_ALG_NULL) {
+      PKI_DEBUG("NULL Digest Algorithm - Setting to NID_undef");
       digest_id = NID_undef;
     } else if (comp_ctx->md == NULL) {
+      PKI_DEBUG("Default Digest Algorithm - Setting to EVP_MD_type(comp_ctx->default_md)");
       digest_id = comp_ctx->default_md ? EVP_MD_type(comp_ctx->default_md) : PKI_DIGEST_ALG_ID_DEFAULT;
     } else {
-      digest_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey_val);
+      digest_id = EVP_MD_type(comp_ctx->md);
     }
 
     PKI_DEBUG("***** Selected Digest ID: %d", digest_id);
 
     // Search for the Algorithm ID
     if (!OBJ_find_sigid_by_algs(&signature_id, digest_id, pkey_type)) {
-      PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, "Cannot find the Algorithm ID (digest: %d, pkey: %d)", 
-        digest_id, pkey_type);
+      PKI_DEBUG("Cannot find the Algorithm ID (digest: %d, pkey: %d)", digest_id, pkey_type);
       return -1;
     }
 
@@ -1442,7 +1446,7 @@ int item_sign(EVP_MD_CTX      * ctx,
     // }
 
     // Build the list with defaults
-    int success = COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, comp_key->components, &sig_algs);
+    int success = COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, it, comp_key->components, &sig_algs);
     if (!success || !sig_algs) {
       PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
       return -1;

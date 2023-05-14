@@ -279,6 +279,9 @@ static int sign(EVP_PKEY_CTX        * ctx,
     PKI_X509_ALGOR_VALUE * alg = NULL;
       // Temp Algorithm Pointer
 
+    int algorithm_pkey_type = 0;
+    int md_type = 0;
+
     PKI_DEBUG("Generating Signature Component #%d", index);
 
     // Retrieves the i-th component
@@ -310,9 +313,6 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // Checks we have the same algorithm for the key
-    int algorithm_pkey_type = 0;
-    int md_type = 0;
-
     OBJ_find_sigid_algs(OBJ_obj2nid(alg->algorithm), &md_type, &algorithm_pkey_type);
     if (algorithm_pkey_type != EVP_PKEY_type(EVP_PKEY_id(evp_pkey))) {
       // PKI_DEBUG("Algorithm %d does not match the key's algorithm %d when processing component #%d", 
@@ -368,6 +368,9 @@ static int sign(EVP_PKEY_CTX        * ctx,
           goto err;
         }
 
+        if (alg) 
+          ASN1_item_sign(comp_ctx->asn1_item, alg, NULL, NULL, NULL, evp_pkey, EVP_get_digestbynid(md_type));
+
         // PKI_DEBUG("END: Using DIGEST (%d) signing method for component #%d", md_type, index);
 
       } else {
@@ -380,6 +383,9 @@ static int sign(EVP_PKEY_CTX        * ctx,
           // DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", index, ret_code);
           goto err;
         }
+
+        if (alg) 
+          ASN1_item_sign(comp_ctx->asn1_item, alg, NULL, NULL, NULL, evp_pkey, EVP_get_digestbynid(md_type));
 
         // PKI_DEBUG("END: Using NO DIGEST (direct signing) method for component #%d", index);
       }

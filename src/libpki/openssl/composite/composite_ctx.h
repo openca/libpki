@@ -119,6 +119,7 @@ int COMPOSITE_CTX_components_detach(COMPOSITE_CTX        * ctx,
 */
 int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
                               const int                    pkey_type,
+                              const ASN1_ITEM            * asn1_type,
                               const COMPOSITE_KEY_STACK  * const components,
                               X509_ALGORS               ** algors);
 
@@ -139,6 +140,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 */
 int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                                        const int                    pkey_type,
+                                       const ASN1_ITEM            * asn1_type,
                                        const COMPOSITE_KEY_STACK  * const components,
                                        X509_ALGORS               ** algors);
 

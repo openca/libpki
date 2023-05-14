@@ -9,6 +9,7 @@
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
 #include <openssl/evp.h>
+#include <openssl/ossl_typ.h>
 
 #ifndef _LIBPKI_COMPAT_H
 #include <libpki/compat.h>
@@ -98,6 +99,9 @@ typedef struct _libpki_composite_ctx {
   // the different X509_ALGOR to the individual
   // components
   X509_ALGORS * sig_algs;
+
+  // ASN1 ITEM for signature parameters generations
+  const ASN1_ITEM * asn1_item;
 
 } COMPOSITE_CTX;
 
