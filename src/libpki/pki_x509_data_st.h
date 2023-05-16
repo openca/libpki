@@ -112,6 +112,9 @@ typedef struct pki_x509_st {
 	/* Callback to duplicate auxillary data */
 	void * (*dup_aux_data)(void *);
 
+	/* For KeyPairs, indicates the need for digest when signing */
+	int signature_digest_required;
+
 } PKI_X509;
 
 /* End of _LIBPKI_PKI_X509_DATA_ST_H */

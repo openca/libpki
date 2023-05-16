@@ -236,12 +236,19 @@ typedef struct callbacks_st {
   int (*is_fips_mode) (const struct hsm_st *driver);
 
   /* ------------- Signing functions --------------- */
+
   /* General Signing function */
   PKI_MEM * (*sign) (PKI_MEM *, PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
+
+  /* ASN1 Signing function */
+  int  (*asn1_sign) (PKI_X509 *, PKI_DIGEST_ALG *, PKI_X509_KEYPAIR *);
 
   /* General Verify Function */
   int    (*verify)(PKI_MEM *, PKI_MEM *, PKI_X509_ALGOR_VALUE *,
               PKI_X509_KEYPAIR * );
+
+  /* ASN1 Verify Function */
+  int    (*asn1_verify)(const PKI_X509 *, const PKI_X509_KEYPAIR * );
 
   /* ------------- Key Management functions --------------- */
 

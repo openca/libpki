@@ -154,18 +154,35 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 		return ret;
 	}
 
-	if (PKI_ID_is_composite(pkey_type, &ret)) {
-		return ret;
-	} else if (PKI_ID_is_explicit_composite(pkey_type, &ret)) {
-		return ret;
-	} else if (PKI_ID_is_pqc(pkey_type, &ret)) {
-		return ret;
-	} else if (PKI_ID_is_traditional(pkey_type, &ret)) {
-		return ret;
+	// Let's retrieve the scheme from the keypair type
+	// Check if the keypair is a composite one
+	if (PKI_ERR == PKI_ID_is_composite(pkey_type, &ret)) {
+		// Checks if the keypair is an explicit composite one
+		if (PKI_ERR == PKI_ID_is_explicit_composite(pkey_type, &ret)) {
+			// Checks if the keypair is a PQC one
+			if (PKI_ERR == PKI_ID_is_pqc(pkey_type, &ret)) {
+				// Checks if the keypair is a traditional one
+				if (PKI_ERR == PKI_ID_is_traditional(pkey_type, &ret)) {
+					// If we are here, the key ID is not recognized
+					PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme!");
+					return PKI_ERR;
+				} else {
+					PKI_DEBUG("Scheme (%d) for Traditional keypair type (%d) found", pkey_type, ret);
+				}
+			} else {
+				PKI_DEBUG("Scheme (%d) for PQC keypair type (%d) found", pkey_type, ret);
+			}
+		} else {
+			PKI_DEBUG("Scheme (%d) for Explicit composite keypair type (%d) found", ret, pkey_type);
+		}
+	} else {
+		PKI_DEBUG("Scheme (%d) for Composite keypair type (%d) found", ret, pkey_type);
 	}
 
-	// If we are here, the key ID is not recognized
-	PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme!");
+	// Debugging Info
+	PKI_DEBUG("Found Scheme (%d) for pkey type (%d)", ret, pkey_type);
+
+	// All Done
 	return ret;
 	
 
@@ -338,40 +355,59 @@ int PKI_X509_KEYPAIR_requires_digest(const PKI_X509_KEYPAIR * k) {
 	// Input Check
 	if (!k || !k->value) return PKI_ERR;
 
-	return PKI_X509_KEYPAIR_requires_digest(k->value);
+	// Let's use the new X509 value for keys
+	if (k->signature_digest_required > -1) {
+		return k->signature_digest_required;
+	}
+
+	// Use the old approach (less efficient)
+	return PKI_X509_KEYPAIR_VALUE_requires_digest(k->value);
 }
 
 int PKI_X509_KEYPAIR_VALUE_requires_digest(const PKI_X509_KEYPAIR_VALUE * pkey) {
 
-	PKI_SCHEME_ID scheme_id = PKI_SCHEME_UNKNOWN;
-		// Scheme identifier
+	// PKI_SCHEME_ID scheme_id = PKI_SCHEME_UNKNOWN;
+	// 	// Scheme identifier
 
-	int def_nid = PKI_ID_UNKNOWN;
-		// Combined algorithms ID
+	// int def_nid = PKI_ID_UNKNOWN;
+	// 	// Combined algorithms ID
+
+	PKI_ID pkey_type = PKI_ID_UNKNOWN;
+		// PKEY ID
 
 	// Input Check
 	if (!pkey) return PKI_ERR;
 
-	// Retrieves the default digest for the PKEY
-	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
-
-	// Check for error condition
-	if (digestResult <= 0) {
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-		return PKI_ID_UNKNOWN;
-	}
-
-	// Checks if the returned default is the mandatory one
-	if (digestResult == 2) return PKI_OK;
-
-	scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey);
-	if (scheme_id <= 0) {
+	// Retrieves the PKEY ID
+	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	if (pkey_type <= 0) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 		return PKI_ERR;
 	}
 
-	// Let's return the result of the check on the scheme
-	return PKI_SCHEME_ID_requires_digest(scheme_id);
+	// Checks if the PKEY requires a digest
+	return PKI_ID_requires_digest(pkey_type);
+
+	// // Retrieves the default digest for the PKEY
+	// int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
+
+	// // Check for error condition
+	// if (digestResult <= 0) {
+	// 	PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+	// 	return PKI_ID_UNKNOWN;
+	// }
+
+	// // Checks if the returned default is the mandatory one
+	// if (digestResult == 2) return PKI_OK;
+
+	// scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey);
+	// if (scheme_id <= 0) {
+	// 	PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+	// 	return PKI_ERR;
+	// }
+
+	// // Let's return the result of the check on the scheme
+	// return PKI_SCHEME_ID_requires_digest(scheme_id);
 }
 
 int PKI_X509_KEYPAIR_is_digest_supported(const PKI_X509_KEYPAIR * k, const PKI_DIGEST_ALG * digest) {
@@ -423,7 +459,8 @@ int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pk
 PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_VALUE *pVal) {
 
 	PKI_X509_ALGOR_VALUE *ret = NULL;
-	// int pkey_type = 0;
+	int pkey_type = 0;
+		// PKEY ID
 
 	// int size = 0;
 	int algId = NID_undef;
@@ -433,54 +470,91 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 		// OpenSSL return code
 
 	PKI_SCHEME_ID scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(pVal);
-	PKI_DEBUG("SCHEME ID = %d", scheme);
+	if (scheme <= 0) {
+		PKI_DEBUG("Retrieved SCHEME for keypair value is not valid (%d)", scheme);
+		return NULL;
+	}
+
+	// Retrieves the PKEY ID
+	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+	if (!pkey_type) {
+		PKI_DEBUG("Retrieved PKEY ID for keypair value is not valid (%d)", pkey_type);
+		return NULL;
+	}
 
 	if (PKI_SCHEME_ID_is_explicit_composite(scheme)) {
 
 		// Explicit does not use any global hash algorithm
 		// we can safely use the same ID as the PKEY for the
 		// signature algorithm
-		algId = EVP_PKEY_type(EVP_PKEY_id(pVal));
-
-		// Gets the algorithm
-		ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_type(EVP_PKEY_id(pVal)));
+		ret = PKI_X509_ALGOR_VALUE_new_type(pkey_type);
 		if (!ret) {
 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 			return NULL;
 		}
+
+		algId = pkey_type;
 		
 	} else if (PKI_SCHEME_ID_is_post_quantum(scheme) == PKI_OK) {
 
 		PKI_DEBUG("SCHEME is a post-quantum scheme");
 
-		// PQC does not have a default digest, we use direct signing
-		algId = EVP_PKEY_type(EVP_PKEY_id(pVal));
-
 		// Gets the algorithm
-		ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_type(EVP_PKEY_id(pVal)));
+		ret = PKI_X509_ALGOR_VALUE_new_type(pkey_type);
 		
+		algId = pkey_type;
+
 	} else {
 
-		PKI_DEBUG("SCHEME is not a explicit composite ");
+		PKI_DEBUG("SCHEME is a traditional scheme or a composite (generic) one");
 	
 		// Retrieves the default digest
 		def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
-
-		if (def_ret <= 0 || def_nid == NID_undef) {
-			// Error or No digest is supported
-			PKI_DEBUG("No default digest for algorithm (%d), using the PKEY as the Algorithm ID");
-			algId = EVP_PKEY_id(pVal);
-			ret = PKI_X509_ALGOR_VALUE_new_type(algId);
-		} else if (def_nid != NID_undef) {
-			// Digest supported, let's use it
-			if (!OBJ_find_sigid_by_algs(&algId, def_nid, EVP_PKEY_id(pVal))) {
-				// No default algorithm found, let's return the PKEY id
-				ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_type(EVP_PKEY_id(pVal)));
-			}
-			PKI_DEBUG("Got the default signing algorithm ID from the KEY value");
-			// Gets the algorithm
-			ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+		if (def_ret <= 0) {
+			PKI_DEBUG("Error while retrieving the default digest for the PKEY (%d)", pkey_type);
+			return NULL;
 		}
+
+		// Digest supported, let's use it
+		if (!OBJ_find_sigid_by_algs(&algId, def_nid, pkey_type)) {
+			// No default algorithm found, let's return the PKEY id
+			if (def_nid == NID_undef) {
+				// No default digest found, let's return the PKEY id
+				ret = PKI_X509_ALGOR_VALUE_new_type(pkey_type);
+				if (!ret) {
+					PKI_DEBUG("Cannot find a signing algorithm for pkey (%d) and no hash", pkey_type);
+					return NULL;
+				}
+			} else {
+				// The selected digest is not supported
+				PKI_DEBUG("Cannot find a signing algorithm for pkey (%d) and hash (%d)", pkey_type, def_nid);
+				return NULL;
+			}
+		} else {
+			// Algorithm found, let's return it
+			ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+			if (!ret) {
+				PKI_DEBUG("Cannot find a signing algorithm for pkey (%d) and hash (%d)", pkey_type, def_nid);
+				return NULL;
+			}
+		}
+
+		// if (def_nid == NID_undef) {
+		// 	// Error or No digest is supported
+		// 	PKI_DEBUG("No default digest for algorithm (%d), using the PKEY as the Algorithm ID");
+		// 	algId = EVP_PKEY_id(pVal);
+		// 	ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+
+		// } else {
+		// 	// Digest supported, let's use it
+		// 	if (!OBJ_find_sigid_by_algs(&algId, def_nid, EVP_PKEY_id(pVal))) {
+		// 		// No default algorithm found, let's return the PKEY id
+		// 		ret = PKI_X509_ALGOR_VALUE_new_type(EVP_PKEY_type(EVP_PKEY_id(pVal)));
+		// 	}
+		// 	PKI_DEBUG("Got the default signing algorithm ID from the KEY value");
+		// 	// Gets the algorithm
+		// 	ret = PKI_X509_ALGOR_VALUE_new_type(algId);
+		// }
 	}
 
 	if (!ret) {

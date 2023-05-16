@@ -241,6 +241,9 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	// Internal conversion pointer
 	ret->it = _get_ossl_item(type);
 
+	// For PKI_X509_KEYPAIR, digest requirement
+	ret->signature_digest_required = -1;
+
 	// All Done
 	return ret;
 }

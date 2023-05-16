@@ -600,6 +600,11 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
     }
 
+    // Sets the requirement for the digest in the key
+    if (PKI_SCHEME_ID_requires_digest(type)) {
+        ret->signature_digest_required = 1;
+    }
+
     /* Let's return the PKEY infrastructure */
     return ( ret );
 }

@@ -575,21 +575,21 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	if (digest_opt) {
 
 		// Checks for the NO-HASH (null) digest option
-		if (strncasecmp(digest_opt, "null", 4) == 0 ||
-		    strncasecmp(digest_opt, "no", 2) == 0) {
+		if (str_cmp_ex(digest_opt, "null", 0, 1) == 0 ||
+		    str_cmp_ex(digest_opt, "no", 0, 1) == 0) {
 			// Uses the NULL digest method to indicate we
 			// do not need the digest. NULL is used to
 			// indicated there is no preference, use the
 			// default hash algorithm instead.
 			digest = PKI_DIGEST_ALG_NULL;
+			PKI_DEBUG("Using NULL digest");
 		} else {
 			// Retrieves the Digest from the provided name
 			digest = (PKI_DIGEST_ALG *) PKI_DIGEST_ALG_get_by_name(digest_opt);
-		}
-
-		if (digest == NULL) {
-			PKI_log_err("Cannot parse digest %s", digest_opt);
-			return PKI_ERR;
+			if (!digest) {
+				PKI_log_err("Cannot parse digest %s", digest_opt);
+				return PKI_ERR;
+			}
 		}
 
 	} else {
@@ -601,12 +601,12 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 			// Key Type
 
 		// Explicit does not allow for hash-n-sign
-		if (PKI_ID_is_explicit_composite(pkey_type, NULL)) {
-			// Use the NULL digest method
-			digest = PKI_DIGEST_ALG_NULL;
-		} else {
+		if (PKI_ID_requires_digest(pkey_type) == PKI_OK) {
 			// Use the default algorithm if NULL was used
 			digest = PKI_DIGEST_ALG_DEFAULT;
+		} else {
+			// Use the NULL digest method
+			digest = PKI_DIGEST_ALG_NULL;
 		}
 	}
 
@@ -614,28 +614,56 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	tk->digest = digest;
 
 	// Updates the algorithm
-	if (tk->keypair != NULL && algor_opt == NULL) {
+	if (tk->keypair != NULL) {
 
 		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 			// Internal Value
 
-		if (digest != EVP_md_null()) {
-			// Gest the Signature ID for the digest/pkey combination
-			if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
-				PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
-					EVP_MD_nid(digest), EVP_PKEY_id(p_val));
+		int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
+			// Key Type
+
+		// Gets the Signature ID for the digest/pkey combination
+		if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), pkey_type)) {
+
+			// Checks for possible fixes
+			if (digest == NULL || digest == PKI_DIGEST_ALG_NULL) {
+				// If we have a PQC or an explicit composite key, we
+				// can use the pkey_type as the signature algorithm
+				// if the digest is NULL
+				if (PKI_ID_is_pqc(pkey_type, NULL) ||
+					PKI_ID_is_composite(pkey_type, NULL) ||
+					PKI_ID_is_explicit_composite(pkey_type, NULL)) {
+					// If we do not have a defined one, let's use
+					// the pkey_type as the signature algorithm
+					sig_alg = pkey_type;
+				} else {
+					// No available algorithm for pkey without digest
+					PKI_DEBUG("No available combined digest/pkey algorithm for (digest: %d, pkey_type: %d)",
+						EVP_MD_nid(digest), pkey_type);
+					return PKI_ERR;
+				}
+			} else {
+				// No available algorithm for pkey/digest combination
+				PKI_DEBUG("No available algorithm (%d) for combined digest/pkey algorithm for (digest: %d, pkey_type: %d)",
+					sig_alg, EVP_MD_nid(digest), pkey_type);
 				return PKI_ERR;
 			}
-			// Let's update the token's algorithm, if any
-			if (sig_alg != PKI_ID_UNKNOWN) {
-				PKI_TOKEN_set_algor(tk, sig_alg);
-			}
-		} else if (digest == EVP_md_null()) {
+		}
+
+		// Let's update the token's algorithm, if any
+		if (sig_alg != PKI_ID_UNKNOWN) {
+			// Sets the Token's Algorithm
+			PKI_TOKEN_set_algor(tk, sig_alg);
+
+		} else if ((digest == EVP_md_null() || digest == NULL) &&
+		           (PKI_ID_is_explicit_composite(pkey_type, NULL) ||
+				    PKI_ID_is_pqc(pkey_type, NULL))) {
 			// If we do not have a defined one, let's use 
-			PKI_TOKEN_set_algor(tk, EVP_PKEY_id(p_val));
+			PKI_TOKEN_set_algor(tk, pkey_type);
 		} else {
 			// Error Condition
-			fprintf(stderr, "\n    ERROR: Cannot set the token algorithm\n\n");
+			fprintf(stderr, "\n    ERROR: Cannot set the token algorithm (pkey: %d, md: %d)\n\n",
+				pkey_type, EVP_MD_nid(digest));
 			exit(1);
 		}
 	}

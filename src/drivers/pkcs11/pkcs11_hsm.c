@@ -27,8 +27,12 @@ HSM_CALLBACKS pkcs11_hsm_callbacks = {
 		HSM_PKCS11_is_fips_mode, 
 		/* General Sign */
 		NULL, /* HSM_PKCS11_sign, */
+		/* ASN1 General Sign */
+		NULL, /* HSM_PKCS11_asn1_sign, */
 		/* General Verify */
 		NULL, /* HSM_PKCS11_verify */
+		/* ASN1 General Verify */
+		NULL, /* HSM_PKCS11_asn1_verify */
 		/* Key Generation */
 		HSM_PKCS11_KEYPAIR_new,
 		/* Free Keypair Function */

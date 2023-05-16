@@ -735,6 +735,10 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
                               const COMPOSITE_KEY_STACK  * const components,
                               X509_ALGORS               ** algors) {
   
+  int use_global_hash = 0;
+  const EVP_MD * global_hash;
+    // Global hash to be used for all the components
+
   PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
     // Scheme of the key
 
@@ -750,6 +754,12 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
   // Warns about missing pkey_type
   if (pkey_type == PKI_ID_UNKNOWN) {
     PKI_DEBUG("Missing pkey_type when building the list of X509_ALGORS, using defaults");
+  }
+
+  // Checks for global hash
+  if (ctx->md && ctx->md != EVP_md_null()) {
+    use_global_hash = 1;
+    global_hash = ctx->md;
   }
 
   // Checks if the key is of the explicit composite type
@@ -768,6 +778,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
   for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
 
     PKI_X509_KEYPAIR_VALUE * x = NULL;
+    PKI_SCHEME_ID x_scheme_id = PKI_SCHEME_UNKNOWN;
     int x_type = 0;
 
     const PKI_DIGEST_ALG * x_md = NULL;
@@ -779,7 +790,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     x = COMPOSITE_KEY_STACK_get0(components, idx);
     if (!x) {
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-      PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the component from the stack");
+      PKI_DEBUG("Cannot get the component from the stack");
       return PKI_ERR;
     }
 
@@ -787,13 +798,15 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     x_type = EVP_PKEY_type(EVP_PKEY_id(x));
 
     // Gets the right MD
-    if (ctx->md && ctx->md != PKI_DIGEST_ALG_NULL) {
+    if (use_global_hash) {
       
-      PKI_DEBUG("Detected use of hash-n-sign MD (%d)", EVP_MD_type(ctx->md));
+      PKI_DEBUG("Detected use of hash-n-sign MD (%d)", EVP_MD_type(global_hash));
+
       // Use hash-n-sign if set
-      x_md = ctx->md;
+      x_md = global_hash;
 
     } else {
+
       // Checks if the component requires the digest
       // and we are not using the hash-n-sign paradigm
       // let's use the configured default (if any)
@@ -801,29 +814,34 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 
         PKI_DEBUG("Digest IS REQUIRED for component #%d", idx);
 
-        // Checks if a default hash was configured
-        if (ctx->default_md) {
-          // Use the configured default
-          x_md = ctx->default_md;
-          PKI_DEBUG("Using configured default digest (%d) for component #%d", EVP_MD_type(x_md), idx);
+        int md_nid = 0;
+        
+        // Search for a default digest for the type of key
+        if (!EVP_PKEY_get_default_digest_nid(x, &md_nid)) {
+          PKI_DEBUG("No default exists for component #%d, using library default (%d)",
+            idx, EVP_MD_type(PKI_DIGEST_ALG_DEFAULT));
+          // Use the library's default for the digest
+          x_md = PKI_DIGEST_ALG_DEFAULT;
         } else {
-          PKI_DEBUG("No configured default, let's retrieve the specific default for component #%d", idx);
-          int md_nid = 0;
-          // Search for a default digest for the type of key
-          if (!EVP_PKEY_get_default_digest_nid(x, &md_nid) || !md_nid) {
-            PKI_DEBUG("No default exists for component #%d, using library default (%d)",
-              idx, EVP_MD_type(PKI_DIGEST_ALG_DEFAULT));
-            // Use the library default MD
-            x_md = PKI_DIGEST_ALG_DEFAULT;
-          } else {
-            PKI_DEBUG("Using default digest %d for component #%d", md_nid, idx);
-            x_md = EVP_get_digestbynid(md_nid);
-          }
+          // Use the default digest for the key type
+          x_md = EVP_get_digestbynid(md_nid);
         }
+
       } else {
-        x_md = NULL;
+
         PKI_DEBUG("Digest IS NOT REQUIRED for component #%d", idx);
+        x_md = NULL;
+
       }
+    }
+
+    // Checks we are not recursing
+    if (PKI_ID_is_composite(x_type, &x_scheme_id) ||
+        PKI_ID_is_explicit_composite(x_type, &x_scheme_id)) {
+      // Error, we cannot have recursion
+      PKI_DEBUG("Recursion detected in component #%d (scheme: %d)", idx, x_scheme_id);
+      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+      return PKI_ERR;
     }
 
     // Allocates a new X509_ALGOR
@@ -833,36 +851,57 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
       return PKI_ERR;
     }
 
-    // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
-    // we use a different approach
-    if (PKI_ID_is_pqc(x_type, NULL)) {
-
-      // Sets the algorithm identifier in the X509_ALGOR
-      if (!X509_ALGOR_set0(algor, OBJ_nid2obj(algid), V_ASN1_UNDEF, NULL)) {
-        PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the algorithm identifier");
-        X509_ALGOR_free(algor);
-        sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-        return PKI_ERR;
-      }
-
-      // Use the same ID for key and algorithm
-      algid = x_type;
+    if (asn1_item) {
+      
+      // Sets the parameter(s) and the algorithm identifier for the component
+      ASN1_item_sign(asn1_item, algor, NULL, NULL, NULL, x, x_md);
 
     } else {
 
-      // // Retrieves the algorithm identifier
-      // if (!OBJ_find_sigid_by_algs(&algid, 
-      //                             x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-      //                             x_type)) {
-      //   // Cannot find the algorithm identifier
-      //   sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);
-      //   PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
-      //   return PKI_ERR;
-      // }
+      // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
+      // we use a different approach
+      if (PKI_ID_is_pqc(x_type, NULL) && !use_global_hash) {
+
+        // Use the same ID for key and algorithm
+        algid = x_type;
+
+      } else {
+
+        // Retrieves the algorithm identifier
+        if (!OBJ_find_sigid_by_algs(&algid, 
+                                         x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
+                                         x_type)) {          
+          PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
+          // Cannot find the algorithm identifier
+          if (algor) X509_ALGOR_free(algor);
+          if (sk) sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);
+          return PKI_ERR;
+        }
+
+      }
 
       // Sets the algorithm identifier in the X509_ALGOR
-      // (and then fails, we generate the signatures in PMETH)
-      ASN1_item_sign(asn1_item, algor, NULL, NULL, NULL, x, x_md);
+      if (!X509_ALGOR_set0(algor, OBJ_nid2obj(algid), V_ASN1_UNDEF, NULL)) {
+        // Cannot set the algorithm identifier
+        PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the algorithm identifier");
+        if (algor) X509_ALGOR_free(algor);
+        if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+        return PKI_ERR;
+      }
+
+      // // // Retrieves the algorithm identifier
+      // // if (!OBJ_find_sigid_by_algs(&algid, 
+      // //                             x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
+      // //                             x_type)) {
+      // //   // Cannot find the algorithm identifier
+      // //   sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);
+      // //   PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
+      // //   return PKI_ERR;
+      // // }
+
+      // // Sets the algorithm identifier in the X509_ALGOR
+      // // (and then fails, we generate the signatures in PMETH)
+      // ASN1_item_sign(asn1_item, algor, NULL, NULL, NULL, x, x_md);
     }
 
     // Adds the algorithm to the stack

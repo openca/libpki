@@ -538,6 +538,13 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
+	// Gets the Signature Scheme
+	pkey_scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey);
+	if (pkey_scheme == PKI_SCHEME_UNKNOWN) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Scheme not recognized for key (%d)", pkey_type);
+		return PKI_ERR;
+	}
+
 	// Handles the weirdness of OpenSSL - we want to check if the signing algorithm
 	// is actually allowed with the selected public key
 	if (digest != NULL && digest != PKI_DIGEST_ALG_NULL) {
@@ -645,8 +652,13 @@ int PKI_X509_sign(PKI_X509               * x,
 	// for indicating that we do not need a digest algorithm, however that is
 	// not well supported by OQS. Let's just pass NULL if the algorithm is not
 	// composite and the requested ditest is EVP_md_null().
-	if (!PKI_SCHEME_ID_is_composite(pkey_scheme) && digest == PKI_DIGEST_ALG_NULL) {
-		digest = NULL;
+	if (digest == PKI_DIGEST_ALG_NULL) {
+		if (!PKI_SCHEME_ID_is_composite(pkey_scheme) &&
+		    !PKI_SCHEME_ID_is_explicit_composite(pkey_scheme)) {
+			// The algorithm is not composite, but the digest is EVP_md_null()
+			PKI_DEBUG("Digest is EVP_md_null(), but the algorithm is not composite, replacing the digest with NULL");
+			digest = NULL;
+		}
 	}
 
 	// Sets the right OID for the signature
@@ -890,11 +902,11 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 	int ret = PKI_ERR;
 	const HSM *hsm = NULL;
 
-	PKI_MEM *data = NULL;
-	PKI_MEM *sig = NULL;
+	// PKI_MEM *data = NULL;
+	// PKI_MEM *sig = NULL;
 
-	PKI_STRING *sig_value = NULL;
-	PKI_X509_ALGOR_VALUE *alg = NULL;
+	// PKI_STRING *sig_value = NULL;
+	// PKI_X509_ALGOR_VALUE *alg = NULL;
 
 	// Make sure the library is initialized
 	PKI_init_all();
@@ -914,91 +926,125 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 	// Gets the reference to the HSM to use
 	hsm = key->hsm != NULL ? key->hsm : HSM_get_default();
 
-	// Gets the algorithm from the X509 data
-	if (( alg = PKI_X509_get_data(x, PKI_X509_DATA_ALGORITHM)) == NULL) {
-
-		// Reports the error
-		return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,
-			"Can not get algorithm from object!");
-	}
-
-	// Gets the DER representation of the data to be signed
-
-	// if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
-	// if ((data = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
-	if ((data = PKI_X509_get_tbs_asn1(x)) == NULL) {
-		return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, 
-			"Can not get To Be signed object!");
-	}
-
-	// Gets a reference to the Signature field in the X509 structure
-	if ((sig_value = PKI_X509_get_data(x, 
-					PKI_X509_DATA_SIGNATURE)) == NULL) {
-
-		// Free the memory
-		PKI_MEM_free(data);
-
-		// We could not get the reference to the signature field
-		return PKI_ERROR(PKI_ERR_POINTER_NULL,
-			"Can not get Signature field from the X509 object!");
-	}
-
-	// Copies the signature data structure from the sig_value (PKI_STRING)
-	// of the X509 structure to the sig one (PKI_MEM)
-	if ((sig = PKI_MEM_new_data((size_t)sig_value->length,
-							(unsigned char *)sig_value->data)) == NULL) {
-
-		// Free memory
-		PKI_MEM_free(data);
-
-		// Reports the memory error
-		return PKI_ERR;
-	}
-
 	// Uses the callback to verify the signature that was copied
 	// in the sig (PKI_MEM) structure
-	if (hsm && hsm->callbacks && hsm->callbacks->verify) {
+	if (hsm && hsm->callbacks && hsm->callbacks->asn1_verify) {
 
 		// Debugging Info
 		PKI_log_debug( "HSM verify() callback called " );
 
+		// // Calls the callback function
+		// ret = hsm->callbacks->verify(data,
+		// 			     sig,
+		// 			     alg,
+		// 			     (PKI_X509_KEYPAIR *)key );
 		// Calls the callback function
-		ret = hsm->callbacks->verify(data,
-					     sig,
-					     alg,
-					     (PKI_X509_KEYPAIR *)key );
+		ret = hsm->callbacks->asn1_verify(x, key);
 
 	} else {
 
-		// // Debugging
-		// FILE * fp = fopen("signature_verify.der", "w");
-		// if (fp) {
-		// 	fwrite(sig->data, sig->size, 1, fp);
-		// 	fclose(fp);
-		// }
-		// fp = fopen("signed_data_verify.der", "w");
-		// if (fp) {
-		// 	fwrite(data->data, data->size, 1, fp);
-		// 	fclose(fp);
-		// }
-
-		// If there is no verify callback, let's call the internal one
-		ret = PKI_verify_signature(data, sig, alg, x->it, key);
-
+		// Experimental: use ASN1_item_verify()
+		ret = ASN1_item_verify(x->it, 
+					   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+				    PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE),
+			             x->value, 
+					     key->value
+		);
 	}
+	
+	// if (success == 1) {
+	// 	PKI_DEBUG("PKI_X509_verify()::Signature Verified!");
+	// } else {
+	// 	PKI_DEBUG("PKI_X509_verify()::Signature Verification Failed!");
+	// }
 
-	// Free the allocated memory
-	if ( data ) PKI_MEM_free ( data );
-	if ( sig  ) PKI_MEM_free ( sig  );
+	// // Gets the algorithm from the X509 data
+	// if (( alg = PKI_X509_get_data(x, PKI_X509_DATA_ALGORITHM)) == NULL) {
+
+	// 	// Reports the error
+	// 	return PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN,
+	// 		"Can not get algorithm from object!");
+	// }
+
+	// // Gets the DER representation of the data to be signed
+
+	// // if ((data = PKI_X509_get_der_tbs(x)) == NULL) {
+	// // if ((data = PKI_X509_get_data(x, PKI_X509_DATA_TBS_MEM_ASN1)) == NULL) {
+	// if ((data = PKI_X509_get_tbs_asn1(x)) == NULL) {
+	// 	return PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, 
+	// 		"Can not get To Be signed object!");
+	// }
+
+	// // Gets a reference to the Signature field in the X509 structure
+	// if ((sig_value = PKI_X509_get_data(x, 
+	// 				PKI_X509_DATA_SIGNATURE)) == NULL) {
+
+	// 	// Free the memory
+	// 	PKI_MEM_free(data);
+
+	// 	// We could not get the reference to the signature field
+	// 	return PKI_ERROR(PKI_ERR_POINTER_NULL,
+	// 		"Can not get Signature field from the X509 object!");
+	// }
+
+	// // Copies the signature data structure from the sig_value (PKI_STRING)
+	// // of the X509 structure to the sig one (PKI_MEM)
+	// if ((sig = PKI_MEM_new_data((size_t)sig_value->length,
+	// 						(unsigned char *)sig_value->data)) == NULL) {
+
+	// 	// Free memory
+	// 	PKI_MEM_free(data);
+
+	// 	// Reports the memory error
+	// 	return PKI_ERR;
+	// }
+
+	// // Uses the callback to verify the signature that was copied
+	// // in the sig (PKI_MEM) structure
+	// if (hsm && hsm->callbacks && hsm->callbacks->verify) {
+
+	// 	// Debugging Info
+	// 	PKI_log_debug( "HSM verify() callback called " );
+
+	// 	// Calls the callback function
+	// 	ret = hsm->callbacks->verify(data,
+	// 				     sig,
+	// 				     alg,
+	// 				     (PKI_X509_KEYPAIR *)key );
+
+	// } else {
+
+	// 	// // Debugging
+	// 	// FILE * fp = fopen("signature_verify.der", "w");
+	// 	// if (fp) {
+	// 	// 	fwrite(sig->data, sig->size, 1, fp);
+	// 	// 	fclose(fp);
+	// 	// }
+	// 	// fp = fopen("signed_data_verify.der", "w");
+	// 	// if (fp) {
+	// 	// 	fwrite(data->data, data->size, 1, fp);
+	// 	// 	fclose(fp);
+	// 	// }
+
+	// 	// If there is no verify callback, let's call the internal one
+	// 	ret = PKI_verify_signature(data, sig, alg, x->it, key);
+
+	// }
+
+	// // Free the allocated memory
+	// if ( data ) PKI_MEM_free ( data );
+	// if ( sig  ) PKI_MEM_free ( sig  );
 
 	// Provides some additional information in debug mode
 	if (ret != PKI_OK) {
-		PKI_log_debug("Crypto Layer Error: %s (%d)", 
+		PKI_DEBUG("Crypto Layer Error: %s (%d)", 
 			HSM_get_errdesc(HSM_get_errno(hsm), hsm), 
 			HSM_get_errno(hsm));
+	} else {
+		PKI_DEBUG("Validation Completed Successfully!");
 	}
 
-	return (ret);
+	return ret;
 }
 
 /*! \brief Verifies a signature */

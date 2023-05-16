@@ -83,8 +83,10 @@ int PKI_ID_is_composite(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 	if (id <= 0) return PKI_ERR;
 
 	// Checks if the ID is a composite one
-	if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_NAME) == id) return PKI_OK;
-	if (scheme_id) *scheme_id = PKI_SCHEME_COMPOSITE;
+	if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_NAME) == id) {
+		if (scheme_id) *scheme_id = PKI_SCHEME_COMPOSITE;
+		return PKI_OK;
+	}
 
 	// If reaches here, not composite
 	return PKI_ERR;

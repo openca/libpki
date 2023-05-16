@@ -930,12 +930,12 @@ int pkey_size(const EVP_PKEY *pk) {
     // Updates the total size
     ret += EVP_PKEY_size(pkey);
 
-    // Adds 4 extra bytes for ASN1 encoding (long)
-    ret += 4;
+    // Adds 5 extra bytes for ASN1 encoding (long)
+    ret += 5;
   }
 
   // Adds 4 extra bytes for encoding the sequence (long)
-  ret += 4;
+  ret += 5;
 
   // All Done
   return ret;
@@ -1120,7 +1120,7 @@ void pkey_free(EVP_PKEY *pk) {
 }
 
 // Implemented
-int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
+int ameth_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
   COMPOSITE_KEY * comp_key = NULL;
     // Composite Key Pointer
@@ -1158,7 +1158,11 @@ int pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 
     case COMPOSITE_PKEY_CTRL_GET_K_OF_N: {
       // Gets the Valid Signature Requirement
-      *(int *)arg2 = COMPOSITE_KEY_get_kofn(comp_key);
+      int kofn = COMPOSITE_KEY_get_kofn(comp_key);
+      // Sets the output parameter
+      if (arg2) *(int *)arg2 = kofn;
+      // Returns an error if no validation policy is set
+      if (kofn <= 0) return 0;
     } break;
 
     case ASN1_PKEY_CTRL_PKCS7_SIGN:
@@ -1225,8 +1229,28 @@ int item_verify(EVP_MD_CTX      * ctx,
   // Get the EVP_PKEY_CTX from the EVP_MD_CTX
   pctx = EVP_MD_CTX_pkey_ctx(ctx);
   if (!pctx) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not get the EVP_PKEY_CTX from the EVP_MD_CTX");
-    return -1;
+
+    // Resets the EVP_MD_CTX
+    EVP_MD_CTX_init(ctx);
+
+    // Allocates a new EVP_PKEY_CTX (this is the case
+    // where we do not have an MD and ASN1_item_verify
+    // calls this directly))
+    pctx = EVP_PKEY_CTX_new(pkey, NULL);
+    if (!pctx) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not instantiate a new EVP_PKEY_CTX");
+      return -1;
+    }
+
+    // Sets the EVP_PKEY_CTX in the EVP_MD_CTX
+    EVP_MD_CTX_set_pkey_ctx(ctx, pctx);
+
+    // Checks that the operation was successful
+    if (!EVP_MD_CTX_pkey_ctx(ctx)) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not get the EVP_PKEY_CTX from the EVP_MD_CTX");
+      return -1;
+    }
+
   }
 
   // Gets the Composite Context
@@ -1264,19 +1288,38 @@ int item_verify(EVP_MD_CTX      * ctx,
   const void * packed_sequence;
     // Value for the parameters
 
-  const PKI_OID *pkey_oid = NULL;
+  const PKI_OID *signature_oid = NULL;
     // OID for the public key
 
   // Gets the type and the parameters
-  X509_ALGOR_get0(&pkey_oid, &pkey_type, (const void **)&packed_sequence, sigalg);
+  X509_ALGOR_get0(&signature_oid, &pkey_type, (const void **)&packed_sequence, sigalg);
   if (!packed_sequence) {
     PKI_ERROR(PKI_ERR_GENERAL, "Can not get the parameters from the X509_ALGOR");
     return -1;
   };
 
+  PKI_DEBUG("Signature OID is %s", PKI_OID_get_descr(signature_oid));
+
+  // Now we need to unpack the sequence of algorithms
+  params = ASN1_TYPE_unpack_sequence(ASN1_ITEM_rptr(X509_ALGORS), sigalg->parameter);
+  if (params == NULL) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not unpack the sequence of algorithms");
+    return -1;
+  }
+
+  PKI_DEBUG("params_value = %p (num = %d)", params, sk_X509_ALGOR_num(params));
+
+  // Let's copy the parameters into the EVP_PKEY_CTX
+  int success = COMPOSITE_CTX_algors_set0(comp_ctx, sk_X509_ALGOR_dup(params));
+  if (!success) {
+    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the parameters into the EVP_PKEY_CTX");
+    return -1;
+  }
+
+
   // Let's see if we are using the hash-n-sign scheme
   // so that we can calculate the digest only once
-  if (!OBJ_find_sigid_algs(OBJ_obj2nid(pkey_oid), &md_type, NULL)) {
+  if (!OBJ_find_sigid_algs(OBJ_obj2nid(signature_oid), &md_type, NULL)) {
     PKI_ERROR(PKI_ERR_GENERAL, "Can not find the signature algorithm");
     return -1;
   }
@@ -1292,21 +1335,6 @@ int item_verify(EVP_MD_CTX      * ctx,
       PKI_ERROR(PKI_ERR_GENERAL, "Can not set the digest algorithm in the COMPOSITE context");
       return -1;
     }
-  }
-  // Now we need to unpack the sequence of algorithms
-  params = ASN1_TYPE_unpack_sequence(&X509_ALGORS_it, packed_sequence);
-  if (params == NULL) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not unpack the sequence of algorithms");
-    return -1;
-  }
-
-  PKI_DEBUG("params_value = %p (num = %d)", params, sk_X509_ALGOR_num(params));
-
-  // Let's copy the parameters into the EVP_PKEY_CTX
-  int success = COMPOSITE_CTX_algors_set0(comp_ctx, sk_X509_ALGOR_dup(params));
-  if (!success) {
-    PKI_ERROR(PKI_ERR_GENERAL, "Can not set the parameters into the EVP_PKEY_CTX");
-    return -1;
   }
 
   /*
@@ -1619,16 +1647,16 @@ EVP_PKEY_ASN1_METHOD composite_asn1_meth = {
     pkey_bits,                // int (*pkey_bits) (const EVP_PKEY *pk);
     pkey_security_bits,       // int (*pkey_security_bits) (const EVP_PKEY *pk);
     
-    0, // param_decode,             // int (*param_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
-    0, // param_encode,             // int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
-    0, // param_missing,            // int (*param_missing) (const EVP_PKEY *pk);
-    0, // param_copy,               // int (*param_copy) (EVP_PKEY *to, const EVP_PKEY *from);
-    0, // param_cmp,                // int (*param_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
-    0, // param_print,              // int (*param_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
+    0, // param_decode,       // int (*param_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
+    0, // param_encode,       // int (*param_encode) (const EVP_PKEY *pkey, unsigned char **pder);
+    0, // param_missing,      // int (*param_missing) (const EVP_PKEY *pk);
+    0, // param_copy,         // int (*param_copy) (EVP_PKEY *to, const EVP_PKEY *from);
+    0, // param_cmp,          // int (*param_cmp) (const EVP_PKEY *a, const EVP_PKEY *b);
+    0, // param_print,        // int (*param_print) (BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx);
     
     sig_print,                // int (*sig_print) (BIO *out, const X509_ALGOR *sigalg, const ASN1_STRING *sig, int indent, ASN1_PCTX *pctx);
     pkey_free,                // void (*pkey_free) (EVP_PKEY *pkey);
-    pkey_ctrl,                // int (*pkey_ctrl) (EVP_PKEY *pkey, int op, long arg1, void *arg2);
+    ameth_ctrl,               // int (*pkey_ctrl) (EVP_PKEY *pkey, int op, long arg1, void *arg2);
     // Legacy Functions for old PEM
     0, // old_priv_decode,          // int (*old_priv_decode) (EVP_PKEY *pkey, const unsigned char **pder, int derlen);
     0, // old_priv_encode,          // int (*old_priv_encode) (const EVP_PKEY *pkey, unsigned char **pder);
