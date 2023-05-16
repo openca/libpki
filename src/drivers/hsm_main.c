@@ -515,14 +515,6 @@ int PKI_X509_sign(PKI_X509               * x,
 	// Input Checks
 	if (!x || !x->value || !key || !key->value ) 
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-
-	// Sets the default Algorithm if none is provided
-	if (!digest) {
-		PKI_DEBUG("No digest was used, getting the default for the key");
-		digest = PKI_DIGEST_ALG_get_default(key);
-	}
-
-	PKI_DEBUG("Digest Algorithm set to %s", PKI_DIGEST_ALG_get_parsed(digest));
 	
 	// Extracts the internal value
 	pkey = PKI_X509_get_value(key);
@@ -543,6 +535,25 @@ int PKI_X509_sign(PKI_X509               * x,
 	if (pkey_scheme == PKI_SCHEME_UNKNOWN) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, "Scheme not recognized for key (%d)", pkey_type);
 		return PKI_ERR;
+	}
+
+	// Sets the default Algorithm if none is provided
+	if (!digest) {
+		PKI_DEBUG("No digest was used, getting the default for the key.");
+		if (PKI_SCHEME_ID_is_explicit_composite(pkey_scheme)) {
+			PKI_DEBUG("Explicit Composite Scheme, no digest allowed (overriding choice)");
+			digest = PKI_DIGEST_ALG_NULL;
+		} else {
+			digest = PKI_DIGEST_ALG_get_default(key);
+		}
+	}
+
+	PKI_DEBUG("Digest Algorithm set to %s", PKI_DIGEST_ALG_get_parsed(digest));
+
+	// Let's make sure we do not use a digest with explicit composite
+	if (PKI_ID_is_explicit_composite(pkey_type, NULL)) {
+		// No digest is allowed
+		digest = PKI_DIGEST_ALG_NULL;
 	}
 
 	// Handles the weirdness of OpenSSL - we want to check if the signing algorithm

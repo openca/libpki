@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# DEBUG_OPTION=" -debug -verbose"
+DEBUG_OPTION=""
+
 # This script is used to test the pki_tool.sh script
 
 function gen_key() {
@@ -11,7 +14,7 @@ function gen_key() {
     for alg in $ALGS; do
         if ! [ -f "results/${alg}.key" ]; then
             echo "Key Gen Testing: $alg"
-            pki-tool genkey -algorithm "${alg}" \
+            pki-tool genkey -algorithm "${alg}" ${DEBUG_OPTION} \
                 -batch -out "results/${alg}.key" 2>&1 >> key_log.txt
             if [ $? -ne 0 ]; then
                 echo "Error: Failed to generate key for $alg\n"
@@ -53,7 +56,7 @@ function gen_comp_key() {
     if ! [ -f "results/${COMP_NAME}.key" ] ; then
         pki-tool genkey -algorithm "composite" \
             -batch -out "results/${COMP_NAME}.key" \
-            ${OPTIONS} ${KOFN_OPTION} 2>&1 >> comp_key_log.txt
+            ${OPTIONS} ${KOFN_OPTION} ${DEBUG_OPTION} 2>&1 >> comp_key_log.txt
         if [ $? -ne 0 ]; then
             echo "Error: Failed to generate COMPOSITE (OPTIONS: ${OPTIONS}, K-of-N: ${KOFN_OPTION})\n"
             echo "       (PWD: $PWD)"
@@ -90,7 +93,7 @@ function gen_exp_key() {
     if ! [ -f "results/${EXP_NAME}.key" ] ; then
         pki-tool genkey -algorithm "${ALG_NAME}" \
             -batch -out "results/${EXP_NAME}.key" \
-            ${OPTIONS} 2>&1 >> comp_key_log.txt
+            ${OPTIONS} ${DEBUG_OPTION} 2>&1 >> comp_key_log.txt
         if [ $? -ne 0 ]; then
             echo
             echo "    ERROR: Failed to generate COMPOSITE (OPTIONS: ${OPTIONS})\n"
@@ -111,7 +114,7 @@ function gen_req() {
         for dig in $DIGESTS; do
             echo "Req Gen Testing: $alg + $dig"
             pki-tool genreq -digest "${dig}" -signkey "results/${alg}.key" \
-                -batch -out "results/${alg}_${dig}.req" 2>&1 >> req_log.txt
+                -batch -out "results/${alg}_${dig}.req" ${DEBUG_OPTION} 2>&1 >> req_log.txt
             if [ $? -ne 0 ]; then
                 echo "Error: Failed to generate key for $alg + $dig\n"
                 echo pki-tool genreq -batch -digest "${dig}" -signkey "results/${alg}.key"
@@ -134,7 +137,7 @@ function gen_cer() {
         for dig in $DIGESTS; do
             echo "Cer Gen Testing: $alg + $dig"
             pki-tool gencert -selfsign -digest "${dig}" -signkey "results/${alg}.key" \
-                -batch -in "results/${alg}_${dig}.req" \
+                -batch -in "results/${alg}_${dig}.req" ${DEBUG_OPTION} \
                 -out "results/${alg}_${dig}.cer" 2>&1 > cert_log.txt
             if [ $? -ne 0 ]; then
                 echo "Error: Failed to generate self-signed cert for $alg + $dig\n"
@@ -157,7 +160,7 @@ function verify() {
         for dig in $DIGESTS; do
             for type in $TYPES; do
                 echo "Verify Testing (type = $type): ${alg}_${dig}.${type}"
-                pki-siginfo -signer "results/${alg}.key" -debug -verbose \
+                pki-siginfo -signer "results/${alg}.key" ${DEBUG_OPTION} \
                     -in "results/${alg}_${dig}.${type}" 2>&1 >> verify_log.txt
                 if [ $? -ne 0 ]; then
                     echo "Error: Failed to generate self-signed cert for $alg + $dig\n"
@@ -220,60 +223,60 @@ COMPOSITE_REQS_EXPLICIT_DIGESTS="NULL"
 # Classic Algorithms
 # ==================
 
-# Generates Classic keys
-gen_key "$CLASSIC_ALGS"
+# # Generates Classic keys
+# gen_key "$CLASSIC_ALGS"
 
-# Generates Classic CSRs
-gen_req "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
+# # Generates Classic CSRs
+# gen_req "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
 
-verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "req"
+# verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "req"
 
-# Generates Classic CSRs
-gen_cer "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
+# # Generates Classic CSRs
+# gen_cer "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
 
-verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "cer"
+# verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "cer"
 
 # ==============
 # PQC Algorithms
 # ==============
 
-# Generates Post-Quantum keys
-gen_key "$PQC_ALGS"
+# # Generates Post-Quantum keys
+# gen_key "$PQC_ALGS"
 
-# Generates PQC CSRs
-gen_req "$PQC_ALGS" "$PQC_DIGESTS"
+# # Generates PQC CSRs
+# gen_req "$PQC_ALGS" "$PQC_DIGESTS"
 
-verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
+# verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
 
-# Generates PQC Certificates
-gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
+# # Generates PQC Certificates
+# gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
 
-verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
+# verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
 
 # =====================
 # Generic T/T Composite
 # =====================
 
-# Generates Composite Keys
-gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
+# # Generates Composite Keys
+# gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
 
-gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
+# gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
 
-gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
+# gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
 
-verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
+# verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
 
 # =======================
 # Generic T/PQC Composite
 # =======================
 
-gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
+# gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
 
-gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
+# gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
 
-gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
+# gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
 
-verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req"
+# verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req"
 
 
 # # # Generates Composite CSRs
@@ -300,9 +303,12 @@ gen_exp_key "$COMPOSITE_ALGS_EXPLICIT_2"
 # Generates Explicit Composite CSRs
 gen_req "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"
 
+verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "req"
+
 # Generates Explicit Composite Certificates
 gen_cer "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"
 
+verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "cer"
 
 # # Generates Explicit Composite CSRs
 # gen_req "$EXPLICIT_COMPOSITE_ALGS" "$COMPOSITE_DIGESTS"

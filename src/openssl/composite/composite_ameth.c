@@ -1427,7 +1427,10 @@ int item_sign(EVP_MD_CTX      * ctx,
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
     PKI_DEBUG("MISSING CODE FOR AUTO-GENERATING THE X509_ALGORS LIST");
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
-    signature_id = EVP_PKEY_type(EVP_PKEY_id(pkey_val));
+    if (!OBJ_find_sigid_by_algs(&signature_id, NID_undef, pkey_type)) {
+      PKI_DEBUG("Can not find the signature algorithm, using the pkey_type directly");
+      signature_id = pkey_type;
+    }
 
   } else {
 
