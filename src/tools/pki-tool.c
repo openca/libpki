@@ -356,8 +356,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 #ifdef ENABLE_COMPOSITE
 
 			case PKI_SCHEME_COMPOSITE: {
-				fprintf(stderr, "[%s:%s():%d] DEBUG: Processing COMPOSITE parameters\n",
-						__FILE__, __func__, __LINE__);
 
 				// Processes the K-of-N parameter option
 				if (strncmp_nocase( param_s, "kofn:", 5) == 0 ) {
@@ -367,9 +365,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 								return PKI_ERR;
 						}
 				}
-				// Parsed Value for K-of-N
-				fprintf(stderr, "[%s:%s():%d] DEBUG: Using %d as the value for K-of-N\n",
-						__FILE__, __func__, __LINE__, comp_kofn);
 
 				// If the parameter is set, then set it in the keyparams
 				if (comp_kofn > 0) {
@@ -378,9 +373,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 								return PKI_ERR;
 						}
 				}
-
-				fprintf(stderr, "[%s:%s():%d] DEBUG: Composite Parameter Set Value (0x%p - %ld)\n",
-						__FILE__, __func__, __LINE__, kp->comp.k_of_n, ASN1_INTEGER_get(kp->comp.k_of_n) );
 
 			} break;
 

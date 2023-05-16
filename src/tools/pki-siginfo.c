@@ -282,7 +282,8 @@ int main(int argc, char *argv[])
 	printf("        Key Size: %d\n", PKI_X509_KEYPAIR_get_size( kp ));
 
 	printf("\n    Verify: ");
-	if( PKI_X509_verify(sigObj, kp) == PKI_OK) {
+	int success = PKI_X509_verify(sigObj, kp);
+	if (success == PKI_OK) {
 		printf("Ok\n");
 	} else {
 		printf("ERROR!\n");
@@ -294,7 +295,6 @@ int main(int argc, char *argv[])
 	}
 
 	if (print == 1) {
-
 		if (PKI_X509_put(sigObj, PKI_DATA_FORMAT_PEM, "stdout", NULL, NULL, NULL) == PKI_ERR) {
 			printf("\n    ERROR: Cannot print the signer object, aborting.\n\n");
 		}
@@ -304,6 +304,6 @@ int main(int argc, char *argv[])
 	// All Done
 	printf("\n");
 
-	return 0;
+	return (!success);
 }
 
