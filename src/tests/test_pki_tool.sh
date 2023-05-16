@@ -157,7 +157,7 @@ function verify() {
         for dig in $DIGESTS; do
             for type in $TYPES; do
                 echo "Verify Testing (type = $type): ${alg}_${dig}.${type}"
-                pki-siginfo -signer "results/${alg}.key" \
+                pki-siginfo -signer "results/${alg}.key" -debug -verbose \
                     -in "results/${alg}_${dig}.${type}" 2>&1 >> verify_log.txt
                 if [ $? -ne 0 ]; then
                     echo "Error: Failed to generate self-signed cert for $alg + $dig\n"
@@ -220,57 +220,60 @@ COMPOSITE_REQS_EXPLICIT_DIGESTS="NULL"
 # Classic Algorithms
 # ==================
 
-# # Generates Classic keys
-# gen_key "$CLASSIC_ALGS"
+# Generates Classic keys
+gen_key "$CLASSIC_ALGS"
 
-# # Generates Classic CSRs
-# gen_req "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
+# Generates Classic CSRs
+gen_req "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
 
-# verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "req"
+verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "req"
 
-# # Generates Classic CSRs
-# gen_cer "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
+# Generates Classic CSRs
+gen_cer "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
 
-# verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "cer"
+verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "cer"
 
 # ==============
 # PQC Algorithms
 # ==============
 
-# # Generates Post-Quantum keys
-# gen_key "$PQC_ALGS"
+# Generates Post-Quantum keys
+gen_key "$PQC_ALGS"
 
-# # Generates PQC CSRs
-# gen_req "$PQC_ALGS" "$PQC_DIGESTS"
+# Generates PQC CSRs
+gen_req "$PQC_ALGS" "$PQC_DIGESTS"
 
-# verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
+verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
 
-# # Generates PQC Certificates
-# gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
+# Generates PQC Certificates
+gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
 
-# verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
+verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
 
-# =================
-# Generic Composite
-# =================
+# =====================
+# Generic T/T Composite
+# =====================
 
-# # # Generates Composite Keys
-# gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
+# Generates Composite Keys
+gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
 
-# gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
+gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
 
-# gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
+gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
 
-# verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
+verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
 
-# # Use K of N
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
+# =======================
+# Generic T/PQC Composite
+# =======================
 
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
 
-# gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
 
-# # verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req"
+gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
+
+verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req"
 
 
 # # # Generates Composite CSRs

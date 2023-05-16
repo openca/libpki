@@ -857,6 +857,9 @@ static int verify(EVP_PKEY_CTX        * ctx,
       goto err;
     }
 
+    // Gets the type of the i-th component
+    // int comp_evp_pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(comp_evp_pkey);
+
     // Checks if we are using a global hash-n-sign (comp_ctx->md is set)
     // or if we need to use a specific hash for this component instead
     // (i.e., when comp_ctx->md is NULL or EVP_md_null())
@@ -898,10 +901,24 @@ static int verify(EVP_PKEY_CTX        * ctx,
           PKI_DEBUG("Cannot get the MD component of the algorithm identifier of the i-th sig_algs component (%d)", i);
           goto err;
         }
-        comp_md = EVP_get_digestbynid(comp_md_nid);
-        if (!comp_md) {
-          PKI_DEBUG("Returned NID_undef for the MD of the i-th sig_algs component (%d), but MD is required", i);
-          goto err;
+
+        if (NID_undef == comp_md_nid) {
+          
+          // If the MD is not defined, let's check if it is required
+          if (PKI_X509_KEYPAIR_VALUE_requires_digest(comp_evp_pkey)) {
+            PKI_DEBUG("Returned NID_undef for the MD of the i-th sig_algs component (%d), but MD is required", i);
+            goto err;
+          }
+          PKI_DEBUG("Returned NID_undef for the MD of the i-th sig_algs component (%d) and it is supported", i);
+          comp_md = NULL;
+
+        } else {
+
+          comp_md = EVP_get_digestbynid(comp_md_nid);
+          if (!comp_md) {
+            PKI_DEBUG("Returned NID_undef for the MD of the i-th sig_algs component (%d)", i);
+            goto err;
+          }
         }
 
       } else {
@@ -922,20 +939,33 @@ static int verify(EVP_PKEY_CTX        * ctx,
               goto err;
             }
           }
+        } else {
+          PKI_DEBUG("MD is not required for the i-th sig_algs component (%d)", i);
+          comp_md = NULL;
         }
-        
       }
 
-      // Calculates the digest of the data to be signed
-      if (!EVP_Digest(tbs, tbslen, (unsigned char *)hashed_data, (unsigned int *)&hashed_data_len, comp_md, NULL)) {
-        PKI_DEBUG("Cannot calculate the digest for component %d", i);
-        goto err;
+      if (comp_md != NULL && comp_md != PKI_DIGEST_ALG_NULL) {
+
+        // Calculates the digest of the data to be signed
+        if (!EVP_Digest(tbs, tbslen, (unsigned char *)hashed_data, (unsigned int *)&hashed_data_len, comp_md, NULL)) {
+          PKI_DEBUG("Cannot calculate the digest for component %d", i);
+          goto err;
+        }
+
+        // Let's point the tbs_data to the hashed data and the
+        // tbs_data_len to the length of the hashed data
+        tbs_data = hashed_data;
+        tbs_data_len = hashed_data_len;
+
+      } else {
+
+        // Let's point the tbs_data to the original data
+        // tbs_data_len to the length of the original data
+        tbs_data = tbs;
+        tbs_data_len = tbslen;
       }
 
-      // Let's point the tbs_data to the hashed data and the
-      // tbs_data_len to the length of the hashed data
-      tbs_data = hashed_data;
-      tbs_data_len = hashed_data_len;
     }
 
     // Let's build a PKEY CTX and assign it to the MD CTX
