@@ -762,7 +762,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
     }
   }
 
-  if (1) {
+  if (DUMP_SIGNATURE_DATA == 1) {
 
     PKI_MEM * mem = NULL;
     char buff[1024];
@@ -824,7 +824,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
       return 0;
     }
 
-    if (1) {
+    if (DUMP_SIGNATURE_DATA == 1) {
       PKI_MEM * mem = NULL;
       char buff[1024];
       snprintf(buff, sizeof(buff), "%d_signature_to_verify.bin", i);
@@ -929,7 +929,8 @@ static int verify(EVP_PKEY_CTX        * ctx,
       goto err;
     }
 
-    PKI_DEBUG("Data To Be Signed: %d bytes", tbs_data_len);
+    PKI_DEBUG("Data To Be Signed: tbs_data = %p, tbs_data_len = %d bytes", 
+      tbs_data, tbs_data_len);
 
     PKI_DEBUG("Signature: %d bytes", aType->value.sequence->length);
 
