@@ -383,6 +383,11 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
 
     PKI_COMPOSITE_KEY *k = NULL;
+    const char * scheme_name = PKI_SCHEME_ID_get_parsed(kp->scheme);
+    if (!scheme_name) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Unknown Scheme");
+        return NULL;
+    }
 
     if ((k = COMPOSITE_KEY_new()) == NULL) {
         // Memory Allocation Error
@@ -390,12 +395,30 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
         return NULL;
     }
 
+    int pkey_type = PKI_ID_get_by_name(PKI_SCHEME_ID_get_parsed(kp->scheme));
+    if (pkey_type <= 0) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Unknown Algorithm");
+        COMPOSITE_KEY_free(k);
+        return NULL;
+    }
+
+    // Let's set the algorithm
+    k->algorithm = pkey_type;
+
     PKI_DEBUG("Creating a Composite Key");
     PKI_DEBUG("Scheme: %d (%s)", kp->scheme, PKI_SCHEME_ID_get_parsed(kp->scheme));
+    PKI_DEBUG("Pkey Type: %d (%s)", pkey_type, OBJ_nid2sn(pkey_type));
 
-    PKI_DEBUG("OQS Alg ID: %d (%s)", kp->oqs.algId, OBJ_nid2sn(kp->oqs.algId));
-
-    k->algorithm = kp->oqs.algId;
+    // if (PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
+    //     PKI_DEBUG("Explicit Composite Key");
+    //     k->algorithm = pkey_type;
+    // } else if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
+    //     PKI_DEBUG("Gemeric Composite Key");
+    //     k->algorithm = pkey_type;
+    // } else if (PKI_SCHEME_ID_is_post_quantum(kp->scheme)) {
+    //     PKI_DEBUG("Unknown Composite Key");
+    //     k->algorithm = kp->oqs.algId;
+    // }
 
     if (kp->comp.k_stack != NULL) {
 

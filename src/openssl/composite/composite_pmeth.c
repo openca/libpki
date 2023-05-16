@@ -90,6 +90,8 @@ static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   // Input Validation
   if (!ctx || !ctx->data || !pkey) return 0;
 
+  PKI_DEBUG("Generating a Composite Key");
+
   // // Some extra checking for correctness
   // if (ctx->pmeth->pkey_id != OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID)) {
   //   PKI_DEBUG("NID is not NID_composite (%d vs. %d)", 

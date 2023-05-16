@@ -1243,6 +1243,7 @@ typedef struct pki_keyparams_st {
 
 #ifdef ENABLE_COMPOSITE
 	struct {
+		int algorithm;
 		PKI_X509_KEYPAIR_STACK * k_stack;
 		ASN1_INTEGER * k_of_n;
 	} comp;

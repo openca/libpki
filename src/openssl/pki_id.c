@@ -41,7 +41,7 @@ int pqc_kem_nids_list[] = {
 		NID_undef
 };
 
-PKI_ID PKI_ID_get_by_name ( char *name ) {
+PKI_ID PKI_ID_get_by_name ( const char *name ) {
 
 	int ret = PKI_ID_UNKNOWN;
 

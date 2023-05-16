@@ -24,7 +24,7 @@ extern int pqc_kem_nids_list[];
  * Create a new ID by using its name. It returns an int
  * if successful, otherwise it returns NULL
  */
-PKI_ID PKI_ID_get_by_name ( char *name );
+PKI_ID PKI_ID_get_by_name(const char * name);
 
 /*!
  * \brief Checks if a PKI IDentifier exists

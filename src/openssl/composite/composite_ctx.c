@@ -675,7 +675,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     PKI_X509_KEYPAIR_VALUE * pkey = NULL;
       // Pointer to a key in the components' stack
 
-    // int alg_id = 0;
+    int x_type = 0;
     int pkey_id = 0;
     int md_id = 0;
       // IDs of the pkey and the message digest
@@ -688,6 +688,15 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
       PKI_DEBUG("Cannot retrieve Key Component #%d", idx);
       return PKI_ERR;
     }
+
+    // Gets the PKEY type
+    x_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+    if (!x_type) {
+      PKI_DEBUG("Cannot retrieve PKEY type for component #%d", idx);
+      return PKI_ERR;
+    }
+
+    // Gets the algorithm
     algor = sk_X509_ALGOR_value(sk, idx);
 
     // Gets the PKEY and the MD IDs
@@ -707,9 +716,9 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     }
 
     // Make sure that the pkey type is the same
-    if (pkey_id != pkey_type) {
+    if (pkey_id != x_type) {
       PKI_DEBUG("PKEY type (%d) and algorithm (%d) do not match in component #%d",
-                pkey_id, pkey_type, idx);
+                pkey_id, x_type, idx);
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       return PKI_ERR;
     }
