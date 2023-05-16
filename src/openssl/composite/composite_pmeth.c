@@ -760,6 +760,8 @@ static int verify(EVP_PKEY_CTX        * ctx,
       PKI_DEBUG("Cannot configure the validation parameters");
       return 0;
     }
+  } else {
+    PKI_DEBUG("Using the configured set of parameters for composite!");
   }
 
   if (DUMP_SIGNATURE_DATA == 1) {
@@ -799,6 +801,12 @@ static int verify(EVP_PKEY_CTX        * ctx,
     ASN1_TYPE * aType = NULL;
       // ASN1 generic wrapper
 
+    PKI_DEBUG("Star Validating Signature Component #%d", i);
+
+    // Sets the pointers for the validations
+    tbs_data = tbs;
+    tbs_data_len = tbslen;
+
     // Returns, if no more validations are required
     if (successful_validations >= required_valid_components) {
       PKI_DEBUG("Required number of valid signatures (%d) reached", required_valid_components);
@@ -825,6 +833,9 @@ static int verify(EVP_PKEY_CTX        * ctx,
     }
 
     if (DUMP_SIGNATURE_DATA == 1) {
+
+      PKI_DEBUG("Dumping Signature Component #%d", i);
+
       PKI_MEM * mem = NULL;
       char buff[1024];
       snprintf(buff, sizeof(buff), "%d_signature_to_verify.bin", i);
@@ -860,42 +871,45 @@ static int verify(EVP_PKEY_CTX        * ctx,
       X509_ALGOR * algor = NULL;
         // Pointer to the algorithm identifier
 
-      if (PKI_X509_KEYPAIR_VALUE_requires_digest(comp_evp_pkey)) {
+      const ASN1_OBJECT * comp_sig_obj = NULL;
+        // Pointer to the signature algorithm
 
-        const ASN1_OBJECT * comp_sig_obj = NULL;
-          // Pointer to the signature algorithm
+      // Let's get the i-th algorithm to set the identifier/parameters
+      if (comp_ctx->sig_algs) {
 
-        // Let's get the i-th algorithm to set the identifier/parameters
-        if (comp_ctx->sig_algs) {
+        int comp_md_nid = 0;
+          // NID of the MD
 
-          int comp_md_nid = 0;
-            // NID of the MD
+        PKI_DEBUG("Getting the i-th sig_algs component (%d) from the stack", i);
 
-          algor = sk_X509_ALGOR_value(comp_ctx->sig_algs, i);
-          if (!algor) {
-            PKI_DEBUG("Cannot get the i-th sig_algs component (%d) from the stack", i);
-            goto err;
-          }
-          X509_ALGOR_get0(&comp_sig_obj, NULL, NULL, algor);
-          if (!comp_sig_obj) {
-            PKI_DEBUG("Cannot get the algorithm identifier from the i-th sig_algs component (%d)", i);
-            goto err;
-          }
-          if (!OBJ_find_sigid_algs(OBJ_obj2nid(comp_sig_obj), &comp_md_nid, NULL)) {
-            PKI_DEBUG("Cannot get the MD component of the algorithm identifier of the i-th sig_algs component (%d)", i);
-            goto err;
-          }
-          comp_md = EVP_get_digestbynid(comp_md_nid);
-          if (!comp_md) {
-            PKI_DEBUG("Returned NID_undef for the MD of the i-th sig_algs component (%d), but MD is required", i);
-            goto err;
-          }
+        algor = sk_X509_ALGOR_value(comp_ctx->sig_algs, i);
+        if (!algor) {
+          PKI_DEBUG("Cannot get the i-th sig_algs component (%d) from the stack", i);
+          goto err;
+        }
+        X509_ALGOR_get0(&comp_sig_obj, NULL, NULL, algor);
+        if (!comp_sig_obj) {
+          PKI_DEBUG("Cannot get the algorithm identifier from the i-th sig_algs component (%d)", i);
+          goto err;
+        }
+        if (!OBJ_find_sigid_algs(OBJ_obj2nid(comp_sig_obj), &comp_md_nid, NULL)) {
+          PKI_DEBUG("Cannot get the MD component of the algorithm identifier of the i-th sig_algs component (%d)", i);
+          goto err;
+        }
+        comp_md = EVP_get_digestbynid(comp_md_nid);
+        if (!comp_md) {
+          PKI_DEBUG("Returned NID_undef for the MD of the i-th sig_algs component (%d), but MD is required", i);
+          goto err;
+        }
 
-        } else {
+      } else {
 
-          // We are using a specific hash for this component, let's see
-          // if we have it in the parameters, if not, we just try to use
-          // the defaults
+        // Let's check if we are required to provide a digest, if so,
+        // let's get the default for the component
+        if (PKI_X509_KEYPAIR_VALUE_requires_digest(comp_evp_pkey)) {
+
+          // We are using a specific hash for this component,
+          // we just try to use the defaults
           comp_md = COMPOSITE_CTX_get_default_md(comp_ctx);
           if (!comp_md) {
             int digest_id = NID_undef;
@@ -907,19 +921,19 @@ static int verify(EVP_PKEY_CTX        * ctx,
             }
           }
         }
-
-        // Calculates the digest of the data to be signed
-        if (!EVP_Digest(tbs, tbslen, (unsigned char *)hashed_data, (unsigned int *)&hashed_data_len, comp_md, NULL)) {
-          PKI_DEBUG("Cannot calculate the digest for component %d", i);
-          goto err;
-        }
-
-        // Let's point the tbs_data to the hashed data and the
-        // tbs_data_len to the length of the hashed data
-        tbs_data = hashed_data;
-        tbs_data_len = hashed_data_len;
+        
       }
 
+      // Calculates the digest of the data to be signed
+      if (!EVP_Digest(tbs, tbslen, (unsigned char *)hashed_data, (unsigned int *)&hashed_data_len, comp_md, NULL)) {
+        PKI_DEBUG("Cannot calculate the digest for component %d", i);
+        goto err;
+      }
+
+      // Let's point the tbs_data to the hashed data and the
+      // tbs_data_len to the length of the hashed data
+      tbs_data = hashed_data;
+      tbs_data_len = hashed_data_len;
     }
 
     // Let's build a PKEY CTX and assign it to the MD CTX

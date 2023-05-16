@@ -33,6 +33,7 @@ int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
 
   // Checks if we specified an explicit ID
   if (key->algorithm > 0) composite_id = key->algorithm;
+  PKI_DEBUG("Assigning Composite Key %d (KEY Algorithm: %d)", composite_id, key->algorithm);
 
   // Checks that the crypto library understands the composite algorithm (dynamic)
   if (composite_id == NID_undef) {
