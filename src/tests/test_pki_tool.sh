@@ -178,22 +178,34 @@ ADVANCED_DIGESTS="shake128 shake256 sha3-256 sha3-384 sha3-512"
 
 # Classic Algorithms
 # CLASSIC_ALGS="rsa ec ed25519 ed448"
-CLASSIC_ALGS="rsa ec"
+CLASSIC_ALGS_1="rsa ec"
+CLASSIC_ALGS_2="ed448 x448 ed25519 x25519"
+
+CLASSIC_DIGESTS_1="$CLASSIC_DIGESTS"
+CLASSIC_REQS_1="rsa ec"
+
+CLASSIC_DIGESTS_2="NULL"
+CLASSIC_REQS_2="ed448 ed25519"
 
 # Post Quantum Algorithms
 PQC_ALGS="dilithium2 dilithium3 dilithium5 falcon512 falcon1024"
 PQC_DIGESTS="NULL $CLASSIC_DIGESTS"
 
+PQC_REQS="$PQC_ALGS"
+
 # Composite Keys: Traditional Algorithms
 COMPOSITE_ALGS_TRADITIONAL_1="rsa ec"
-COMPOSITE_ALGS_TRADITIONAL_2="ec rsa"
+COMPOSITE_ALGS_TRADITIONAL_2="ed448 rsa"
 # COMPOSITE_ALGS_TRADITIONAL_2="ed25519 rsa"
 # COMPOSITE_ALGS_TRADITIONAL_3="ed25519 ec"
 # COMPOSITE_ALGS_TRADITIONAL_4="ed448 rsa"
 # COMPOSITE_ALGS_TRADITIONAL_5="ed448 ec"
 
-COMPOSITE_REQS_TRADITIONAL="comp_rsa_ec comp_ec_rsa"
-COMPOSITE_REQS_TRADITIONAL_DIGESTS="NULL $CLASSIC_DIGESTS"
+COMPOSITE_REQS_TRADITIONAL_1="comp_rsa_ec"
+COMPOSITE_REQS_TRADITIONAL_DIGESTS="$CLASSIC_DIGESTS"
+
+COMPOSITE_REQS_TRADITIONAL_2="comp_ed448_rsa comp_ec_rsa"
+COMPOSITE_REQS_TRADITIONAL_DIGESTS="NULL"
 
 # Composite Keys: Hybrid Algorithms
 COMPOSITE_ALGS_HYBRID_1="dilithium2 rsa"
@@ -223,73 +235,83 @@ COMPOSITE_REQS_EXPLICIT_DIGESTS="NULL"
 # Classic Algorithms
 # ==================
 
-# # Generates Classic keys
-# gen_key "$CLASSIC_ALGS"
+# Generates Classic keys
+gen_key "$CLASSIC_ALGS_1"
 
-# # Generates Classic CSRs
-# gen_req "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
+gen_key "$CLASSIC_ALGS_2"
 
-# verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "req"
+# Generates Classic CSRs
+gen_req "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1"
 
-# # Generates Classic CSRs
-# gen_cer "$CLASSIC_ALGS" "$CLASSIC_DIGESTS"
+verify "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1" "req"
 
-# verify "$CLASSIC_ALGS" "$CLASSIC_DIGESTS" "cer"
+gen_req "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2"
+
+verify "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2" "req"
+
+# Generates Classic CSRs
+gen_cer "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1"
+
+verify "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1" "cer"
+
+gen_cer "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2"
+
+verify "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2" "cer"
 
 # ==============
 # PQC Algorithms
 # ==============
 
-# # Generates Post-Quantum keys
-# gen_key "$PQC_ALGS"
+# Generates Post-Quantum keys
+gen_key "$PQC_ALGS"
 
-# # Generates PQC CSRs
-# gen_req "$PQC_ALGS" "$PQC_DIGESTS"
+# Generates PQC CSRs
+gen_req "$PQC_ALGS" "$PQC_DIGESTS"
 
-# verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
+verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
 
-# # Generates PQC Certificates
-# gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
+# Generates PQC Certificates
+gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
 
-# verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
+verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
 
 # =====================
 # Generic T/T Composite
 # =====================
 
-# # Generates Composite Keys
-# gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
+# Generates Composite Keys
+gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
 
-# gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
+gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
 
-# gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
+gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
 
-# verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
+verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
 
 # =======================
 # Generic T/PQC Composite
 # =======================
 
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
 
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
 
-# gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
+gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
 
-# verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req"
+verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req" # <------ This one is broken
 
 
-# # # Generates Composite CSRs
+# Generates Composite CSRs
 
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_3" "1"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_3" "1"
 
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_4" "2"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_4" "2"
 
-# gen_comp_key "$COMPOSITE_ALGS_HYBRID_5" "1"
+gen_comp_key "$COMPOSITE_ALGS_HYBRID_5" "1"
 
-# gen_req "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS"
+gen_req "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS"
 
-# # verify "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS" "req"
+# # verify "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS" "req" <------ This one is broken
 
 # ==================
 # Explicit Composite
@@ -303,12 +325,12 @@ gen_exp_key "$COMPOSITE_ALGS_EXPLICIT_2"
 # Generates Explicit Composite CSRs
 gen_req "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"
 
-verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "req"
+# verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "req"  # <------ This one is broken
 
 # Generates Explicit Composite Certificates
-gen_cer "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"
+# gen_cer "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"   <------ This one is broken
 
-verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "cer"
+# verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "cer"
 
 # # Generates Explicit Composite CSRs
 # gen_req "$EXPLICIT_COMPOSITE_ALGS" "$COMPOSITE_DIGESTS"

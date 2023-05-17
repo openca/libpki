@@ -18,6 +18,7 @@
 #include <openssl/safestack.h>
 #include <openssl/ocsp.h>
 #include <openssl/objects.h>
+#include <openssl/obj_mac.h>
 #include <openssl/hmac.h>
 
 #include <openssl/ec.h>
@@ -155,9 +156,11 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - ED 448 or EVP_PKEY_ED448 */
 #ifdef EVP_PKEY_X448
+#define ENABLE_X448
 #define PKI_ALGOR_X448	  		EVP_PKEY_X448
 #define PKI_ALGOR_ID_X448		EVP_PKEY_X448
 #else
+#undef ENABLE_X448
 #define PKI_ALGOR_X448			NID_undef
 #define PKI_ALGOR_ID_X448		NID_undef
 #endif 
@@ -165,9 +168,11 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - ED 448 or EVP_PKEY_ED448 */
 #ifdef EVP_PKEY_EC
+#define ENABLE_ED448
 #define PKI_ALGOR_ED448	  		EVP_PKEY_ED448
 #define PKI_ALGOR_ID_ED448		EVP_PKEY_ED448
 #else
+#undef ENABLE_ED448
 #define PKI_ALGOR_ED448			NID_undef
 #define PKI_ALGOR_ID_ED448		NID_undef
 #endif 
@@ -179,9 +184,11 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - X25519 or EVP_PKEY_X25519 */
 #ifdef EVP_PKEY_X25519
+#define ENABLE_X25519
 #define PKI_ALGOR_X25519  		EVP_PKEY_X25519
 #define PKI_ALGOR_ID_X25519		EVP_PKEY_X25519
 #else
+#undef ENABLE_X25519
 #define PKI_ALGOR_X25519		NID_undef
 #define PKI_ALGOR_ID_X25519		NID_undef
 #endif 
@@ -189,9 +196,11 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 /* Begin - ED 25519 or EVP_PKEY_ED25519 */
 #ifdef EVP_PKEY_ED25519
+#define ENABLE_ED25519
 #define PKI_ALGOR_ED25519 		EVP_PKEY_ED25519
 #define PKI_ALGOR_ID_ED25519	EVP_PKEY_ED25519
 #else
+#undef ENABLE_ED25519
 #define PKI_ALGOR_ED25519		NID_undef
 #define PKI_ALGOR_ID_ED25519	NID_undef
 #endif 
@@ -1215,16 +1224,22 @@ typedef enum {
 
 typedef struct pki_keyparams_st {
 	int bits;
+	int sec_bits;
+	int pq_sec_bits;
+
 	PKI_SCHEME_ID scheme;
+	PKI_ALGOR_ID pkey_type;
+
 	// RSA scheme parameters
 	struct {
 		int exponent;
+		int bits;
 	} rsa;
 	// DSA scheme parameters
 
-#ifdef OPENSSL_NO_DSA
-	struct {} dsa;
-#endif
+	struct {
+		int bits;
+	} dsa;
 
 #ifdef ENABLE_ECDSA
 	// EC scheme parameters
@@ -1243,7 +1258,7 @@ typedef struct pki_keyparams_st {
 
 #ifdef ENABLE_COMPOSITE
 	struct {
-		int algorithm;
+		PKI_ALGOR_ID algorithm;
 		PKI_X509_KEYPAIR_STACK * k_stack;
 		ASN1_INTEGER * k_of_n;
 	} comp;

@@ -44,8 +44,14 @@ int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
   PKI_DEBUG("Assigning Composite Key (KEY Algorithm: %d)", composite_id);
 
   // Assigns the Key
-  return EVP_PKEY_assign(pkey, composite_id, comp_key);
+  int success = EVP_PKEY_assign(pkey, key->algorithm, comp_key);
+  if (success == 0) {
+    PKI_DEBUG("Cannot assign the Composite Key");
+    return PKI_ERR;
+  }
 
+  // All Done
+  return PKI_OK;
 }
 
 // ==========================

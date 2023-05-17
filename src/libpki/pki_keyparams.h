@@ -11,8 +11,24 @@ void PKI_KEYPARAMS_free(PKI_KEYPARAMS *kp);
  
 /* Functions */
 PKI_SCHEME_ID PKI_KEYPARAMS_get_type(const PKI_KEYPARAMS *kp );
-int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId);
-int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits);
+
+
+/*!
+ * @brief Sets the scheme and security bits in the PKI_KEYPARAMS structure
+ *
+ * This function sets the scheme and security bits in the PKI_KEYPARAMS
+ * structure.  If the scheme is not supported, the function will return
+ * PKI_ERR.
+ * 
+ * @param kp The PKI_KEYPARAMS structure to set
+ * @param scheme_id The requested scheme to set in the structure
+ * @param sec_bits The requested security bits
+ * @retval PKI_OK on success, PKI_ERR on failure
+ */
+int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId, int sec_bits);
+
+int PKI_KEYPARAMS_set_security_bits(PKI_KEYPARAMS * kp, int sec_bits);
+
 int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp, 
                             const char      * curveName, 
                             PKI_EC_KEY_FORM   curveForm,

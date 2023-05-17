@@ -8,15 +8,14 @@
  * \brief Allocates memory for a new PKI_KEYPARAMS (for key of type 'scheme')
  */
 
-PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme, 
-				  const PKI_X509_PROFILE *prof ) {
+PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID 			  scheme_id, 
+				  				 const PKI_X509_PROFILE * prof) {
 
 	PKI_KEYPARAMS *kp = NULL;
 		// Pointer to the data structure
 
 	// Allocates the memory
-	if ((kp = (PKI_KEYPARAMS *) PKI_Malloc(sizeof(PKI_KEYPARAMS))) == NULL)
-	{
+	if ((kp = (PKI_KEYPARAMS *)PKI_Malloc(sizeof(PKI_KEYPARAMS))) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
@@ -24,8 +23,24 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 	// Zeroize the Memory
 	memset(kp, 0, sizeof(PKI_KEYPARAMS));
 
+	// Sets the security bits
+	kp->sec_bits = -1;
+	kp->pq_sec_bits = -1;
+
+	// Checks and Fixes the Scheme
+	if (scheme_id <= 0) { scheme_id = PKI_SCHEME_DEFAULT; } 
+	
+	// Sets the scheme
+	if (PKI_ERR == PKI_KEYPARAMS_set_scheme(kp, scheme_id, PKI_DEFAULT_CLASSIC_SEC_BITS)) {
+		PKI_DEBUG("ERROR, can not set the scheme (%d)", scheme_id);
+		PKI_Free(kp);
+		return NULL;
+	}
+
+
 #ifdef ENABLE_COMPOSITE
 
+	// Allocates the memory for the stack of keys (composite keys)
 	if ((kp->comp.k_stack = PKI_STACK_X509_KEYPAIR_new()) == NULL) {
 		OPENSSL_free(kp);
 		return NULL;
@@ -37,49 +52,79 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 
 	if (prof) {
 		
-		PKI_X509_ALGOR_VALUE *alg = NULL;
+		// PKI_X509_ALGOR_VALUE *alg = NULL;
 		char *tmp_s = NULL;
 
 		// Scheme
-		if( scheme <= 0 ) {
+		if (scheme_id <= 0 ) {
 			if(( tmp_s = PKI_CONFIG_get_value(prof, 
 						"/profile/keyParams/algorithm" )) != NULL ) {
-				if((alg = PKI_X509_ALGOR_VALUE_get_by_name(tmp_s)) != NULL ) {
-					// algorID = PKI_ALGOR_get_id(alg);
-					kp->scheme = PKI_X509_ALGOR_VALUE_get_scheme ( alg );
+				// if((alg = PKI_X509_ALGOR_VALUE_get_by_name(tmp_s)) != NULL ) {
+				PKI_SCHEME_ID scheme_id = PKI_SCHEME_ID_get_by_name(tmp_s, NULL, NULL);
+				if (!scheme_id) {
+					PKI_DEBUG("ERROR, can not get the scheme id for %s", tmp_s);
+					PKI_Free(tmp_s);
+					PKI_KEYPARAMS_free(kp);
+					return NULL;
 				}
+				if (PKI_ERR == PKI_KEYPARAMS_set_scheme(kp, scheme_id, -1)) {
+					PKI_DEBUG("ERROR, can not set the scheme (%d)", scheme_id);
+					PKI_Free(tmp_s);
+					PKI_KEYPARAMS_free(kp);
+					return NULL;
+				}
+				// kp->scheme = PKI_X509_ALGOR_VALUE_get_scheme ( alg );
+				// }
 
 				// TODO: Remove this debug statement
 				PKI_DEBUG("Selected ALGOR is %s\n", tmp_s );
 
 				PKI_Free ( tmp_s );
-			} else {
-				kp->scheme = PKI_SCHEME_UNKNOWN;
 			};
 		} else {
-			kp->scheme = scheme;
-		};
+			kp->scheme = scheme_id;
+		}
 
-		// Get the Profile value of Bits
-		if ((tmp_s = PKI_CONFIG_get_value(prof, 
-					"/profile/keyParams/bits" )) != NULL ) {
-			kp->bits = atoi(tmp_s);
-			PKI_Free ( tmp_s );
-		} else {
-			kp->bits = -1;
-		};
+		// // Get the Profile value of Bits
+		// if ((tmp_s = PKI_CONFIG_get_value(prof, 
+		// 			"/profile/keyParams/bits" )) != NULL ) {
+		// 	if (PKI_ERR == PKI_KEYPARAMS_set_security_bits(kp, atoi(tmp_s))) {
+		// 		PKI_DEBUG("ERROR, can not set the security bits from the profile (%s)!", tmp_s);
+		// 		PKI_KEYPARAMS_free(kp);
+		// 		PKI_Free(tmp_s);
+		// 		return NULL;
+		// 	}
+		// 	PKI_Free ( tmp_s );
+		// } else {
+		// 	kp->bits = -1;
+		// };
 		
 		if( kp->scheme == PKI_SCHEME_UNKNOWN ) kp->scheme = PKI_SCHEME_DEFAULT;
 
+		// Looks for the security bits
+		if ((tmp_s = PKI_CONFIG_get_value(prof, 
+					"/profile/keyParams/secBits" )) != NULL ) {
+			// Sets the configured security bits
+			if (PKI_ERR == PKI_KEYPARAMS_set_security_bits(kp, atoi(tmp_s))) {
+				PKI_DEBUG("ERROR, can not set the security bits from the profile (%s)!", tmp_s);
+				PKI_KEYPARAMS_free(kp);
+				PKI_Free(tmp_s);
+				return NULL;
+			}
+			PKI_Free(tmp_s);
+		} else {
+			// Use the default
+			if (PKI_ERR == PKI_KEYPARAMS_set_scheme(kp, kp->scheme, PKI_DEFAULT_CLASSIC_SEC_BITS)) {
+				PKI_DEBUG("ERROR, can not set the security bits from the profile (%d)!", PKI_DEFAULT_CLASSIC_SEC_BITS);
+				PKI_KEYPARAMS_free(kp);
+				return NULL;
+			}
+		}
+
 		// Get the Profile Params
 		switch (kp->scheme) {
-			case PKI_SCHEME_RSA:
-			case PKI_SCHEME_DSA:
 
 #ifdef ENABLE_OQS
-
-			case PKI_SCHEME_FALCON:
-				break;
 
 			case PKI_SCHEME_DILITHIUM: {
 				if ((tmp_s = PKI_CONFIG_get_value(prof, 
@@ -151,52 +196,60 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new( PKI_SCHEME_ID scheme,
 			default:
 				if ( kp ) PKI_KEYPARAMS_free ( kp );
 				PKI_log(PKI_LOG_ERR, "Error: scheme %d is not supported!", kp->scheme);
+				PKI_KEYPARAMS_free(kp);
 				return NULL;
 		}
-
-	} else {
-		
-		int sec_bits = -1;
-			// Security Bits for the scheme
-
-		if ( scheme <= 0 ) {
-			kp->scheme = PKI_SCHEME_DEFAULT;
-		} else {
-			kp->scheme = scheme;
-		};
-
-		if (PKI_ERR == PKI_SCHEME_ID_security_bits(kp->scheme, &sec_bits, NULL)) {
-			PKI_DEBUG("Can not get security bits for scheme %d", kp->scheme);
-			PKI_KEYPARAMS_free(kp);
-			return NULL;
-		}
-
-		// Translates the security bits into key-gen bit size
-		if (sec_bits > 0) {
-			kp->bits = PKI_SCHEME_ID_get_bitsize(kp->scheme, sec_bits);
-		};
-
-		PKI_DEBUG("Got default Security Bits for the SCHEME (%d) => %d", kp->scheme, kp->bits);
-
-		PKI_DEBUG("Setting Additional Properties for the Key Params");
-
-		switch(kp->scheme) {
-
-#ifdef ENABLE_ECDSA
-			case PKI_SCHEME_ECDSA: {
-				kp->bits 		= -1;
-				kp->ec.curve 	= -1;
-				kp->ec.form 	= PKI_EC_KEY_FORM_UNKNOWN;
-				kp->ec.asn1flags = -1;
-				PKI_DEBUG("Initializing ECDSA additional properties");
-			} break;
-#endif // ENABLE_ECDSA
-
-			default:
-				PKI_DEBUG("No additional properties for scheme %d", kp->scheme);
-				break;
-		}
 	}
+
+// 	} else {
+		
+// 		// int sec_bits = -1;
+// 		// 	// Security Bits for the scheme
+
+// 		// if ( scheme <= 0 ) {
+// 		// 	kp->scheme = PKI_SCHEME_DEFAULT;
+// 		// } else {
+// 		// 	kp->scheme = scheme;
+// 		// };
+
+// 		if (PKI_ERR == PKI_KEYPARAMS_set_scheme(kp, kp->scheme, -1)) {
+// 			PKI_DEBUG("ERROR, can not set the security bits from the profile (%d)!", PKI_DEFAULT_CLASSIC_SEC_BITS);
+// 			PKI_KEYPARAMS_free(kp);
+// 			return NULL;
+// 		};
+
+// // 		if (PKI_ERR == PKI_SCHEME_ID_security_bits(kp->scheme, &sec_bits, NULL)) {
+// // 			PKI_DEBUG("Can not get security bits for scheme %d", kp->scheme);
+// // 			PKI_KEYPARAMS_free(kp);
+// // 			return NULL;
+// // 		}
+
+// // 		// Translates the security bits into key-gen bit size
+// // 		if (sec_bits > 0) {
+// // 			kp->bits = PKI_SCHEME_ID_get_bitsize(kp->scheme, sec_bits);
+// // 		};
+
+// // 		PKI_DEBUG("Got default Security Bits for the SCHEME (%d) => %d", kp->scheme, kp->bits);
+
+// // 		PKI_DEBUG("Setting Additional Properties for the Key Params");
+
+// // 		switch(kp->scheme) {
+
+// // #ifdef ENABLE_ECDSA
+// // 			case PKI_SCHEME_ECDSA: {
+// // 				kp->bits 		= -1;
+// // 				kp->ec.curve 	= -1;
+// // 				kp->ec.form 	= PKI_EC_KEY_FORM_UNKNOWN;
+// // 				kp->ec.asn1flags = -1;
+// // 				PKI_DEBUG("Initializing ECDSA additional properties");
+// // 			} break;
+// // #endif // ENABLE_ECDSA
+
+// // 			default:
+// // 				PKI_DEBUG("No additional properties for scheme %d", kp->scheme);
+// // 				break;
+// // 		}
+// 	}
 
 	// All Done
 	return kp;
@@ -240,15 +293,355 @@ PKI_SCHEME_ID PKI_KEYPARAMS_get_type(const PKI_KEYPARAMS *kp) {
 
 /* !\brief Sets the scheme for the key generation. Returns PKI_OK or PKI_ERR. */
 
-int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId) {
+int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int sec_bits) {
 
-	// Input Checks
-	if (!kp) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	int scheme_sec_bits = 0;
+	int scheme_pq_sec_bits = 0;
+		// Security bits for the scheme
 
-	// Sets the Scheme
-	kp->scheme = schemeId;
+	// Input checks
+	if (kp == NULL || scheme_id <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
 
-	// Done
+	// Let's use the default, if nothing was passed
+	if (sec_bits <= 0) sec_bits = PKI_DEFAULT_CLASSIC_SEC_BITS;
+
+	// Let's check if the scheme supports the sec_bits
+	if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &scheme_sec_bits, NULL)) {
+		PKI_DEBUG("Can not get security bits for scheme %d", scheme_id);
+		return PKI_ERR;
+	}
+	
+	// If the returned value is positive, it means the scheme only supports
+	// a single value for the size.
+	if (scheme_sec_bits > 0) {
+		// Returns an error if the sec_bits were actually set
+		if (scheme_sec_bits < sec_bits) {
+			PKI_DEBUG("Scheme %d only supports %d bits", scheme_id, scheme_sec_bits);
+			return PKI_ERR;
+		}
+	}
+	
+	// Sets the security bits
+	kp->sec_bits = sec_bits;
+	
+	// Sets the PQ security bits
+	kp->pq_sec_bits = scheme_pq_sec_bits;
+
+	// If the scheme supports more than one value (i.e., -1),
+	// it means that we need to look in the switch below.
+	switch (scheme_id) {
+
+		case PKI_SCHEME_DSA: {
+			kp->scheme = PKI_SCHEME_DSA;
+			kp->pkey_type = EVP_PKEY_DSA;
+			     if (sec_bits <= 112) { kp->dsa.bits = 1024 ; kp->sec_bits = 112; } 
+			else if (sec_bits <= 128) { kp->dsa.bits = 3072; kp->sec_bits = 128; } 
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d) (max: 128)", sec_bits);
+				return PKI_ERR;
+			}
+			kp->bits = kp->dsa.bits;
+		} break;
+
+		case PKI_SCHEME_RSAPSS:
+		case PKI_SCHEME_RSA: {
+			if (scheme_id == PKI_SCHEME_RSAPSS) {
+				kp->pkey_type = EVP_PKEY_RSA_PSS;
+				kp->scheme = PKI_SCHEME_RSAPSS;
+			} else {
+				kp->pkey_type = EVP_PKEY_RSA;
+				kp->scheme = PKI_SCHEME_RSA;
+			}
+				// Sec sec_bits Sizes
+			     if (sec_bits <= 112 ) { kp->rsa.bits = 2048; kp->sec_bits = 112; }
+			else if (sec_bits <= 128 ) { kp->rsa.bits = 3072; kp->sec_bits = 128; }
+			else if (sec_bits <= 192 ) { kp->rsa.bits = 4096; kp->sec_bits = 192; }
+			else if (sec_bits <= 256 ) { kp->rsa.bits = 8192; kp->sec_bits = 256; }
+			else if (sec_bits <= 384 ) { kp->rsa.bits = 16384; kp->sec_bits = 384; }
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->bits = kp->rsa.bits;
+		} break;
+
+		case PKI_SCHEME_ECDSA: {
+			kp->scheme = PKI_SCHEME_ECDSA;
+			kp->pkey_type = EVP_PKEY_EC;
+				 if (sec_bits <= 112) { kp->ec.curve = NID_secp224r1 ; kp->sec_bits = 112; } 
+			else if (sec_bits <= 128) { kp->ec.curve = NID_X9_62_prime256v1; kp->sec_bits = 128; } 
+			else if (sec_bits <= 192) { kp->ec.curve = NID_secp384r1; kp->sec_bits = 192; }
+			else if (sec_bits <= 256) { kp->ec.curve = NID_secp521r1; kp->sec_bits = 256; }
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->ec.asn1flags = -1;
+			kp->ec.form = PKI_EC_KEY_FORM_UNKNOWN;
+		} break;
+
+		case PKI_SCHEME_ED448:
+		case PKI_SCHEME_X448: {
+			if (scheme_id == PKI_SCHEME_ED448) {
+				kp->scheme = PKI_SCHEME_ED448;
+				kp->pkey_type = EVP_PKEY_ED448;
+			} else {
+				kp->scheme = PKI_SCHEME_X448;
+				kp->pkey_type = EVP_PKEY_X448;
+			}
+			if (sec_bits > 224) { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->sec_bits = 224;
+		} break;
+
+		case PKI_SCHEME_ED25519:
+		case PKI_SCHEME_X25519: {
+			if (scheme_id == PKI_SCHEME_ED25519) {
+				kp->scheme = PKI_SCHEME_ED25519;
+				kp->pkey_type = EVP_PKEY_ED25519;
+			} else {
+				kp->scheme = PKI_SCHEME_X25519;
+				kp->pkey_type = EVP_PKEY_X25519;
+			}
+			if (sec_bits > 128) { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->sec_bits = 128;
+		} break;
+
+#ifdef ENABLE_OQS
+
+		// =============================================
+		// Post Quantum Cryptography: Digital Signatures
+		// =============================================
+
+		case PKI_SCHEME_FALCON: {
+			kp->scheme = PKI_SCHEME_FALCON;
+			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_FALCON512; kp->sec_bits = 128; }
+			else if (sec_bits <= 256) { kp->oqs.algId = PKI_ALGOR_ID_FALCON1024; kp->sec_bits = 256; }
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->pkey_type = kp->oqs.algId;
+		} break;
+		
+		case PKI_SCHEME_DILITHIUM: {
+			kp->scheme = PKI_SCHEME_DILITHIUM;
+			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2; kp->sec_bits = 128; }
+			else if (sec_bits <= 192) { kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3; kp->sec_bits = 192; } 
+			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5; kp->sec_bits = 256; }
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->pkey_type = kp->oqs.algId;
+		} break;
+
+		// TODO: We need to change from the robust to the
+		//       fast implementations as the robust is not
+		//       going to be standardized
+		case PKI_SCHEME_SPHINCS: {
+			kp->scheme = PKI_SCHEME_SPHINCS;
+				 if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R; kp->sec_bits = 128; } 
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_192_R; kp->sec_bits = 192; }
+			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_256_R; kp->sec_bits = 256; }
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->pkey_type = kp->oqs.algId;
+		} break;
+
+		case PKI_SCHEME_KYBER: {
+			kp->scheme = PKI_SCHEME_KYBER;
+			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_KYBER512; kp->sec_bits = 128; } 
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_KYBER768; kp->sec_bits = 192; }
+			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ALGOR_ID_KYBER1024; kp->sec_bits = 256; }
+			else { 
+				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
+				return -1;
+			}
+			kp->pkey_type = kp->oqs.algId;
+		} break;
+
+#ifdef ENABLE_COMPOSITE
+
+		// =============================
+		// Native Composite Cryptography
+		// =============================
+
+		case PKI_SCHEME_COMPOSITE: {
+			kp->scheme = PKI_SCHEME_COMPOSITE;
+			kp->pkey_type = PKI_ID_get_by_name(OPENCA_ALG_PKEY_EXP_COMP_NAME);
+			kp->sec_bits = sec_bits;
+		} break;
+#endif
+
+#ifdef ENABLE_COMBINED
+		case PKI_SCHEME_COMBINED: {
+			// No need to translate, output the input
+			ret = sec_bits;
+		} break;
+#endif
+
+		// ===============================
+		// Explicit Composite Combinations
+		// ===============================
+
+		// Explicit Composite Crypto Schemes
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 192;
+			kp->pq_sec_bits = 192;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 192;
+			kp->pq_sec_bits = 192;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 192;
+			kp->pq_sec_bits = 192;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 192;
+			kp->pq_sec_bits = 192;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 192;
+			kp->pq_sec_bits = 192;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+		
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 128;
+			kp->pq_sec_bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 128;
+			kp->pq_sec_bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 128;
+			kp->pq_sec_bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 128;
+			kp->pq_sec_bits = 128;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
+			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME);
+			kp->pkey_type = kp->oqs.algId;
+			kp->sec_bits = 256;
+			kp->pq_sec_bits = 256;
+		} break;
+
+#endif // ENABLE_OQS
+
+		default: {
+			// Sets the sec_bits
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Scheme not supported (%d)", scheme_id);
+			return PKI_ERR;
+		}
+	}
+
+	// All Done
 	return PKI_OK;
 };
 
@@ -288,10 +681,10 @@ int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp,
 };
 
 /*! \brief Sets the bits size for key generation */
-int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
+int PKI_KEYPARAMS_set_security_bits(PKI_KEYPARAMS * kp, int sec_bits) {
 
-	int sec_bits = 0;
-		// Security Bits
+	// int sec_bits = 0;
+	// 	// Security Bits
 
 	// Input Checks
 	if (!kp) {
@@ -305,286 +698,302 @@ int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits) {
 	}
 
 	// Assigns the Bits
-	if (kp->bits <= 0 && bits > 0) kp->bits = bits;
+	// if (kp->bits <= 0 && sec_bits > 0) kp->bits = sec_bits;
 
-	// Retrieves the default bits size for the scheme (sec level)
-	if (!PKI_SCHEME_ID_security_bits(kp->scheme, &sec_bits, NULL)) {
-		PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve the default sec bits for scheme %d", kp->scheme);
+	if (PKI_ERR == PKI_KEYPARAMS_set_scheme(kp, kp->scheme, sec_bits)) {
+		PKI_ERROR(PKI_ERR_GENERAL, "Can not set the scheme for key generation");
 		return PKI_ERR;
 	}
 
+	// // Retrieves the default bits size for the scheme (sec level)
+	// if (!PKI_SCHEME_ID_security_bits(kp->scheme, &sec_bits, NULL)) {
+	// 	PKI_ERROR(PKI_ERR_GENERAL, "Can not retrieve the default sec bits for scheme %d", kp->scheme);
+	// 	return PKI_ERR;
+	// }
+
 	// Let's update the key params, if we got good values
 	// (i.e., the scheme is not just a generic one)
-	if (sec_bits > 0) {
+	if (kp->sec_bits > 0) {
 
 		// Sets the bits size from the security bits
-		kp->bits = PKI_SCHEME_ID_get_bitsize(kp->scheme, sec_bits);
+		kp->bits = PKI_SCHEME_ID_get_bitsize(kp->scheme, kp->sec_bits);
 
 		// Returns the bits size
 		return PKI_OK;
 	}
 
-	// Checks for modifiers
-	switch (kp->scheme) {
+// 	// Checks for modifiers
+// 	switch (kp->scheme) {
 
-		case PKI_SCHEME_RSA: {
-			if (bits <= 0) { kp->bits = 2048; }
-			// Sec Bits Sizes
-			else if (bits <= 128 ) { kp->bits = 2048; }
-			else if (bits <= 192 ) { kp->bits = 3072; }
-			else if (bits <= 256 ) { kp->bits = 4096; }
-			else if (bits <= 384 ) { kp->bits = 4096 /* 8192 */ ; }
-			else if (bits <= 521 ) { kp->bits = 4096 /* 16384 */; }
-			// Classical Sizes
-			else if (bits <= 512 ) { kp->bits = 512;  }
-			else if (bits <= 756 ) { kp->bits = 756;  }
-			else if (bits <= 1024) { kp->bits = 1024; }
-			else if (bits <= 2048) { kp->bits = 2048; }
-			else if (bits <= 4096) { kp->bits = 4096; }
-			else if (bits <= 8192) { kp->bits = 8192; }
-			else if (bits <= 16384) { kp->bits = 16384; }
-			else { kp->bits = bits; }
-		} break;
+// 		case PKI_SCHEME_RSAPSS:
+// 		case PKI_SCHEME_RSA: {
+// 			if (bits <= 0) { kp->bits = 2048; }
+// 			// Sec Bits Sizes
+// 			else if (bits <= 128 ) { kp->bits = 2048; }
+// 			else if (bits <= 192 ) { kp->bits = 3072; }
+// 			else if (bits <= 256 ) { kp->bits = 4096; }
+// 			else if (bits <= 384 ) { kp->bits = 4096 /* 8192 */ ; }
+// 			else if (bits <= 521 ) { kp->bits = 4096 /* 16384 */; }
+// 			// Classical Sizes
+// 			else if (bits <= 512 ) { kp->bits = 512;  }
+// 			else if (bits <= 756 ) { kp->bits = 756;  }
+// 			else if (bits <= 1024) { kp->bits = 1024; }
+// 			else if (bits <= 2048) { kp->bits = 2048; }
+// 			else if (bits <= 4096) { kp->bits = 4096; }
+// 			else if (bits <= 8192) { kp->bits = 8192; }
+// 			else if (bits <= 16384) { kp->bits = 16384; }
+// 			else { kp->bits = bits; }
+// 		} break;
 
-		case PKI_SCHEME_ECDSA: {
-			if (bits <= 224) { kp->bits = 224; } 
-			else if (bits <= 256) { kp->bits = 256; } 
-			else if (bits <= 384) { kp->bits = 384; }
-			else if (bits <= 521) { kp->bits = 521; }
-			else { kp->bits = bits; }
-		} break;
+// 		case PKI_SCHEME_ECDSA: {
+// 			if (bits <= 224) { kp->bits = 224; } 
+// 			else if (bits <= 256) { kp->bits = 256; } 
+// 			else if (bits <= 384) { kp->bits = 384; }
+// 			else if (bits <= 521) { kp->bits = 521; }
+// 			else { kp->bits = bits; }
+// 		} break;
+
+// 		case PKI_SCHEME_X448:
+// 		case PKI_SCHEME_ED448: {
+// 			if (bits <= 224) kp->bits = 224;
+// 		} break;
+
+// 		case PKI_SCHEME_X25519:
+// 		case PKI_SCHEME_ED25519: {
+// 			if (bits <= 128) kp->bits = 128;
+// 		} break;
 
 
-#ifdef ENABLE_COMPOSITE
+// #ifdef ENABLE_COMPOSITE
 
-		// =============================
-		// Native Composite Cryptography
-		// =============================
+// 		// =============================
+// 		// Native Composite Cryptography
+// 		// =============================
 
-		case PKI_SCHEME_COMPOSITE: {
-			// Unfortunately we do not have many
-			// options in terms of composite, we might
-			// need to enable more on LibOQS
-			kp->oqs.algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
-			kp->bits = bits;
-		} break;
-#endif
+// 		case PKI_SCHEME_COMPOSITE: {
+// 			// Unfortunately we do not have many
+// 			// options in terms of composite, we might
+// 			// need to enable more on LibOQS
+// 			kp->oqs.algId = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_OID);
+// 			kp->bits = bits;
+// 		} break;
+// #endif
 
-#ifdef ENABLE_COMBINED
-		case PKI_SCHEME_COMBINED: {
-			// Unfortunately we do not have many
-			// options in terms of composite, we might
-			// need to enable more on LibOQS
-			kp->oqs.algId = OBJ_txt2id(OPENCA_ALG_PKEY_EXP_ALT_OID);;
-			kp->bits = bits;
-		} break;
-#endif
+// #ifdef ENABLE_COMBINED
+// 		case PKI_SCHEME_COMBINED: {
+// 			// Unfortunately we do not have many
+// 			// options in terms of composite, we might
+// 			// need to enable more on LibOQS
+// 			kp->oqs.algId = OBJ_txt2id(OPENCA_ALG_PKEY_EXP_ALT_OID);;
+// 			kp->bits = bits;
+// 		} break;
+// #endif
 
-#ifdef ENABLE_OQS
+// #ifdef ENABLE_OQS
 
-		// =============================================
-		// Post Quantum Cryptography: Digital Signatures
-		// =============================================
+// 		// =============================================
+// 		// Post Quantum Cryptography: Digital Signatures
+// 		// =============================================
 
-		case PKI_SCHEME_FALCON: {
+// 		case PKI_SCHEME_FALCON: {
 
-			if (bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_FALCON512;
-				kp->bits = 128;
-			} else {
-				kp->oqs.algId = PKI_ALGOR_ID_FALCON1024;
-				kp->bits = 256;
-			}
-		} break;
+// 			if (bits <= 128) {
+// 				kp->oqs.algId = PKI_ALGOR_ID_FALCON512;
+// 				kp->bits = 128;
+// 			} else {
+// 				kp->oqs.algId = PKI_ALGOR_ID_FALCON1024;
+// 				kp->bits = 256;
+// 			}
+// 		} break;
 		
-		case PKI_SCHEME_DILITHIUM: {
-			if (bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
-				kp->bits = 128;
-			} else if (bits <= 192) {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
-				kp->bits = 192;
-			} else {
-				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5;
-				kp->bits = 256;
-			}
-		} break;
+// 		case PKI_SCHEME_DILITHIUM: {
+// 			if (bits <= 128) {
+// 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2;
+// 				kp->bits = 128;
+// 			} else if (bits <= 192) {
+// 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3;
+// 				kp->bits = 192;
+// 			} else {
+// 				kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5;
+// 				kp->bits = 256;
+// 			}
+// 		} break;
 
-		// Experimental: We want to provide a separate
-		//               implementation for PQC / Dilithium
-		//               to show the use of a single OID
-		//               for family of algorithms
-		case PKI_SCHEME_DILITHIUMX3: {
-			kp->oqs.algId = OBJ_sn2nid("DilithiumX3");
-			kp->bits = 128;
-		} break;
+// 		// Experimental: We want to provide a separate
+// 		//               implementation for PQC / Dilithium
+// 		//               to show the use of a single OID
+// 		//               for family of algorithms
+// 		case PKI_SCHEME_DILITHIUMX3: {
+// 			kp->oqs.algId = OBJ_sn2nid("DilithiumX3");
+// 			kp->bits = 128;
+// 		} break;
 
-		// TODO: We need to change from the robust to the
-		//       fast implementations as the robust is not
-		//       going to be standardized
-		case PKI_SCHEME_SPHINCS: {
-			if (bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R;
-				kp->bits = 128;
-			} else if (bits <= 192) {
-				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_192_R;
-				kp->bits = 192;
-			} else {
-				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_256_R;
-				kp->bits = 256;
-			}
-		} break;
+// 		// TODO: We need to change from the robust to the
+// 		//       fast implementations as the robust is not
+// 		//       going to be standardized
+// 		case PKI_SCHEME_SPHINCS: {
+// 			if (bits <= 128) {
+// 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R;
+// 				kp->bits = 128;
+// 			} else if (bits <= 192) {
+// 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_192_R;
+// 				kp->bits = 192;
+// 			} else {
+// 				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_256_R;
+// 				kp->bits = 256;
+// 			}
+// 		} break;
 
-# ifdef ENABLE_COMPOSITE
-		// ===============================
-		// Explicit Composite Combinations
-		// ===============================
+// # ifdef ENABLE_COMPOSITE
+// 		// ===============================
+// 		// Explicit Composite Combinations
+// 		// ===============================
 
-		// Explicit Composite Crypto Schemes
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
-			// Updates key parameters
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
-			if (bits > kp->bits) return PKI_ERR;
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		// Explicit Composite Crypto Schemes
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
+// 			// Updates key parameters
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME);
+// 			if (bits > kp->bits) return PKI_ERR;
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256: {
-			// Updates key parameters
-			kp->bits = 192;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME);
-			// Combination bits check
-			if (bits > 192) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256: {
+// 			// Updates key parameters
+// 			kp->bits = 192;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 192) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256: {
-			// Updates key parameters
-			kp->bits = 192;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME);
-			// Combination bits check
-			if (bits > 192) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256: {
+// 			// Updates key parameters
+// 			kp->bits = 192;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 192) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519: {
-			kp->bits = 192;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME);
-			// Combination bits check
-			if (bits > 192) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519: {
+// 			kp->bits = 192;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME);
+// 			// Combination bits check
+// 			if (bits > 192) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384: {
-			// Updates key parameters
-			kp->bits = 256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME);
-			// Combination bits check
-			if (bits > 256) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384: {
+// 			// Updates key parameters
+// 			kp->bits = 256;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME);
+// 			// Combination bits check
+// 			if (bits > 256) return PKI_ERR;
+// 		} break;
 		
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384: {
-			// Updates key parameters
-			kp->bits = 256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME);
-			// Combination bits check
-			if (bits > 256) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384: {
+// 			// Updates key parameters
+// 			kp->bits = 256;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME);
+// 			// Combination bits check
+// 			if (bits > 256) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448: {
-			// Updates key parameters
-			kp->bits = 256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME);
-			// Combination bits check
-			if (bits > 256) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448: {
+// 			// Updates key parameters
+// 			kp->bits = 256;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME);
+// 			// Combination bits check
+// 			if (bits > 256) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
-			// Updates key parameters
-			kp->bits = 128;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME);
-			// Combination bits check
-			if (bits > 128) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
+// 			// Updates key parameters
+// 			kp->bits = 128;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 128) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
-			// Updates key parameters
-			kp->bits = 512;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME);
-			// Combination bits check
-			if (bits > 512) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
+// 			// Updates key parameters
+// 			kp->bits = 512;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME);
+// 			// Combination bits check
+// 			if (bits > 512) return PKI_ERR;
+// 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
-			// Updates key parameters
-			kp->bits = 512;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME);
-			// Combination bits check
-			if (bits > 512) return PKI_ERR;
-		} break;
+// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+// 			// Updates key parameters
+// 			kp->bits = 512;
+// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME);
+// 			// Combination bits check
+// 			if (bits > 512) return PKI_ERR;
+// 		} break;
 
-# endif // ENABLE_COMPOSITE
-#endif // ENABLE_OQS
+// # endif // ENABLE_COMPOSITE
+// #endif // ENABLE_OQS
 
-		default: {
-			// Sets the bits
-			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Scheme not supported (%d)", kp->scheme);
-			return PKI_ERR;
-		}
-	}
+// 		default: {
+// 			// Sets the bits
+// 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Scheme not supported (%d)", kp->scheme);
+// 			return PKI_ERR;
+// 		}
+// 	}
 
 	// All Done
 	return PKI_OK;

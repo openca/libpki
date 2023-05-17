@@ -14,6 +14,106 @@ PKI_EC_KEY * _pki_ecdsakey_new( PKI_KEYPARAMS *kp);
 void * _pki_ecdsakey_new( PKI_KEYPARAMS *kp );
 #endif
 
+int _evp_ctx_key_generation(int pkey_type, PKI_X509_KEYPAIR_VALUE ** pkey) {
+
+    EVP_PKEY_CTX * pctx = NULL;
+        // Key generation context
+
+    // Input Checks
+    if (!pkey) {
+        PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+        return PKI_ERR;
+    }
+
+    if (pkey_type <= 0) {
+        PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+        return PKI_ERR;
+    }
+    
+    pctx = EVP_PKEY_CTX_new_id(pkey_type, NULL);
+    if (!pctx) {
+        PKI_DEBUG("Can not create context for key generation (%d)", pkey_type);
+        return PKI_ERR;
+    }
+
+    if (EVP_PKEY_keygen_init(pctx) <= 0) {
+        PKI_DEBUG("Can not init ED448 context");
+        EVP_PKEY_CTX_free(pctx);
+        return PKI_ERR;
+    }
+
+    if (EVP_PKEY_keygen(pctx, pkey) <= 0) {
+        PKI_DEBUG("Can not generate ED448 key");
+        EVP_PKEY_CTX_free(pctx);
+        return PKI_ERR;
+    }
+
+    EVP_PKEY_CTX_free(pctx);
+    if (!*pkey) {
+        PKI_DEBUG("Can not generate ED448 key");
+        return PKI_ERR;
+    }
+
+    return PKI_OK;
+}
+
+int _evp_ctx_key_generation_rsa(PKI_KEYPARAMS * const params, PKI_X509_KEYPAIR_VALUE ** pkey) {
+
+    EVP_PKEY_CTX * pctx = NULL;
+        // Key generation context
+
+    // Input Checks
+    if (!pkey || !params) {
+        PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+        return PKI_ERR;
+    }
+
+    if (params->pkey_type <= 0) {
+        PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+        return PKI_ERR;
+    }
+    
+    pctx = EVP_PKEY_CTX_new_id(params->pkey_type, NULL);
+    if (!pctx) {
+        PKI_DEBUG("Can not create context for key generation (%d)", params->pkey_type);
+        return PKI_ERR;
+    }
+
+    // ====================
+    // Set the RSA key size
+    // ====================
+
+    int bits = PKI_SCHEME_ID_get_bitsize(params->scheme, params->sec_bits);
+    if (bits <= 0) bits = PKI_RSA_KEY_DEFAULT_SIZE;
+
+    if (EVP_PKEY_keygen_init(pctx) <= 0) {
+        PKI_DEBUG("Can not init ED448 context");
+        EVP_PKEY_CTX_free(pctx);
+        return PKI_ERR;
+    }
+
+    if (EVP_PKEY_CTX_set_rsa_keygen_bits(pctx, bits) <= 0) {
+        PKI_DEBUG("Can not set RSA key size (%d)", bits);
+        EVP_PKEY_CTX_free(pctx);
+        return PKI_ERR;
+    }
+    params->bits = bits;
+
+    if (EVP_PKEY_keygen(pctx, pkey) <= 0) {
+        PKI_DEBUG("Can not generate ED448 key");
+        EVP_PKEY_CTX_free(pctx);
+        return PKI_ERR;
+    }
+
+    EVP_PKEY_CTX_free(pctx);
+    if (!*pkey) {
+        PKI_DEBUG("Can not generate ED448 key");
+        return PKI_ERR;
+    }
+
+    return PKI_OK;
+}
+
 int _pki_rand_init( void );
 
 /* End of _LIBPKI_INTERNAL_PKEY_H */
@@ -43,8 +143,12 @@ PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
     if ( kp && kp->bits > 0 ) bits = kp->bits;
 
     if ( bits < PKI_RSA_KEY_MIN_SIZE ) {
-        PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE_SHORT, NULL);
+        PKI_DEBUG("WARNING: RSA Key size smaller than minimum safe size (%d vs. %d)", 
+            bits, PKI_RSA_KEY_DEFAULT_SIZE);
         return NULL;
+    } else if ( bits < PKI_RSA_KEY_DEFAULT_SIZE ) {
+        PKI_DEBUG("WARNING: RSA Key size smaller than default safe size (%d vs. %d)", 
+            bits, PKI_RSA_KEY_DEFAULT_SIZE);
     }
 
     if ((bne = BN_new()) != NULL) {
@@ -314,6 +418,11 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
     int pkey_id = -1;
 
+    if (!kp->oqs.algId) {
+        PKI_DEBUG("Missing algorithm ID for OQS key generation");
+        return NULL;
+    }
+
     ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
     if (!ameth) {
        PKI_log_debug("Missing ASN1 Method for algorithm '%s' (%d)", 
@@ -395,7 +504,7 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
         return NULL;
     }
 
-    int pkey_type = PKI_ID_get_by_name(PKI_SCHEME_ID_get_parsed(kp->scheme));
+    int pkey_type = kp->pkey_type; // PKI_ID_get_by_name(PKI_SCHEME_ID_get_parsed(kp->scheme));
     if (pkey_type <= 0) {
         PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Unknown Algorithm");
         COMPOSITE_KEY_free(k);
@@ -425,11 +534,29 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
         for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
 
             PKI_X509_KEYPAIR * tmp_key = NULL;
+            // PKI_X509_KEYPAIR_VALUE * tmp_val = NULL;
 
             // Let's get the i-th PKI_X509_KEYPAIR
             tmp_key = PKI_STACK_X509_KEYPAIR_get_num(kp->comp.k_stack, i);
+            if (!tmp_key) {
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot get key from stack");
+                COMPOSITE_KEY_free(k);
+                return NULL;
+            }
+
+            // // Let's get the internal value
+            // PKI_X509_detach(tmp_key, (void **)&tmp_val, NULL, NULL);
+            // if (!tmp_val) {
+            //     PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot get key value");
+            //     COMPOSITE_KEY_free(k);
+            //     return NULL;
+            // }
+
+            // // Free the memory associated with the PKI_X509_KEYPAIR
+            // PKI_X509_KEYPAIR_free(tmp_key);
 
             // Pushes the Key onto the stack
+            // COMPOSITE_KEY_push(k, tmp_key->value);
             COMPOSITE_KEY_push(k, tmp_key->value);
 
             // // Now we can use the CRTL interface to pass the new keys
@@ -452,11 +579,14 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
 }
 #endif
 
-PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp, 
-        URL *url, PKI_CRED *cred, HSM *driver ) {
+PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new(PKI_KEYPARAMS * kp, 
+                                               URL           * url, 
+                                               PKI_CRED      * cred, 
+                                               HSM           * driver ) {
 
     PKI_X509_KEYPAIR *ret = NULL;
-    PKI_RSA_KEY *rsa = NULL;
+    PKI_X509_KEYPAIR_VALUE * value = NULL;
+    // PKI_RSA_KEY *rsa = NULL;
     PKI_DSA_KEY *dsa = NULL;
 
 #ifdef ENABLE_ECDSA
@@ -477,17 +607,22 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
     PKI_SCHEME_ID type = PKI_SCHEME_DEFAULT;
 
+    if (!kp) {
+        PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+        return NULL;
+    }
+
     if ( kp && kp->scheme != PKI_SCHEME_UNKNOWN ) type = kp->scheme;
 
-    if((ret = PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, NULL )) == NULL ) {
-        PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair");
-        return NULL;
-    }
+    // if ((ret = PKI_X509_new(PKI_DATATYPE_X509_KEYPAIR, driver)) == NULL) {
+    //     PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair");
+    //     return NULL;
+    // }
 
-    if((ret->value = (PKI_X509_KEYPAIR_VALUE *) EVP_PKEY_new()) == NULL ) {
-        PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair Value");
-        return NULL;
-    }
+    // if((ret->value = (PKI_X509_KEYPAIR_VALUE *) EVP_PKEY_new()) == NULL ) {
+    //     PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair Value");
+    //     return NULL;
+    // }
 
     if( _pki_rand_seed() == 0 ) {
         /* Probably low level of randomization available */
@@ -495,34 +630,82 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     }
 
     switch (type) {
+
+#ifdef ENABLE_ED448
+        case PKI_SCHEME_ED448: {
+            int success = _evp_ctx_key_generation(PKI_ALGOR_ID_ED448, &value);
+            if (!success) {
+                PKI_DEBUG("Cannot generate the ED448 key");
+                goto err;
+            }
+        } break;
+#endif
+
+#ifdef ENABLE_X448
+        case PKI_SCHEME_X448: {
+            int success = _evp_ctx_key_generation(PKI_ALGOR_ID_X448, &value);
+            if (!success) {
+                PKI_DEBUG("Cannot generate the X448 key");
+                goto err;
+            }
+        } break;
+#endif
+
+#ifdef ENABLE_ED25519
+        case PKI_SCHEME_ED25519: {
+            int success = _evp_ctx_key_generation(PKI_ALGOR_ID_ED25519, &value);
+            if (!success) {
+                PKI_DEBUG("Cannot generate the ED448 key");
+                goto err;
+            }
+        } break;
+#endif
+
+#ifdef ENABLE_X25519
+        case PKI_SCHEME_X25519: {
+            int success = _evp_ctx_key_generation(PKI_ALGOR_ID_X25519, &value);
+            if (!success) {
+                PKI_DEBUG("Cannot generate the ED448 key");
+                goto err;
+            }
+        } break;
+#endif
+
+        case PKI_SCHEME_RSAPSS:
         case PKI_SCHEME_RSA: {
-            if((rsa = _pki_rsakey_new( kp )) == NULL ) {
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-                return NULL;
-            };
-            if(!EVP_PKEY_assign_RSA((EVP_PKEY *) ret->value, rsa)) {
-                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign RSA key");
-                if( rsa ) RSA_free( rsa );
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-                return NULL;
-            };
+            // if ((rsa = _pki_rsakey_new( kp )) == NULL ) {
+            //     PKI_DEBUG("Cannot generate the RSA key");
+            //     goto err;
+            // }
+            // if (!EVP_PKEY_assign_RSA((EVP_PKEY *) value, rsa)) {
+            //     PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign RSA key");
+            //     if( rsa ) RSA_free( rsa );
+            //     goto err;
+            // }
+            int success = _evp_ctx_key_generation_rsa(kp, &value);
+            if (!success) {
+                PKI_DEBUG("Cannot generate the RSA key");
+                goto err;
+            }
         } break;
 
         case PKI_SCHEME_DSA: {
-            if((dsa = _pki_dsakey_new( kp )) == NULL ) {
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-                return(NULL);
-            };
+            if ((dsa = _pki_dsakey_new( kp )) == NULL ) {
+                PKI_DEBUG("Cannot generate the DSA key");
+                goto err;
+            }
             if (!DSA_generate_key( dsa )) {
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+                goto err;
+            }
+            if ((value = (PKI_X509_KEYPAIR_VALUE *) EVP_PKEY_new()) == NULL ) {
+                PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair Value");
                 return NULL;
             }
-            if (!EVP_PKEY_assign_DSA((EVP_PKEY *)ret->value, dsa)) {
+            if (!EVP_PKEY_assign_DSA(value, dsa)) {
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign DSA key");
                 if( dsa ) DSA_free ( dsa );
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-                return NULL;
+                goto err;
             }
             dsa=NULL;
         } break;
@@ -530,17 +713,19 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 #ifdef ENABLE_ECDSA
 
         case PKI_SCHEME_ECDSA: {
-            if((ec = _pki_ecdsakey_new( kp )) == NULL ) {
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-                return(NULL);
-            };
-            if (!EVP_PKEY_assign_EC_KEY((EVP_PKEY *)ret->value,ec)){
-                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign ECDSA key");
-                if( ec ) EC_KEY_free ( ec );
-                if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+            if ((ec = _pki_ecdsakey_new( kp )) == NULL ) {
+                PKI_DEBUG("Cannot generate the ECDSA key");
+                goto err;
+            }
+            if ((value = (PKI_X509_KEYPAIR_VALUE *) EVP_PKEY_new()) == NULL ) {
+                PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair Value");
                 return NULL;
             }
-            ec=NULL;
+            if (!EVP_PKEY_assign_EC_KEY(value, ec)){
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign ECDSA key");
+                if( ec ) EC_KEY_free ( ec );
+                goto err;
+            }
         } break;
 
 #ifdef ENABLE_COMPOSITE
@@ -566,18 +751,18 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
             
             if ((composite = _pki_composite_new(kp)) == NULL) {
-                if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not initiate keypair generation");
+                goto err;
+            }
+            if ((value = (PKI_X509_KEYPAIR_VALUE *) EVP_PKEY_new()) == NULL ) {
+                PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair Value");
                 return NULL;
             }
-
-            if (!EVP_PKEY_assign_COMPOSITE(ret->value, composite)) {
-                if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
+            if (!EVP_PKEY_assign_COMPOSITE(value, composite)) {
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign COMPOSITE key");
                 if (composite) COMPOSITE_KEY_free(composite);
-                return NULL;
+                goto err;
             }
-            composite=NULL;
         } break;
 #endif
 
@@ -588,7 +773,11 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not initiate keypair generation");
                 return NULL;
             };
-            if (!EVP_PKEY_assign_COMBINED(ret->value, combined)) {
+            if ((value = (PKI_X509_KEYPAIR_VALUE *) EVP_PKEY_new()) == NULL ) {
+                PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair Value");
+                return NULL;
+            }
+            if (!EVP_PKEY_assign_COMBINED(value, combined)) {
                 if (ret) HSM_OPENSSL_X509_KEYPAIR_free(ret);
                 PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not assign COMBINED key");
                 if (combined) COMBINED_KEY_free(combined);
@@ -604,23 +793,41 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 #ifdef ENABLE_OQS
             if ((ctx = _pki_get_evp_pkey_ctx(kp)) == NULL) {
-                if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-                return NULL;
+                PKI_DEBUG("Cannot generate the PQC key");
+                goto err;
             }
-
-            if (EVP_PKEY_keygen(ctx, (EVP_PKEY **)&(ret->value)) <= 0) {
-                if (ret) HSM_OPENSSL_X509_KEYPAIR_free( ret );
+            if (EVP_PKEY_keygen(ctx, &value) <= 0) {
                 if (ctx) EVP_PKEY_CTX_free(ctx);
-                return NULL;
+                goto err;
             }
+            EVP_PKEY_CTX_free(ctx);
+            ctx = NULL;
+
 #else
             /* No recognized scheme */
             PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "%d", type );
-            if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );
-            return NULL;
+            goto err;
 
 #endif // ENABLE_OQS
 
+    }
+
+    // Checks that a Key was generated
+    if (!value) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not generate keypair");
+        goto err;
+    }
+
+    // Allocates the PKI_X509_KEYPAIR structure
+    if ((ret = PKI_X509_new(PKI_DATATYPE_X509_KEYPAIR, driver)) == NULL) {
+        PKI_ERROR(PKI_ERR_OBJECT_CREATE, "KeyPair");
+        return NULL;
+    }
+
+    /* Sets the value in the PKI_X509_KEYPAIR structure */
+    if (PKI_ERR == PKI_X509_attach(ret, PKI_DATATYPE_X509_KEYPAIR, value, driver)) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Can not attach keypair");
+        goto err;
     }
 
     // Sets the requirement for the digest in the key
@@ -629,7 +836,17 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     }
 
     /* Let's return the PKEY infrastructure */
-    return ( ret );
+    return ret;
+
+err:
+
+    // Memory Cleanup
+    if (value) EVP_PKEY_free(value);
+    if (ret) PKI_X509_KEYPAIR_free(ret);
+    if (ctx) EVP_PKEY_CTX_free(ctx);
+
+    // Error
+    return NULL;
 }
 
 /* Key Free function */

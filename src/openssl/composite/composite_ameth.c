@@ -181,10 +181,13 @@ int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pubkey) {
 err:
 
   // Free the Stack of ASN1_TYPE
-  while ((sk != NULL) &&
-         (aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
-    ASN1_TYPE_free(aType);
-  } sk_ASN1_TYPE_free(sk);
+  // while ((sk != NULL) &&
+  //        (aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
+  //   ASN1_TYPE_free(aType);
+  // } sk_ASN1_TYPE_free(sk);
+
+  if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
+  sk = NULL;
 
   // Free the Composite Key
   if (comp_key) COMPOSITE_KEY_free(comp_key);

@@ -290,9 +290,11 @@ int PKI_ID_requires_digest(PKI_ID id) {
 	// Classical Territory
 	switch (id) {
 
-		case NID_rsassaPss:
-		case NID_ED25519:
-		case NID_ED448: {
+		case PKI_ALGOR_ID_RSAPSS:
+		case PKI_ALGOR_ID_ED25519:
+		case PKI_ALGOR_ID_X25519:
+		case PKI_ALGOR_ID_ED448:
+		case PKI_ALGOR_ID_X448: {
 			// No digest required
 			return PKI_ERR;
 		} break;

@@ -65,7 +65,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -out <url>       - Output Data URI\n");
 	fprintf(stderr, "  -pubout <url>    - Saves the SubjectPublicKeyInfo of a cert\n");
 	fprintf(stderr, "  -outform <OPT>   - Output Format (i.e., PEM, DER, TXT, XML)\n");
-	fprintf(stderr, "  -bits <num>      - Number of Bits\n");
+	fprintf(stderr, "  -bits <num>      - Security Bits for key generation (e.g. 80, 112, 128, 192, 256)\n");
 	fprintf(stderr, "  -type <objtype>  - Type of Object\n");
 	fprintf(stderr, "  -algor <name>    - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
 	fprintf(stderr, "  -digest <name>   - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
@@ -251,12 +251,19 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 }
 
-int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
-		char *url_s, PKI_SCHEME_ID scheme_id, char *profile_s, PKI_DATA_FORMAT outFormVal, 
+int gen_keypair(PKI_TOKEN 		* tk, 
+				int 			  bits, 
+				char 			* param_s,
+				char 			* url_s, 
+				PKI_SCHEME_ID     scheme_id, 
+				char 			* profile_s, 
+				PKI_DATA_FORMAT   outFormVal, 
 #ifdef ENABLE_COMPOSITE
-		char *comp_keys[], int comp_keys_num, int comp_kofn,
+				char 			* comp_keys[], 
+				int 			  comp_keys_num, 
+				int 			  comp_kofn,
 #endif
-		int batch ) {
+				int 			  batch ) {
 
 	char *prompt = NULL;
 	// int outFormVal = PKI_DATA_FORMAT_PEM;
@@ -306,10 +313,13 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 	// Updates the bits (use defaults, if not specified)
-	if (bits <= 0 && kp->bits > 0) bits = kp->bits;
+	if (bits <= 0 && kp->sec_bits > 0) bits = kp->sec_bits;
+
+	// Let's make sure we have a good value for the security bits
+	if (bits <= 0) bits = PKI_DEFAULT_CLASSIC_SEC_BITS;
 
 	// Checks that the bits value is not negative (at least!)
-	if (PKI_KEYPARAMS_set_bits(kp, bits) != PKI_OK) {
+	if (PKI_KEYPARAMS_set_security_bits(kp, bits) != PKI_OK) {
 		fprintf(stderr, "\n    WARNING, requested bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
 			bits, PKI_SCHEME_ID_get_parsed(scheme_id), kp->bits);
 	}
@@ -441,24 +451,39 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		fprintf(stderr, "\nThis will generate a new keypair on the "
 							"Token.\n");
 		fprintf(stderr, "\nDetails:\n");
-		fprintf(stderr, "  - Algorithm ......: %s\n", 
-					PKI_SCHEME_ID_get_parsed( kp->scheme ));
-		fprintf(stderr, "  - Bits ...........: %d\n", kp->bits );
+		fprintf(stderr, "  - Algorithm Family ...: %s\n", 
+					PKI_SCHEME_ID_get_parsed(kp->scheme));
+		fprintf(stderr, "  - Key Type ...........: %s\n", 
+					PKI_ID_get_txt(kp->pkey_type));
+		fprintf(stderr, "  - Classic Sec Bits ...: %d\n", 
+					kp->sec_bits );
+		fprintf(stderr, "  - Quantum Sec Bits ...: %d\n", 
+					kp->pq_sec_bits );
+		fprintf(stderr, "  - Bits (size) ........: %d\n", 
+					PKI_SCHEME_ID_get_bitsize(kp->scheme, kp->sec_bits));
+		fprintf(stderr, "  - Is Quantum Safe ....: %s (%d)\n", 
+					PKI_SCHEME_ID_is_post_quantum(kp->scheme) ? "Yes" : "No", kp->scheme);
+		fprintf(stderr, "  - Is Composite .......: %s (explicit: %s)\n", 
+					PKI_SCHEME_ID_is_composite(kp->scheme) ? "Yes" : "No",
+					PKI_SCHEME_ID_is_explicit_composite(kp->scheme) ? "Yes" : "No" );
+
+		if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
+		fprintf(stderr, "  - Validation Policy ..: %ld (K of N)\n", kp->comp.k_of_n ? ASN1_INTEGER_get(kp->comp.k_of_n) : -1);
+		}
 
 #ifdef ENABLE_ECDSA
 		if (kp->scheme == PKI_SCHEME_ECDSA) {
-			fprintf(stderr, "  - Point Type .....: %d\n", kp->ec.form );
+			fprintf(stderr, "  - Point Type .........: %d\n", kp->ec.form );
 		}
 #endif
 
 #ifdef ENABLE_COMPOSITE
 	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)) {
-		fprintf(stderr, "  - Number of Keys..: %d\n", 
+		fprintf(stderr, "  - Number of Keys .....: %d\n", 
 			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
 	}
 #endif
-
-		fprintf(stderr, "  - Output .........: %s\n", keyurl->url_s );
+		fprintf(stderr, "  - Output URI .........: %s\n", keyurl->url_s );
 
 		prompt = prompt_str ("\nAre you sure [y/N] ? ");
 	}
@@ -627,6 +652,10 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 					PKI_ID_is_explicit_composite(pkey_type, NULL)) {
 					// If we do not have a defined one, let's use
 					// the pkey_type as the signature algorithm
+					sig_alg = pkey_type;
+				} else if(PKI_ID_requires_digest(pkey_type) == PKI_ERR) {
+					// If we have a non-digest algorithm, we can
+					// use the pkey_type as the signature algorithm
 					sig_alg = pkey_type;
 				} else {
 					// No available algorithm for pkey without digest

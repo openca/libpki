@@ -104,6 +104,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_put_mem(const PKI_X509_KEYPAIR_VALUE  * const k
 								   		 const HSM                     * hsm) {
 	
 	PKI_X509_KEYPAIR * wrapper = NULL;
+	PKI_X509_KEYPAIR_VALUE * key_val = NULL;
 
 	PKI_MEM * buff = NULL;
 
@@ -129,7 +130,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_put_mem(const PKI_X509_KEYPAIR_VALUE  * const k
 	PKI_X509_KEYPAIR_put_mem(wrapper, format, &buff, cred, hsm);
 
 	// Detaches the VALUE from the PKI_X509
-	if (wrapper->value) PKI_X509_detach(wrapper, NULL, NULL, NULL);
+	if (wrapper->value) PKI_X509_detach(wrapper, (void **)&key_val, NULL, NULL);
 	PKI_X509_free(wrapper);
 	wrapper = NULL;
 
