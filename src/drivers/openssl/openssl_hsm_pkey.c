@@ -43,8 +43,12 @@ PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
     if ( kp && kp->bits > 0 ) bits = kp->bits;
 
     if ( bits < PKI_RSA_KEY_MIN_SIZE ) {
-        PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE_SHORT, NULL);
+        PKI_DEBUG("WARNING: RSA Key size smaller than minimum safe size (%d vs. %d)", 
+            bits, PKI_RSA_KEY_DEFAULT_SIZE);
         return NULL;
+    } else if ( bits < PKI_RSA_KEY_DEFAULT_SIZE ) {
+        PKI_DEBUG("WARNING: RSA Key size smaller than default safe size (%d vs. %d)", 
+            bits, PKI_RSA_KEY_DEFAULT_SIZE);
     }
 
     if ((bne = BN_new()) != NULL) {
@@ -314,6 +318,11 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
     int pkey_id = -1;
 
+    if (!kp->oqs.algId) {
+        PKI_DEBUG("Missing algorithm ID for OQS key generation");
+        return NULL;
+    }
+
     ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
     if (!ameth) {
        PKI_log_debug("Missing ASN1 Method for algorithm '%s' (%d)", 
@@ -495,6 +504,34 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
     }
 
     switch (type) {
+
+#ifdef ENABLE_ED448
+        case PKI_SCHEME_ED448: {
+            EVP_PKEY_CTX * pctx = EVP_PKEY_CTX_new_id(PKI_ED448_KEY, NULL);
+            if (!pctx) {
+                PKI_DEBUG("Can not create ED448 context");
+                return NULL;
+            }
+            if (EVP_PKEY_keygen_init(pctx) <= 0) {
+                PKI_DEBUG("Can not init ED448 context");
+                EVP_PKEY_CTX_free(pctx);
+                return NULL;
+            }
+            if (EVP_PKEY_keygen(pctx, (EVP_PKEY **)&ret->value) <= 0) {
+                PKI_DEBUG("Can not generate ED448 key");
+                EVP_PKEY_CTX_free(pctx);
+                return NULL;
+            }
+            EVP_PKEY_CTX_free(pctx);
+            if (!ret->value) {
+                PKI_DEBUG("Can not generate ED448 key");
+                return NULL;
+            }
+
+        } break;
+#endif
+
+        case PKI_SCHEME_RSAPSS:
         case PKI_SCHEME_RSA: {
             if((rsa = _pki_rsakey_new( kp )) == NULL ) {
                 if( ret ) HSM_OPENSSL_X509_KEYPAIR_free( ret );

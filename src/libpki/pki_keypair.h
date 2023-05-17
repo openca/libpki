@@ -27,6 +27,24 @@ typedef struct pw_cb_data {
 		PKI_X509_KEYPAIR_new(PKI_SCHEME_ECDSA,a,l,c,h);
 #endif
 
+#define PKI_X509_KEYPAIR_new_ED448(a,l,c,h) \
+		PKI_X509_KEYPAIR_new( PKI_SCHEME_ED448,a,l,c,h );
+
+#define PKI_X509_KEYPAIR_new_ED25519(a,l,c,h) \
+		PKI_X509_KEYPAIR_new( PKI_SCHEME_ED25519,a,l,c,h );
+
+#define PKI_X509_KEYPAIR_new_X448(a,l,c,h) \
+		PKI_X509_KEYPAIR_new( PKI_SCHEME_X448,a,l,c,h );
+
+#define PKI_X509_KEYPAIR_new_X25519(a,l,c,h) \
+		PKI_X509_KEYPAIR_new( PKI_SCHEME_X25519,a,l,c,h );
+
+#define PKI_X509_KEYPAIR_new_Dilithium(a,l,c,h) \
+		PKI_X509_KEYPAIR_new(PKI_SCHEME_DILITHIUM,a,l,c,h );
+
+#define PKI_X509_KEYPAIR_new_Falcon(a,l,c,h) \
+		PKI_X509_KEYPAIR_new(PKI_SCHEME_FALCON,a,l,c,h );
+
 /* ------------------------ Memory Management ----------------------- */
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_null ();

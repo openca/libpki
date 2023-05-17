@@ -172,6 +172,7 @@ PKI_X509_KEYPAIR *HSM_ENGINE_X509_KEYPAIR_new( PKI_KEYPARAMS *kp,
 
 	switch (type) {
 
+		case PKI_SCHEME_RSAPSS:
 		case PKI_SCHEME_RSA:
 			if((rsa = _engine_pki_rsakey_new( kp, e )) == NULL ) {
 				if( val ) EVP_PKEY_free( val );

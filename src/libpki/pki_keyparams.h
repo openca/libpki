@@ -12,7 +12,13 @@ void PKI_KEYPARAMS_free(PKI_KEYPARAMS *kp);
 /* Functions */
 PKI_SCHEME_ID PKI_KEYPARAMS_get_type(const PKI_KEYPARAMS *kp );
 int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId);
-int PKI_KEYPARAMS_set_bits(PKI_KEYPARAMS * kp, int bits);
+
+int PKI_KEYPARAMS_bits_get(PKI_KEYPARAMS * kp, int * bits);
+int PKI_KEYPARAMS_bits_set(PKI_KEYPARAMS * kp, int bits);
+
+int PKI_KEYPARAMS_sec_bits_get(PKI_KEYPARAMS * kp, int * sec_bits);
+int PKI_KEYPARAMS_sec_bits_set(PKI_KEYPARAMS * kp, int sec_bits);
+
 int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp, 
                             const char      * curveName, 
                             PKI_EC_KEY_FORM   curveForm,

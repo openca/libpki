@@ -309,7 +309,7 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	if (bits <= 0 && kp->bits > 0) bits = kp->bits;
 
 	// Checks that the bits value is not negative (at least!)
-	if (PKI_KEYPARAMS_set_bits(kp, bits) != PKI_OK) {
+	if (PKI_KEYPARAMS_bits_set(kp, bits) != PKI_OK) {
 		fprintf(stderr, "\n    WARNING, requested bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
 			bits, PKI_SCHEME_ID_get_parsed(scheme_id), kp->bits);
 	}

@@ -122,11 +122,24 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id);
  * data can be signed without the use of hash-n-sign paradigm.
  * 
  * @param id The scheme that is being checked
+ * @param bits The security bits that are being used
+ * @param classic_sec_bits The classic security bits for the scheme/bits
+ * @param quantum_sec_bits The quantum security bits for the scheme/bits
  * @retval Returns PKI_OK if the scheme requires a digest, PKI_ERR otherwise.
  */
 int PKI_SCHEME_ID_requires_digest(PKI_SCHEME_ID id);
 
-int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id, 
+/*!
+ * \brief Returns the security bits of the scheme/bits combination.
+ * 
+ * @param id The scheme that is being checked
+ * @param bits The security bits that are being used (0 for default)
+ * @param classic_sec_bits The classic security bits for the scheme/bits
+ * @param quantum_sec_bits The quantum security bits for the scheme/bits
+ * @retval Returns PKI_OK if the scheme requires a digest, PKI_ERR otherwise.
+ */
+int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
+                                int                   bits,
                                 int                 * classic_sec_bits, 
                                 int                 * quantum_sec_bits);
 
@@ -140,7 +153,7 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
  * @param sec_bits The requested security bits
  * @return The key-gen bit size
  */
-int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits);
+int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits, size_t * bitsize);
 
 
 // ------------------------------ PKI_DIGEST_ALG ------------------------------- //
