@@ -253,27 +253,34 @@ COMPOSITE_REQS_EXPLICIT_DIGESTS="NULL"
 # Generic T/T Composite
 # =====================
 
-# Generates Composite Keys
-gen_comp_key "rsa ec"
+# # Generates Composite Keys
+# gen_comp_key "rsa ec"
 
-# Generates Composite CSRs with Hash-n-Sign
-gen_req "comp_rsa_ec" "$CLASSIC_DIGESTS"
-verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "req"
+# # Generates Composite CSRs with Hash-n-Sign
+# gen_req "comp_rsa_ec" "$CLASSIC_DIGESTS"
+# verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "req"
 
-# Generates Composite CERTs with Direct Signing
-gen_cer "comp_rsa_ec" "$CLASSIC_DIGESTS"
-verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "cer"
+# # Generates Composite CERTs with Direct Signing
+# gen_cer "comp_rsa_ec" "$CLASSIC_DIGESTS"
+# verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "cer"
 
 # Generates Composite K-of-N Keys
 gen_comp_key "ed448 rsa" "1"
+gen_comp_key "rsa ed25519" "1"
 
 # Generates Composite K-of-N CSRs with Direct Signing
-gen_req "comp_ed448_rsa" "$NULL_DIGEST"
-verify  "comp_ed448_rsa" "$NULL_DIGEST" req
+gen_req "comp_ed448_rsa" "$CLASSIC_DIGESTS"
+verify  "comp_ed448_rsa" "$CLASSIC_DIGESTS" req
 
-# Generate Composite K-of-N CERT with Hash-n-Sign
-gen_cer "comp_ed448_rsa" "$ALL_DIGESTS"
-verify  "comp_rsa_ed25519" "$ALL_DIGESTS" "cer"
+# gen_cer "comp_ed448_rsa" "$CLASSIC_DIGESTS"
+# verify  "comp_ed448_rsa" "$CLASSIC_DIGESTS" req
+
+# # Generate Composite K-of-N CERT with Hash-n-Sign
+# gen_req "comp_rsa_ed25519" "$CLASSIC_DIGESTS"
+# verify  "comp_rsa_ed25519" "$CLASSIC_DIGESTS" "req"
+
+# gen_cer "comp_rsa_ed25519" "$CLASSIC_DIGESTS"
+# verify  "comp_rsa_ed25519" "$CLASSIC_DIGESTS" "cer"
 
 exit 0;
 

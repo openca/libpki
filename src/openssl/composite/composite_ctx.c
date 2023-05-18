@@ -880,7 +880,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
         if (!OBJ_find_sigid_by_algs(&algid, 
                                          x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
                                          x_type)) {          
-          PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
+          PKI_DEBUG("Cannot find the algorithm identifier (x_type: %d, md_type: %d)", x_type, x_md ? EVP_MD_type(x_md) : 0);
           // Cannot find the algorithm identifier
           if (algor) X509_ALGOR_free(algor);
           if (sk) sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);

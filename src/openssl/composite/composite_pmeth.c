@@ -1056,18 +1056,53 @@ static int verify(EVP_PKEY_CTX        * ctx,
 
     PKI_DEBUG("Signature: %d bytes", aType->value.sequence->length);
 
-    // Initializes the Verify operation
-    ret_code = EVP_PKEY_verify_init(comp_pkey_ctx);
-    if (ret_code <= 0) {
-      PKI_DEBUG("Cannot initialize %d component signature (ret code: %d)", i, ret_code);
-      // goto err;
+    if (EVP_PKEY_CTX_supports_verify(comp_pkey_ctx) <= 0) {
+      // Initializes the Verify operation
+      ret_code = EVP_PKEY_verify_init(comp_pkey_ctx);
+      if (ret_code <= 0) {
+        PKI_DEBUG("Cannot initialize %d component signature (ret code: %d)", i, ret_code);
+        // goto err;
+      } else {
+        // Verifies the individual signature
+        ret_code = EVP_PKEY_verify(comp_pkey_ctx, 
+                                  aType->value.sequence->data,
+                                  (size_t)aType->value.sequence->length,
+                                  tbs_data,
+                                  (size_t)tbs_data_len);
+      }
+    } else if (EVP_PKEY_CTX_supports_digestverify(comp_pkey_ctx)) {
+      // Use the Digest Verify mechanism
+      EVP_MD_CTX *md_ctx = NULL;
+      if (!md_ctx) {
+        PKI_DEBUG("Cannot allocate a new MD CTX for the %d component's signature operation", i);
+        EVP_PKEY_CTX_free(comp_pkey_ctx);
+        goto err;
+      }
+
+      if (!EVP_DigestSignInit(md_ctx, NULL, comp_md ? comp_md : NULL, NULL, comp_evp_pkey)) {
+        PKI_DEBUG("Cannot initialize the MD CTX for the %d component's signature operation", i);
+        EVP_MD_CTX_free(md_ctx);
+        goto err;
+      }
+
+      // Uses the digestsign function to sign the data
+      ret_code = EVP_DigestVerify(md_ctx,
+                                  aType->value.sequence->data, 
+                                  (size_t)aType->value.sequence->length, 
+                                  tbs_data, 
+                                  tbs_data_len);
+      if (ret_code <= 0) {
+        PKI_DEBUG("Cannot generate signature for %d component (EVP_DigestSign code is %d)", i, ret_code);
+        EVP_MD_CTX_free(md_ctx);
+        goto err;
+      }
+
+      // Frees the MD CTX
+      EVP_MD_CTX_free(md_ctx);
+
     } else {
-      // Verifies the individual signature
-      ret_code = EVP_PKEY_verify(comp_pkey_ctx, 
-                                aType->value.sequence->data,
-                                (size_t)aType->value.sequence->length,
-                                tbs_data,
-                                (size_t)tbs_data_len);
+      PKI_DEBUG("No verify mechanism is supported by the algorithm, cannot verify (%d)", i);
+      goto err;
     }
 
     // Removes the reference to the pkey. This is needed
