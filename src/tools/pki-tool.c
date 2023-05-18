@@ -1308,10 +1308,15 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if ( signkey && !newkey) {
-			if( verbose ) printf("Loading KeyPair...");
-			fflush( stdout );
 
-			if((PKI_TOKEN_load_keypair( tk, uri )) == PKI_ERR){
+			if (verbose) {
+				printf("Loading Keypair (%s) ... ", signkey);
+				fflush(stdout);
+			}
+
+			PKI_DEBUG("Loading Keypair (%s) ... ", signkey);
+
+			if((PKI_TOKEN_load_keypair( tk, signkey )) == PKI_ERR){
 					printf("\nERROR, can not load key [%s]\n\n", signkey );
 					exit(1);
 			}
@@ -1606,7 +1611,7 @@ int main (int argc, char *argv[] ) {
 			printf("\nERROR, can not create keypair!\n\n");
 			exit(1);
 		}
-	} else if ( strncmp_nocase(cmd, "genreq", 6) == 0 ) {
+	} else if (str_cmp_ex(cmd, "genreq", 0, 1) == 0 ) {
 
 					// -----------
 					// CMD: genreq
@@ -1657,12 +1662,14 @@ int main (int argc, char *argv[] ) {
 #endif
 			if ( verbose && batch ) fprintf( stderr, "Ok.\n");
 
-			// Let's assign the new key to the token
+			// Loads the generated key into the token for proceeding
+			// with the request generation
 			if (PKI_TOKEN_load_keypair(tk, outkey_s) == PKI_ERR)
 			{
 				fprintf(stderr, "\nERROR, can not load the newly generated keypair!\n\n");
 				exit(1);
 			}
+			
 		}
 
 		// fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
@@ -1747,19 +1754,20 @@ int main (int argc, char *argv[] ) {
 				fflush(stdout);
 			}
 
-			if (PKI_TOKEN_load_keypair(tk, signkey) == PKI_ERR)
-			{
-				printf("\nERROR, can not load key [%s]\n\n", signkey );
-				exit(1);
-			}
-			else
-			{
-				if( !tk->keypair ) {
-					printf("\nERROR, can not load keypair from token config!\n\n");
+			if (!tk->keypair && signkey) {
+				if (PKI_TOKEN_load_keypair(tk, signkey) == PKI_ERR)
+				{
+					printf("\nERROR, can not load key [%s]\n\n", signkey );
 					exit(1);
 				}
-				if( verbose ) printf("Ok.\n");
 			}
+
+			if (!tk->keypair) {
+				printf("\nERROR, missing keypair (%s)!\n\n", signkey);
+				exit(1);
+			}
+			if( verbose ) printf("Ok.\n");
+
 		} 
 		else if ( tk->keypair == NULL ) 
 		{

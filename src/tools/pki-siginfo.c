@@ -130,10 +130,13 @@ int main(int argc, char *argv[])
 
 	// Get the Key from the Key Source
 	switch ( PKI_X509_get_type( obj )) {
+
+
 		case PKI_DATATYPE_X509_KEYPAIR:
 			kp = obj;
 			break;
 
+		case PKI_DATATYPE_X509_REQ:
 		case PKI_DATATYPE_X509_CERT:
 			pVal = PKI_X509_get_data ( obj, PKI_X509_DATA_KEYPAIR_VALUE );
 			if ( !pVal ) {
@@ -144,7 +147,7 @@ int main(int argc, char *argv[])
 			break;
 
 		default:
-			fprintf(stderr, "ERROR, (%s) not a cert or a key (%d)!\n\n", 
+			fprintf(stderr, "ERROR, cannot get the key from (%s): not a cert, a req, or a keypair (type: %d)!\n\n", 
 				kName,  PKI_X509_get_type( obj ) );
 			exit(1);
 	}

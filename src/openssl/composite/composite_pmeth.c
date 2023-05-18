@@ -46,6 +46,42 @@ static const int DUMP_SIGNATURE_DATA = 1;
 // EVP_PKEY_METHOD Functions
 // =========================
 
+int EVP_PKEY_CTX_supports_sign(EVP_PKEY_CTX * ctx) {
+  
+  if (ctx && ctx->pmeth && ctx->pmeth->sign){
+    return PKI_OK;
+  }
+
+  return PKI_ERR;
+};
+
+int EVP_PKEY_CTX_supports_verify(EVP_PKEY_CTX * ctx) {
+  
+  if (ctx && ctx->pmeth && ctx->pmeth->verify) {
+    return PKI_OK;
+  }
+
+  return PKI_ERR;
+};
+
+int EVP_PKEY_CTX_supports_digestsign(EVP_PKEY_CTX * ctx) {
+  
+  if (ctx && ctx->pmeth && ctx->pmeth->digestsign) {
+    return PKI_OK;
+  }
+
+  return PKI_ERR;
+};
+
+int EVP_PKEY_CTX_supports_digestverify(EVP_PKEY_CTX * ctx) {
+  
+  if (ctx && ctx->pmeth && ctx->pmeth->digestverify) {
+    return PKI_OK;
+  }
+
+  return PKI_ERR;
+};
+
 // Implemented
 static int init(EVP_PKEY_CTX *ctx) {
   
@@ -399,6 +435,8 @@ static int sign(EVP_PKEY_CTX        * ctx,
       } else {
 
         PKI_DEBUG("Using Direct Signing for component %d (data size: %d)", idx, x_tbs_data_len);
+        x_tbs_data = (unsigned char *)tbs;
+        x_tbs_data_len = tbslen;
 
       }
     }
@@ -481,25 +519,63 @@ static int sign(EVP_PKEY_CTX        * ctx,
       goto err;
     }
 
-    // Initializes the Signing process
-    ret_code = EVP_PKEY_sign_init(x_pkey_ctx);
-    if (ret_code <= 0) {
-      PKI_DEBUG("EVP_PKEY_sign_init() failed with code %d", ret_code);
-      PKI_Free(sig_buff);
-      EVP_PKEY_CTX_free(x_pkey_ctx);
-      goto err;
-    }
+    // If the PMETHOD supports direct signing use it,
+    // otherwise use the digest signing method
+    if (EVP_PKEY_CTX_supports_sign(x_pkey_ctx)) {
+      // Initializes the Signing process
+      ret_code = EVP_PKEY_sign_init(x_pkey_ctx);
+      if (ret_code <= 0) {
+        PKI_DEBUG("EVP_PKEY_sign_init() failed with code %d", ret_code);
+        PKI_Free(sig_buff);
+        EVP_PKEY_CTX_free(x_pkey_ctx);
+        goto err;
+      }
 
-    // Debugging Info
-    PKI_DEBUG("Signing Data (tbs_data: %p, tbs_data_len: %d)", x_tbs_data, x_tbs_data_len);
+      // Debugging Info
+      PKI_DEBUG("Signing Data (tbs_data: %p, tbs_data_len: %d)", x_tbs_data, x_tbs_data_len);
 
-    // Signature's generation
-    ret_code = EVP_PKEY_sign(x_pkey_ctx, sig_buff, (size_t *)&sig_buff_len, x_tbs_data, x_tbs_data_len);
-    if (ret_code <= 0) {
-      PKI_DEBUG("Cannot generate signature for %d component (EVP_PKEY_sign code is %d)", idx, ret_code);
-      PKI_Free(sig_buff);
-      EVP_PKEY_CTX_free(x_pkey_ctx);
-      goto err;
+      // Signature's generation
+      ret_code = EVP_PKEY_sign(x_pkey_ctx, sig_buff, (size_t *)&sig_buff_len, x_tbs_data, x_tbs_data_len);
+      if (ret_code <= 0) {
+        PKI_DEBUG("Cannot generate signature for %d component (EVP_PKEY_sign code is %d)", idx, ret_code);
+        PKI_Free(sig_buff);
+        EVP_PKEY_CTX_free(x_pkey_ctx);
+        goto err;
+      }
+    } else if (EVP_PKEY_CTX_supports_digestsign(x_pkey_ctx)) {
+
+      EVP_MD_CTX * md_ctx = NULL;
+        // The MD context
+
+      // Initializes the MD context
+      md_ctx = EVP_MD_CTX_new();
+      if (!md_ctx) {
+        PKI_DEBUG("Cannot allocate a new MD CTX for the %d component's signature operation", idx);
+        PKI_Free(sig_buff);
+        EVP_PKEY_CTX_free(x_pkey_ctx);
+        goto err;
+      }
+
+      if (!EVP_DigestSignInit(md_ctx, NULL, md_type > 0 ? EVP_get_digestbynid(md_type) : NULL, NULL, x_pkey)) {
+        PKI_DEBUG("Cannot initialize the MD CTX for the %d component's signature operation", idx);
+        PKI_Free(sig_buff);
+        EVP_PKEY_CTX_free(x_pkey_ctx);
+        EVP_MD_CTX_free(md_ctx);
+        goto err;
+      }
+
+      // Uses the digestsign function to sign the data
+      ret_code = EVP_DigestSign(md_ctx, sig_buff, (size_t *)&sig_buff_len, x_tbs_data, x_tbs_data_len);
+      if (ret_code <= 0) {
+        PKI_DEBUG("Cannot generate signature for %d component (EVP_DigestSign code is %d)", idx, ret_code);
+        PKI_Free(sig_buff);
+        EVP_PKEY_CTX_free(x_pkey_ctx);
+        EVP_MD_CTX_free(md_ctx);
+        goto err;
+      }
+      
+      // Frees the MD CTX
+      EVP_MD_CTX_free(md_ctx);
     }
 
     // // Signature's generation
@@ -512,7 +588,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     // Removes the reference to the key. This is
     // needed because we otherwise will have memory
     // issue when calling EVP_PKEY_CTX_free()
-    PKI_DEBUG("Freeing the PKEY reference (pkey: %p) - This might not be good, removing it.", x_pkey_ctx->pkey);
+    // PKI_DEBUG("Freeing the PKEY reference (pkey: %p) - This might not be good, removing it.", x_pkey_ctx->pkey);
     // pkey_ctx->pkey = NULL;
 
     // Free the PKEY context

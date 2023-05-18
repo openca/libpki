@@ -33,7 +33,7 @@
 // ==============================
 
 // Implemented
-int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pubkey) {
+int pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey) {
 
   // Strategy:
   //
@@ -74,7 +74,7 @@ int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pubkey) {
     // Public Key Type and Algorithms
 
   // Input Checking
-  if (!pk || !pubkey) return 0;
+  if (!pkey || !pubkey) return 0;
 
   // Let's use the aOctetStr to avoid the internal
   // p8 pointers to be modified
@@ -140,10 +140,21 @@ int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pubkey) {
     }
   }
 
+  // Assigns the key in the EVP_PKEY structure
+  if (!EVP_PKEY_assign_COMPOSITE(pkey, comp_key)) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "pkey = %p, pkey->pkey = %p, comp_key = %p", pkey, pkey->pkey, comp_key);
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot assign internal composite key structure to the key");
+    PKI_DEBUG("OpenSSL Error: %s", HSM_get_errdesc(HSM_get_errno(NULL), NULL));
+    goto err;
+  }
+
   // Free the stack memory
-  while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
-    ASN1_TYPE_free(aType);
-  } sk_ASN1_TYPE_free(sk);
+  // while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
+  //   ASN1_TYPE_free(aType);
+  // } sk_ASN1_TYPE_free(sk);
+
+  if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
+  sk = NULL; // Safety
 
   // ======================
   // Process Key Parameters
@@ -167,24 +178,12 @@ int pub_decode(EVP_PKEY *pk, X509_PUBKEY *pubkey) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameters");
       goto err;
     }
-  };
-
-  // Assigns the key in the EVP_PKEY structure
-  if (!EVP_PKEY_assign_COMPOSITE(pk, comp_key)) {
-    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot assign internal composite key structure to the key");
-    goto err;
   }
 
   // All Done.
   return 1;
 
 err:
-
-  // Free the Stack of ASN1_TYPE
-  // while ((sk != NULL) &&
-  //        (aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
-  //   ASN1_TYPE_free(aType);
-  // } sk_ASN1_TYPE_free(sk);
 
   if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
   sk = NULL;
@@ -549,8 +548,9 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
   int param_len = 0;
     // Buffer
 
+  const ASN1_OBJECT * alg_oid;
   const X509_ALGOR * pkey_alg;
-  int pkey_type = 0;
+  int param_type = 0;
     // Public Key Type and Algorithms
 
   // Input Checking
@@ -625,10 +625,8 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
         return 0;
   };
 
-  const ASN1_OBJECT * alg_oid;
-
   // Gets the type and the parameters
-  X509_ALGOR_get0(&alg_oid, &pkey_type, &params_value, pkey_alg);
+  X509_ALGOR_get0(&alg_oid, &param_type, &params_value, pkey_alg);
   if (params_value) {
     
     // Free current allocated params, if any
@@ -640,16 +638,25 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameters");
       goto err;
     }
-  };
+  }
 
-  PKI_DEBUG("GOT THE KEY Algorithm OID: %d", OBJ_obj2nid(alg_oid));
-    if (alg_oid) comp_key->algorithm = OBJ_obj2nid(alg_oid);
+  // Let's Get the PKEY and MD algorithms
+  comp_key->algorithm = OBJ_obj2nid(alg_oid);
+  if (comp_key->algorithm == NID_undef) {
+    PKI_ERROR(PKI_ERR_X509_KEYPAIR_DECODE, "Cannot decode the private key algorithm");
+    goto err;
+  }
 
-  // Free the stack memory
-  while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
-    ASN1_TYPE_free(aType);
-  } sk_ASN1_TYPE_free(sk);
-  sk = NULL; // Safety
+  PKI_DEBUG("GOT THE KEY Algorithm OID (%d)", comp_key->algorithm);
+  // if (alg_oid) comp_key->algorithm = OBJ_obj2nid(alg_oid);
+
+  // // Free the stack memory
+  // while ((aType = sk_ASN1_TYPE_pop(sk)) != NULL) {
+  //   ASN1_TYPE_free(aType);
+  // } sk_ASN1_TYPE_free(sk);
+  // sk = NULL; // Safety
+  if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
+  sk = NULL;
 
   // Assigns the internal structure to the EVP key
   if (!EVP_PKEY_assign_COMPOSITE(pk, comp_key)) {

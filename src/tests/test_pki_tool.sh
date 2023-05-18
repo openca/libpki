@@ -140,7 +140,8 @@ function gen_cer() {
                 -batch -in "results/${alg}_${dig}.req" ${DEBUG_OPTION} \
                 -out "results/${alg}_${dig}.cer" 2>&1 > cert_log.txt
             if [ $? -ne 0 ]; then
-                echo "Error: Failed to generate self-signed cert for $alg + $dig\n"
+                echo
+                echo "\n    ERROR: Failed to generate self-signed cert (Alg: $alg, Dig: $dig)\n\n"
                 echo
                 exit 1
             fi
@@ -173,39 +174,10 @@ function verify() {
 }
 
 # Digest Algorithms
+NULL_DIGEST="NULL"
 CLASSIC_DIGESTS="sha256 sha384 sha512"
 ADVANCED_DIGESTS="shake128 shake256 sha3-256 sha3-384 sha3-512"
-
-# Classic Algorithms
-# CLASSIC_ALGS="rsa ec ed25519 ed448"
-CLASSIC_ALGS_1="rsa ec"
-CLASSIC_ALGS_2="ed448 x448 ed25519 x25519"
-
-CLASSIC_DIGESTS_1="$CLASSIC_DIGESTS"
-CLASSIC_REQS_1="rsa ec"
-
-CLASSIC_DIGESTS_2="NULL"
-CLASSIC_REQS_2="ed448 ed25519"
-
-# Post Quantum Algorithms
-PQC_ALGS="dilithium2 dilithium3 dilithium5 falcon512 falcon1024"
-PQC_DIGESTS="NULL $CLASSIC_DIGESTS"
-
-PQC_REQS="$PQC_ALGS"
-
-# Composite Keys: Traditional Algorithms
-COMPOSITE_ALGS_TRADITIONAL_1="rsa ec"
-COMPOSITE_ALGS_TRADITIONAL_2="ed448 rsa"
-# COMPOSITE_ALGS_TRADITIONAL_2="ed25519 rsa"
-# COMPOSITE_ALGS_TRADITIONAL_3="ed25519 ec"
-# COMPOSITE_ALGS_TRADITIONAL_4="ed448 rsa"
-# COMPOSITE_ALGS_TRADITIONAL_5="ed448 ec"
-
-COMPOSITE_REQS_TRADITIONAL_1="comp_rsa_ec"
-COMPOSITE_REQS_TRADITIONAL_DIGESTS="$CLASSIC_DIGESTS"
-
-COMPOSITE_REQS_TRADITIONAL_2="comp_ed448_rsa comp_ec_rsa"
-COMPOSITE_REQS_TRADITIONAL_DIGESTS="NULL"
+ALL_DIGESTS="$NULL_DIGEST $CLASSIC_DIGESTS $ADVANCED_DIGESTS"
 
 # Composite Keys: Hybrid Algorithms
 COMPOSITE_ALGS_HYBRID_1="dilithium2 rsa"
@@ -235,58 +207,75 @@ COMPOSITE_REQS_EXPLICIT_DIGESTS="NULL"
 # Classic Algorithms
 # ==================
 
-# Generates Classic keys
-gen_key "$CLASSIC_ALGS_1"
+# # Generates Classic keys
+# gen_key "rsa ec ed448 ed25519 x448 x25519"
 
-gen_key "$CLASSIC_ALGS_2"
+# # Generates Classic CSRs with Hash-n-Sign
+# gen_req "rsa ec" "$CLASSIC_DIGESTS"
+# verify  "rsa ec" "$CLASSIC_DIGESTS" "req"
 
-# Generates Classic CSRs
-gen_req "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1"
+# # Generates Classic CSRs with Direct Signing
+# gen_req "ed448 ed25519" "$NULL_DIGEST"
+# verify  "ed448 ed25519" "$NULL_DIGEST" "req"
 
-verify "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1" "req"
+# # Generates Classic Certs with Hash-n-Sign
+# gen_cer "rsa ec" "$CLASSIC_DIGESTS"
+# verify  "rsa ec" "$CLASSIC_DIGESTS" "cer"
 
-gen_req "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2"
-
-verify "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2" "req"
-
-# Generates Classic CSRs
-gen_cer "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1"
-
-verify "$CLASSIC_REQS_1" "$CLASSIC_DIGESTS_1" "cer"
-
-gen_cer "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2"
-
-verify "$CLASSIC_REQS_2" "$CLASSIC_DIGESTS_2" "cer"
+# # Generates Classic Certs with Direct Signing
+# gen_cer "ed448 ed25519" "$NULL_DIGEST"
+# verify "ed448 ed25519" "$NULL_DIGEST" "cer"
 
 # ==============
 # PQC Algorithms
 # ==============
 
-# Generates Post-Quantum keys
-gen_key "$PQC_ALGS"
+# # Post Quantum Algorithms
+# PQC_ALGS="dilithium2 dilithium3 dilithium5 falcon512 falcon1024"
+# PQC_DIGESTS="$CLASSIC_DIGESTS $ADVANCED_DIGESTS"
 
-# Generates PQC CSRs
-gen_req "$PQC_ALGS" "$PQC_DIGESTS"
+# # Generates Post-Quantum keys
+# gen_key "$PQC_ALGS"
 
-verify "$PQC_ALGS" "$PQC_DIGESTS" "req"
+# # Generates Post-Quantum CSRs with Hash-n-Sign
+# gen_req "$PQC_ALGS" "$PQC_DIGESTS"
+# verify  "$PQC_ALGS" "$PQC_DIGESTS" "req"
 
-# Generates PQC Certificates
-gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
+# # Generates Post-Quantum CSRs with Direct Signing
+# gen_cer "$PQC_ALGS" "$NULL_DIGEST"
+# verify  "$PQC_ALGS" "$NULL_DIGEST" "req"
 
-verify "$PQC_ALGS" "$PQC_DIGESTS" "cer"
+# # Generates PQC Certificates with Hash-n-Sign
+# gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
+# verify  "$PQC_ALGS" "$PQC_DIGESTS" "cer"
 
 # =====================
 # Generic T/T Composite
 # =====================
 
 # Generates Composite Keys
-gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_1"
+gen_comp_key "rsa ec"
 
-gen_comp_key "$COMPOSITE_ALGS_TRADITIONAL_2" "1"
+# Generates Composite CSRs with Hash-n-Sign
+gen_req "comp_rsa_ec" "$CLASSIC_DIGESTS"
+verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "req"
 
-gen_req "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS"
+# Generates Composite CERTs with Direct Signing
+gen_cer "comp_rsa_ec" "$CLASSIC_DIGESTS"
+verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "cer"
 
-verify "$COMPOSITE_REQS_TRADITIONAL" "$COMPOSITE_REQS_TRADITIONAL_DIGESTS" "req"
+# Generates Composite K-of-N Keys
+gen_comp_key "ed448 rsa" "1"
+
+# Generates Composite K-of-N CSRs with Direct Signing
+gen_req "comp_ed448_rsa" "$NULL_DIGEST"
+verify  "comp_ed448_rsa" "$NULL_DIGEST" req
+
+# Generate Composite K-of-N CERT with Hash-n-Sign
+gen_cer "comp_ed448_rsa" "$ALL_DIGESTS"
+verify  "comp_rsa_ed25519" "$ALL_DIGESTS" "cer"
+
+exit 0;
 
 # =======================
 # Generic T/PQC Composite
