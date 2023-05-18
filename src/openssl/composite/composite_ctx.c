@@ -814,6 +814,16 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
       // Use hash-n-sign if set
       x_md = global_hash;
 
+      if (!OBJ_find_sigid_by_algs(&algid, 
+                                  x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
+                                  x_type)) {
+        // Cannot find the algorithm
+        PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
+          EVP_MD_name(x_md), idx, x_type);
+        sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+        return PKI_ERR;
+      }
+
     } else {
 
       // Checks if the component requires the digest
@@ -879,14 +889,14 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
         // Retrieves the algorithm identifier
         if (!OBJ_find_sigid_by_algs(&algid, 
                                          x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-                                         x_type)) {          
-          PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
-          // Cannot find the algorithm identifier
+                                         x_type)) {
+          // Cannot find the Signature algorithm identifier
+          PKI_DEBUG("Cannot find the Signature OID for component #%d (pkey: %d, md: %d) (hash not supported?)", idx);
+          // Unrecoverable error
           if (algor) X509_ALGOR_free(algor);
-          if (sk) sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);
+          if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
           return PKI_ERR;
         }
-
       }
 
       // Sets the algorithm identifier in the X509_ALGOR
