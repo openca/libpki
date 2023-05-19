@@ -116,9 +116,13 @@ function gen_req() {
             pki-tool genreq -digest "${dig}" -signkey "results/${alg}.key" \
                 -batch -out "results/${alg}_${dig}.req" ${DEBUG_OPTION} 2>&1 >> req_log.txt
             if [ $? -ne 0 ]; then
-                echo "Error: Failed to generate key for $alg + $dig\n"
-                echo pki-tool genreq -batch -digest "${dig}" -signkey "results/${alg}.key"
-                echo
+                echo >&2
+                echo >&2
+                echo "    Error: Failed to generate key for $alg + $dig" >&2
+                echo >&2
+                echo pki-tool genreq -batch -digest "${dig}" -signkey "results/${alg}.key" >&2
+                echo >&2
+                echo >&2
                 exit 1
             fi
         done
@@ -140,9 +144,11 @@ function gen_cer() {
                 -batch -in "results/${alg}_${dig}.req" ${DEBUG_OPTION} \
                 -out "results/${alg}_${dig}.cer" 2>&1 > cert_log.txt
             if [ $? -ne 0 ]; then
-                echo
-                echo "\n    ERROR: Failed to generate self-signed cert (Alg: $alg, Dig: $dig)\n\n"
-                echo
+                echo >&2
+                echo >&2
+                echo "    ERROR: Failed to generate self-signed cert (Alg: $alg, Dig: $dig)" >&2
+                echo >&2
+                echo >&2
                 exit 1
             fi
         done
@@ -164,8 +170,11 @@ function verify() {
                 pki-siginfo -signer "results/${alg}.key" ${DEBUG_OPTION} \
                     -in "results/${alg}_${dig}.${type}" 2>&1 >> verify_log.txt
                 if [ $? -ne 0 ]; then
-                    echo "Error: Failed to generate self-signed cert for $alg + $dig\n"
-                    echo
+                    echo >&2
+                    echo >&2
+                    echo "    ERROR: Failed to validate $alg and $dig (results/${alg}_${dig}.${type})" >&2
+                    echo >&2
+                    echo >&2
                     exit 1
                 fi
             done
@@ -207,47 +216,48 @@ COMPOSITE_REQS_EXPLICIT_DIGESTS="NULL"
 # Classic Algorithms
 # ==================
 
-# # Generates Classic keys
-# gen_key "rsa ec ed448 ed25519 x448 x25519"
+# Generates Classic keys
+gen_key "rsa ec ed448 ed25519 x448 x25519"
 
-# # Generates Classic CSRs with Hash-n-Sign
-# gen_req "rsa ec" "$CLASSIC_DIGESTS"
-# verify  "rsa ec" "$CLASSIC_DIGESTS" "req"
+# Generates Classic CSRs with Hash-n-Sign
+gen_req "rsa ec" "$CLASSIC_DIGESTS"
+verify  "rsa ec" "$CLASSIC_DIGESTS" "req"
 
-# # Generates Classic CSRs with Direct Signing
-# gen_req "ed448 ed25519" "$NULL_DIGEST"
-# verify  "ed448 ed25519" "$NULL_DIGEST" "req"
+# Generates Classic CSRs with Direct Signing
+gen_req "ed448 ed25519" "$NULL_DIGEST"
+verify  "ed448 ed25519" "$NULL_DIGEST" "req"
 
-# # Generates Classic Certs with Hash-n-Sign
-# gen_cer "rsa ec" "$CLASSIC_DIGESTS"
-# verify  "rsa ec" "$CLASSIC_DIGESTS" "cer"
+# Generates Classic Certs with Hash-n-Sign
+gen_cer "rsa ec" "$CLASSIC_DIGESTS"
+verify  "rsa ec" "$CLASSIC_DIGESTS" "cer"
 
-# # Generates Classic Certs with Direct Signing
-# gen_cer "ed448 ed25519" "$NULL_DIGEST"
-# verify "ed448 ed25519" "$NULL_DIGEST" "cer"
+# Generates Classic Certs with Direct Signing
+gen_cer "ed448 ed25519" "$NULL_DIGEST"
+verify "ed448 ed25519" "$NULL_DIGEST" "cer"
 
 # ==============
 # PQC Algorithms
 # ==============
 
-# # Post Quantum Algorithms
-# PQC_ALGS="dilithium2 dilithium3 dilithium5 falcon512 falcon1024"
-# PQC_DIGESTS="$CLASSIC_DIGESTS $ADVANCED_DIGESTS"
+# Post Quantum Algorithms
+PQC_ALGS="dilithium2 dilithium3 dilithium5 falcon512 falcon1024"
+PQC_DIGESTS="$CLASSIC_DIGESTS $ADVANCED_DIGESTS"
 
-# # Generates Post-Quantum keys
-# gen_key "$PQC_ALGS"
+# Generates Post-Quantum keys
+gen_key "$PQC_ALGS"
 
-# # Generates Post-Quantum CSRs with Hash-n-Sign
-# gen_req "$PQC_ALGS" "$PQC_DIGESTS"
-# verify  "$PQC_ALGS" "$PQC_DIGESTS" "req"
+# Generates Post-Quantum CSRs with Hash-n-Sign
+gen_req "$PQC_ALGS" "$NULL_DIGEST $PQC_DIGESTS"
+verify  "$PQC_ALGS" "$NULL_DIGEST $PQC_DIGESTS" "req"
 
-# # Generates Post-Quantum CSRs with Direct Signing
-# gen_cer "$PQC_ALGS" "$NULL_DIGEST"
-# verify  "$PQC_ALGS" "$NULL_DIGEST" "req"
+# Generates Post-Quantum CSRs with Direct Signing
+gen_cer "$PQC_ALGS" "$NULL_DIGEST"
+verify  "$PQC_ALGS" "$NULL_DIGEST" "req"
 
-# # Generates PQC Certificates with Hash-n-Sign
-# gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
-# verify  "$PQC_ALGS" "$PQC_DIGESTS" "cer"
+# Generates PQC Certificates with Hash-n-Sign
+gen_cer "$PQC_ALGS" "$PQC_DIGESTS"
+verify  "$PQC_ALGS" "$PQC_DIGESTS" "cer"
+
 
 # =====================
 # Generic T/T Composite
@@ -265,17 +275,24 @@ gen_cer "comp_rsa_ec" "$CLASSIC_DIGESTS"
 verify  "comp_rsa_ec" "$CLASSIC_DIGESTS" "cer"
 
 # Generates Composite K-of-N Keys
-gen_comp_key "ed448 rsa" "1"
+gen_comp_key "rsa ed25519"
 
-# Generates Composite K-of-N CSRs with Direct Signing
-gen_req "comp_ed448_rsa" "$CLASSIC_DIGESTS"
-verify  "comp_ed448_rsa" "$CLASSIC_DIGESTS" req
+gen_req "comp_rsa_ed25519" "$NULL_DIGEST $CLASSIC_DIGESTS"
+verify "comp_rsa_ed25519" "$NULL_DIGEST $CLASSIC_DIGESTS" req
 
-# # Generate Composite K-of-N CERT with Hash-n-Sign
-# gen_cer "comp_ed448_rsa" "$ALL_DIGESTS"
-# verify  "comp_rsa_ed25519" "$ALL_DIGESTS" "cer"
+gen_cer "comp_rsa_ed25519" "$NULL_DIGEST $CLASSIC_DIGESTS"
+verify "comp_rsa_ed25519" "$NULL_DIGEST sha256 sha384 sha512" cer
 
-exit 0;
+# Generates Composite K-of-N Keys
+gen_comp_key "ed448 rsa"
+
+# # Generates Composite K-of-N CSRs with Direct Signing
+gen_req "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS"
+verify  "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS" req
+
+# Generate Composite K-of-N CERT with Hash-n-Sign
+gen_cer "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS"
+verify  "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS" "cer"
 
 # =======================
 # Generic T/PQC Composite
@@ -289,7 +306,6 @@ gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
 
 verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req" # <------ This one is broken
 
-
 # Generates Composite CSRs
 
 gen_comp_key "$COMPOSITE_ALGS_HYBRID_3" "1"
@@ -300,19 +316,21 @@ gen_comp_key "$COMPOSITE_ALGS_HYBRID_5" "1"
 
 gen_req "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS"
 
-# # verify "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS" "req" <------ This one is broken
+verify "$COMPOSITE_REQS_HYBRID_3_4_5" "$COMPOSITE_REQS_HYBRID_3_4_5_DIGESTS" "req" # <------ This one is broken
+
+exit 0;
 
 # ==================
 # Explicit Composite
 # ==================
 
-# Generate Explicit Composite Keys
-gen_exp_key "$COMPOSITE_ALGS_EXPLICIT_1"
+# # Generate Explicit Composite Keys
+# gen_exp_key "$COMPOSITE_ALGS_EXPLICIT_1"
 
-gen_exp_key "$COMPOSITE_ALGS_EXPLICIT_2"
+# gen_exp_key "$COMPOSITE_ALGS_EXPLICIT_2"
 
-# Generates Explicit Composite CSRs
-gen_req "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"
+# # Generates Explicit Composite CSRs
+# gen_req "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS"
 
 # verify "$COMPOSITE_REQS_EXPLICIT_1_2" "$COMPOSITE_REQS_EXPLICIT_DIGESTS" "req"  # <------ This one is broken
 

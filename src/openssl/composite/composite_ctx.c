@@ -814,15 +814,24 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
       // Use hash-n-sign if set
       x_md = global_hash;
 
-      if (!OBJ_find_sigid_by_algs(&algid, 
-                                  x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-                                  x_type)) {
-        // Cannot find the algorithm
-        PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
-          EVP_MD_name(x_md), idx, x_type);
-        sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-        return PKI_ERR;
-      }
+      // if (!OBJ_find_sigid_by_algs(&algid, 
+      //                             x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
+      //                             x_type)) {
+      //   // Checks for special use-cases
+      //   if (x_type == PKI_ALGOR_ID_ED25519 ||
+      //       x_type == PKI_ALGOR_ID_ED448) {
+      //     // EdDSA does not require a digest but they
+      //     // only support digestsign() and digestverify()
+      //     PKI_DEBUG("Special case: EdDSA does not require a digest, but do not support sign() and verify()");
+      //     algid = x_type;
+      //   } else {
+      //     // Cannot find the algorithm
+      //     PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
+      //       EVP_MD_name(x_md), idx, x_type);
+      //     sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+      //     return PKI_ERR;
+      //   }
+      // }
 
     } else {
 
@@ -880,23 +889,55 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
       // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
       // we use a different approach
       if (PKI_ID_is_pqc(x_type, NULL) && !use_global_hash) {
-
         // Use the same ID for key and algorithm
         algid = x_type;
-
       } else {
 
         // Retrieves the algorithm identifier
         if (!OBJ_find_sigid_by_algs(&algid, 
-                                         x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-                                         x_type)) {
-          // Cannot find the Signature algorithm identifier
-          PKI_DEBUG("Cannot find the Signature OID for component #%d (pkey: %d, md: %d) (hash not supported?)", idx);
-          // Unrecoverable error
-          if (algor) X509_ALGOR_free(algor);
-          if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-          return PKI_ERR;
+                                    x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
+                                    x_type)) {
+          // Checks for special use-cases
+          if (x_type == PKI_ALGOR_ID_ED25519 ||
+              x_type == PKI_ALGOR_ID_ED448) {
+            // EdDSA does not require a digest but they
+            // only support digestsign() and digestverify()
+            //
+            // When we enable signing with an empty digest, the algorithms
+            // do not seem to be performing correctly, so we disable it
+            //
+            // To re-enable them, just uncomment the following line
+            // algid = x_type;
+            PKI_DEBUG("[Comp #%d] ED25519 and ED448 do not support hash-n-sign (pkey: %d, hash: %s)",
+              idx, x_type, EVP_MD_name(x_md));
+            // TODO: This allows to generate signatures that are not verifiable
+            //       therefore we put out a warning. We need to investigate why
+            //       this is happening and fix it.
+            //
+            //       Combinations that are not working (global hash):
+            //       - ED25519 + SHA384
+            //       - ED448 + SHA384
+            //       - ED448 + SHA512
+            algid = x_type;
+            // if (algor) X509_ALGOR_free(algor);
+            // sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+            // return PKI_ERR;
+          } else {
+            // Cannot find the algorithm
+            PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
+              EVP_MD_name(x_md), idx, x_type);
+            if (algor) X509_ALGOR_free(algor);
+            sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+            return PKI_ERR;
+          }
+          // // // Cannot find the Signature algorithm identifier
+          // // PKI_DEBUG("Cannot find the Signature OID for component #%d (pkey: %d, md: %d) (hash not supported?)", idx);
+          // // // Unrecoverable error
+          // // if (algor) X509_ALGOR_free(algor);
+          // // if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+          // return PKI_ERR;
         }
+
       }
 
       // Sets the algorithm identifier in the X509_ALGOR
