@@ -2739,6 +2739,7 @@ int PKI_TOKEN_self_sign (PKI_TOKEN 		* tk,
 						 unsigned long    validity, 
 						 char 			* profile_s ) {
 
+	char * cert_serial = NULL;
 	PKI_X509_PROFILE *cert_profile = NULL;
 	PKI_X509_CERT * cert = NULL;
 	// char serial_txt[20];
@@ -2765,51 +2766,35 @@ int PKI_TOKEN_self_sign (PKI_TOKEN 		* tk,
 		PKI_log(PKI_LOG_WARNING, "The current certificate will be replaced with a new one!");
 	}
 
-	// // Use a Random Serial Number
-	// if(!serial) {
-	// 	char * parsed_serial = NULL;
-	// 	unsigned char serBuf[10];
-	// 		// Serial Buffer
-
-	// 	PKI_INTEGER *asn1_integer = NULL;
-	// 		// ASN1 Integer
-
-	// 	// Generates a random serial number
-	// 	RAND_bytes( serBuf, sizeof(serBuf));
-
-	// 	// Creates an ASN1 Integer from the random serial
-	// 	asn1_integer = PKI_INTEGER_new_bin( serBuf, sizeof(serBuf));
-	// 	if (asn1_integer) {
-	// 		// Gets the string representation of the serial number
-	// 		parsed_serial = PKI_INTEGER_get_parsed( asn1_integer );
-	// 		if (parsed_serial) {
-	// 			snprintf(serial_txt, sizeof(serial_txt), "%s", parsed_serial);
-	// 			PKI_Free(parsed_serial);
-	// 			// Point the serial to the new random value
-	// 			serial = serial_txt;
-	// 		} else { 
-	// 			serial = "0";
-	// 		}
-	// 		// Free the memory
-	// 		PKI_INTEGER_free(asn1_integer);
-	// 	} else {
-	// 		serial = "0";
-	// 	}
-	// }
-
-	if (!serial) serial = "0";
+	// Use a Random Serial Number
+	if (!serial) {
+		PKI_INTEGER * asn1_integer = PKI_INTEGER_new_rand(160);
+		if (asn1_integer) {
+			cert_serial = PKI_INTEGER_get_parsed(asn1_integer);
+			PKI_INTEGER_free(asn1_integer);
+		} else {
+			cert_serial = strdup("0");
+		}
+	} else {
+		cert_serial = strdup(serial);
+	}
 
 	// Generate the certificate
 	cert = PKI_X509_CERT_new(NULL,
 							 tk->keypair, 
 							 tk->req, 
 							 subject,
-							 serial,
+							 cert_serial,
 							 validity, 
 							 cert_profile,
 							 tk->algor,
 							 tk->oids,
 							 tk->hsm );
+
+	// Free the cert_serial memory
+	PKI_Free(cert_serial);
+
+	// Checks for possible errors
 	if (!cert) {
 		PKI_DEBUG("Certificate was not issued for algor %s", PKI_X509_ALGOR_VALUE_get_parsed(tk->algor));
 		PKI_DEBUG("OpenSSL Error Description: %s", PKI_ERROR_crypto_get_errdesc());
@@ -2818,7 +2803,7 @@ int PKI_TOKEN_self_sign (PKI_TOKEN 		* tk,
 	}
 
 	// Add the certificate to the token
-	PKI_X509_CERT_free(tk->cert);
+	if (tk->cert) PKI_X509_CERT_free(tk->cert);
 	tk->cert = cert;
 
 	// All Done

@@ -38,6 +38,7 @@ OPENSSL_SRCS = \
 	pthread_init.c \
 	pki_id.c \
 	pki_oid.c \
+	pki_rand.c \
 	pki_oid_defs.c \
 	pki_algor.c \
 	pki_digest.c \

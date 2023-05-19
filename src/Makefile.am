@@ -48,7 +48,6 @@ SRCS = \
 	pki_init.c \
 	stack.c \
 	pki_mem.c \
-	pki_rand.c \
 	pki_cred.c \
 	pki_err.c \
 	pki_log.c \
