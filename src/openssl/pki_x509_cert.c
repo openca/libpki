@@ -55,7 +55,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
   PKI_X509_CERT_VALUE *val = NULL;
   PKI_X509_NAME *subj = NULL;
   PKI_X509_NAME *issuer = NULL;
-  PKI_DIGEST_ALG *digest = NULL;
+  const PKI_DIGEST_ALG *digest;
   PKI_X509_KEYPAIR_VALUE *signingKey = NULL;
   PKI_TOKEN *tk = NULL;
   PKI_SCHEME_ID scheme;
@@ -81,6 +81,23 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
 
   // Retrieves the internal value
   signingKey = kPair->value;
+
+  // Parses the Digest, if any
+  if (algor) {
+    // Gets the Digest from the passed value
+    digest = PKI_X509_ALGOR_VALUE_get_digest(algor);
+    if (!digest) {
+      // If no digest is present, let's use the token's one
+      digest = tk->digest;
+      if (!digest) {
+        // If no digest is present, let's use the default one
+        digest = PKI_DIGEST_ALG_DEFAULT;
+      }
+    }
+  }
+
+  // Digest Info
+  PKI_DEBUG("Creating a New Cert ----> digest: %s", PKI_DIGEST_ALG_get_parsed(digest));
 
   /* TODO: This has to be fixed, to work on every option */
   if (subj_s) {
@@ -203,27 +220,34 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
     // the usual 'fake' 0
     if ( ca_cert ) {
 
-      BIGNUM * rnd_bn = NULL;
+      // BIGNUM * rnd_bn = NULL;
 
-      if ((rnd_bn = BN_new()) == NULL) {
-        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      // if ((rnd_bn = BN_new()) == NULL) {
+      //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      //   goto err;
+      // }
+
+      // if (!BN_rand(rnd_bn, 160, 0, 0)) {
+      //   PKI_log_debug("Cannot Generate a Random Serial Number");
+      //   BN_free(rnd_bn);
+      //   goto err;
+      // }
+
+      // if ((serial = BN_to_ASN1_INTEGER(rnd_bn, NULL)) == NULL) {
+      //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      //   BN_free(rnd_bn);
+      //   goto err;
+      // }
+
+      // // Free Memory
+      // BN_free(rnd_bn);
+
+      // Gets a new random serial number
+      serial = PKI_INTEGER_new_rand(160);
+      if (!serial) {
+        PKI_ERROR(PKI_ERR_X509_CERT_CREATE_SERIAL, serial_s);
         goto err;
       }
-
-      if (!BN_rand(rnd_bn, 160, 0, 0)) {
-        PKI_log_debug("Cannot Generate a Random Serial Number");
-        BN_free(rnd_bn);
-        goto err;
-      }
-
-      if ((serial = BN_to_ASN1_INTEGER(rnd_bn, NULL)) == NULL) {
-        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-        BN_free(rnd_bn);
-        goto err;
-      }
-
-      // Free Memory
-      BN_free(rnd_bn);
 
       /*
       unsigned char bytes[11];
@@ -234,7 +258,7 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
       serial = PKI_INTEGER_new_bin(bytes, sizeof(bytes));
       */
     } else {
-      serial = s2i_ASN1_INTEGER( NULL, "0");
+      serial = PKI_INTEGER_new(0);
     };
   };
 

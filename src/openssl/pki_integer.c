@@ -2,6 +2,48 @@
 
 #include <libpki/pki.h>
 
+
+PKI_INTEGER* PKI_INTEGER_new_rand(int bits) {
+
+	PKI_INTEGER *ret = NULL;
+		// Return value
+
+	BIGNUM * rnd_bn = NULL;
+		// OpenSSL BIGNUM for random number
+
+	// Input Checks
+	if (bits <= 0) {
+		PKI_DEBUG("Can not generate a random number of %d bits (positive value needed)", bits);
+		return NULL;
+	}
+
+	// Allocates BIGNUM
+	if ((rnd_bn = BN_new()) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Generates the random number
+	if (!BN_rand(rnd_bn, 160, 0, 0)) {
+		PKI_log_debug("Cannot Generate a Random Serial Number");
+		BN_free(rnd_bn);
+		return NULL;
+	}
+
+	// Translates the BIGNUM into a PKI_INTEGER
+	if ((ret = BN_to_ASN1_INTEGER(rnd_bn, NULL)) == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		BN_free(rnd_bn);
+		return NULL;
+	}
+
+	// Free Memory
+	BN_free(rnd_bn);
+	
+	// All Done
+	return ret;
+}
+
 /*! \brief Returns a PKI_INTEGER object from a string */
 
 PKI_INTEGER *PKI_INTEGER_new_char( const char *val ) {

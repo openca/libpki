@@ -5,6 +5,13 @@
 
 PKI_INTEGER *PKI_INTEGER_new_bin ( const unsigned char *data, size_t size );
 PKI_INTEGER *PKI_INTEGER_new_char( const char *val );
+/*!
+ * @brief Returns a random PKI_INTEGER of the specified size
+ * @param num The number of random bits to generate
+ * @return An allocated PKI_INTEGER pointer or NULL if an error occurs
+ */
+PKI_INTEGER *PKI_INTEGER_new_rand(int bits);
+
 PKI_INTEGER *PKI_INTEGER_new( long long val );
 PKI_INTEGER *PKI_INTEGER_dup( const PKI_INTEGER *a );
 

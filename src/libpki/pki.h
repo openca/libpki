@@ -268,6 +268,7 @@ typedef enum {
 
 /* Libpki Includes */
 #include <libpki/pki_time.h>
+#include <libpki/pki_rand.h>
 #include <libpki/pki_integer.h>
 #include <libpki/pki_x509_profile.h>
 #include <libpki/pki_x509_mem.h>

@@ -188,12 +188,7 @@ CLASSIC_DIGESTS="sha256 sha384 sha512"
 ADVANCED_DIGESTS="shake128 shake256 sha3-256 sha3-384 sha3-512"
 ALL_DIGESTS="$NULL_DIGEST $CLASSIC_DIGESTS $ADVANCED_DIGESTS"
 
-# Composite Keys: Hybrid Algorithms
-COMPOSITE_ALGS_HYBRID_1="dilithium2 rsa"
-COMPOSITE_ALGS_HYBRID_2="falcon512 ec"
 
-COMPOSITE_REQS_HYBRID_1_2="comp_dilithium2_rsa comp_falcon512_ec"
-COMPOSITE_REQS_HYBRID_1_2_DIGESTS="NULL $CLASSIC_DIGESTS"
 
 # Composite Keys: Post Quantum Algorithms
 COMPOSITE_ALGS_HYBRID_3="dilithium2 falcon512"
@@ -294,12 +289,32 @@ verify  "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS" req
 gen_cer "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS"
 verify  "comp_ed448_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS" "cer"
 
+# Generates Composite K-of-N Keys
+gen_comp_key "ed25519 ed448"
+
+# # Generates Composite K-of-N CSRs with Direct Signing
+gen_req "comp_ed25519_ed448" "$NULL_DIGEST $CLASSIC_DIGESTS"
+verify  "comp_ed25519_ed448" "$NULL_DIGEST $CLASSIC_DIGESTS" req
+
+# Generate Composite K-of-N CERT with Hash-n-Sign
+gen_cer "comp_ed25519_ed448" "$NULL_DIGEST $CLASSIC_DIGESTS"
+verify  "comp_ed25519_ed448" "$NULL_DIGEST $CLASSIC_DIGESTS" "cer"
+
+exit 0;
+
 # =======================
 # Generic T/PQC Composite
 # =======================
 
-gen_comp_key "$COMPOSITE_ALGS_HYBRID_1"
-gen_comp_key "$COMPOSITE_ALGS_HYBRID_2" "2"
+# Composite Keys: Hybrid Algorithms
+COMPOSITE_ALGS_HYBRID_1="dilithium2 rsa"
+COMPOSITE_ALGS_HYBRID_2="falcon512 ec"
+
+COMPOSITE_REQS_HYBRID_1_2="comp_dilithium2_rsa comp_falcon512_ec"
+COMPOSITE_REQS_HYBRID_1_2_DIGESTS="NULL $CLASSIC_DIGESTS"
+
+gen_comp_key "$dilithium2 rsa"
+gen_comp_key "falcon512 ec" "1"
 
 gen_req "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS"
 verify "$COMPOSITE_REQS_HYBRID_1_2" "$COMPOSITE_REQS_HYBRID_1_2_DIGESTS" "req"
