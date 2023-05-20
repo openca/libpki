@@ -749,7 +749,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
                               X509_ALGORS               ** algors) {
   
   int use_global_hash = 0;
-  const EVP_MD * global_hash;
+  const EVP_MD * global_hash = NULL;
     // Global hash to be used for all the components
 
   X509_ALGORS * sk = NULL;

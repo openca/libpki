@@ -510,7 +510,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
       PKI_DEBUG("[Comp #%d] Signing Data (tbs_data: %p, tbs_data_len: %d)", idx, x_tbs_data, x_tbs_data_len);
       {
         char str[256] = { 0x0 };
-        for (int iii = 0; iii < 16; iii++) {
+        for (size_t iii = 0; iii < 16; iii++) {
           snprintf(str + 3*iii, 256 - 3*iii, "%02X:", x_tbs_data[iii]);
         }
         PKI_DEBUG("[Comp #%d] Data Dump: %s", idx, str);
@@ -640,7 +640,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // Updates the overall real size
-    total_size += sig_buff_len;
+    total_size += (int)sig_buff_len;
 
     // Debugging Info
     PKI_DEBUG("[Comp #%d] Successfully generated signature (size: %d)", idx, sig_buff_len);
@@ -1104,7 +1104,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
     // Debugging Info
     {
       char str[256] = { 0x0 };
-      for (int iii = 0; iii < 16; iii++) {
+      for (size_t iii = 0; iii < 16; iii++) {
         snprintf(str + 3*iii, 256 - 3*iii, "%02X:", tbs_data[iii]);
       }
       PKI_DEBUG("[Comp #%d] Data Dump: %s", i, str);

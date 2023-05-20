@@ -94,6 +94,8 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
         digest = PKI_DIGEST_ALG_DEFAULT;
       }
     }
+  } else {
+    digest = NULL;
   }
 
   // Digest Info
