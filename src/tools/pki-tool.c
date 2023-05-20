@@ -65,7 +65,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -out <url>       - Output Data URI\n");
 	fprintf(stderr, "  -pubout <url>    - Saves the SubjectPublicKeyInfo of a cert\n");
 	fprintf(stderr, "  -outform <OPT>   - Output Format (i.e., PEM, DER, TXT, XML)\n");
-	fprintf(stderr, "  -bits <num>      - Security Bits for key generation (e.g. 80, 112, 128, 192, 256)\n");
+	fprintf(stderr, "  -sec_bits <num>  - Security Bits for key generation (range: 80, 112, 128, 192, 256)\n");
 	fprintf(stderr, "  -type <objtype>  - Type of Object\n");
 	fprintf(stderr, "  -algor <name>    - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
 	fprintf(stderr, "  -digest <name>   - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
@@ -95,7 +95,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -batch           - Batch mode (no prompt - assumes yes)\n");
 	fprintf(stderr, "  -verbose         - Writes additional info to stdout\n");
 	fprintf(stderr, "  -debug           - Enables Debugging info to stderr\n");
-	fprintf(stderr, "  -param <par>     - KeyGen param (eg., curve:curvename for EC)\n");
+	fprintf(stderr, "  -param <par>     - Key generation parameter (eg., curve:<curve> for EC, bits:<num> for RSA)\n");
 	fprintf(stderr, "  -curves          - Prints out available curve names\n");
 
 	fprintf(stderr, "\n  Where Type of Object can be:\n");
@@ -252,7 +252,7 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 }
 
 int gen_keypair(PKI_TOKEN 		* tk, 
-				int 			  bits, 
+				int 			  sec_bits, 
 				char 			* param_s,
 				char 			* url_s, 
 				PKI_SCHEME_ID     scheme_id, 
@@ -313,19 +313,18 @@ int gen_keypair(PKI_TOKEN 		* tk,
 	}
 
 	// Updates the bits (use defaults, if not specified)
-	if (bits <= 0 && kp->sec_bits > 0) bits = kp->sec_bits;
-
-	// Let's make sure we have a good value for the security bits
-	if (bits <= 0) bits = PKI_DEFAULT_CLASSIC_SEC_BITS;
-
-	// Checks that the bits value is not negative (at least!)
-	if (PKI_KEYPARAMS_set_security_bits(kp, bits) != PKI_OK) {
-		fprintf(stderr, "\n    WARNING, requested bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
-			bits, PKI_SCHEME_ID_get_parsed(scheme_id), kp->bits);
+	if (sec_bits <= 0) {
+		if (kp->sec_bits > 0) { sec_bits = kp->sec_bits; }
+		else { sec_bits = PKI_DEFAULT_CLASSIC_SEC_BITS; }
+	} else {
+		if (PKI_ERR == PKI_KEYPARAMS_set_security_bits(kp, sec_bits)) {
+			fprintf(stderr, "\n    ERROR, can not set security bits (%d)!\n\n", sec_bits);
+			exit(1);
+		}
 	}
 
 #ifdef ENABLE_COMPOSITE
-	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme_id, bits);
+	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme_id, sec_bits);
 	PKI_DEBUG("Key to be generated is PQC? %s", PKI_SCHEME_ID_is_post_quantum(scheme_id) ? "YES" : "NO");
 	PKI_DEBUG("Key to be generated is composite? %s", PKI_SCHEME_ID_is_composite(scheme_id) ? "YES" : "NO");
 	PKI_DEBUG("Key to be generated is explicit composite? %s", PKI_SCHEME_ID_is_explicit_composite(scheme_id) ? "YES" : "NO");
@@ -361,6 +360,45 @@ int gen_keypair(PKI_TOKEN 		* tk,
 					}
 				}
 				break;
+
+			case PKI_SCHEME_RSA:
+			case PKI_SCHEME_RSAPSS: {
+				// RSA Scheme - allow for bits:<int> param
+				int bit_size = 0;
+				if (str_cmp_ex(param_s, "bits:", 5, 1) == 0 ) {
+					// Get the Name of the Curve
+					if (sscanf(param_s + 5, "%d", &bit_size) < 1) {
+						fprintf(stderr, "\n    ERROR: Cannot get bitsize from the key param, please use 'bits:<int>' (%s)\n\n", param_s);
+						exit(1);
+					}
+					if (bit_size <= 0 || bit_size > 15360) {
+						fprintf(stderr, "\n    ERROR: Invalid bitsize (%d) specified, please use a value between 1 and 16384.\n\n", bit_size);
+						exit(1);
+					}
+				} else {
+					fprintf(stderr, "\nERROR: RSA Scheme does not support (%s). Please use 'bits:<int>' format for RSA key sizes.\n\n", param_s);
+					exit(1);
+				}
+
+			 	// Updates the associated security bits
+					 if (bit_size <= 32  )  { kp->sec_bits = 18; }
+				else if (bit_size <= 512 )  { kp->sec_bits = 60; }
+				else if (bit_size <= 756 )  { kp->sec_bits = 70; }
+				else if (bit_size <= 1024)  { kp->sec_bits = 80; }
+				else if (bit_size <= 1536)  { kp->sec_bits = 95; }
+				else if (bit_size <= 2048) { kp->sec_bits = 112; }
+				else if (bit_size <= 3072) { kp->sec_bits = 128; }
+				else if (bit_size <= 4096) { kp->sec_bits = 140; }
+				else if (bit_size <= 7680) { kp->sec_bits = 192; }
+				else if (bit_size <= 15360){ kp->sec_bits = 256; }
+				else { kp->sec_bits = 256; } // Laughable, but let's have fun :)
+
+				// Updates the RSA bitsize
+				PKI_DEBUG("Replacing RSA bitsize (%d) with %d", kp->rsa.bits, bit_size);
+				kp->rsa.bits = bit_size;
+				kp->bits = bit_size;
+
+			} break;
 #endif
 
 #ifdef ENABLE_COMPOSITE
@@ -448,6 +486,19 @@ int gen_keypair(PKI_TOKEN 		* tk,
 
 	if (!batch)	{
 
+		int bit_size = 0;
+		if (kp->scheme == PKI_SCHEME_RSA ||
+		    kp->scheme == PKI_SCHEME_RSAPSS ||
+			kp->scheme == PKI_SCHEME_DSA ) {
+			bit_size = kp->rsa.bits;
+		} else {
+			if (kp->bits > 0) {
+				bit_size = kp->bits;
+			} else {
+				bit_size = PKI_SCHEME_ID_get_bitsize(kp->scheme, kp->sec_bits);
+			}
+		}
+
 		fprintf(stderr, "\nThis will generate a new keypair on the "
 							"Token.\n");
 		fprintf(stderr, "\nDetails:\n");
@@ -460,7 +511,7 @@ int gen_keypair(PKI_TOKEN 		* tk,
 		fprintf(stderr, "  - Quantum Sec Bits ...: %d\n", 
 					kp->pq_sec_bits );
 		fprintf(stderr, "  - Bits (size) ........: %d\n", 
-					PKI_SCHEME_ID_get_bitsize(kp->scheme, kp->sec_bits));
+					bit_size);
 		fprintf(stderr, "  - Is Quantum Safe ....: %s (%d)\n", 
 					PKI_SCHEME_ID_is_post_quantum(kp->scheme) ? "Yes" : "No", kp->scheme);
 		fprintf(stderr, "  - Is Composite .......: %s (explicit: %s)\n", 
@@ -1051,7 +1102,7 @@ int main (int argc, char *argv[] ) {
 	PKI_LOG_FLAGS log_debug = 0;
 	int batch = 0;
 
-	int bits = 128;
+	int sec_bits = 128;
 	int token_slot = 0;
 	int selfsign = 0;
 	int newkey = 0;
@@ -1217,9 +1268,9 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-secs", argv[i], 5 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			secs = atoi( argv[i] );
-		} else if ( strncmp_nocase("-bits", argv[i], 5 ) == 0 ) {
+		} else if ( strncmp_nocase("-sec_bits", argv[i], 5 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
-			bits = atoi(argv[i]);
+			sec_bits = atoi(argv[i]);
 		} else if ( strncmp_nocase("-slot", argv[i], 5 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			token_slot = atoi(argv[i]);
@@ -1575,26 +1626,31 @@ int main (int argc, char *argv[] ) {
 
 		PKI_DEBUG("Generating Key Pair: option %s", algor_opt );
 
-		int sec_bits = 0;
+		int scheme_sec_bits = -1;
 		PKI_SCHEME_ID scheme_id = PKI_SCHEME_ID_get_by_name(algor_opt, 
-															&sec_bits, 
+															&scheme_sec_bits, 
 															NULL);
 
 		if (scheme_id <= 0) {
-			PKI_log_err("\n    ERROR, can not find scheme for %s, aborting.\n\n", algor_opt);
+			fprintf(stderr, "\n    ERROR, can not find scheme for %s, aborting.\n\n", algor_opt);
 			exit(1);
 		}
-
-		PKI_SCHEME_ID_security_bits(scheme_id, &sec_bits, NULL);
-		if (sec_bits >= 0) {
-			if (sec_bits < bits) PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", sec_bits, bits);
-			if (sec_bits > bits) bits = sec_bits;
+		// if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &sec_bits, NULL)) {
+		// 	fprintf(stderr, "\n    ERROR, can not get security bits for %s, aborting.\n\n", algor_opt);
+		// 	exit(1);
+		// }
+		if (scheme_sec_bits >= 0) {
+			if (scheme_sec_bits < sec_bits) {
+				PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", 
+					scheme_sec_bits, sec_bits);
+			}
+			if (scheme_sec_bits >= sec_bits) sec_bits = scheme_sec_bits;
 		}
 
 		PKI_DEBUG("\nSelected Algorithm: %s\n", algor_opt);
 
 		if ((gen_keypair(tk, 
-				 bits,
+				 sec_bits,
 				 param_s,
 				 outfile,
 				 scheme_id,
@@ -1630,24 +1686,29 @@ int main (int argc, char *argv[] ) {
 
 			if (verbose) fprintf(stderr, "Generating KeyPair %s ...", outkey_s);
 
-			int sec_bits = 0;
-			PKI_SCHEME_ID scheme_id = PKI_SCHEME_ID_get_by_name(algor_opt, &sec_bits, NULL);
+			int scheme_sec_bits = -1;
+			PKI_SCHEME_ID scheme_id = PKI_SCHEME_ID_get_by_name(algor_opt, 
+																&scheme_sec_bits, 
+																NULL);
+
 			if (scheme_id <= 0) {
 				PKI_log_err("\n    ERROR, can not find scheme for %s, aborting.\n\n", algor_opt);
 				exit(1);
 			}
-
-			if (sec_bits >= 0) {
-				if (sec_bits < bits) PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", sec_bits, bits);
-				if (sec_bits > bits) bits = sec_bits;
+			if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &sec_bits, NULL)) {
+				fprintf(stderr, "\n    ERROR, can not get security bits for %s, aborting.\n\n", algor_opt);
+				exit(1);
 			}
-
-			if (sec_bits >= 0 && sec_bits < bits) {
-				PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", sec_bits, bits);
+			if (scheme_sec_bits >= 0) {
+				if (scheme_sec_bits < sec_bits) {
+					PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", 
+						scheme_sec_bits, sec_bits);
+				}
+				if (scheme_sec_bits >= sec_bits) sec_bits = scheme_sec_bits;
 			}
 
 #ifdef ENABLE_COMPOSITE
-			if ((gen_keypair(tk, bits, param_s, outkey_s, scheme_id, 
+			if ((gen_keypair(tk, sec_bits, param_s, outkey_s, scheme_id, 
 					profile, outFormVal, comp_keys, comp_keys_num, comp_kofn, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");

@@ -660,7 +660,7 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 	  // Return value
 
 	// Input checks
-	if (scheme_id <= 0 || sec_bits <= 0) {
+	if (scheme_id <= 0) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return -1;
 	}
@@ -690,9 +690,9 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 	switch (scheme_id) {
 
 		case PKI_SCHEME_DSA: {
-			     if (sec_bits <= 80) { ret = 1024; }
-			else if (sec_bits <= 112) { ret = 2048; }
-			else if (sec_bits <= 128) { ret = 3072; }
+			     if (sec_bits < 112) { ret = 1024; }
+			else if (sec_bits < 128) { ret = 2048; }
+			else if (sec_bits == 128) { ret = 3072; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
@@ -700,18 +700,18 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 		} break;
 
 		case PKI_SCHEME_RSA: {
-			if (sec_bits <= 0) { ret = 2048; }
 			// Sec sec_bits Sizes
-			else if (sec_bits <= 10 ) { ret = 32; }
-			else if (sec_bits <= 50 ) { ret = 512; }
-			else if (sec_bits <= 80 ) { ret = 1024; }
+				 if (sec_bits < 50 ) { ret = 32; }
+			else if (sec_bits < 80 ) { ret = 512; }
+			else if (sec_bits < 96 ) { ret = 1024; }
+			else if (sec_bits < 112 ) { ret = 1536; }
 			// Acceptable bit sizes
-			else if (sec_bits <= 112 ) { ret = 2048; }
-			else if (sec_bits <= 128 ) { ret = 3072; }
-			else if (sec_bits <= 192 ) { ret = 4096; }
+			else if (sec_bits < 128 ) { ret = 2048; }
+			else if (sec_bits < 140 ) { ret = 3072; }
+			else if (sec_bits < 192 ) { ret = 4096; }
 			// Over the top bit sizes
-			else if (sec_bits <= 224 ) { ret = 8192; }
-			else if (sec_bits <= 256 ) { ret = 16384; }
+			else if (sec_bits < 256 ) { ret = 7680; }
+			else if (sec_bits == 256 ) { ret = 15360; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
@@ -719,10 +719,10 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 		} break;
 
 		case PKI_SCHEME_ECDSA: {
-				 if (sec_bits <= 112) { ret = 224; } 
-			else if (sec_bits <= 128) { ret = 256; } 
-			else if (sec_bits <= 192) { ret = 384; }
-			else if (sec_bits <= 256) { ret = 521; }
+				 if (sec_bits < 128) { ret = 224; } 
+			else if (sec_bits < 192) { ret = 256; } 
+			else if (sec_bits < 256) { ret = 384; }
+			else if (sec_bits == 256) { ret = 521; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
@@ -1191,6 +1191,10 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 	PKI_SCHEME_ID ret = PKI_SCHEME_UNKNOWN;
 		// Return value
 
+	int default_sec_bits = 1;
+		// If set to 1, the function will return the default
+		// security bits for the given scheme
+
 	// Input Checks
 	if (!data) {
 		if (classic_sec_bits) *classic_sec_bits = 0;
@@ -1305,8 +1309,6 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
 	// RSA Option
 	} else if (str_cmp_ex(data, "RSA", 0, 1) == 0) {
-		if (classic_sec_bits) *classic_sec_bits = -1;
-		if (quantum_sec_bits) *quantum_sec_bits = 0;
 		ret = PKI_SCHEME_RSA;
 	// RSA-PSS Option
 	} else if (str_cmp_ex(data, "RSAPSS", 0, 1) == 0 ||
@@ -1341,16 +1343,31 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 	} else if (str_cmp_ex(data, "DILITHIUMX3", 0, 1) == 0) { 
 		ret = PKI_SCHEME_DILITHIUMX3;
 	} else if (str_cmp_ex(data, "DILITHIUM2", 0, 1) == 0) {
+		default_sec_bits = 0;
+		if (classic_sec_bits) *classic_sec_bits = 128;
+		if (quantum_sec_bits) *quantum_sec_bits = 128;
 		ret = PKI_SCHEME_DILITHIUM;
 	} else if (str_cmp_ex(data, "DILITHIUM3", 0, 1) == 0) {
+		default_sec_bits = 0;
+		if (classic_sec_bits) *classic_sec_bits = 192;
+		if (quantum_sec_bits) *quantum_sec_bits = 192;
 		ret = PKI_SCHEME_DILITHIUM;
 	} else if (str_cmp_ex(data, "DILITHIUM5", 0, 1) == 0) {
+		default_sec_bits = 0;
+		if (classic_sec_bits) *classic_sec_bits = 256;
+		if (quantum_sec_bits) *quantum_sec_bits = 256;
 		ret = PKI_SCHEME_DILITHIUM;
 	} else if (str_cmp_ex(data, "DILITHIUM", 0, 1) == 0) {
 		ret = PKI_SCHEME_DILITHIUM;
 	} else if (str_cmp_ex(data, "FALCON512", 0, 1) == 0) {
+		default_sec_bits = 0;
+		if (classic_sec_bits) *classic_sec_bits = 128;
+		if (quantum_sec_bits) *quantum_sec_bits = 128;
 		ret = PKI_SCHEME_FALCON;
 	} else if (str_cmp_ex(data, "FALCON1024", 0, 1) == 0) {
+		default_sec_bits = 0;
+		if (classic_sec_bits) *classic_sec_bits = 256;
+		if (quantum_sec_bits) *quantum_sec_bits = 256;
 		ret = PKI_SCHEME_FALCON;
 	} else if (str_cmp_ex(data, "FALCON", 0, 1) == 0) {
 		ret = PKI_SCHEME_FALCON;
@@ -1363,8 +1380,14 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		PKI_DEBUG("Cannot Convert [%s] into a recognized OID.", data);
 	}
 
-	// Returns the security bits for the scheme
-	PKI_SCHEME_ID_security_bits(ret, classic_sec_bits, quantum_sec_bits);
+	// Checks if we need to retrieve the default security bits
+	if (default_sec_bits) {
+		// Returns the security bits for the scheme
+		if (PKI_ERR == PKI_SCHEME_ID_security_bits(ret, classic_sec_bits, quantum_sec_bits)) {
+			PKI_DEBUG("Cannot get security bits for scheme %d", ret);
+			return PKI_SCHEME_UNKNOWN;
+		}
+	}
 
 	// Returns the scheme
 	return ret;

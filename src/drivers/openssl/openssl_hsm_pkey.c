@@ -83,8 +83,13 @@ int _evp_ctx_key_generation_rsa(PKI_KEYPARAMS * const params, PKI_X509_KEYPAIR_V
     // Set the RSA key size
     // ====================
 
-    int bits = PKI_SCHEME_ID_get_bitsize(params->scheme, params->sec_bits);
-    if (bits <= 0) bits = PKI_RSA_KEY_DEFAULT_SIZE;
+    int bits = params->rsa.bits;
+    if (bits <= 0) {
+        if (bits <= 0) {
+            if (bits <= 0) bits = PKI_RSA_KEY_DEFAULT_SIZE;
+        }
+        bits = PKI_SCHEME_ID_get_bitsize(params->scheme, params->sec_bits);
+    }
 
     if (EVP_PKEY_keygen_init(pctx) <= 0) {
         PKI_DEBUG("Can not init ED448 context");
@@ -98,6 +103,7 @@ int _evp_ctx_key_generation_rsa(PKI_KEYPARAMS * const params, PKI_X509_KEYPAIR_V
         return PKI_ERR;
     }
     params->bits = bits;
+    params->rsa.bits = bits;
 
     if (EVP_PKEY_keygen(pctx, pkey) <= 0) {
         PKI_DEBUG("Can not generate ED448 key");

@@ -97,9 +97,6 @@ function gen_exp_key() {
 
     # Combining the keys
     if ! [ -f "results/${EXP_NAME}.key" ] ; then
-        echo pki-tool genkey -algorithm "${ALG_NAME}" \
-            -batch -out "results/${EXP_NAME}.key" \
-            ${OPTIONS} ${DEBUG_OPTION} 
         pki-tool genkey -algorithm "${ALG_NAME}" \
             -batch -out "results/${EXP_NAME}.key" \
             ${OPTIONS} ${DEBUG_OPTION} 2>&1 >> comp_key_log.txt
@@ -306,7 +303,6 @@ function verify() {
 # gen_cer "comp_dilithium2_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS"
 # verify  "comp_dilithium2_rsa" "$NULL_DIGEST $CLASSIC_DIGESTS" "cer"
 
-# Generates Composite CSRs
 
 # =======================
 # Generic PQ/PQ Composite
@@ -341,7 +337,7 @@ function verify() {
 # Explicit Composite
 # ==================
 
-# gen_exp_key "dilithium3 rsa"
+gen_exp_key "dilithium3 rsa"
 
 gen_exp_key "dilithium3 ec"
 
