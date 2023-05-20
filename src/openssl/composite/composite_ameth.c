@@ -1430,6 +1430,7 @@ int item_sign(EVP_MD_CTX      * ctx,
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
     PKI_DEBUG("MISSING CODE FOR AUTO-GENERATING THE X509_ALGORS LIST");
     PKI_DEBUG("********* DETECTED EXPLICIT COMPOSITE ***************");
+    
     if (!OBJ_find_sigid_by_algs(&signature_id, NID_undef, pkey_type)) {
       PKI_DEBUG("Can not find the signature algorithm, using the pkey_type directly");
       signature_id = pkey_type;
@@ -1501,9 +1502,9 @@ int item_sign(EVP_MD_CTX      * ctx,
     X509_ALGOR_set0(alg2, OBJ_nid2obj(signature_id), V_ASN1_SEQUENCE, param_str_dup);
   }
 
-  for (int i = 0; i < sk_X509_ALGOR_num(comp_ctx->sig_algs); i++) {
-    PKI_DEBUG("Signature Algorithm [%d]: %s", i, OBJ_nid2ln(OBJ_obj2nid(sk_X509_ALGOR_value(comp_ctx->sig_algs, i)->algorithm)));
-  }
+  // for (int i = 0; i < sk_X509_ALGOR_num(comp_ctx->sig_algs); i++) {
+  //   PKI_DEBUG("Signature Algorithm [%d]: %s", i, OBJ_nid2ln(OBJ_obj2nid(sk_X509_ALGOR_value(comp_ctx->sig_algs, i)->algorithm)));
+  // }
 
   // Should return 3 to indicate that the algorithm identifiers
   // are already set, proceed with signing
