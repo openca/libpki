@@ -309,7 +309,7 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 	if (sec_bits <= 0) sec_bits = PKI_DEFAULT_CLASSIC_SEC_BITS;
 
 	// Let's check if the scheme supports the sec_bits
-	if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &scheme_sec_bits, NULL)) {
+	if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &scheme_sec_bits, &scheme_pq_sec_bits)) {
 		PKI_DEBUG("Can not get security bits for scheme %d", scheme_id);
 		return PKI_ERR;
 	}
@@ -701,7 +701,8 @@ int PKI_KEYPARAMS_set_security_bits(PKI_KEYPARAMS * kp, int sec_bits) {
 	// if (kp->bits <= 0 && sec_bits > 0) kp->bits = sec_bits;
 
 	if (PKI_ERR == PKI_KEYPARAMS_set_scheme(kp, kp->scheme, sec_bits)) {
-		PKI_ERROR(PKI_ERR_GENERAL, "Can not set the scheme for key generation");
+		PKI_DEBUG("Can not set the KEY_PARAMS scheme (%s at %d bits)", 
+			PKI_SCHEME_ID_get_parsed(kp->scheme), sec_bits);
 		return PKI_ERR;
 	}
 

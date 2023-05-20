@@ -1585,6 +1585,7 @@ int main (int argc, char *argv[] ) {
 			exit(1);
 		}
 
+		PKI_SCHEME_ID_security_bits(scheme_id, &sec_bits, NULL);
 		if (sec_bits >= 0) {
 			if (sec_bits < bits) PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", sec_bits, bits);
 			if (sec_bits > bits) bits = sec_bits;
