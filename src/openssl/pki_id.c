@@ -142,7 +142,7 @@ int PKI_ID_is_explicit_composite(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA;
 	} else {
 		// Not found
-		PKI_DEBUG("Provided PKI_ID (%d) is not an explicit Composite scheme!", id);
+		// PKI_DEBUG("Provided PKI_ID (%d) is not an explicit Composite scheme!", id);
 		return PKI_ERR;
 	}
 

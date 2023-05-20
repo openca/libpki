@@ -164,23 +164,15 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 				// Checks if the keypair is a traditional one
 				if (PKI_ERR == PKI_ID_is_traditional(pkey_type, &ret)) {
 					// If we are here, the key ID is not recognized
-					PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme!");
+					PKI_DEBUG("Can not get the type of the keypair to get the scheme (type: %d)", pkey_type);
 					return PKI_ERR;
-				} else {
-					PKI_DEBUG("Scheme (%d) for Traditional keypair type (%d) found", pkey_type, ret);
-				}
-			} else {
-				PKI_DEBUG("Scheme (%d) for PQC keypair type (%d) found", pkey_type, ret);
+				} 
 			}
-		} else {
-			PKI_DEBUG("Scheme (%d) for Explicit composite keypair type (%d) found", ret, pkey_type);
 		}
-	} else {
-		PKI_DEBUG("Scheme (%d) for Composite keypair type (%d) found", ret, pkey_type);
 	}
 
-	// Debugging Info
-	PKI_DEBUG("Found Scheme (%d) for pkey type (%d)", ret, pkey_type);
+	// // Debugging Info
+	// PKI_DEBUG("Found Scheme (%d) for pkey type (%d)", ret, pkey_type);
 
 	// All Done
 	return ret;

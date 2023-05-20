@@ -955,11 +955,18 @@ int PKI_X509_verify(const PKI_X509 *x, const PKI_X509_KEYPAIR *key ) {
 	} else {
 
 		// Experimental: use ASN1_item_verify()
-		ret = ASN1_item_verify(x->it, 
-					   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
-				    PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE),
-			             x->value, 
-					     key->value
+		// ret = ASN1_item_verify(x->it, 
+		// 			   			  PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+		// 		    			  PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE),
+		// 	             		  x->value, 
+		// 			     		  key->value
+		// );
+
+		ret = PKI_X509_ITEM_verify(x->it,
+								   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+								   PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE),
+								   x->value,
+								   key->value
 		);
 	}
 	

@@ -1423,13 +1423,6 @@ int item_sign(EVP_MD_CTX      * ctx,
   // Retrieves the Composite Public Key Type
   pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey_val);
 
-  // // Gets the PKI_SCHEME_ID from the Composite Key
-  // PKI_SCHEME_ID scheme_id = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey_val);
-  // if (scheme_id <= PKI_SCHEME_UNKNOWN) {
-  //   PKI_ERROR(PKI_ERR_GENERAL, "Can not get the PKI_SCHEME_ID from the Composite Key");
-  //   return -1;
-  // }
-
   // Here we shall generate and validate the list of components
   // when the pkey_id is one of the explicit composite
   if (PKI_ID_is_explicit_composite(pkey_type, &scheme_id) == PKI_OK) {
@@ -1440,6 +1433,19 @@ int item_sign(EVP_MD_CTX      * ctx,
     if (!OBJ_find_sigid_by_algs(&signature_id, NID_undef, pkey_type)) {
       PKI_DEBUG("Can not find the signature algorithm, using the pkey_type directly");
       signature_id = pkey_type;
+    }
+
+    PKI_DEBUG("Building the Explicit Composite list of algorithms for signing");
+
+    // Build the list with defaults
+    int success = COMPOSITE_CTX_explicit_algors_new0(comp_ctx, 
+                                                     pkey_type, 
+                                                     it, 
+                                                     comp_key->components, 
+                                                     &sig_algs);
+    if (!success || !sig_algs) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
+      return -1;
     }
 
   } else {
@@ -1466,25 +1472,8 @@ int item_sign(EVP_MD_CTX      * ctx,
     }
 
     PKI_DEBUG("***** Found the Signature ID: %d", signature_id);
-  }
 
-  // // Checks if we build the list of algorithms with defaults
-  // // or if we use the pre-configured list of algorithms
-  // if (comp_ctx->sig_algs) {
-    
-  //   PKI_DEBUG("Using pre-configured list of algorithms");
-  //   // Use pre-configured list of algorithms
-  //   sig_algs = comp_ctx->sig_algs;
-
-  // } else {
-
-  //   // PKI_DEBUG("Building the list of algorithms for signing");
-  //   // // Let's use the list of keys from the Composite Key (attach)
-  //   // int success = COMPOSITE_CTX_components_set0(comp_ctx, comp_key->components);
-  //   // if (success == PKI_ERR) {
-  //   //   PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of keys from the Composite Key");
-  //   //   return -1;
-  //   // }
+    PKI_DEBUG("Building the generic composite list of algorithms for signing");
 
     // Build the list with defaults
     int success = COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, it, comp_key->components, &sig_algs);
@@ -1492,7 +1481,7 @@ int item_sign(EVP_MD_CTX      * ctx,
       PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
       return -1;
     }
-  // }
+  }
 
   // Pack the list of algorithms
   ASN1_STRING * param_str = NULL;
@@ -1512,8 +1501,12 @@ int item_sign(EVP_MD_CTX      * ctx,
     X509_ALGOR_set0(alg2, OBJ_nid2obj(signature_id), V_ASN1_SEQUENCE, param_str_dup);
   }
 
+  for (int i = 0; i < sk_X509_ALGOR_num(comp_ctx->sig_algs); i++) {
+    PKI_DEBUG("Signature Algorithm [%d]: %s", i, OBJ_nid2ln(OBJ_obj2nid(sk_X509_ALGOR_value(comp_ctx->sig_algs, i)->algorithm)));
+  }
+
   // Should return 3 to indicate that the algorithm identifiers
-  // are already set.
+  // are already set, proceed with signing
   return 3;
 }
 

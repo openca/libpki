@@ -74,19 +74,27 @@ int EVP_PKEY_CTX_supports_verify(EVP_PKEY_CTX * ctx) {
 
 int EVP_PKEY_CTX_supports_digestsign(EVP_PKEY_CTX * ctx) {
   
+  PKI_DEBUG("EVP_PKEY_CTX_supports_digestsign() called");
   if (ctx && ctx->pmeth && ctx->pmeth->digestsign) {
+    PKI_DEBUG("EVP_PKEY_CTX_supports_digestsign() returning PKI_OK (%p)",
+      ctx->pmeth->digestsign);
     return PKI_OK;
   }
+  PKI_DEBUG("PMETHOD does not support digestsign(), returning PKI_ERR");
 
   return PKI_ERR;
 };
 
 int EVP_PKEY_CTX_supports_digestverify(EVP_PKEY_CTX * ctx) {
   
+  PKI_DEBUG("EVP_PKEY_CTX_supports_digestverify() called");
   if (ctx && ctx->pmeth && ctx->pmeth->digestverify) {
+    PKI_DEBUG("EVP_PKEY_CTX_supports_digestverify() returning PKI_OK (%p)",
+      ctx->pmeth->digestsign);
     return PKI_OK;
   }
 
+  PKI_DEBUG("PMETHOD does not support digestverify(), returning PKI_ERR");
   return PKI_ERR;
 };
 
@@ -384,7 +392,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     x_tbs_data = (unsigned char *)tbs_data;
     x_tbs_data_len = tbs_data_len;
 
-    PKI_DEBUG("Initial Data Size is %lu for Component #%d", x_tbs_data_len, idx);
+    PKI_DEBUG("[Comp #%d] Initial Data Size is %lu for Component #%d", idx, x_tbs_data_len, idx);
 
     // Retrieves the i-th component
     if ((x_pkey = COMPOSITE_KEY_get0(comp_key, idx)) == NULL) {
@@ -431,70 +439,24 @@ static int sign(EVP_PKEY_CTX        * ctx,
 
         int ossl_ret = EVP_Digest(tbs_data, tbs_data_len, x_hash, (unsigned int *)&x_hash_len, EVP_get_digestbynid(md_type), NULL);
         if (ossl_ret <= 0) {
-          PKI_DEBUG("Error while hashing data (ossl_ret=%d)", ossl_ret);
+          PKI_DEBUG("[Comp #%d] Error while hashing data (ossl_ret=%d)", idx, ossl_ret);
           goto err;
         }
 
         x_tbs_data = x_hash;
         x_tbs_data_len = x_hash_len;
 
-        PKI_DEBUG("New data to sign afer generating the Hash for component %d (data: %p, size: %lu)", idx, x_tbs_data, x_tbs_data_len);
+        PKI_DEBUG("[Comp #%d] New data to sign afer generating the hash data (data: %p, size: %lu)",
+          idx, x_tbs_data, x_tbs_data_len);
 
       } else {
 
-        PKI_DEBUG("Using Direct Signing for component %d (data size: %d)", idx, x_tbs_data_len);
+        PKI_DEBUG("[Comp #%d] Using Direct Signing for the component (data size: %d)", idx, x_tbs_data_len);
         x_tbs_data = (unsigned char *)tbs;
         x_tbs_data_len = tbslen;
 
       }
     }
-
-    PKI_DEBUG("After Logic - Data (%p) and Size (%lu) for Component #%d", x_tbs_data, x_tbs_data_len, idx);
-
-
-    // // Hash-n-Sign Method
-    // if (!use_global_hash && md_type != PKI_ID_UNKNOWN) {
-
-    //     PKI_DEBUG("Using individual DIGEST (%d) signing method for component #%d", md_type, idx);
-        
-    //     // Calculates the Digest (since we use custom digest, the data is not
-    //     // hashed when it is passed to this function)
-    //     int ossl_ret = EVP_Digest(tbs, tbslen, x_hash, (unsigned int *)x_hash_len, EVP_get_digestbynid(md_type), NULL);
-    //     if (ossl_ret == 0) {
-    //       PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
-    //       goto err;
-    //     }
-
-    //     x_tbs_data = x_hash;
-    //     x_tbs_data_len = x_hash_len;
-
-    //     // if (alg) 
-    //     //   ASN1_item_sign(comp_ctx->asn1_item, alg, NULL, NULL, NULL, evp_pkey, EVP_get_digestbynid(md_type));
-
-    //     // PKI_DEBUG("END: Using DIGEST (%d) signing method for component #%d", md_type, idx);
-    // } else {
-
-    //   // Some debugging info
-    //   PKI_DEBUG("Using Direct Signing method for component #%d", idx);
-    // }
-
-    //   } else {
-
-    //     PKI_DEBUG("Using NO DIGEST (direct signing) method for component #%d", idx);
-        
-    //     // Sign the data directly
-    //     ret_code = EVP_PKEY_sign(pkey_ctx, pnt, (size_t *)&buff_len, tbs, tbslen);
-    //     if (ret_code != 1) {
-    //       // DEBUG("Cannot initialize signature for %d component (EVP_PKEY_sign code is %d)", idx, ret_code);
-    //       goto err;
-    //     }
-
-    //     if (alg) 
-    //       ASN1_item_sign(comp_ctx->asn1_item, alg, NULL, NULL, NULL, evp_pkey, EVP_get_digestbynid(md_type));
-
-    //     // PKI_DEBUG("END: Using NO DIGEST (direct signing) method for component #%d", idx);
-    //   }
-    // }
 
     // Checks we have good data pointers
     if (!x_tbs_data || x_tbs_data_len <= 0) {
@@ -513,10 +475,8 @@ static int sign(EVP_PKEY_CTX        * ctx,
     // Useful Information
     PKI_DEBUG("[Comp #%d] ESTIMATED Signature Size for component is %d", idx, x_pkey_size);
     
-    // Saves the size of the buffer to be allocated for the signature
-    sig_buff_len = (size_t)x_pkey_size;
-
     // Allocate the buffer for the single signature
+    sig_buff_len = (size_t)x_pkey_size;
     if ((sig_buff = OPENSSL_malloc(sig_buff_len)) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       goto err;

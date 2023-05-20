@@ -48,6 +48,7 @@ OPENSSL_SRCS = \
 	pki_integer.c \
 	pki_keypair.c \
 	pki_keyparams.c \
+	pki_x509_item.c \
 	pki_x509_name.c \
 	pki_x509_cert.c \
 	pki_x509_crl.c \

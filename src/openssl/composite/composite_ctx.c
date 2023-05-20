@@ -22,6 +22,10 @@
 #include <libpki/pki_oid.h>
 #endif
 
+#ifndef _LIBPKI_PKI_ALGOR_VALUE_H
+#include <libpki/pki_algor.h>
+#endif
+
 // ==============
 // Local Includes
 // ==============
@@ -748,11 +752,10 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
   const EVP_MD * global_hash;
     // Global hash to be used for all the components
 
-  PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
-    // Scheme of the key
-
   X509_ALGORS * sk = NULL;
     // Pointer to the new stack of X509_ALGOR
+
+  PKI_DEBUG("Building the list of Algorithms");
 
   // Input Checks
   if (!ctx) {
@@ -771,10 +774,9 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     global_hash = ctx->md;
   }
 
-  // Checks if the key is of the explicit composite type
-  if (PKI_ID_is_explicit_composite(pkey_type, &scheme)) {
-    // If it is, then we can use the explicit algors
-    return COMPOSITE_CTX_explicit_algors_new0(ctx, pkey_type, asn1_item, components, algors);  
+  if (!PKI_ID_is_composite(pkey_type, NULL)) {
+    PKI_DEBUG("PKEY type %d is not a composite key", pkey_type);
+    return PKI_ERR;
   }
 
   // Allocates a new stack of X509_ALGOR
@@ -782,6 +784,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       return PKI_ERR;
   }
+
+  PKI_DEBUG("Allocated a new stack of X509_ALGOR, adding entries.");
 
   // Cycles through the components and adds the algors
   for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
@@ -795,6 +799,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     int algid = PKI_ALGOR_ID_UNKNOWN;
     PKI_X509_ALGOR_VALUE * algor = NULL;
 
+    PKI_DEBUG("(SigAlgs) Adding component #%d", idx);
+
     // Gets the component
     x = COMPOSITE_KEY_STACK_get0(components, idx);
     if (!x) {
@@ -805,42 +811,34 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 
     // Gets the type of component (PKEY)
     x_type = EVP_PKEY_type(EVP_PKEY_id(x));
+    if (!x_type) {
+      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+      PKI_DEBUG("Cannot get the type of component #%d", idx);
+      return PKI_ERR;
+    }
+
+    // Checks we are not recursing
+    if (PKI_ID_is_composite(x_type, &x_scheme_id) ||
+        PKI_ID_is_explicit_composite(x_type, &x_scheme_id)) {
+      // Error, we cannot have recursion
+      PKI_DEBUG("Recursion detected in component #%d (scheme: %d)", idx, x_scheme_id);
+      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+      return PKI_ERR;
+    }
+
+    PKI_DEBUG("(SigAlgs) Component %d is of type %d (%s)", idx, x_type, PKI_ID_get_txt(x_type));
 
     // Gets the right MD
     if (use_global_hash) {
-      
-      PKI_DEBUG("Detected use of hash-n-sign MD (%d)", EVP_MD_type(global_hash));
-
       // Use hash-n-sign if set
       x_md = global_hash;
-
-      // if (!OBJ_find_sigid_by_algs(&algid, 
-      //                             x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-      //                             x_type)) {
-      //   // Checks for special use-cases
-      //   if (x_type == PKI_ALGOR_ID_ED25519 ||
-      //       x_type == PKI_ALGOR_ID_ED448) {
-      //     // EdDSA does not require a digest but they
-      //     // only support digestsign() and digestverify()
-      //     PKI_DEBUG("Special case: EdDSA does not require a digest, but do not support sign() and verify()");
-      //     algid = x_type;
-      //   } else {
-      //     // Cannot find the algorithm
-      //     PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
-      //       EVP_MD_name(x_md), idx, x_type);
-      //     sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-      //     return PKI_ERR;
-      //   }
-      // }
-
     } else {
-
       // Checks if the component requires the digest
       // and we are not using the hash-n-sign paradigm
       // let's use the configured default (if any)
       if (PKI_ID_requires_digest(x_type)) {
 
-        PKI_DEBUG("Digest IS REQUIRED for component #%d", idx);
+        PKI_DEBUG("(SigAlgs) Digest is required for component %d", idx);
 
         int md_nid = 0;
         
@@ -857,19 +855,10 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 
       } else {
 
-        PKI_DEBUG("Digest IS NOT REQUIRED for component #%d", idx);
+        PKI_DEBUG("(SigAlgs) Digest is NOT required for component %d", idx);
         x_md = NULL;
 
       }
-    }
-
-    // Checks we are not recursing
-    if (PKI_ID_is_composite(x_type, &x_scheme_id) ||
-        PKI_ID_is_explicit_composite(x_type, &x_scheme_id)) {
-      // Error, we cannot have recursion
-      PKI_DEBUG("Recursion detected in component #%d (scheme: %d)", idx, x_scheme_id);
-      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-      return PKI_ERR;
     }
 
     // Allocates a new X509_ALGOR
@@ -881,25 +870,45 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 
     if (asn1_item) {
       
+      // Generating Parameters via the ASN1_item_sign() function
+      PKI_DEBUG("(SigAlgs) Using ASN1 item sign for component %d (algor: %s)", 
+        idx, PKI_X509_ALGOR_VALUE_get_parsed(algor));
+
       // Sets the parameter(s) and the algorithm identifier for the component
       ASN1_item_sign(asn1_item, algor, NULL, NULL, NULL, x, x_md);
 
-    } else {
+    }
+
+    int algor_nid = OBJ_obj2nid(algor->algorithm);
+    PKI_DEBUG("(SigAlgs) After ASN1_item_sign component %d, the algorithm is set to => %s (%p) (algor->algorithm: %d)", 
+        idx, PKI_X509_ALGOR_VALUE_get_parsed(algor), algor->algorithm, algor_nid, OBJ_obj2nid(algor->algorithm));
+    
+    // If the algorithm is still NULL, we add the OIDs ourselves
+    if (!algor->algorithm || !OBJ_obj2nid(algor->algorithm)) {
+
+      PKI_DEBUG("(SigAlgs) Since the Algorithm is still NULL, we add the OIDs ourselves %d (algor: %s)", 
+        idx, PKI_X509_ALGOR_VALUE_get_parsed(algor));
 
       // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
       // we use a different approach
       if (PKI_ID_is_pqc(x_type, NULL) && !use_global_hash) {
         // Use the same ID for key and algorithm
         algid = x_type;
+
       } else {
+
+        PKI_DEBUG("(SigAlgs) No ASN1 item provided %d (algor: %s)", 
+          idx, PKI_X509_ALGOR_VALUE_get_parsed(algor));
 
         // Retrieves the algorithm identifier
         if (!OBJ_find_sigid_by_algs(&algid, 
                                     x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
                                     x_type)) {
+
           // Checks for special use-cases
           if (x_type == PKI_ALGOR_ID_ED25519 ||
               x_type == PKI_ALGOR_ID_ED448) {
+
             // EdDSA does not require a digest but they
             // only support digestsign() and digestverify()
             //
@@ -907,22 +916,15 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
             // do not seem to be performing correctly, so we disable it
             //
             // To re-enable them, just uncomment the following line
-            // algid = x_type;
-            PKI_DEBUG("[Comp #%d] ED25519 and ED448 do not support hash-n-sign (pkey: %d, hash: %s)",
-              idx, x_type, EVP_MD_name(x_md));
-            // TODO: This allows to generate signatures that are not verifiable
-            //       therefore we put out a warning. We need to investigate why
-            //       this is happening and fix it.
-            //
-            //       Combinations that are not working (global hash):
-            //       - ED25519 + SHA384
-            //       - ED448 + SHA384
-            //       - ED448 + SHA512
             algid = x_type;
+
+            // To disable them, just uncomment the following code
             // if (algor) X509_ALGOR_free(algor);
             // sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
             // return PKI_ERR;
+
           } else {
+
             // Cannot find the algorithm
             PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
               EVP_MD_name(x_md), idx, x_type);
@@ -930,15 +932,11 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
             sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
             return PKI_ERR;
           }
-          // // // Cannot find the Signature algorithm identifier
-          // // PKI_DEBUG("Cannot find the Signature OID for component #%d (pkey: %d, md: %d) (hash not supported?)", idx);
-          // // // Unrecoverable error
-          // // if (algor) X509_ALGOR_free(algor);
-          // // if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-          // return PKI_ERR;
         }
-
       }
+
+      PKI_DEBUG("(SigAlgs) X509 Algor Generated without ASN1_item_sign() for component %d. " 
+        "Setting the OID (%d) and NO parameters (%s)", idx, algid, OBJ_nid2ln(algid));
 
       // Sets the algorithm identifier in the X509_ALGOR
       if (!X509_ALGOR_set0(algor, OBJ_nid2obj(algid), V_ASN1_UNDEF, NULL)) {
@@ -948,21 +946,9 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
         if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
         return PKI_ERR;
       }
-
-      // // // Retrieves the algorithm identifier
-      // // if (!OBJ_find_sigid_by_algs(&algid, 
-      // //                             x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-      // //                             x_type)) {
-      // //   // Cannot find the algorithm identifier
-      // //   sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);
-      // //   PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
-      // //   return PKI_ERR;
-      // // }
-
-      // // Sets the algorithm identifier in the X509_ALGOR
-      // // (and then fails, we generate the signatures in PMETH)
-      // ASN1_item_sign(asn1_item, algor, NULL, NULL, NULL, x, x_md);
     }
+
+    PKI_DEBUG("(SigAlgs) Pushing the algorithm to the stack for component %d", idx);
 
     // Adds the algorithm to the stack
     if (!sk_X509_ALGOR_push(sk, algor)) {
@@ -979,6 +965,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 
   // Also sets the output variable
   if (algors) *algors = sk;
+
+  PKI_DEBUG("(SigAlgs) Done generating the signature algorithms");
 
   // All Done
   return PKI_OK;
