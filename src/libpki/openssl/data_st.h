@@ -741,7 +741,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 /* Begin - NID_sphincssha2128ssimple - open-quantum-safe */
 #ifdef NID_sphincssha2128ssimple
 #define PKI_ALGOR_SPHINCS_SHA2_128_S     NID_sphincssha2128ssimple
-#define PKI_ALGOR_ID_SPHINCS_S2_128_S  	 NID_sphincssha2128ssimple
+#define PKI_ALGOR_ID_SPHINCS_SHA2_128_S  	 NID_sphincssha2128ssimple
 #else
 #define PKI_ALGOR_SPHINCS_SHA2_128_S     NID_undef
 #define PKI_ALGOR_ID_SPHINCS_SHA2_128_S  NID_undef
@@ -768,17 +768,18 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 /* End - NID_sphincssha2192ssimple - open-quantum-safe */
 
-/* Begin - NID_sphincsshake256128frobust - open-quantum-safe */
-#ifdef NID_sphincsshake256128frobust
-#define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_sphincsshake256128frobust
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_sphincsshake256128frobust
-#else
-#define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_undef
-#endif
-/* End - NID_sphincsshake256128frobust - open-quantum-safe */
 
 /* Begin - NID_sphincsshake256192frobust - open-quantum-safe */
+/* Begin - NID_sphincsshake256128frobust - open-quantum-safe */
+// NOT IMPLEMENTED
+// #ifdef NID_sphincsshake256128frobust
+// #define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_sphincsshake256128frobust
+// #define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_sphincsshake256128frobust
+// #else
+// #define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_undef
+// #define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_undef
+// #endif
+/* End - NID_sphincsshake256128frobust - open-quantum-safe */
 // NOT IMPLEMENTED
 /*
 #ifdef NID_sphincsshake256192frobust

@@ -10,11 +10,10 @@ int pqc_sig_nids_list[] = {
         NID_dilithium5,
         NID_falcon512,
         NID_falcon1024,
-        NID_sphincsharaka128frobust,
-        NID_sphincsharaka128fsimple,
-        NID_sphincssha256128frobust,
-        NID_sphincssha256128ssimple,
-        NID_sphincsshake256128fsimple
+		NID_sphincssha2128fsimple,
+		NID_sphincssha2128ssimple,
+		NID_sphincssha2192fsimple,
+		NID_sphincssha2192ssimple
 #endif
 		NID_undef
 
@@ -34,6 +33,7 @@ int pqc_kem_nids_list[] = {
         NID_kyber1024,
         NID_bikel1,
         NID_bikel3,
+		NID_bikel5,
         NID_hqc128,
         NID_hqc192,
         NID_hqc256,
@@ -124,12 +124,6 @@ int PKI_ID_is_explicit_composite(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256;
 	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME) == id)  {
 		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
-	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME) == id) {
-		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256;
-	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME) == id)  {
-		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256;
-	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME) == id) {
-		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519;
 	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME) == id)  {
 		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS;
 	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME) == id) {
@@ -138,8 +132,6 @@ int PKI_ID_is_explicit_composite(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521;
 	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME) == id)  {
 		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
-	} else if (OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_NAME) == id)  {
-		found_id = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA;
 	} else {
 		// Not found
 		// PKI_DEBUG("Provided PKI_ID (%d) is not an explicit Composite scheme!", id);
@@ -219,10 +211,16 @@ int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 			return PKI_OK;
 		} break;
 
+#ifdef NID_sphincssha2128fsimple
         case NID_sphincssha2128fsimple:
+#endif
+#ifdef NID_sphincssha2128ssimple
         case NID_sphincssha2128ssimple:
+#endif
+#ifdef NID_sphincssha2192fsimple
         case NID_sphincssha2192fsimple:
-        case NID_sphincsshake128fsimple: {
+#endif
+		{
 			// Verified PQC algorithm
 			if (scheme_id) *scheme_id = PKI_SCHEME_SPHINCS;
 			return PKI_OK;
@@ -249,7 +247,8 @@ int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 		} break;
 
         case NID_bikel1:
-        case NID_bikel3: {
+        case NID_bikel3:
+		case NID_bikel5: {
 			// Verified PQC algorithm
 			if (scheme_id) *scheme_id = PKI_SCHEME_BIKE;
 			return PKI_OK;
