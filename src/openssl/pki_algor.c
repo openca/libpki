@@ -1230,12 +1230,12 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 				str_cmp_ex(data, "FALCON-ED25519", 0, 1) == 0 || 
 				str_cmp_ex(data, "FALCON-25519", 0, 1) == 0) {
 		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS256-ECDSA", 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS-ECDSA", 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS-P256", 0, 1) == 0) {
-		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
+	// } else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, 0, 1) == 0 || 
+	// 			str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, 0, 1) == 0 || 
+	// 			str_cmp_ex(data, "SPHINCS256-ECDSA", 0, 1) == 0 || 
+	// 			str_cmp_ex(data, "SPHINCS-ECDSA", 0, 1) == 0 || 
+	// 			str_cmp_ex(data, "SPHINCS-P256", 0, 1) == 0) {
+	// 	return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
 	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, 0, 1) == 0 || 
 				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, 0, 1) == 0 || 
 				str_cmp_ex(data, "DILITHIUM3-RSAPSS", 0, 1) == 0 || 
