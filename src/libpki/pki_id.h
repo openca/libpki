@@ -24,7 +24,7 @@ extern int pqc_kem_nids_list[];
  * Create a new ID by using its name. It returns an int
  * if successful, otherwise it returns NULL
  */
-PKI_ID PKI_ID_get_by_name ( char *name );
+PKI_ID PKI_ID_get_by_name(const char * name);
 
 /*!
  * \brief Checks if a PKI IDentifier exists
@@ -38,11 +38,13 @@ PKI_ID PKI_ID_get( PKI_ID id );
 
 const char * PKI_ID_get_txt( PKI_ID id );
 
-int PKI_ID_is_composite(PKI_ID id);
+int PKI_ID_is_composite(PKI_ID id, PKI_SCHEME_ID * scheme_id);
 
 int PKI_ID_is_explicit_composite(PKI_ID id, PKI_SCHEME_ID * scheme_id);
 
-int PKI_ID_is_pqc(PKI_ID id);
+int PKI_ID_is_traditional(PKI_ID key_id, PKI_SCHEME_ID * scheme_id);
+
+int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id);
 
 int PKI_ID_requires_digest(PKI_ID id);
 

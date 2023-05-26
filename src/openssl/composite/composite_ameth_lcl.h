@@ -49,6 +49,10 @@
 #include <libpki/pki_algor.h>
 #endif
 
+#ifndef _LIBPKI_PKI_ID_H
+#include <libpki/pki_id.h>
+#endif
+
 BEGIN_C_DECLS
 
 // ===============

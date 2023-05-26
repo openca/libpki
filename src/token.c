@@ -2733,10 +2733,16 @@ PKI_X509_PROFILE *PKI_TOKEN_search_profile(const PKI_TOKEN * const tk, const cha
 
 }
 
-int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
-				unsigned long validity, char *profile_s ) {
+int PKI_TOKEN_self_sign (PKI_TOKEN 		* tk, 
+						 char 			* subject, 
+						 char 			* serial,
+						 unsigned long    validity, 
+						 char 			* profile_s ) {
 
+	char * cert_serial = NULL;
 	PKI_X509_PROFILE *cert_profile = NULL;
+	PKI_X509_CERT * cert = NULL;
+	// char serial_txt[20];
 
 	if (!tk || !tk->keypair)
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -2744,129 +2750,192 @@ int PKI_TOKEN_self_sign (PKI_TOKEN *tk, char *subject, char *serial,
 	if (PKI_OK != PKI_TOKEN_login(tk))
 		return PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
 
-	if (tk->cert) {
-		/* ERROR, a Token Certificate already exists! */
-		PKI_log(PKI_LOG_WARNING, "A cert already exists in token when "
-					 "calling PKI_TOKEN_self_sign()!");
-		PKI_X509_CERT_free ( tk->cert );
-	}
-
+	// Configures the profile
 	if( profile_s ) {
-		if((cert_profile = PKI_TOKEN_search_profile (tk, profile_s ))
-							== NULL) {;
-
-			/* Error, the requested profile does not
-			   exists! */
-			PKI_log_err("Requested profile (%s) not found when self-signing cert!\n", profile_s);
-			return (PKI_ERR);
+		// Loads the profile
+		if ((cert_profile = PKI_TOKEN_search_profile (tk, profile_s )) == NULL) {
+			/* Error, the requested profile does not exists! */
+			PKI_DEBUG("Requested profile (%s) not found when self-signing cert!", profile_s);
+			return PKI_ERR;
 		}
 	}
 
-	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
-	// // if (!tk->cred ) tk->cred = PKI_TOKEN_cred_get(tk, NULL );
+	// Check if a certificate already exists
+	if (tk->cert) {
+		/* ERROR, a Token Certificate already exists! */
+		PKI_log(PKI_LOG_WARNING, "The current certificate will be replaced with a new one!");
+	}
 
-	if (!serial) serial = "0";
+	// Use a Random Serial Number
+	if (!serial) {
+		PKI_INTEGER * asn1_integer = PKI_INTEGER_new_rand(160);
+		if (asn1_integer) {
+			cert_serial = PKI_INTEGER_get_parsed(asn1_integer);
+			PKI_INTEGER_free(asn1_integer);
+		} else {
+			cert_serial = strdup("0");
+		}
+	} else {
+		cert_serial = strdup(serial);
+	}
 
-	tk->cert = PKI_X509_CERT_new ( NULL, tk->keypair, tk->req, subject,
-		serial, validity, cert_profile, tk->algor, tk->oids, tk->hsm );
+	// Generate the certificate
+	cert = PKI_X509_CERT_new(NULL,
+							 tk->keypair, 
+							 tk->req, 
+							 subject,
+							 cert_serial,
+							 validity, 
+							 cert_profile,
+							 tk->algor,
+							 tk->oids,
+							 tk->hsm );
 
-	if (!tk->cert) {
+	// Free the cert_serial memory
+	PKI_Free(cert_serial);
+
+	// Checks for possible errors
+	if (!cert) {
 		PKI_DEBUG("Certificate was not issued for algor %s", PKI_X509_ALGOR_VALUE_get_parsed(tk->algor));
 		PKI_DEBUG("OpenSSL Error Description: %s", PKI_ERROR_crypto_get_errdesc());
 		PKI_ERROR(PKI_ERR_X509_CERT_CREATE, NULL);
 		return PKI_ERR;
 	}
 
-	return (PKI_OK);
+	// Add the certificate to the token
+	if (tk->cert) PKI_X509_CERT_free(tk->cert);
+	tk->cert = cert;
+
+	// All Done
+	return PKI_OK;
 }
 
 PKI_X509_CERT * PKI_TOKEN_issue_cert(PKI_TOKEN *tk, char *subject, char *serial,
 		unsigned long validity, PKI_X509_REQ *req, char *profile_s ) {
 
 	PKI_X509_PROFILE *cert_profile = NULL;
+	PKI_X509_CERT * cert = NULL;
 
+	// Input check
 	if (!tk || !tk->keypair) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
+	// Login to the token
 	if (PKI_TOKEN_login(tk) != PKI_OK) {
 		PKI_ERROR(PKI_ERR_TOKEN_LOGIN, NULL);
 		return NULL;
 	}
 
-	if( !tk->cert ) {
+	// Check if a certificate already exists
+	if (!tk->cert) {
 		/* ERROR, a Token Certificate already exists! */
 		PKI_ERROR(PKI_ERR_X509_CERT_CREATE,
-			"No certificate available in signing token!");
+			"No signing certificate available in the token (cert)");
 		return NULL;
 	}
 
+	// Configures the profile
 	if( profile_s ) {
-		if((cert_profile = PKI_TOKEN_search_profile (tk, profile_s ))
-							== NULL) {
+		// Loads the profile
+		if((cert_profile = PKI_TOKEN_search_profile (tk, profile_s )) == NULL) {
+			// Error, the requested profile does not exists!
 			PKI_DEBUG("Can not find requested profile (%s)", profile_s);
 			return NULL;
 		}
 	}
 
-	if( !req ) req = tk->req;
+	// Use the request in the token if none is provided
+	if (!req) req = tk->req;
 
-	// // if( !tk->cred ) {
-	// // 	tk->cred = PKI_TOKEN_cred_get ( tk, NULL );
-	// // }
-	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
+	cert = PKI_X509_CERT_new(tk->cert,
+							 tk->keypair,
+							 req,
+							 subject,
+							 serial,
+							 validity,
+							 cert_profile,
+							 tk->algor, 
+							 tk->oids,
+							 tk->hsm);
+	if (!cert) {
+		PKI_ERROR(PKI_ERR_X509_CERT_CREATE, NULL);
+		return NULL;
+	}
 
-	return PKI_X509_CERT_new (tk->cert, tk->keypair, req, subject,
-			serial, validity, cert_profile, tk->algor, 
-				tk->oids, tk->hsm );
+	// All Done
+	return cert;
 }
 
-PKI_TOKEN *PKI_TOKEN_issue_proxy (PKI_TOKEN *tk, char *subject, 
-		char *serial, unsigned long validity, 
-			char *profile_s, PKI_TOKEN *px_tk ) {
+PKI_TOKEN *PKI_TOKEN_issue_proxy(PKI_TOKEN 		* tk, 
+								 char 			* subject, 
+								 char 			* serial,
+								 unsigned long 	  validity, 
+								 char 			* profile_s,
+								 PKI_TOKEN 		* px_tk) {
 
-	unsigned char serBuf[10];
+	unsigned char serBuf[12];
+		// Buffer for the serial number
+
 	char *proxySubject = NULL;
+		// Subject of the proxy certificate
+
 	char *proxySerial = NULL;
+		// Serial number of the proxy certificate
+
 	char *proxyProfile_s = NULL;
+		// Profile of the proxy certificate
+
 	char *name = NULL;
+		// Name of the token
+
 	int i = 0;
+		// Counter
 
-	if( PKI_TOKEN_login( tk ) != PKI_OK ) {
-		return PKI_ERR;
-	}
-
+	// Input check	
 	if ( !tk || !tk->keypair || !tk->cert ) return ( NULL );
 
-	if (!subject) {
-		subject = "CN=Proxy";
-	}
+	// Checks for login status
+	if (PKI_TOKEN_login( tk ) != PKI_OK) return PKI_ERR;
 
+	// Default Subject for the Proxy Certificate
+	if (!subject) subject = "CN=Proxy";
+
+	// Use a Random Serial Number
 	if(!serial) {
-		PKI_INTEGER *asn1_integer = NULL;
 
+		PKI_INTEGER *asn1_integer = NULL;
+			// ASN1 Integer
+
+		// Generates a random serial number
 		RAND_bytes( serBuf, sizeof(serBuf));
+
+		// Creates an ASN1 Integer from the random serial
 		asn1_integer = PKI_INTEGER_new_bin( serBuf, sizeof(serBuf));
 
+		// Gets the string representation of the serial number
 		proxySerial = PKI_INTEGER_get_parsed( asn1_integer );
 	}
 
-	if( validity <= 0 ) {
-		validity = 60;
-	}
+	// Default validity for the Proxy Certificate
+	if (validity <= 0) validity = 3600;
 
-	if( !px_tk ) {
+	// Checks if a Proxy Token is already available
+	if (!px_tk) {
+		// Creates a new Proxy Token
 		px_tk = PKI_TOKEN_new_null();
-		// PKI_log_err("ERROR::Proxy Token needed in"
-		// 			" PKI_TOKEN_issue_proxy()");
-		if(!px_tk ) return ( PKI_ERR );
+		// Memory Error
+		if (!px_tk ) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return ( PKI_ERR );
+		}
 	}
 
-	if( !px_tk->keypair ) {
-		PKI_TOKEN_new_keypair( px_tk, 2048, NULL );
-	}
+	// If no keypair is available for the Proxy Token, create one
+	if (!px_tk->keypair) PKI_TOKEN_new_keypair(px_tk, 2048, NULL);
 
+	// Builds the Subject for the Proxy Certificate
 	if((name = PKI_X509_CERT_get_parsed(tk->cert, 
 				PKI_X509_DATA_SUBJECT)) == NULL ) {
 		PKI_log_debug("ERROR::No subject from issuing Cert!");

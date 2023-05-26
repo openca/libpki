@@ -130,10 +130,13 @@ int main(int argc, char *argv[])
 
 	// Get the Key from the Key Source
 	switch ( PKI_X509_get_type( obj )) {
+
+
 		case PKI_DATATYPE_X509_KEYPAIR:
 			kp = obj;
 			break;
 
+		case PKI_DATATYPE_X509_REQ:
 		case PKI_DATATYPE_X509_CERT:
 			pVal = PKI_X509_get_data ( obj, PKI_X509_DATA_KEYPAIR_VALUE );
 			if ( !pVal ) {
@@ -144,7 +147,7 @@ int main(int argc, char *argv[])
 			break;
 
 		default:
-			fprintf(stderr, "ERROR, (%s) not a cert or a key (%d)!\n\n", 
+			fprintf(stderr, "ERROR, cannot get the key from (%s): not a cert, a req, or a keypair (type: %d)!\n\n", 
 				kName,  PKI_X509_get_type( obj ) );
 			exit(1);
 	}
@@ -281,12 +284,30 @@ int main(int argc, char *argv[])
 
 	printf("        Key Size: %d\n", PKI_X509_KEYPAIR_get_size( kp ));
 
+	printf("\n    Signature:\n        Size: ");
+	const ASN1_BIT_STRING * bit = (ASN1_BIT_STRING *)PKI_X509_REQ_get_data(sigObj, PKI_X509_DATA_SIGNATURE);
+	if (!bit) {	
+		printf("ERROR (Cannot get the signature)\n");
+	} else {
+		printf("%d\n", bit->length);
+	}
+	// printf("        Signature Size: %d\n", ASN1_STRING_length(bit));
+
+	
+	// for (int i = 0; i < bit->length; i++) {
+	// 	printf(":%02x", bit->data[i]);
+	// 	if (i % 16 == 15) printf("\n               ");
+	// }
+	// printf("\n");
+
 	printf("\n    Verify: ");
-	if( PKI_X509_verify(sigObj, kp) == PKI_OK) {
+	int success = PKI_X509_verify(sigObj, kp);
+	if (success == PKI_OK) {
 		printf("Ok\n");
 	} else {
 		printf("ERROR!\n");
 	}
+
 
 	if (PKI_X509_get_type(sigObj) == PKI_DATATYPE_X509_CERT) {
 		printf("Self Signed: %d\n", PKI_X509_CERT_is_selfsigned(sigObj));
@@ -294,16 +315,14 @@ int main(int argc, char *argv[])
 	}
 
 	if (print == 1) {
-
 		if (PKI_X509_put(sigObj, PKI_DATA_FORMAT_PEM, "stdout", NULL, NULL, NULL) == PKI_ERR) {
 			printf("\n    ERROR: Cannot print the signer object, aborting.\n\n");
 		}
-
 	}
 
 	// All Done
 	printf("\n");
 
-	return 0;
+	return (!success);
 }
 

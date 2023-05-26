@@ -267,9 +267,23 @@ int COMPOSITE_KEY_set_kofn(COMPOSITE_KEY * comp_key, int kofn);
  * valid.
  * 
  * @param comp_key The COMPOSITE_KEY to retrieve the policy from
- * @retval The k-of-n policy of the key (0 if not set)
+ * @retval The k-of-n policy of the key (-1 if not set or set to 0)
  */
 int COMPOSITE_KEY_get_kofn(COMPOSITE_KEY * comp_key);
+
+/*!
+ * @brief Returns PKI_OK if the signature validation policy is set (k-of-n)
+ *
+ * This function checks if the k-of-n policy of the composite key
+ * is set. The policy is defined as the minimum number of components
+ * that must be validated in order to consider the signature
+ * valid.
+ * 
+ * @param comp_key The COMPOSITE_KEY to retrieve the policy from
+ * @retval PKI_OK if the policy is set and greater than 0, PKI_ERR otherwise
+ */
+
+int COMPOSITE_KEY_has_kofn(COMPOSITE_KEY * comp_key);
 
 END_C_DECLS
 

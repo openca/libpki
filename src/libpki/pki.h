@@ -87,6 +87,9 @@ BEGIN_C_DECLS
 
 #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 
+#define PKI_DEFAULT_CLASSIC_SEC_BITS	128
+#define PKI_DEFAULT_QUANTUM_SEC_BITS	128
+
 #define CRL_OK			        1
 #define	CRL_NOT_YET_VALID	    2
 #define	CRL_EXPIRED		        3
@@ -265,6 +268,7 @@ typedef enum {
 
 /* Libpki Includes */
 #include <libpki/pki_time.h>
+#include <libpki/pki_rand.h>
 #include <libpki/pki_integer.h>
 #include <libpki/pki_x509_profile.h>
 #include <libpki/pki_x509_mem.h>
@@ -278,6 +282,7 @@ typedef enum {
 #include <libpki/pki_hmac.h>
 #include <libpki/pki_config.h>
 #include <libpki/pki_keypair.h>
+#include <libpki/pki_x509_item.h>
 #include <libpki/pki_x509_attribute.h>
 #include <libpki/pki_x509_signature.h>
 #include <libpki/pki_x509_name.h>

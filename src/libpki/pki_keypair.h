@@ -79,6 +79,20 @@ int PKI_X509_KEYPAIR_get_default_digest(const PKI_X509_KEYPAIR * key);
 /// @return The PKI_ID of the identified algorithm or PKI_ID_UKNOWN
 int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pkey);
 
+/*!
+ * @brief Checks if a kepair requires a digest algorithm for signing
+ * @param k The PKI_X509_KEYPAIR data structure
+ * @return PKI_OK if a digest is required, PKI_ERR otherwise
+ */
+int PKI_X509_KEYPAIR_requires_digest(const PKI_X509_KEYPAIR * k);
+
+/*!
+ * @brief Checks if a kepair requires a digest algorithm for signing
+ * @param k The PKI_X509_KEYPAIR_VALUE data structure
+ * @return PKI_OK if a digest is required, PKI_ERR otherwise
+ */
+int PKI_X509_KEYPAIR_VALUE_requires_digest(const PKI_X509_KEYPAIR_VALUE * pkey);
+
 /// @brief Returns PKI_OK if the digest algorithm is supported by the Public Key
 /// @param k A pointer to the PKI_X509_KEYPAIR data structure
 /// @param digest A pointer to te PKI_DIGEST_ALG

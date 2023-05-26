@@ -31,6 +31,28 @@ char * PKI_get_env(const char * name);
 int PKI_set_env(const char * name,
 		        const char * value);
 
+/*!
+ * @brief Compares two strings
+ *
+ * This function compares two strings and returns 0 if they are equal.
+ * The comparison can be limited to the first n characters of the strings
+ * by setting n to a value greater than 0. When set to 0, the comparison
+ * is performed on the whole strings (and the size of the strings will
+ * also be checked to be equal).
+ * 
+ * If the nocase flag is set, the comparison is case insensitive.
+ * 
+ * @param st1 The first string
+ * @param st2 The second string
+ * @param n Compare only the first n characters
+ * @param nocase Set to non-zero for case insensitive comparisons
+ * @return [int] 0 if the strings are equal, non-zero otherwise
+ */
+int str_cmp_ex(const char * st1,
+		   	   const char * st2,
+		   	   int          n,
+		   	   int          nocase);
+
 int strcmp_nocase(const char * st1,
 		          const char * st2);
 

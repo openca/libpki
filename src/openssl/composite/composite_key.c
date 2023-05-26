@@ -378,16 +378,27 @@ int COMPOSITE_KEY_set_kofn(COMPOSITE_KEY * comp_key, int kofn) {
   return PKI_OK;
 }
 
+int COMPOSITE_KEY_has_kofn(COMPOSITE_KEY * comp_key) {
+
+  // Returns PKI_OK if a non-zero value is present
+  if (COMPOSITE_KEY_get_kofn(comp_key) > 0) return PKI_OK;
+
+  // Returns PKI_ERR if the value is not present
+  // or less than zero
+  return PKI_ERR;
+}
+
 int COMPOSITE_KEY_get_kofn(COMPOSITE_KEY * comp_key) {
   
   int ret = 0;
     // Return value
 
   // Input Checks
-  if (!comp_key) return PKI_ERR;
+  if (!comp_key || !comp_key->params) return -1;
   
   // Returns the K-of-N value  
   ret = (int) ASN1_INTEGER_get(comp_key->params);
+  if (ret <= 0) return -1;
 
   // All Done
   return ret;

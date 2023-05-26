@@ -241,6 +241,9 @@ PKI_X509 *PKI_X509_new ( PKI_DATATYPE type, struct hsm_st *hsm ) {
 	// Internal conversion pointer
 	ret->it = _get_ossl_item(type);
 
+	// For PKI_X509_KEYPAIR, digest requirement
+	ret->signature_digest_required = -1;
+
 	// All Done
 	return ret;
 }
@@ -689,19 +692,25 @@ int PKI_X509_delete ( PKI_X509 *x )
 int PKI_X509_detach(PKI_X509 * x, void ** data, PKI_DATATYPE * type, HSM **hsm) {
 	
 	// Input Checks
-	if (!x) return PKI_ERR;
+	if (!x || !data) return PKI_ERR;
 
 	// Sets the output values
-	if (data) *data = x->value;
-	if (type) *type = x->type;
-	if (hsm) *hsm = x->hsm;
+	if (data) {
+		*data = x->value;
+		x->value = NULL;
+	}
+
+	if (hsm) {
+		*hsm = x->hsm;
+		x->hsm = NULL;
+	}
 
 	// Detaches the data
-	x->type = PKI_DATATYPE_UNKNOWN;
-	x->value = NULL;
-	x->it = NULL;
-	x->cb = NULL;
-	x->hsm = NULL;
+	// x->type = PKI_DATATYPE_UNKNOWN;
+	// x->value = NULL;
+	// x->it = NULL;
+	// x->cb = NULL;
+	// x->hsm = NULL;
 
 	// All Done
 	return PKI_OK;

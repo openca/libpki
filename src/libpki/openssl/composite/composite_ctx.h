@@ -117,9 +117,11 @@ int COMPOSITE_CTX_components_detach(COMPOSITE_CTX        * ctx,
  * @param algors The return pointer that references the internal structure
  * @retval Returns PKI_OK on success, PKI_ERR on failure
 */
-int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
-                              const int        pkey_type,
-                              X509_ALGORS   ** algors);
+int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
+                              const int                    pkey_type,
+                              const ASN1_ITEM            * asn1_type,
+                              const COMPOSITE_KEY_STACK  * const components,
+                              X509_ALGORS               ** algors);
 
 /*! \brief Generates and returns the list of explicit algorithms 
  * 
@@ -136,9 +138,11 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
  * @param algors The return pointer that references the internal structure
  * @retval Returns PKI_OK on success, PKI_ERR on failure
 */
-int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
-                                       const int        pkey_type,
-                                       X509_ALGORS   ** algors);
+int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
+                                       const int                    pkey_type,
+                                       const ASN1_ITEM            * asn1_type,
+                                       const COMPOSITE_KEY_STACK  * const components,
+                                       X509_ALGORS               ** algors);
 
 /*! \brief Clears the list of signature algorithms */
 int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx);

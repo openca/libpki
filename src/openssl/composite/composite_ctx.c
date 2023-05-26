@@ -22,6 +22,10 @@
 #include <libpki/pki_oid.h>
 #endif
 
+#ifndef _LIBPKI_PKI_ALGOR_VALUE_H
+#include <libpki/pki_algor.h>
+#endif
+
 // ==============
 // Local Includes
 // ==============
@@ -302,9 +306,14 @@ int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx) {
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
-                                       const int        pkey_type,
-                                       X509_ALGORS   ** algors) {
+int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
+                                       const int                    pkey_type,
+                                       const ASN1_ITEM            * asn1_item,
+                                       const COMPOSITE_KEY_STACK  * const components,
+                                       X509_ALGORS               ** algors) {
+
+  int sk_num = 0;
+    // Number of elements in the stack
 
   X509_ALGORS * sk = NULL;
   X509_ALGOR algor = { 0x0 };
@@ -314,7 +323,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     // NID of the algorithm
 
   // Input Checks
-  if (!ctx) {
+  if (!ctx || !components) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return PKI_ERR;
   }
@@ -324,7 +333,8 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     return PKI_ERR;
   }
 
-  PKI_DEBUG("Scheme %d is an explicit composite (number of components = %d)", scheme, COMPOSITE_KEY_STACK_num(ctx->components));
+  PKI_DEBUG("Scheme %d is an explicit composite (number of components = %d)", 
+    scheme, COMPOSITE_KEY_STACK_num(components));
 
   sk = sk_X509_ALGOR_new_null();
   if (!sk) {
@@ -332,14 +342,29 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     return PKI_ERR;
   }
 
+  // Gets the number of components
+  if ((sk_num = COMPOSITE_KEY_STACK_num(components)) < 2) {
+    PKI_DEBUG("Insufficient number of components in the key stack (%d)", sk_num);
+    return PKI_ERR;
+  }
+
   switch (scheme) {
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
       // Dilithium3 Component
+      // Sets the algorithm identifier in the X509_ALGOR
+      // (and then fails, we generate the signatures in PMETH)
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM3), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // RSA component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -348,7 +373,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM3), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ECDSA-with-SHA256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA256), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA256), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -357,7 +389,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM3), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // Brainpool256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -366,7 +405,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM3), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ED 25519 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ED25519), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ED25519), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -375,7 +421,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM5), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ECDSA-with-SHA384 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA384), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha384());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA384), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -384,7 +437,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM5), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // Brainpool384 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP384r1), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha384());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP384r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -393,6 +453,13 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM5), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ED 448 component
+      // ASN1_item_sign(asn1_item, 
+      //                &algor,
+      //                NULL, 
+      //                NULL,
+      //                NULL,
+      //                COMPOSITE_KEY_STACK_get0(components, 1),
+      //                NULL);
       X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ED448), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
@@ -402,7 +469,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_FALCON512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ECDSA-with-SHA256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA384), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA384), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -411,7 +485,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_FALCON512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // Brainpool256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -420,34 +501,62 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_FALCON512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // Brainpool256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
       // Sphincs 256 simple Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128ssimple), V_ASN1_UNDEF, NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ECDSA-with-SHA256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA256), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA256), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
       // Sphincs 256 simple Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128ssimple), V_ASN1_UNDEF, NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // Brainpool256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-      // Sphincs 256 simple Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128ssimple), V_ASN1_UNDEF, NULL);
+      // Sphincs 256 robust Component
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
-      // Brainpool256 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
+      // ED25519 component
+      // ASN1_item_sign(asn1_item, 
+      //                &algor,
+      //                NULL, 
+      //                NULL,
+      //                NULL,
+      //                COMPOSITE_KEY_STACK_get0(components, 1),
+      //                NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ED25519), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -456,7 +565,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_DILITHIUM3), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // RSAPSS component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSAPSS), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     NULL);
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSAPSS), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
@@ -465,11 +581,22 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_FALCON512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // RSA component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
+      if (sk_num != 3) {
+        PKI_DEBUG("Insufficient number of components in the key stack (%d)", sk_num);
+        return PKI_ERR;
+      }
       // Dilithium5 component
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_FALCON512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -477,13 +604,38 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ECDSA-with-SHA512 component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_ECDSA_SHA512), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 2),
+                     EVP_sha512());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_ECDSA_SHA512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
 
-    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA:
+    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA: {
+      // Sphincs 256 simple Component
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
+      sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
+      // RSA component
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
+      sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
+    } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
+      if (sk_num != 3) {
+        PKI_DEBUG("Insufficient number of components in the key stack (%d)", sk_num);
+        return PKI_ERR;
+      }
       // Dilithium5 component
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_FALCON512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -491,7 +643,14 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
       X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // RSA component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
+      ASN1_item_sign(asn1_item, 
+                     &algor,
+                     NULL, 
+                     NULL,
+                     NULL,
+                     COMPOSITE_KEY_STACK_get0(components, 2),
+                     EVP_sha256());
+      // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
     } break;
     
@@ -502,9 +661,9 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
   }
 
   // Checks the number of components and algorithms to be the same
-  if (sk_X509_ALGOR_num(sk) != COMPOSITE_KEY_STACK_num(ctx->components)) {
+  if (sk_X509_ALGOR_num(sk) != COMPOSITE_KEY_STACK_num(components)) {
     PKI_DEBUG("Number of components (%d) and algorithms (%d) do not match",
-              COMPOSITE_KEY_STACK_num(ctx->components), sk_X509_ALGOR_num(ctx->sig_algs));
+              COMPOSITE_KEY_STACK_num(components), sk_X509_ALGOR_num(ctx->sig_algs));
     sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
     return PKI_ERR;
   }
@@ -512,7 +671,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
   PKI_DEBUG("Same number of components and algorithms (%d)", sk_X509_ALGOR_num(sk));
 
   // Cycles through the components and checks the pkey algors
-  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(ctx->components); idx++) {
+  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
 
     X509_ALGOR * algor = NULL;
       // Pointer to a X509_ALGOR in the stack
@@ -520,7 +679,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     PKI_X509_KEYPAIR_VALUE * pkey = NULL;
       // Pointer to a key in the components' stack
 
-    // int alg_id = 0;
+    int x_type = 0;
     int pkey_id = 0;
     int md_id = 0;
       // IDs of the pkey and the message digest
@@ -528,11 +687,20 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     PKI_DEBUG("Validating component #%d", idx);
 
     // Gets the component and the algorithm
-    pkey = COMPOSITE_KEY_STACK_value(ctx->components, idx);
+    pkey = COMPOSITE_KEY_STACK_value(components, idx);
     if (!pkey) {
       PKI_DEBUG("Cannot retrieve Key Component #%d", idx);
       return PKI_ERR;
     }
+
+    // Gets the PKEY type
+    x_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+    if (!x_type) {
+      PKI_DEBUG("Cannot retrieve PKEY type for component #%d", idx);
+      return PKI_ERR;
+    }
+
+    // Gets the algorithm
     algor = sk_X509_ALGOR_value(sk, idx);
 
     // Gets the PKEY and the MD IDs
@@ -552,9 +720,9 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
     }
 
     // Make sure that the pkey type is the same
-    if (pkey_id != EVP_PKEY_type(EVP_PKEY_id(pkey))) {
+    if (pkey_id != x_type) {
       PKI_DEBUG("PKEY type (%d) and algorithm (%d) do not match in component #%d",
-                pkey_id, EVP_PKEY_type(EVP_PKEY_id(pkey)), idx);
+                pkey_id, x_type, idx);
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       return PKI_ERR;
     }
@@ -574,15 +742,20 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX  * ctx,
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
-                              const int        signature_id,
-                              X509_ALGORS   ** algors) {
+int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
+                              const int                    pkey_type,
+                              const ASN1_ITEM            * const asn1_item,
+                              const COMPOSITE_KEY_STACK  * const components,
+                              X509_ALGORS               ** algors) {
   
-  PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
-    // Scheme of the key
+  int use_global_hash = 0;
+  const EVP_MD * global_hash = NULL;
+    // Global hash to be used for all the components
 
   X509_ALGORS * sk = NULL;
     // Pointer to the new stack of X509_ALGOR
+
+  PKI_DEBUG("Building the list of Algorithms");
 
   // Input Checks
   if (!ctx) {
@@ -591,14 +764,19 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
   }
 
   // Warns about missing pkey_type
-  if (signature_id == PKI_ID_UNKNOWN) {
+  if (pkey_type == PKI_ID_UNKNOWN) {
     PKI_DEBUG("Missing pkey_type when building the list of X509_ALGORS, using defaults");
   }
 
-  // Checks if the key is of the explicit composite type
-  if (PKI_ID_is_explicit_composite(signature_id, &scheme)) {
-    // If it is, then we can use the explicit algors
-    return COMPOSITE_CTX_explicit_algors_new0(ctx, signature_id, algors);  
+  // Checks for global hash
+  if (ctx->md && ctx->md != EVP_md_null()) {
+    use_global_hash = 1;
+    global_hash = ctx->md;
+  }
+
+  if (!PKI_ID_is_composite(pkey_type, NULL)) {
+    PKI_DEBUG("PKEY type %d is not a composite key", pkey_type);
+    return PKI_ERR;
   }
 
   // Allocates a new stack of X509_ALGOR
@@ -607,77 +785,79 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
       return PKI_ERR;
   }
 
+  PKI_DEBUG("Allocated a new stack of X509_ALGOR, adding entries.");
+
   // Cycles through the components and adds the algors
-  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(ctx->components); idx++) {
+  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
 
     PKI_X509_KEYPAIR_VALUE * x = NULL;
+    PKI_SCHEME_ID x_scheme_id = PKI_SCHEME_UNKNOWN;
+    int x_type = 0;
+
     const PKI_DIGEST_ALG * x_md = NULL;
+
     int algid = PKI_ALGOR_ID_UNKNOWN;
     PKI_X509_ALGOR_VALUE * algor = NULL;
 
+    PKI_DEBUG("(SigAlgs) Adding component #%d", idx);
+
     // Gets the component
-    x = COMPOSITE_KEY_STACK_get0(ctx->components, idx);
+    x = COMPOSITE_KEY_STACK_get0(components, idx);
     if (!x) {
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-      PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the component from the stack");
+      PKI_DEBUG("Cannot get the component from the stack");
       return PKI_ERR;
     }
 
-    // Gets the right MD
-    if (ctx->md && ctx->md != PKI_DIGEST_ALG_NULL) {
-      
-      PKI_DEBUG("Detected use of hash-n-sign MD (%d)", EVP_MD_type(ctx->md));
-      // Use hash-n-sign if set
-      x_md = ctx->md;
+    // Gets the type of component (PKEY)
+    x_type = EVP_PKEY_type(EVP_PKEY_id(x));
+    if (!x_type) {
+      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+      PKI_DEBUG("Cannot get the type of component #%d", idx);
+      return PKI_ERR;
+    }
 
+    // Checks we are not recursing
+    if (PKI_ID_is_composite(x_type, &x_scheme_id) ||
+        PKI_ID_is_explicit_composite(x_type, &x_scheme_id)) {
+      // Error, we cannot have recursion
+      PKI_DEBUG("Recursion detected in component #%d (scheme: %d)", idx, x_scheme_id);
+      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+      return PKI_ERR;
+    }
+
+    PKI_DEBUG("(SigAlgs) Component %d is of type %d (%s)", idx, x_type, PKI_ID_get_txt(x_type));
+
+    // Gets the right MD
+    if (use_global_hash) {
+      // Use hash-n-sign if set
+      x_md = global_hash;
     } else {
       // Checks if the component requires the digest
       // and we are not using the hash-n-sign paradigm
       // let's use the configured default (if any)
-      if (PKI_ID_requires_digest(EVP_PKEY_id(x))) {
+      if (PKI_ID_requires_digest(x_type)) {
 
-        PKI_DEBUG("Digest IS REQUIRED for component #%d", idx);
+        PKI_DEBUG("(SigAlgs) Digest is required for component %d", idx);
 
-        // Checks if a default hash was configured
-        if(ctx->default_md) {
-          // Use the configured default
-          x_md = ctx->default_md;
-          PKI_DEBUG("Using configured default digest (%d) for component #%d", EVP_MD_type(x_md), idx);
+        int md_nid = 0;
+        
+        // Search for a default digest for the type of key
+        if (!EVP_PKEY_get_default_digest_nid(x, &md_nid)) {
+          PKI_DEBUG("No default exists for component #%d, using library default (%d)",
+            idx, EVP_MD_type(PKI_DIGEST_ALG_DEFAULT));
+          // Use the library's default for the digest
+          x_md = PKI_DIGEST_ALG_DEFAULT;
         } else {
-          PKI_DEBUG("No configured default, let's retrieve the specific default for component #%d", idx);
-          int md_nid = 0;
-          // Search for a default digest for the type of key
-          if (!EVP_PKEY_get_default_digest_nid(x, &md_nid) || !md_nid) {
-            PKI_DEBUG("No default exists for component #%d, using library default");
-            // Use the library default MD
-            x_md = PKI_DIGEST_ALG_DEFAULT;
-          } else {
-            PKI_DEBUG("Using default digest %d for component #%d", md_nid, idx);
-            x_md = EVP_get_digestbynid(md_nid);
-          }
+          // Use the default digest for the key type
+          x_md = EVP_get_digestbynid(md_nid);
         }
+
       } else {
+
+        PKI_DEBUG("(SigAlgs) Digest is NOT required for component %d", idx);
         x_md = NULL;
-        PKI_DEBUG("Digest IS NOT REQUIRED for component #%d", idx);
-      }
-    }
 
-    // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
-    // we use a different approach
-    if (!x_md && x_md != PKI_DIGEST_ALG_NULL && PKI_ID_is_pqc(EVP_PKEY_type(EVP_PKEY_id(x)))) {
-
-      algid = EVP_PKEY_type(EVP_PKEY_id(x));
-
-    } else {
-
-      // Retrieves the algorithm identifier
-      if (!OBJ_find_sigid_by_algs(&algid, 
-                                  x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
-                                  EVP_PKEY_type(EVP_PKEY_id(x)))) {
-        // Cannot find the algorithm identifier
-        sk_X509_ALGOR_pop_free(*algors, X509_ALGOR_free);
-        PKI_ERROR(PKI_ERR_GENERAL, "Cannot find the algorithm identifier");
-        return PKI_ERR;
       }
     }
 
@@ -688,13 +868,87 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
       return PKI_ERR;
     }
 
-    // Sets the algorithm identifier in the X509_ALGOR
-    if (!X509_ALGOR_set0(algor, OBJ_nid2obj(algid), V_ASN1_UNDEF, NULL)) {
-      PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the algorithm identifier");
-      X509_ALGOR_free(algor);
-      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-      return PKI_ERR;
+    if (asn1_item) {
+      
+      // Generating Parameters via the ASN1_item_sign() function
+      PKI_DEBUG("(SigAlgs) Using ASN1 item sign for component %d (algor: %s)", 
+        idx, PKI_X509_ALGOR_VALUE_get_parsed(algor));
+
+      // Sets the parameter(s) and the algorithm identifier for the component
+      ASN1_item_sign(asn1_item, algor, NULL, NULL, NULL, x, x_md);
+
     }
+
+    int algor_nid = OBJ_obj2nid(algor->algorithm);
+    PKI_DEBUG("(SigAlgs) After ASN1_item_sign component %d, the algorithm is set to => %s (%p) (algor->algorithm: %d)", 
+        idx, PKI_X509_ALGOR_VALUE_get_parsed(algor), algor->algorithm, algor_nid, OBJ_obj2nid(algor->algorithm));
+    
+    // If the algorithm is still NULL, we add the OIDs ourselves
+    if (!algor->algorithm || !OBJ_obj2nid(algor->algorithm)) {
+
+      PKI_DEBUG("(SigAlgs) Since the Algorithm is still NULL, we add the OIDs ourselves %d (algor: %s)", 
+        idx, PKI_X509_ALGOR_VALUE_get_parsed(algor));
+
+      // If PQC, the OBJ_find_sigid_by_algs() does not seem to work,
+      // we use a different approach
+      if (PKI_ID_is_pqc(x_type, NULL) && !use_global_hash) {
+        // Use the same ID for key and algorithm
+        algid = x_type;
+
+      } else {
+
+        PKI_DEBUG("(SigAlgs) No ASN1 item provided %d (algor: %s)", 
+          idx, PKI_X509_ALGOR_VALUE_get_parsed(algor));
+
+        // Retrieves the algorithm identifier
+        if (!OBJ_find_sigid_by_algs(&algid, 
+                                    x_md && x_md != PKI_DIGEST_ALG_NULL ? EVP_MD_type(x_md) : PKI_DIGEST_ALG_ID_UNKNOWN, 
+                                    x_type)) {
+
+          // Checks for special use-cases
+          if (x_type == PKI_ALGOR_ID_ED25519 ||
+              x_type == PKI_ALGOR_ID_ED448) {
+
+            // EdDSA does not require a digest but they
+            // only support digestsign() and digestverify()
+            //
+            // When we enable signing with an empty digest, the algorithms
+            // do not seem to be performing correctly, so we disable it
+            //
+            // To re-enable them, just uncomment the following line
+            algid = x_type;
+
+            // To disable them, just uncomment the following code
+            // if (algor) X509_ALGOR_free(algor);
+            // sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+            // return PKI_ERR;
+
+          } else {
+
+            // Cannot find the algorithm
+            PKI_DEBUG("Global Hash is selected (%s), but cannot find signature alg for component #%d (pkey: %d)", 
+              EVP_MD_name(x_md), idx, x_type);
+            if (algor) X509_ALGOR_free(algor);
+            sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+            return PKI_ERR;
+          }
+        }
+      }
+
+      PKI_DEBUG("(SigAlgs) X509 Algor Generated without ASN1_item_sign() for component %d. " 
+        "Setting the OID (%d) and NO parameters (%s)", idx, algid, OBJ_nid2ln(algid));
+
+      // Sets the algorithm identifier in the X509_ALGOR
+      if (!X509_ALGOR_set0(algor, OBJ_nid2obj(algid), V_ASN1_UNDEF, NULL)) {
+        // Cannot set the algorithm identifier
+        PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the algorithm identifier");
+        if (algor) X509_ALGOR_free(algor);
+        if (sk) sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+        return PKI_ERR;
+      }
+    }
+
+    PKI_DEBUG("(SigAlgs) Pushing the algorithm to the stack for component %d", idx);
 
     // Adds the algorithm to the stack
     if (!sk_X509_ALGOR_push(sk, algor)) {
@@ -711,6 +965,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX  * ctx,
 
   // Also sets the output variable
   if (algors) *algors = sk;
+
+  PKI_DEBUG("(SigAlgs) Done generating the signature algorithms");
 
   // All Done
   return PKI_OK;

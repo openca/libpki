@@ -25,26 +25,31 @@
 
 int EVP_PKEY_assign_COMPOSITE(EVP_PKEY *pkey, void *comp_key) {
 
-  PKI_ID composite_id = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_NAME);
-    // Composite ID
-
   COMPOSITE_KEY * key = comp_key;
     // Composite Key
 
   // Checks if we specified an explicit ID
-  if (key->algorithm > 0) composite_id = key->algorithm;
+  if (key->algorithm <= 0) {
+    key->algorithm = OBJ_txt2nid(OPENCA_ALG_PKEY_EXP_COMP_NAME);
+  }
+
+  PKI_DEBUG("Assigning Composite Key (KEY Algorithm: %d)", key->algorithm);
 
   // Checks that the crypto library understands the composite algorithm (dynamic)
-  if (composite_id == NID_undef) {
-    PKI_DEBUG("Cannot retrieve the 'COMPOSITE' OID");
+  if (key->algorithm <= NID_undef) {
+    PKI_DEBUG("Cannot assign the Composite Key (unknown algorithm)");
     return PKI_ERR;
   }
 
-  PKI_DEBUG("Assigning Composite Key (KEY Algorithm: %d)", composite_id);
-
   // Assigns the Key
-  return EVP_PKEY_assign(pkey, composite_id, comp_key);
+  int success = EVP_PKEY_assign(pkey, key->algorithm, comp_key);
+  if (success == 0) {
+    PKI_DEBUG("Cannot assign the Composite Key");
+    return PKI_ERR;
+  }
 
+  // All Done
+  return PKI_OK;
 }
 
 // ==========================

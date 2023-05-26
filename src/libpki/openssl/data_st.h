@@ -18,6 +18,7 @@
 #include <openssl/safestack.h>
 #include <openssl/ocsp.h>
 #include <openssl/objects.h>
+#include <openssl/obj_mac.h>
 #include <openssl/hmac.h>
 
 #include <openssl/ec.h>
@@ -149,6 +150,61 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif 
 /* End - NID_X9_62_id_ecPublicKey or EVP_PKEY_EC */
 
+						// =============
+						// Family: ED448
+						// =============
+
+/* Begin - ED 448 or EVP_PKEY_ED448 */
+#ifdef EVP_PKEY_X448
+#define ENABLE_X448
+#define PKI_ALGOR_X448	  		EVP_PKEY_X448
+#define PKI_ALGOR_ID_X448		EVP_PKEY_X448
+#else
+#undef ENABLE_X448
+#define PKI_ALGOR_X448			NID_undef
+#define PKI_ALGOR_ID_X448		NID_undef
+#endif 
+/* End - ED 448 or EVP_PKEY_ED448 */
+
+/* Begin - ED 448 or EVP_PKEY_ED448 */
+#ifdef EVP_PKEY_EC
+#define ENABLE_ED448
+#define PKI_ALGOR_ED448	  		EVP_PKEY_ED448
+#define PKI_ALGOR_ID_ED448		EVP_PKEY_ED448
+#else
+#undef ENABLE_ED448
+#define PKI_ALGOR_ED448			NID_undef
+#define PKI_ALGOR_ID_ED448		NID_undef
+#endif 
+/* End - ED 448 or EVP_PKEY_ED448 */
+
+						// ===============
+						// Family: ED25519
+						// ===============
+
+/* Begin - X25519 or EVP_PKEY_X25519 */
+#ifdef EVP_PKEY_X25519
+#define ENABLE_X25519
+#define PKI_ALGOR_X25519  		EVP_PKEY_X25519
+#define PKI_ALGOR_ID_X25519		EVP_PKEY_X25519
+#else
+#undef ENABLE_X25519
+#define PKI_ALGOR_X25519		NID_undef
+#define PKI_ALGOR_ID_X25519		NID_undef
+#endif 
+/* End - X25591 or EVP_PKEY_X25519 */
+
+/* Begin - ED 25519 or EVP_PKEY_ED25519 */
+#ifdef EVP_PKEY_ED25519
+#define ENABLE_ED25519
+#define PKI_ALGOR_ED25519 		EVP_PKEY_ED25519
+#define PKI_ALGOR_ID_ED25519	EVP_PKEY_ED25519
+#else
+#undef ENABLE_ED25519
+#define PKI_ALGOR_ED25519		NID_undef
+#define PKI_ALGOR_ID_ED25519	NID_undef
+#endif 
+/* End - ED 25519 or EVP_PKEY_ED25519 */
 
 						// =================
 						// Digest Algorithms
@@ -203,53 +259,65 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #ifdef NID_sha224
 #define ENABLE_SHA_2
 #define ENABLE_SHA224
-#define PKI_ALGOR_SHA224	    NID_sha224
-#define PKI_ALGOR_ID_SHA224	  NID_sha224
-#define PKI_DIGEST_ALG_SHA224	(PKI_DIGEST_ALG *) EVP_sha224()
+#define PKI_ALGOR_SHA224	    	NID_sha224
+#define PKI_ALGOR_ID_SHA224	  		NID_sha224
+#define PKI_DIGEST_ALG_ID_SHA224	NID_sha224
+#define PKI_DIGEST_ALG_SHA224		(PKI_DIGEST_ALG *) EVP_sha224()
 #else
-#define PKI_ALGOR_SHA224	    NID_undef
-#define PKI_ALGOR_ID_SHA224	  NID_undef
-#define PKI_DIGEST_ALG_SHA224	(PKI_DIGEST_ALG *) NULL
+#define PKI_ALGOR_SHA224	    	NID_undef
+#define PKI_ALGOR_ID_SHA224	  		NID_undef
+#define PKI_DIGEST_ALG_ID_SHA224	NID_undef
+#define PKI_DIGEST_ALG_SHA224		(PKI_DIGEST_ALG *) NULL
 #endif
-#define PKI_ALGOR_SHA224_SIZE	28
+#define PKI_ALGOR_SHA224_SIZE		28
 
 // Support for SHA-256
 #ifdef NID_sha256
 #define ENABLE_SHA256
-#define PKI_ALGOR_SHA256	    NID_sha256
-#define PKI_ALGOR_ID_SHA256	  NID_sha256
-#define PKI_DIGEST_ALG_SHA256	(PKI_DIGEST_ALG *) EVP_sha256()
+#define PKI_ALGOR_SHA256	    	NID_sha256
+#define PKI_ALGOR_ID_SHA256	 		NID_sha256
+#define PKI_DIGEST_ALG_SHA256		(PKI_DIGEST_ALG *) EVP_sha256()
+#define PKI_DIGEST_ALG_ID_SHA256	NID_sha256
 #else
-#define PKI_ALGOR_SHA256	    NID_undef
-#define PKI_ALGOR_ID_SHA256	  NID_undef
-#define PKI_DIGEST_ALG_SHA256	(PKI_DIGEST_ALG *) NULL
+#define PKI_ALGOR_SHA256	    	NID_undef
+#define PKI_ALGOR_ID_SHA256	  		NID_undef
+#define PKI_DIGEST_ALG_SHA256		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHA256	NID_undef
 #endif
-#define PKI_ALGOR_SHA256_SIZE	32
+
+#define PKI_ALGOR_SHA256_SIZE		32
 
 // Support for SHA-384
 #ifdef NID_sha384
 #define ENABLE_SHA384
-#define PKI_ALGOR_SHA384	    NID_sha384
-#define PKI_ALGOR_ID_SHA384   NID_sha384
-#define PKI_DIGEST_ALG_SHA384	(PKI_DIGEST_ALG *) EVP_sha384()
+#define PKI_ALGOR_SHA384	    	NID_sha384
+#define PKI_ALGOR_ID_SHA384   		NID_sha384
+#define PKI_DIGEST_ALG_SHA384		(PKI_DIGEST_ALG *) EVP_sha384()
+#define PKI_DIGEST_ALG_ID_SHA384   	NID_sha384
 #else
-#define PKI_ALGOR_SHA384	NID_undef
-#define PKI_DIGEST_ALG_SHA384	(PKI_DIGEST_ALG *) NULL
+#define PKI_ALGOR_SHA384			NID_undef
+#define PKI_ALGOR_ID_SHA384			NID_undef
+#define PKI_DIGEST_ALG_SHA384		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHA384   	NID_undef
 #endif
-#define PKI_ALGOR_SHA384_SIZE	48
+
+#define PKI_ALGOR_SHA384_SIZE		48
 
 // Support for SHA-512
 #ifdef NID_sha512
 #define ENABLE_SHA512
-#define PKI_ALGOR_SHA512	    NID_sha512
-#define PKI_ALGOR_ID_SHA512	  NID_sha512
-#define PKI_DIGEST_ALG_SHA512	(PKI_DIGEST_ALG *) EVP_sha512()
+#define PKI_ALGOR_SHA512	    	NID_sha512
+#define PKI_ALGOR_ID_SHA512	  		NID_sha512
+#define PKI_DIGEST_ALG_SHA512		(PKI_DIGEST_ALG *) EVP_sha512()
+#define PKI_DIGEST_ALG_ID_SHA512	NID_sha512
 #else
-#define PKI_ALGOR_SHA512	    NID_undef
-#define PKI_ALGOR_ID_SHA512	  NID_undef
-#define PKI_DIGEST_ALG_SHA512	(PKI_DIGEST_ALG *) NULL
+#define PKI_ALGOR_SHA512	    	NID_undef
+#define PKI_ALGOR_ID_SHA512	  		NID_undef
+#define PKI_DIGEST_ALG_SHA512		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHA512	NID_undef
 #endif
-#define PKI_ALGOR_SHA512_SIZE	64
+
+#define PKI_ALGOR_SHA512_SIZE		64
 
 						// ==============
 						// Family: RIPEMD
@@ -260,24 +328,31 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_RIPEMD128       NID_ripemd128
 #define PKI_ALGOR_ID_RIPEMD128    NID_ripemd128
 #define PKI_DIGEST_ALG_RIPEMD128  (PKI_DIGEST_ALG *) EVP_ripemd128()
+#define PKI_DIGEST_ALG_ID_RIPEMD128  NID_ripemd128
 #else
 #define PKI_ALGOR_RIPEMD128       NID_undef
 #define PKI_ALGOR_ID_RIPEMD128    NID_undef
 #define PKI_DIGEST_ALG_RIPEMD128  (PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_RIPEMD128 NID_undef
 #endif
+
 #define PKI_ALGOR_RIPEMD128_SIZE   16
 
 #ifdef NID_ripemd160
 #define ENABLE_RIPEMD160
-#define PKI_ALGOR_RIPEMD160	      NID_ripemd160
-#define PKI_ALGOR_ID_RIPEMD160	  NID_ripemd160
+#define PKI_ALGOR_RIPEMD160	      	NID_ripemd160
+#define PKI_ALGOR_ID_RIPEMD160	  	NID_ripemd160
 #define PKI_DIGEST_ALG_RIPEMD160	(PKI_DIGEST_ALG *) EVP_ripemd160()
+#define PKI_DIGEST_ALG_ID_RIPEMD160	NID_ripemd160
 #else
-#define PKI_ALGOR_RIPEMD160	      NID_undef
-#define PKI_ALGOR_ID_RIPEMD160	  NID_undef
+#define PKI_ALGOR_RIPEMD160	      	NID_undef
+#define PKI_ALGOR_ID_RIPEMD160	 	NID_undef
 #define PKI_DIGEST_ALG_RIPEMD160	(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_RIPEMD160	NID_undef
 #endif
+
 #define PKI_ALGOR_RIPEMD160_SIZE	20
+
 
 						// ============
 						// Family: SHA3
@@ -289,10 +364,14 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_SHA3_256	    	NID_sha3_256
 #define PKI_ALGOR_ID_SHA3_256   	NID_sha3_256
 #define PKI_DIGEST_ALG_SHA3_256		(PKI_DIGEST_ALG *) EVP_sha3_256()
+#define PKI_DIGEST_ALG_ID_SHA3_256	NID_sha3_256
 #else
 #define PKI_ALGOR_SHA3_256			NID_undef
+#define PKI_ALGOR_ID_SHA3_256   	NID_undef
 #define PKI_DIGEST_ALG_SHA3_256		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHA3_256	NID_undef
 #endif
+
 #define PKI_ALGOR_SHA3_256_SIZE		32
 
 // Support for SHA3-384
@@ -301,10 +380,14 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_SHA3_384	    	NID_sha3_384
 #define PKI_ALGOR_ID_SHA3_384   	NID_sha3_384
 #define PKI_DIGEST_ALG_SHA3_384		(PKI_DIGEST_ALG *) EVP_sha3_384()
+#define PKI_DIGEST_ALG_ID_SHA3_384	NID_sha_384
 #else
 #define PKI_ALGOR_SHA3_384			NID_undef
+#define PKI_ALGOR_ID_SHA3_384   	NID_undef
 #define PKI_DIGEST_ALG_SHA3_384		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHA3_384	NID_undef
 #endif
+
 #define PKI_ALGOR_SHA3_384_SIZE		48
 
 // Support for SHA3-512
@@ -313,10 +396,14 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_SHA3_512	    	NID_sha3_512
 #define PKI_ALGOR_ID_SHA3_512   	NID_sha3_512
 #define PKI_DIGEST_ALG_SHA3_512		(PKI_DIGEST_ALG *) EVP_sha3_512()
+#define PKI_DIGEST_ALG_ID_SHA3_512	NID_sha3_512
 #else
 #define PKI_ALGOR_SHA3_256			NID_undef
+#define PKI_ALGOR_ID_SHA3_512   	NID_undef
 #define PKI_DIGEST_ALG_SHA3_256		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_SHA3_256		NID_undef
 #endif
+
 #define PKI_ALGOR_SHA512_SIZE		64
 
 						// =============
@@ -329,31 +416,29 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_SHAKE128	    	NID_shake128
 #define PKI_ALGOR_ID_SHAKE128	  	NID_shake128
 #define PKI_DIGEST_ALG_SHAKE128		(PKI_DIGEST_ALG *) EVP_shake128()
+#define PKI_DIGEST_ALG_ID_SHAKE128	NID_shake128
 #else
 #define PKI_ALGOR_SHAKE128			NID_undef
+#define PKI_ALGOR_ID_SHAKE128	  	NID_undef
 #define PKI_DIGEST_ALG_SHAKE128		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHAKE128	NID_undef
 #endif
 #define PKI_ALGOR_SHAKE128_SIZE		16
 
-// Support for SHAKE-128
+// Support for SHAKE-256
 #ifdef NID_shake256
 #define ENABLE_SHAKE256
 #define PKI_ALGOR_SHAKE256	    	NID_shake256
 #define PKI_ALGOR_ID_SHAKE256	  	NID_shake256
 #define PKI_DIGEST_ALG_SHAKE256		(PKI_DIGEST_ALG *) EVP_shake256()
+#define PKI_DIGEST_ALG_ID_SHAKE256	NID_shake256
 #else
 #define PKI_ALGOR_SHAKE128			NID_undef
+#define PKI_ALGOR_ID_SHAKE256	  	NID_undef
 #define PKI_DIGEST_ALG_SHAKE128		(PKI_DIGEST_ALG *) NULL
+#define PKI_DIGEST_ALG_ID_SHAKE256	NID_undef
 #endif
 #define PKI_ALGOR_SHAKE256_SIZE		32
-
-#ifdef ENABLE_ECDSA
-#define PKI_DIGEST_ALG_ECDSA_SHA1		(PKI_DIGEST_ALG *)EVP_ecdsa()
-#define PKI_DIGEST_ALG_ECDSA_DSS1		(PKI_DIGEST_ALG *)EVP_ecdsa()
-#else
-#define PKI_DIGEST_ALG_ECDSA_DSS1	NULL
-#define PKI_DIGEST_ALG_ECDSA_SHA1	NULL
-#endif
 
 
 #define PKI_ALGOR_NULL            NULL
@@ -365,19 +450,27 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 							// Signature Algorithms
 							// ====================
 
-#define PKI_ALGOR_RSA_MD5     	NID_md5WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_MD5  	NID_md5WithRSAEncryption
-#define PKI_ALGOR_RSA_MD4	    NID_md4WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_MD4  	NID_md4WithRSAEncryption
-#define PKI_ALGOR_RSA_SHA1    	NID_sha1WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_SHA1 	NID_sha1WithRSAEncryption
+#define PKI_ALGOR_RSA_MD5     		NID_md5WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_MD5  		NID_md5WithRSAEncryption
+#define PKI_ALGOR_RSA_MD4	    	NID_md4WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_MD4  		NID_md4WithRSAEncryption
+#define PKI_ALGOR_RSA_SHA1    		NID_sha1WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_SHA1 		NID_sha1WithRSAEncryption
+
+#ifdef ENABLE_ECDSA
+#define PKI_DIGEST_ALG_ECDSA_SHA1	(PKI_DIGEST_ALG *)EVP_ecdsa()
+#define PKI_DIGEST_ALG_ECDSA_DSS1	(PKI_DIGEST_ALG *)EVP_ecdsa()
+#else
+#define PKI_DIGEST_ALG_ECDSA_DSS1	NULL
+#define PKI_DIGEST_ALG_ECDSA_SHA1	NULL
+#endif
 
 #ifdef ENABLE_SHA224
-#define PKI_ALGOR_RSA_SHA224	  NID_sha224WithRSAEncryption
-#define PKI_ALGOR_ID_RSA_SHA224	NID_sha224WithRSAEncryption
+#define PKI_ALGOR_RSA_SHA224	  	NID_sha224WithRSAEncryption
+#define PKI_ALGOR_ID_RSA_SHA224		NID_sha224WithRSAEncryption
 #else
-#define PKI_ALGOR_RSA_SHA224	  NID_undef
-#define PKI_ALGOR_ID_RSA_SHA224	NID_undef
+#define PKI_ALGOR_RSA_SHA224	  	NID_undef
+#define PKI_ALGOR_ID_RSA_SHA224		NID_undef
 #endif
 
 #ifdef ENABLE_SHA256
@@ -427,7 +520,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #if OPENSSL_VERSION_NUMBER < 0x1000000fL
 #define PKI_ALGOR_DSS1          60000
 #define PKI_ALGOR_ID_DSS1       60000
-#define PKI_ALGOR_ECDSA_DSS1	  60001
+#define PKI_ALGOR_ECDSA_DSS1	60001
 #define PKI_ALGOR_ID_ECDSA_DSS1 60001
 #define PKI_DIGEST_ALG_DSS1	    (PKI_DIGEST_ALG *) EVP_dss1()
 #else
@@ -442,10 +535,10 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #ifdef NID_dsaWithSHA1
 #define ENABLE_DSA
 #define ENABLE_DSA_SHA_1
-#define PKI_ALGOR_DSA_SHA1	  NID_dsaWithSHA1
+#define PKI_ALGOR_DSA_SHA1	  	NID_dsaWithSHA1
 #define PKI_ALGOR_ID_DSA_SHA1	NID_dsaWithSHA1
 #else
-#define PKI_ALGOR_DSA_SHA1	  NID_undef
+#define PKI_ALGOR_DSA_SHA1	  	NID_undef
 #define PKI_ALGOR_ID_DSA_SHA1	NID_undef
 #endif
 /* End - NID_dsaWithSHA1 */
@@ -454,68 +547,68 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #ifdef NID_dsa_with_SHA224 
 #define ENABLE_DSA
 #define ENABLE_DSA_SHA224
-#define PKI_ALGOR_DSA_SHA224	  NID_dsa_with_SHA224
-#define PKI_ALGOR_ID_DSA_SHA224	NID_dsa_with_SHA224
+#define PKI_ALGOR_DSA_SHA224		NID_dsa_with_SHA224
+#define PKI_ALGOR_ID_DSA_SHA224		NID_dsa_with_SHA224
 #else
-#define PKI_ALGOR_DSA_SHA224	  NID_undef
-#define PKI_ALGOR_ID_DSA_SHA224	NID_undef
+#define PKI_ALGOR_DSA_SHA224		NID_undef
+#define PKI_ALGOR_ID_DSA_SHA224		NID_undef
 #endif 
 /* End - NID_dsa_with_SHA224 */
 
 /* Begin - NID_dsa_with_SHA256 */
 #ifdef NID_dsa_with_SHA256 
 #define ENABLE_DSA_SHA256
-#define PKI_DIGEST_ALG_DSA_DEFAULT PKI_DIGEST_ALG_SHA256
-#define PKI_ALGOR_DSA_SHA256	     NID_dsa_with_SHA256
-#define PKI_ALGOR_ID_DSA_SHA256	   NID_dsa_with_SHA256
+#define PKI_DIGEST_ALG_DSA_DEFAULT 	PKI_DIGEST_ALG_SHA256
+#define PKI_ALGOR_DSA_SHA256	    NID_dsa_with_SHA256
+#define PKI_ALGOR_ID_DSA_SHA256		NID_dsa_with_SHA256
 #else
-#define PKI_DIGEST_ALG_DSA_DEFAULT PKI_DIGEST_ALG_SHA1
-#define PKI_ALGOR_DSA_SHA256	     NID_undef
-#define PKI_ALGOR_ID_DSA_SHA256	   NID_undef
+#define PKI_DIGEST_ALG_DSA_DEFAULT	PKI_DIGEST_ALG_SHA1
+#define PKI_ALGOR_DSA_SHA256	    NID_undef
+#define PKI_ALGOR_ID_DSA_SHA256		NID_undef
 #endif 
 /* End - NID_dsa_with_SHA256 */
 
 /* Begin - NID_dsa_with_SHA384 */
 #ifdef NID_dsa_with_SHA384
 #define ENABLE_DSA_SHA384
-#define PKI_ALGOR_DSA_SHA384    NID_dsa_with_SHA384
-#define PKI_ALGOR_ID_DSA_SHA384 NID_dsa_with_SHA384
+#define PKI_ALGOR_DSA_SHA384    	NID_dsa_with_SHA384
+#define PKI_ALGOR_ID_DSA_SHA384 	NID_dsa_with_SHA384
 #else
-#define PKI_ALGOR_DSA_SHA384    NID_undef
-#define PKI_ALGOR_ID_DSA_SHA384 NID_undef
+#define PKI_ALGOR_DSA_SHA384    	NID_undef
+#define PKI_ALGOR_ID_DSA_SHA384 	NID_undef
 #endif 
 /* End - NID_dsa_with_SHA384 */
 
 /* Begin - NID_dsa_with_SHA512 */
 #ifdef NID_dsa_with_SHA512 
 #define ENABLE_DSA_SHA512
-#define PKI_ALGOR_DSA_SHA512    NID_dsa_with_SHA512
-#define PKI_ALGOR_ID_DSA_SHA512 NID_dsa_with_SHA512
+#define PKI_ALGOR_DSA_SHA512    	NID_dsa_with_SHA512
+#define PKI_ALGOR_ID_DSA_SHA512 	NID_dsa_with_SHA512
 #else
-#define PKI_ALGOR_DSA_SHA512    NID_undef
-#define PKI_ALGOR_ID_DSA_SHA512 NID_undef
+#define PKI_ALGOR_DSA_SHA512    	NID_undef
+#define PKI_ALGOR_ID_DSA_SHA512 	NID_undef
 #endif 
 /* End - NID_dsa_with_SHA256 */
 
 /* Begin - NID_ecdsa_with_SHA1 */
 #ifdef NID_ecdsa_with_SHA1
 #define ENABLE_ECDSA_SHA1
-#define PKI_ALGOR_ECDSA_SHA1	  NID_ecdsa_with_SHA1
-#define PKI_ALGOR_ID_ECDSA_SHA1 NID_ecdsa_with_SHA1
+#define PKI_ALGOR_ECDSA_SHA1	  	NID_ecdsa_with_SHA1
+#define PKI_ALGOR_ID_ECDSA_SHA1 	NID_ecdsa_with_SHA1
 #else
-#define PKI_ALGOR_ECDSA_SHA1	  NID_undef
-#define PKI_ALGOR_ID_ECDSA_SHA1 NID_undef
+#define PKI_ALGOR_ECDSA_SHA1	  	NID_undef
+#define PKI_ALGOR_ID_ECDSA_SHA1 	NID_undef
 #endif 
 /* End - NID_ecdsa_with_SHA1 */
 
 /* Begin - NID_ecdsa_with_224 */
 #ifdef NID_ecdsa_with_SHA224
 #define ENABLE_ECDSA_SHA_2
-#define PKI_ALGOR_ECDSA_SHA224    NID_ecdsa_with_SHA224
-#define PKI_ALGOR_ID_ECDSA_SHA224 NID_ecdsa_with_SHA224
+#define PKI_ALGOR_ECDSA_SHA224    	NID_ecdsa_with_SHA224
+#define PKI_ALGOR_ID_ECDSA_SHA224 	NID_ecdsa_with_SHA224
 #else
-#define PKI_ALGOR_ECDSA_SHA224    NID_undef
-#define PKI_ALGOR_ID_ECDSA_SHA224 NID_undef
+#define PKI_ALGOR_ECDSA_SHA224    	NID_undef
+#define PKI_ALGOR_ID_ECDSA_SHA224 	NID_undef
 #endif
 /* End - NID_ecdsa_with_SHA224 */
 
@@ -527,26 +620,26 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #else
 #define PKI_DIGEST_ALG_ECDSA_DEFAULT PKI_DIGEST_ALG_DSS1
 #define PKI_ALGOR_ECDSA_SHA256	     NID_undef
-#define PKI_ALGOR_ID_ECDSA_SHA256	   NID_undef
+#define PKI_ALGOR_ID_ECDSA_SHA256	 NID_undef
 #endif
 /* End - NID_ecdsa_with_SHA256 */
 
 /* Begin - NID_ecdsa_with_384 */
 #ifdef NID_ecdsa_with_SHA384
-#define PKI_ALGOR_ECDSA_SHA384	  NID_ecdsa_with_SHA384
+#define PKI_ALGOR_ECDSA_SHA384	  	NID_ecdsa_with_SHA384
 #define PKI_ALGOR_ID_ECDSA_SHA384	NID_ecdsa_with_SHA384
 #else
-#define PKI_ALGOR_ECDSA_SHA384	  NID_undef
+#define PKI_ALGOR_ECDSA_SHA384	  	NID_undef
 #define PKI_ALGOR_ID_ECDSA_SHA384	NID_undef
 #endif
 /* End - NID_ecdsa_with_SHA384 */
 
 /* Begin - NID_ecdsa_with_512 */
 #ifdef NID_ecdsa_with_SHA512
-#define PKI_ALGOR_ECDSA_SHA512	  NID_ecdsa_with_SHA512
+#define PKI_ALGOR_ECDSA_SHA512	  	NID_ecdsa_with_SHA512
 #define PKI_ALGOR_ID_ECDSA_SHA512	NID_ecdsa_with_SHA512
 #else
-#define PKI_ALGOR_ECDSA_SHA512	  NID_undef
+#define PKI_ALGOR_ECDSA_SHA512	  	NID_undef
 #define PKI_ALGOR_ID_ECDSA_SHA512	NID_undef
 #endif
 /* End - NID_ecdsa_with_SHA512 */
@@ -1131,16 +1224,22 @@ typedef enum {
 
 typedef struct pki_keyparams_st {
 	int bits;
+	int sec_bits;
+	int pq_sec_bits;
+
 	PKI_SCHEME_ID scheme;
+	PKI_ALGOR_ID pkey_type;
+
 	// RSA scheme parameters
 	struct {
 		int exponent;
+		int bits;
 	} rsa;
 	// DSA scheme parameters
 
-#ifdef OPENSSL_NO_DSA
-	struct {} dsa;
-#endif
+	struct {
+		int bits;
+	} dsa;
 
 #ifdef ENABLE_ECDSA
 	// EC scheme parameters
@@ -1159,6 +1258,7 @@ typedef struct pki_keyparams_st {
 
 #ifdef ENABLE_COMPOSITE
 	struct {
+		PKI_ALGOR_ID algorithm;
 		PKI_X509_KEYPAIR_STACK * k_stack;
 		ASN1_INTEGER * k_of_n;
 	} comp;

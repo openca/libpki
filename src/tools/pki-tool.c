@@ -65,7 +65,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -out <url>       - Output Data URI\n");
 	fprintf(stderr, "  -pubout <url>    - Saves the SubjectPublicKeyInfo of a cert\n");
 	fprintf(stderr, "  -outform <OPT>   - Output Format (i.e., PEM, DER, TXT, XML)\n");
-	fprintf(stderr, "  -bits <num>      - Number of Bits\n");
+	fprintf(stderr, "  -sec_bits <num>  - Security Bits for key generation (range: 80, 112, 128, 192, 256)\n");
 	fprintf(stderr, "  -type <objtype>  - Type of Object\n");
 	fprintf(stderr, "  -algor <name>    - Algorithm to be used (e.g., RSA, Falcon, etc.)\n");
 	fprintf(stderr, "  -digest <name>   - Digest Algorithm to be used (e.g., sha256, shake128, null, etc.)\n");
@@ -95,7 +95,7 @@ void usage ( void ) {
 	fprintf(stderr, "  -batch           - Batch mode (no prompt - assumes yes)\n");
 	fprintf(stderr, "  -verbose         - Writes additional info to stdout\n");
 	fprintf(stderr, "  -debug           - Enables Debugging info to stderr\n");
-	fprintf(stderr, "  -param <par>     - KeyGen param (eg., curve:curvename for EC)\n");
+	fprintf(stderr, "  -param <par>     - Key generation parameter (eg., curve:<curve> for EC, bits:<num> for RSA)\n");
 	fprintf(stderr, "  -curves          - Prints out available curve names\n");
 
 	fprintf(stderr, "\n  Where Type of Object can be:\n");
@@ -251,12 +251,19 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 
 }
 
-int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
-		char *url_s, char *algor_opt, char *profile_s, PKI_DATA_FORMAT outFormVal, 
+int gen_keypair(PKI_TOKEN 		* tk, 
+				int 			  sec_bits, 
+				char 			* param_s,
+				char 			* url_s, 
+				PKI_SCHEME_ID     scheme_id, 
+				char 			* profile_s, 
+				PKI_DATA_FORMAT   outFormVal, 
 #ifdef ENABLE_COMPOSITE
-		char *comp_keys[], int comp_keys_num, int comp_kofn,
+				char 			* comp_keys[], 
+				int 			  comp_keys_num, 
+				int 			  comp_kofn,
 #endif
-		int batch ) {
+				int 			  batch ) {
 
 	char *prompt = NULL;
 	// int outFormVal = PKI_DATA_FORMAT_PEM;
@@ -265,8 +272,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 	PKI_KEYPARAMS *kp = NULL;
 	PKI_X509_PROFILE *prof = NULL;
-
-	PKI_SCHEME_ID scheme = PKI_SCHEME_UNKNOWN;
 
 	if((url_s==NULL) || (strcmp_nocase("stdin", url_s) == 0)) {
 		if((url_s = tk->key_id) == NULL ) {
@@ -292,18 +297,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 		exit(1);
 	}
 
-	// Let's get the algor options from the ENV if not set
-	if (!algor_opt) algor_opt = PKI_get_env("PKI_TOKEN_ALGORITHM");
-
-	// Checks for the supported schemes
-	if (algor_opt) {
-		if ((scheme = PKI_X509_ALGOR_VALUE_get_scheme_by_txt(algor_opt)) == PKI_SCHEME_UNKNOWN) {
-			fprintf(stderr, "\nERROR: Scheme not supported for key generation (%s)\n\n",
-				algor_opt);
-			exit(1);
-		}
-	}
-
 	// If specified, search the profile among the ones already loaded
 	if (profile_s) prof = PKI_TOKEN_search_profile( tk, profile_s );
 
@@ -314,27 +307,28 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 	// Let's now generate the new key parameters
-	if ((kp = PKI_KEYPARAMS_new(scheme, prof)) == NULL)
-	{
-		fprintf(stderr, "\n    ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme);
+	if ((kp = PKI_KEYPARAMS_new(scheme_id, prof)) == NULL) {
+		fprintf(stderr, "\n    ERROR, can not create KEYPARAMS object (scheme %d)!\n\n", scheme_id);
 		exit(1);
 	}
 
-	// Updates the bits
-	if (bits <= 0 && kp->bits > 0) bits = kp->bits;
-
-	// Checks that the bits value is not negative (at least!)
-	if (PKI_KEYPARAMS_set_bits(kp, bits) != PKI_OK) {
-		fprintf(stderr, "\n    WARNING, requested security bits (%d) are higher than provided in this scheme (scheme: %s, bits: %d)\n\n",
-			bits, PKI_SCHEME_ID_get_parsed(scheme), kp->bits);
-		exit(1);
+	// Updates the bits (use defaults, if not specified)
+	if (sec_bits <= 0) {
+		if (kp->sec_bits > 0) { sec_bits = kp->sec_bits; }
+		else { sec_bits = PKI_DEFAULT_CLASSIC_SEC_BITS; }
+	} else {
+		if (PKI_ERR == PKI_KEYPARAMS_set_security_bits(kp, sec_bits)) {
+			fprintf(stderr, "\n    ERROR, can not set security bits (%d)!\n\n", sec_bits);
+			exit(1);
+		}
 	}
 
 #ifdef ENABLE_COMPOSITE
-	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme, bits);
-	PKI_DEBUG("Key to be generated is composite? %s", PKI_SCHEME_ID_is_composite(scheme) ? "YES" : "NO");
-	PKI_DEBUG("Key to be generated is explicit composite? %s", PKI_SCHEME_ID_is_explicit_composite(scheme) ? "YES" : "NO");
-	PKI_DEBUG("Parsed Scheme ID is => %s", PKI_SCHEME_ID_get_parsed(scheme));
+	PKI_DEBUG("Key Parameters Generated: scheme %d (bits: %d)", scheme_id, sec_bits);
+	PKI_DEBUG("Key to be generated is PQC? %s", PKI_SCHEME_ID_is_post_quantum(scheme_id) ? "YES" : "NO");
+	PKI_DEBUG("Key to be generated is composite? %s", PKI_SCHEME_ID_is_composite(scheme_id) ? "YES" : "NO");
+	PKI_DEBUG("Key to be generated is explicit composite? %s", PKI_SCHEME_ID_is_explicit_composite(scheme_id) ? "YES" : "NO");
+	PKI_DEBUG("Parsed Scheme ID is => %s", PKI_SCHEME_ID_get_parsed(scheme_id));
 #endif
 
 	// Checks for Parameters for Key Generation
@@ -366,13 +360,50 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 					}
 				}
 				break;
+
+			case PKI_SCHEME_RSA:
+			case PKI_SCHEME_RSAPSS: {
+				// RSA Scheme - allow for bits:<int> param
+				int bit_size = 0;
+				if (str_cmp_ex(param_s, "bits:", 5, 1) == 0 ) {
+					// Get the Name of the Curve
+					if (sscanf(param_s + 5, "%d", &bit_size) < 1) {
+						fprintf(stderr, "\n    ERROR: Cannot get bitsize from the key param, please use 'bits:<int>' (%s)\n\n", param_s);
+						exit(1);
+					}
+					if (bit_size <= 0 || bit_size > 15360) {
+						fprintf(stderr, "\n    ERROR: Invalid bitsize (%d) specified, please use a value between 1 and 16384.\n\n", bit_size);
+						exit(1);
+					}
+				} else {
+					fprintf(stderr, "\nERROR: RSA Scheme does not support (%s). Please use 'bits:<int>' format for RSA key sizes.\n\n", param_s);
+					exit(1);
+				}
+
+			 	// Updates the associated security bits
+					 if (bit_size <= 32  )  { kp->sec_bits = 18; }
+				else if (bit_size <= 512 )  { kp->sec_bits = 60; }
+				else if (bit_size <= 756 )  { kp->sec_bits = 70; }
+				else if (bit_size <= 1024)  { kp->sec_bits = 80; }
+				else if (bit_size <= 1536)  { kp->sec_bits = 95; }
+				else if (bit_size <= 2048) { kp->sec_bits = 112; }
+				else if (bit_size <= 3072) { kp->sec_bits = 128; }
+				else if (bit_size <= 4096) { kp->sec_bits = 140; }
+				else if (bit_size <= 7680) { kp->sec_bits = 192; }
+				else if (bit_size <= 15360){ kp->sec_bits = 256; }
+				else { kp->sec_bits = 256; } // Laughable, but let's have fun :)
+
+				// Updates the RSA bitsize
+				PKI_DEBUG("Replacing RSA bitsize (%d) with %d", kp->rsa.bits, bit_size);
+				kp->rsa.bits = bit_size;
+				kp->bits = bit_size;
+
+			} break;
 #endif
 
 #ifdef ENABLE_COMPOSITE
 
 			case PKI_SCHEME_COMPOSITE: {
-				fprintf(stderr, "[%s:%s():%d] DEBUG: Processing COMPOSITE parameters\n",
-						__FILE__, __func__, __LINE__);
 
 				// Processes the K-of-N parameter option
 				if (strncmp_nocase( param_s, "kofn:", 5) == 0 ) {
@@ -382,9 +413,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 								return PKI_ERR;
 						}
 				}
-				// Parsed Value for K-of-N
-				fprintf(stderr, "[%s:%s():%d] DEBUG: Using %d as the value for K-of-N\n",
-						__FILE__, __func__, __LINE__, comp_kofn);
 
 				// If the parameter is set, then set it in the keyparams
 				if (comp_kofn > 0) {
@@ -393,9 +421,6 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 								return PKI_ERR;
 						}
 				}
-
-				fprintf(stderr, "[%s:%s():%d] DEBUG: Composite Parameter Set Value (0x%p - %ld)\n",
-						__FILE__, __func__, __LINE__, kp->comp.k_of_n, ASN1_INTEGER_get(kp->comp.k_of_n) );
 
 			} break;
 
@@ -426,11 +451,15 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 	}
 
 	// This processes the key components
-    if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
+    if (PKI_SCHEME_ID_is_composite(kp->scheme) || PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
         // Adds the components keys
 
 		char * url = NULL;
 		int i = 0;
+
+		if (PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
+			PKI_DEBUG("WARNING: Adding separate components to an explicit composite scheme %d, please make sure the composition is correct.", kp->scheme);
+		}
 
 		while ((url = comp_keys[i]) != NULL) {
 
@@ -457,27 +486,55 @@ int gen_keypair ( PKI_TOKEN *tk, int bits, char *param_s,
 
 	if (!batch)	{
 
+		int bit_size = 0;
+		if (kp->scheme == PKI_SCHEME_RSA ||
+		    kp->scheme == PKI_SCHEME_RSAPSS ||
+			kp->scheme == PKI_SCHEME_DSA ) {
+			bit_size = kp->rsa.bits;
+		} else {
+			if (kp->bits > 0) {
+				bit_size = kp->bits;
+			} else {
+				bit_size = PKI_SCHEME_ID_get_bitsize(kp->scheme, kp->sec_bits);
+			}
+		}
+
 		fprintf(stderr, "\nThis will generate a new keypair on the "
 							"Token.\n");
 		fprintf(stderr, "\nDetails:\n");
-		fprintf(stderr, "  - Algorithm ......: %s\n", 
-					PKI_SCHEME_ID_get_parsed( kp->scheme ));
-		fprintf(stderr, "  - Bits ...........: %d\n", kp->bits );
+		fprintf(stderr, "  - Algorithm Family ...: %s\n", 
+					PKI_SCHEME_ID_get_parsed(kp->scheme));
+		fprintf(stderr, "  - Key Type ...........: %s\n", 
+					PKI_ID_get_txt(kp->pkey_type));
+		fprintf(stderr, "  - Classic Sec Bits ...: %d\n", 
+					kp->sec_bits );
+		fprintf(stderr, "  - Quantum Sec Bits ...: %d\n", 
+					kp->pq_sec_bits );
+		fprintf(stderr, "  - Bits (size) ........: %d\n", 
+					bit_size);
+		fprintf(stderr, "  - Is Quantum Safe ....: %s (%d)\n", 
+					PKI_SCHEME_ID_is_post_quantum(kp->scheme) ? "Yes" : "No", kp->scheme);
+		fprintf(stderr, "  - Is Composite .......: %s (explicit: %s)\n", 
+					PKI_SCHEME_ID_is_composite(kp->scheme) ? "Yes" : "No",
+					PKI_SCHEME_ID_is_explicit_composite(kp->scheme) ? "Yes" : "No" );
+
+		if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
+		fprintf(stderr, "  - Validation Policy ..: %ld (K of N)\n", kp->comp.k_of_n ? ASN1_INTEGER_get(kp->comp.k_of_n) : -1);
+		}
 
 #ifdef ENABLE_ECDSA
 		if (kp->scheme == PKI_SCHEME_ECDSA) {
-			fprintf(stderr, "  - Point Type .....: %d\n", kp->ec.form );
+			fprintf(stderr, "  - Point Type .........: %d\n", kp->ec.form );
 		}
 #endif
 
 #ifdef ENABLE_COMPOSITE
 	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)) {
-		fprintf(stderr, "  - Number of Keys..: %d\n", 
+		fprintf(stderr, "  - Number of Keys .....: %d\n", 
 			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
 	}
 #endif
-
-		fprintf(stderr, "  - Output .........: %s\n", keyurl->url_s );
+		fprintf(stderr, "  - Output URI .........: %s\n", keyurl->url_s );
 
 		prompt = prompt_str ("\nAre you sure [y/N] ? ");
 	}
@@ -586,21 +643,21 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	if (digest_opt) {
 
 		// Checks for the NO-HASH (null) digest option
-		if (strncasecmp(digest_opt, "null", 4) == 0 ||
-		    strncasecmp(digest_opt, "no", 2) == 0) {
+		if (str_cmp_ex(digest_opt, "null", 0, 1) == 0 ||
+		    str_cmp_ex(digest_opt, "no", 0, 1) == 0) {
 			// Uses the NULL digest method to indicate we
 			// do not need the digest. NULL is used to
 			// indicated there is no preference, use the
 			// default hash algorithm instead.
 			digest = PKI_DIGEST_ALG_NULL;
+			PKI_DEBUG("Using NULL digest");
 		} else {
 			// Retrieves the Digest from the provided name
 			digest = (PKI_DIGEST_ALG *) PKI_DIGEST_ALG_get_by_name(digest_opt);
-		}
-
-		if (digest == NULL) {
-			PKI_log_err("Cannot parse digest %s", digest_opt);
-			return PKI_ERR;
+			if (!digest) {
+				PKI_log_err("Cannot parse digest %s", digest_opt);
+				return PKI_ERR;
+			}
 		}
 
 	} else {
@@ -612,12 +669,12 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 			// Key Type
 
 		// Explicit does not allow for hash-n-sign
-		if (PKI_ID_is_explicit_composite(pkey_type, NULL)) {
-			// Use the NULL digest method
-			digest = PKI_DIGEST_ALG_NULL;
-		} else {
+		if (PKI_ID_requires_digest(pkey_type) == PKI_OK) {
 			// Use the default algorithm if NULL was used
 			digest = PKI_DIGEST_ALG_DEFAULT;
+		} else {
+			// Use the NULL digest method
+			digest = PKI_DIGEST_ALG_NULL;
 		}
 	}
 
@@ -625,28 +682,60 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	tk->digest = digest;
 
 	// Updates the algorithm
-	if (tk->keypair != NULL && algor_opt == NULL) {
+	if (tk->keypair != NULL) {
 
 		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 			// Internal Value
 
-		if (digest != EVP_md_null()) {
-			// Gest the Signature ID for the digest/pkey combination
-			if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), EVP_PKEY_id(p_val))) {
-				PKI_log_err("No available combined digest/pkey algorithm for (%d/%d)",
-					EVP_MD_nid(digest), EVP_PKEY_id(p_val));
+		int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
+			// Key Type
+
+		// Gets the Signature ID for the digest/pkey combination
+		if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), pkey_type)) {
+
+			// Checks for possible fixes
+			if (digest == NULL || digest == PKI_DIGEST_ALG_NULL) {
+				// If we have a PQC or an explicit composite key, we
+				// can use the pkey_type as the signature algorithm
+				// if the digest is NULL
+				if (PKI_ID_is_pqc(pkey_type, NULL) ||
+					PKI_ID_is_composite(pkey_type, NULL) ||
+					PKI_ID_is_explicit_composite(pkey_type, NULL)) {
+					// If we do not have a defined one, let's use
+					// the pkey_type as the signature algorithm
+					sig_alg = pkey_type;
+				} else if(PKI_ID_requires_digest(pkey_type) == PKI_ERR) {
+					// If we have a non-digest algorithm, we can
+					// use the pkey_type as the signature algorithm
+					sig_alg = pkey_type;
+				} else {
+					// No available algorithm for pkey without digest
+					PKI_DEBUG("No available combined digest/pkey algorithm for (digest: %d, pkey_type: %d)",
+						EVP_MD_nid(digest), pkey_type);
+					return PKI_ERR;
+				}
+			} else {
+				// No available algorithm for pkey/digest combination
+				PKI_DEBUG("No available algorithm (%d) for combined digest/pkey algorithm for (digest: %d, pkey_type: %d)",
+					sig_alg, EVP_MD_nid(digest), pkey_type);
 				return PKI_ERR;
 			}
-			// Let's update the token's algorithm, if any
-			if (sig_alg != PKI_ID_UNKNOWN) {
-				PKI_TOKEN_set_algor(tk, sig_alg);
-			}
-		} else if (digest == EVP_md_null()) {
+		}
+
+		// Let's update the token's algorithm, if any
+		if (sig_alg != PKI_ID_UNKNOWN) {
+			// Sets the Token's Algorithm
+			PKI_TOKEN_set_algor(tk, sig_alg);
+
+		} else if ((digest == EVP_md_null() || digest == NULL) &&
+		           (PKI_ID_is_explicit_composite(pkey_type, NULL) ||
+				    PKI_ID_is_pqc(pkey_type, NULL))) {
 			// If we do not have a defined one, let's use 
-			PKI_TOKEN_set_algor(tk, EVP_PKEY_id(p_val));
+			PKI_TOKEN_set_algor(tk, pkey_type);
 		} else {
 			// Error Condition
-			fprintf(stderr, "\n    ERROR: Cannot set the token algorithm\n\n");
+			fprintf(stderr, "\n    ERROR: Cannot set the token algorithm (pkey: %d, md: %d)\n\n",
+				pkey_type, EVP_MD_nid(digest));
 			exit(1);
 		}
 	}
@@ -1013,7 +1102,7 @@ int main (int argc, char *argv[] ) {
 	PKI_LOG_FLAGS log_debug = 0;
 	int batch = 0;
 
-	int bits = 0;
+	int sec_bits = 128;
 	int token_slot = 0;
 	int selfsign = 0;
 	int newkey = 0;
@@ -1179,9 +1268,9 @@ int main (int argc, char *argv[] ) {
 		} else if ( strncmp_nocase("-secs", argv[i], 5 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			secs = atoi( argv[i] );
-		} else if ( strncmp_nocase("-bits", argv[i], 5 ) == 0 ) {
+		} else if ( strncmp_nocase("-sec_bits", argv[i], 5 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
-			bits = atoi(argv[i]);
+			sec_bits = atoi(argv[i]);
 		} else if ( strncmp_nocase("-slot", argv[i], 5 ) == 0 ) {
 			if( argv[i++] == NULL ) usage();
 			token_slot = atoi(argv[i]);
@@ -1270,10 +1359,15 @@ int main (int argc, char *argv[] ) {
 		}
 
 		if ( signkey && !newkey) {
-			if( verbose ) printf("Loading KeyPair...");
-			fflush( stdout );
 
-			if((PKI_TOKEN_load_keypair( tk, uri )) == PKI_ERR){
+			if (verbose) {
+				printf("Loading Keypair (%s) ... ", signkey);
+				fflush(stdout);
+			}
+
+			PKI_DEBUG("Loading Keypair (%s) ... ", signkey);
+
+			if((PKI_TOKEN_load_keypair( tk, signkey )) == PKI_ERR){
 					printf("\nERROR, can not load key [%s]\n\n", signkey );
 					exit(1);
 			}
@@ -1532,176 +1626,34 @@ int main (int argc, char *argv[] ) {
 
 		PKI_DEBUG("Generating Key Pair: option %s", algor_opt );
 
-		// Explicit Composite - DILITHIUM3-P256
-		if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID)) == 0 ||
- 				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME)) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-ECDSA", 16) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-EC", 13) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-P256", 14) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME;
-		// Explicit Composite - DILITHIUM3-RSA
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID)) == 0 ||
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME)) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-RSA", 14) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		// Explicit Composite - DILITHIUM3-BRAINPOOL256
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM3-BRAINPOOL", 20) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-B256", 15) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM3-ED25519", 18) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-25519", 16) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM3-25519", 16) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM5-ECDSA", 16) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM5-EC", 13) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM5-P384", 15) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM5-BRAINPOOL", 20) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM5-B384", 15) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM5-448", 14) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-ED448", 15) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-448", 13) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON512-P256", 14) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-ECDSA", 12) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-P256", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON512-BRAINPOOL", 19) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-BRAINPOOL256", 19) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-BRAINPOOL", 16) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID)) == 0 ||
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON512-25519", 15) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-ED25519", 14) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-25519", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS256-ECDSA", 16) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS-ECDSA", 13) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS-P256", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS256-BRAINPOOL", 20) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS-BRAINPOOL", 17) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS-B256", 12) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS256-25519", 16) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS-ED25519", 15) == 0 || 
-				   strncmp_nocase(algor_opt, "SPHINCS-25519", 13) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM3-RSAPSS", 17) == 0 || 
-				   strncmp_nocase(algor_opt, "DILITHIUM-RSAPSS", 16) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID)) == 0 || 
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME)) == 0 || 
-				   strncmp_nocase(algor_opt, "FALCON-RSA", 10) == 0 ||
-				   strncmp_nocase(algor_opt, "FALCON512-RSA", 10) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME;
-			if (!digest_opt) digest_opt = "null";
-		// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-P521
-		} else if (strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID)) == 0 ||
-				   strncmp_nocase(algor_opt, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, sizeof(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME)) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-FALCON-EC", 19) == 0 ||
-				   strncmp_nocase(algor_opt, "DILITHIUM-FALCON-P521", 21) == 0) {
-			algor_opt = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME;
-			if (!digest_opt) digest_opt = "null";
-		// Algor Option (default)
-		} else if (!algor_opt) {
-			algor_opt = "RSA";
-			if (bits < 128) bits = 128;
-		// RSA Option
-		} else if (strncmp_nocase(algor_opt, "RSA", 3) == 0) {
-			algor_opt = "RSA";
-			if (bits < 128) bits = 128;
-		// EC Option
-		} else if (strncmp_nocase(algor_opt, "EC", 2) == 0) {
-			algor_opt = "EC";
-			if (bits < 128) bits = 128;
-		// DSA
-		} else if (strncmp_nocase(algor_opt, "DSA", 3) == 0) {
-			algor_opt = "DSA";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUMX3", 11) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUMX3")) {
-			algor_opt = "DILITHIUMX3";
-			if (bits < 192) bits = 192;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM2", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM2")) {
-			algor_opt = "Dilithium2";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM3", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM3")) {
-			algor_opt = "Dilithium3";
-			if (bits < 192) bits = 192;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM5", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM5")) {
-			algor_opt = "Dilithium5";
-			if (bits < 256) bits = 256;
-		} else if (strncmp_nocase(algor_opt, "DILITHIUM", 10) == 0
-				   && strlen(algor_opt) == strlen("DILITHIUM")) {
-			// Default option for Dilithium
-			algor_opt = "Dilithium2";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "FALCON512", 9) == 0
-				   && strlen(algor_opt) == strlen("FALCON512")) {
-			algor_opt = "FALCON512";
-			if (bits < 128) bits = 128;
-		} else if (strncmp_nocase(algor_opt, "FALCON1024", 10) == 0
-				   && strlen(algor_opt) == strlen("FALCON1024")) {
-			algor_opt = "FALCON1024";
-			if (bits < 256) bits = 256;
-		} else if (strncmp_nocase(algor_opt, "FALCON", 7) == 0
-				   && strlen(algor_opt) == strlen("FALCON")) {
-			// Default option for Falcon
-			algor_opt = "FALCON512";
-			if (bits < 128) bits = 128;
-		} else {
-			// This should be a catch all for new algos
-			if (debug) fprintf(stderr, "\nUsing Non-Standard Algorithm: %s\n", algor_opt);
+		int scheme_sec_bits = -1;
+		PKI_SCHEME_ID scheme_id = PKI_SCHEME_ID_get_by_name(algor_opt, 
+															&scheme_sec_bits, 
+															NULL);
+
+		if (scheme_id <= 0) {
+			fprintf(stderr, "\n    ERROR, can not find scheme for %s, aborting.\n\n", algor_opt);
+			exit(1);
+		}
+		// if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &sec_bits, NULL)) {
+		// 	fprintf(stderr, "\n    ERROR, can not get security bits for %s, aborting.\n\n", algor_opt);
+		// 	exit(1);
+		// }
+		if (scheme_sec_bits >= 0) {
+			if (scheme_sec_bits < sec_bits) {
+				PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", 
+					scheme_sec_bits, sec_bits);
+			}
+			if (scheme_sec_bits >= sec_bits) sec_bits = scheme_sec_bits;
 		}
 
 		PKI_DEBUG("\nSelected Algorithm: %s\n", algor_opt);
 
 		if ((gen_keypair(tk, 
-				 bits,
+				 sec_bits,
 				 param_s,
 				 outfile,
-				 algor_opt, 
+				 scheme_id,
 				 profile,
 				 outFormVal,
 #ifdef ENABLE_COMPOSITE
@@ -1716,7 +1668,7 @@ int main (int argc, char *argv[] ) {
 			printf("\nERROR, can not create keypair!\n\n");
 			exit(1);
 		}
-	} else if ( strncmp_nocase(cmd, "genreq", 6) == 0 ) {
+	} else if (str_cmp_ex(cmd, "genreq", 0, 1) == 0 ) {
 
 					// -----------
 					// CMD: genreq
@@ -1734,15 +1686,36 @@ int main (int argc, char *argv[] ) {
 
 			if (verbose) fprintf(stderr, "Generating KeyPair %s ...", outkey_s);
 
+			int scheme_sec_bits = -1;
+			PKI_SCHEME_ID scheme_id = PKI_SCHEME_ID_get_by_name(algor_opt, 
+																&scheme_sec_bits, 
+																NULL);
+
+			if (scheme_id <= 0) {
+				PKI_log_err("\n    ERROR, can not find scheme for %s, aborting.\n\n", algor_opt);
+				exit(1);
+			}
+			if (PKI_ERR == PKI_SCHEME_ID_security_bits(scheme_id, &sec_bits, NULL)) {
+				fprintf(stderr, "\n    ERROR, can not get security bits for %s, aborting.\n\n", algor_opt);
+				exit(1);
+			}
+			if (scheme_sec_bits >= 0) {
+				if (scheme_sec_bits < sec_bits) {
+					PKI_DEBUG("Selected Scheme (%d) provides %d sec bits instead of the requested %d", 
+						scheme_sec_bits, sec_bits);
+				}
+				if (scheme_sec_bits >= sec_bits) sec_bits = scheme_sec_bits;
+			}
+
 #ifdef ENABLE_COMPOSITE
-			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
+			if ((gen_keypair(tk, sec_bits, param_s, outkey_s, scheme_id, 
 					profile, outFormVal, comp_keys, comp_keys_num, comp_kofn, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);
 			}
 #else
-			if ((gen_keypair(tk, bits, param_s, outkey_s, algor_opt, 
+			if ((gen_keypair(tk, bits, param_s, outkey_s, scheme_id, 
 					profile, outFormVal, NULL, 0, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
@@ -1751,12 +1724,14 @@ int main (int argc, char *argv[] ) {
 #endif
 			if ( verbose && batch ) fprintf( stderr, "Ok.\n");
 
-			// Let's assign the new key to the token
+			// Loads the generated key into the token for proceeding
+			// with the request generation
 			if (PKI_TOKEN_load_keypair(tk, outkey_s) == PKI_ERR)
 			{
 				fprintf(stderr, "\nERROR, can not load the newly generated keypair!\n\n");
 				exit(1);
 			}
+			
 		}
 
 		// fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
@@ -1841,19 +1816,20 @@ int main (int argc, char *argv[] ) {
 				fflush(stdout);
 			}
 
-			if (PKI_TOKEN_load_keypair(tk, signkey) == PKI_ERR)
-			{
-				printf("\nERROR, can not load key [%s]\n\n", signkey );
-				exit(1);
-			}
-			else
-			{
-				if( !tk->keypair ) {
-					printf("\nERROR, can not load keypair from token config!\n\n");
+			if (!tk->keypair && signkey) {
+				if (PKI_TOKEN_load_keypair(tk, signkey) == PKI_ERR)
+				{
+					printf("\nERROR, can not load key [%s]\n\n", signkey );
 					exit(1);
 				}
-				if( verbose ) printf("Ok.\n");
 			}
+
+			if (!tk->keypair) {
+				printf("\nERROR, missing keypair (%s)!\n\n", signkey);
+				exit(1);
+			}
+			if( verbose ) printf("Ok.\n");
+
 		} 
 		else if ( tk->keypair == NULL ) 
 		{

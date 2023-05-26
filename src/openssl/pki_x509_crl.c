@@ -359,11 +359,10 @@ PKI_X509_CRL *PKI_X509_CRL_new(const PKI_X509_KEYPAIR         * k,
 
   /* Get the Digest Algorithm */
   if( (dgst = PKI_DIGEST_ALG_get_by_key( k )) == NULL ) {
-    PKI_log_err("Can not get digest algor from keypair!");
-    goto err;
+    PKI_DEBUG("No Hash Needed for the signing");
   }
   
-  rv = PKI_X509_sign ( ret, dgst, k );
+  rv = PKI_X509_sign(ret, dgst, k);
 
   if ( rv == PKI_ERR ) {
     PKI_log_debug ("ERROR, can not sign CRL!");
