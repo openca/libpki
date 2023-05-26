@@ -769,43 +769,6 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 /* End - NID_sphincssha2192ssimple - open-quantum-safe */
 
 
-/* Begin - NID_sphincsshake256192frobust - open-quantum-safe */
-/* Begin - NID_sphincsshake256128frobust - open-quantum-safe */
-// NOT IMPLEMENTED
-// #ifdef NID_sphincsshake256128frobust
-// #define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_sphincsshake256128frobust
-// #define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_sphincsshake256128frobust
-// #else
-// #define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_undef
-// #define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_undef
-// #endif
-/* End - NID_sphincsshake256128frobust - open-quantum-safe */
-// NOT IMPLEMENTED
-/*
-#ifdef NID_sphincsshake256192frobust
-#define PKI_ALGOR_SPHINCS_SHAKE256_192_R     NID_sphincsshake256192frobust
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_192_R  NID_sphincsshake256192frobust
-#else
-#define PKI_ALGOR_SPHINCS_SHAKE256_192_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHAKE25_192_R   NID_undef
-#endif
-*/
-/* End - NID_sphincsshake256192frobust - open-quantum-safe */
-
-/* Begin - NID_sphincsshake256256frobust - open-quantum-safe */
-// NOT IMPLEMENTED
-/*
-#ifdef NID_sphincsshake256256frobust
-#define PKI_ALGOR_SPHINCS_SHAKE256_256_R     NID_sphincsshake256256frobust
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R  NID_sphincsshake256256frobust
-#else
-#define PKI_ALGOR_SPHINCS_SHAKE256_256_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R  NID_undef
-#endif
-*/
-/* End - NID_sphincsshake256256frobust - open-quantum-safe */
-
-
 						// =============
 						// Family: Kyber
 						// =============
