@@ -60,7 +60,7 @@
 %endif
 
 %define distver %(release="`rpm -q --queryformat='%{RPMTAG_VERSION}' %{dist}-release 2> /dev/null | tr . : | sed s/://g`" ; if test $? != 0 ; then release="" ; fi ; echo "$release")
-%define packer %(finger -lp `echo "$USER"` | head -n 1 | cut -d ' ' -f 2)
+%define packer %(whami)
 
 %define ver      	@RPM_VERSION@
 %define RELEASE 	@RC@
