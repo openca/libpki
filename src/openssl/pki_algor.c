@@ -1,6 +1,7 @@
 /* openssl/pki_algor.c */
 
 #include <libpki/pki.h>
+#include <libpki/openssl/data_st.h>
 
 #ifdef max
 #undef max
@@ -85,15 +86,12 @@ PKI_ALGOR_ID PKI_ALGOR_ID_LIST_FALCON[] = {
 
 PKI_ALGOR_ID PKI_ALGOR_ID_LIST_DILITHIUM[] = {
 	PKI_ALGOR_ID_DILITHIUM2,
-	PKI_ALGOR_ID_DILITHIUM2_AES,
 	PKI_ALGOR_ID_DILITHIUM3,
-	PKI_ALGOR_ID_DILITHIUM3_AES,
 	PKI_ALGOR_ID_DILITHIUM5,
-	PKI_ALGOR_ID_DILITHIUM5_AES
 };
 
 PKI_ALGOR_ID PKI_ALGOR_ID_LIST_SPHINCS[] = {
-	PKI_ALGOR_ID_SPHINCS_SHA256_128_R,
+	PKI_ALGOR_ID_SPHINCS_SHA2_128_F,
 	PKI_ALGOR_ID_SPHINCS_SHA256_192_R,
 	PKI_ALGOR_ID_SPHINCS_SHA256_256_R,
 	PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R
@@ -415,21 +413,33 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
 	switch (id) {
 
 		// Signature
+	#ifdef OQS_ENABLE_SIG_DILITHIUM
 		case PKI_SCHEME_DILITHIUM:
+	#endif
+	#ifdef OQS_ENABLE_SIG_FALCON
 		case PKI_SCHEME_FALCON:
+	#endif
+	#ifdef OQS_ENABLE_SIG_PICNIC
 		case PKI_SCHEME_PICNIC:
+	#endif
 		case PKI_SCHEME_SPHINCS: {
 			// Nothing to do
 		} break;
 
 		// KEMs
+	#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
 		case PKI_SCHEME_CLASSIC_MCELIECE:
+	#endif
+	#ifdef OQS_ENABLE_KEM_KYBER
 		case PKI_SCHEME_KYBER: {
 			// Nothing to do
 		} break;
+	#endif
 
 		// Experimental
+	#ifdef OQS_ENABLE_KEM_BIKE
 		case PKI_SCHEME_BIKE:
+	#endif
 		case PKI_SCHEME_DILITHIUMX3: {
 			// Nothing to do
 		} break;

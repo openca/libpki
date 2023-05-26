@@ -219,11 +219,10 @@ int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 			return PKI_OK;
 		} break;
 
-        case NID_sphincsharaka128frobust:
-        case NID_sphincsharaka128fsimple:
-        case NID_sphincssha256128frobust:
-        case NID_sphincssha256128ssimple:
-        case NID_sphincsshake256128fsimple: {
+        case NID_sphincssha2128fsimple:
+        case NID_sphincssha2128ssimple:
+        case NID_sphincssha2192fsimple:
+        case NID_sphincsshake128fsimple: {
 			// Verified PQC algorithm
 			if (scheme_id) *scheme_id = PKI_SCHEME_SPHINCS;
 			return PKI_OK;

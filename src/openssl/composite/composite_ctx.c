@@ -514,7 +514,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
       // Sphincs 256 simple Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha2128fsimple), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ECDSA-with-SHA256 component
       ASN1_item_sign(asn1_item, 
@@ -530,7 +530,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
       // Sphincs 256 simple Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha2128fsimple), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // Brainpool256 component
       ASN1_item_sign(asn1_item, 
@@ -546,7 +546,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
       // Sphincs 256 robust Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha2128fsimple), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // ED25519 component
       // ASN1_item_sign(asn1_item, 
@@ -617,7 +617,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA: {
       // Sphincs 256 simple Component
-      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha256128frobust), V_ASN1_UNDEF, NULL);
+      X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_sphincssha2128fsimple), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
       // RSA component
       ASN1_item_sign(asn1_item, 
