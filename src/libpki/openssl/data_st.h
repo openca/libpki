@@ -728,71 +728,45 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #endif
 /* End - NID_dilithium5_aes - open-quantum-safe */
 
-/* Begin - NID_sphincssha256128frobust - open-quantum-safe */
-#ifdef NID_sphincssha256128frobust
-#define PKI_ALGOR_SPHINCS_SHA256_128_R     NID_sphincssha256128frobust
-#define PKI_ALGOR_ID_SPHINCS_SHA256_128_R  NID_sphincssha256128frobust
+/* Begin - NID_sphincssha2128fsimple - open-quantum-safe */
+#ifdef NID_sphincssha2128fsimple
+#define PKI_ALGOR_SPHINCS_SHA2_128_F     NID_sphincssha2128fsimple
+#define PKI_ALGOR_ID_SPHINCS_SHA2_128_F  NID_sphincssha2128fsimple
 #else
-#define PKI_ALGOR_SPHINCS_SHA256_128_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHA256_128_R  NID_undef
+#define PKI_ALGOR_SPHINCS_SHA2_128_F     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA2_128_F  NID_undef
 #endif
-/* End - NID_sphincssha256128frobust - open-quantum-safe */
+/* End - NID_sphincssha2128fsimple - open-quantum-safe */
 
-/* Begin - NID_sphincssha256192frobust - open-quantum-safe */
-#ifdef NID_sphincssha256192frobust
-#define PKI_ALGOR_SPHINCS_SHA256_192_R     NID_sphincssha256192frobust
-#define PKI_ALGOR_ID_SPHINCS_SHA256_192_R  NID_sphincssha256192frobust
+/* Begin - NID_sphincssha2128ssimple - open-quantum-safe */
+#ifdef NID_sphincssha2128ssimple
+#define PKI_ALGOR_SPHINCS_SHA2_128_S     NID_sphincssha2128ssimple
+#define PKI_ALGOR_ID_SPHINCS_SHA2_128_S  	 NID_sphincssha2128ssimple
 #else
-#define PKI_ALGOR_SPHINCS_SHA256_192_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHA256_192_R  NID_undef
+#define PKI_ALGOR_SPHINCS_SHA2_128_S     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA2_128_S  NID_undef
 #endif
-/* End - NID_sphincssha256192frobust - open-quantum-safe */
+/* End - NID_sphincssha2128ssimple - open-quantum-safe */
 
-/* Begin - NID_sphincssha256192frobust - open-quantum-safe */
-#ifdef NID_sphincssha256256frobust
-#define PKI_ALGOR_SPHINCS_SHA256_256_R     NID_sphincssha256256frobust
-#define PKI_ALGOR_ID_SPHINCS_SHA256_256_R  NID_sphincssha256256frobust
+/* Begin - NID_sphincssha2192fsimple - open-quantum-safe */
+#ifdef NID_sphincssha2192fsimple
+#define PKI_ALGOR_SPHINCS_SHA2_192_F     NID_sphincssha2192fsimple
+#define PKI_ALGOR_ID_SPHINCS_SHA2_192_F  NID_sphincssha2192fsimple
 #else
-#define PKI_ALGOR_SPHINCS_SHA256_256_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHA256_256_R  NID_undef
+#define PKI_ALGOR_SPHINCS_SHA2_192_F     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA2_192_F  NID_undef
 #endif
-/* End - NID_sphincssha256192frobust - open-quantum-safe */
+/* End - NID_sphincssha2192fsimple - open-quantum-safe */
 
-/* Begin - NID_sphincsshake256128frobust - open-quantum-safe */
-#ifdef NID_sphincsshake256128frobust
-#define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_sphincsshake256128frobust
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_sphincsshake256128frobust
+/* Begin - NID_sphincssha2192ssimple - open-quantum-safe */
+#ifdef NID_sphincssha2192ssimple
+#define PKI_ALGOR_SPHINCS_SHA2_192_S     NID_sphincssha2192ssimple
+#define PKI_ALGOR_ID_SPHINCS_SHA2_192_S  NID_sphincssha2192ssimple
 #else
-#define PKI_ALGOR_SPHINCS_SHAKE256_128_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R  NID_undef
+#define PKI_ALGOR_SPHINCS_SHA2_192_S     NID_undef
+#define PKI_ALGOR_ID_SPHINCS_SHA2_192_S  NID_undef
 #endif
-/* End - NID_sphincsshake256128frobust - open-quantum-safe */
-
-/* Begin - NID_sphincsshake256192frobust - open-quantum-safe */
-// NOT IMPLEMENTED
-/*
-#ifdef NID_sphincsshake256192frobust
-#define PKI_ALGOR_SPHINCS_SHAKE256_192_R     NID_sphincsshake256192frobust
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_192_R  NID_sphincsshake256192frobust
-#else
-#define PKI_ALGOR_SPHINCS_SHAKE256_192_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHAKE25_192_R   NID_undef
-#endif
-*/
-/* End - NID_sphincsshake256192frobust - open-quantum-safe */
-
-/* Begin - NID_sphincsshake256256frobust - open-quantum-safe */
-// NOT IMPLEMENTED
-/*
-#ifdef NID_sphincsshake256256frobust
-#define PKI_ALGOR_SPHINCS_SHAKE256_256_R     NID_sphincsshake256256frobust
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R  NID_sphincsshake256256frobust
-#else
-#define PKI_ALGOR_SPHINCS_SHAKE256_256_R     NID_undef
-#define PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R  NID_undef
-#endif
-*/
-/* End - NID_sphincsshake256256frobust - open-quantum-safe */
+/* End - NID_sphincssha2192ssimple - open-quantum-safe */
 
 
 						// =============

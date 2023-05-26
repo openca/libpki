@@ -194,7 +194,7 @@ function verify() {
 # ==================
 
 # Make the "text" to "" for skipping the tests
-if ! [ -z "" ] ; then
+if ! [ -z "classic" ] ; then
 
     # Generates Classic keys
     gen_key "rsa ec ed448 ed25519 x448 x25519"
@@ -222,7 +222,7 @@ fi
 # ==============
 
 # Make the "text" to "" for skipping the tests
-if ! [ -z "" ] ; then
+if ! [ -z "pqc" ] ; then
 
     # Post Quantum Algorithms
     PQC_ALGS="dilithium2 dilithium3 dilithium5 falcon512 falcon1024"
@@ -250,7 +250,7 @@ fi
 # =====================
 
 # Make the "text" to "" for skipping the tests
-if ! [ -z "" ] ; then
+if ! [ -z "generic-traditional-composite" ] ; then
 
     # Generates Composite Keys
     gen_comp_key "rsa ec"
@@ -301,7 +301,7 @@ fi
 # =======================
 
 # Make the "text" to "" for skipping the tests
-if ! [ -z "" ] ; then
+if ! [ -z "generic-composite" ] ; then
 
     # Composite Keys: Hybrid Algorithms
     gen_comp_key "dilithium2 rsa"
@@ -327,7 +327,7 @@ fi
 # =======================
 
 # Make the "text" to "" for skipping the tests
-if ! [ -z "" ] ; then
+if ! [ -z "pq-composite" ] ; then
 
     # Composite Keys: Post Quantum Algorithms
     gen_comp_key "dilithium2 falcon512"

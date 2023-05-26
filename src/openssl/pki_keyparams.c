@@ -449,9 +449,10 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 		//       going to be standardized
 		case PKI_SCHEME_SPHINCS: {
 			kp->scheme = PKI_SCHEME_SPHINCS;
-				 if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_128_R; kp->sec_bits = 128; } 
-			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_192_R; kp->sec_bits = 192; }
-			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA256_256_R; kp->sec_bits = 256; }
+				 if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_128_F; kp->sec_bits = 128; } 
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_128_S; kp->sec_bits = 128; }
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_192_F; kp->sec_bits = 192; }
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_192_S; kp->sec_bits = 192; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
@@ -582,30 +583,6 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->pkey_type = kp->oqs.algId;
 			kp->sec_bits = 128;
 			kp->pq_sec_bits = 128;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
-			kp->pkey_type = kp->oqs.algId;
-			kp->sec_bits = 256;
-			kp->pq_sec_bits = 256;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
-			kp->pkey_type = kp->oqs.algId;
-			kp->sec_bits = 256;
-			kp->pq_sec_bits = 256;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-			kp->scheme = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519;
-			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
-			kp->pkey_type = kp->oqs.algId;
-			kp->sec_bits = 256;
-			kp->pq_sec_bits = 256;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
@@ -938,30 +915,6 @@ int PKI_KEYPARAMS_set_security_bits(PKI_KEYPARAMS * kp, int sec_bits) {
 // 			if (bits > 128) return PKI_ERR;
 // 		} break;
 
-// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-// 			// Updates key parameters
-// 			kp->bits = 128;
-// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
-// 			// Combination bits check
-// 			if (bits > 128) return PKI_ERR;
-// 		} break;
-
-// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-// 			// Updates key parameters
-// 			kp->bits = 128;
-// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
-// 			// Combination bits check
-// 			if (bits > 128) return PKI_ERR;
-// 		} break;
-
-// 		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-// 			// Updates key parameters
-// 			kp->bits = 128;
-// 			kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
-// 			// Combination bits check
-// 			if (bits > 128) return PKI_ERR;
-// 		} break;
-
 // 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
 // 			// Updates key parameters
 // 			kp->bits = 128;
@@ -1044,10 +997,12 @@ int PKI_KEYPARAMS_set_oqs_key_params(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM alg
 		case PKI_SCHEME_SPHINCS: {
 			if (algParam != PKI_ALGOR_OQS_PARAM_SPHINCS_SHAKE) {
 				return PKI_ERROR(PKI_ERR_GENERAL, 
-					"Sphincs only supports the SHAKE parameter");
+					"SPHINCS+ only supports the SHAKE parameter");
 			};
 			if (kp->bits <= 128) {
-				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R;
+				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_128_F;
+			} else if (kp->bits <= 192) {
+				kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_192_F;
 			} else {
 				PKI_DEBUG("SPHINCS+ WITH SHAKE only supports 128 bits of security.");
 				return PKI_ERR;
@@ -1248,45 +1203,6 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_falcon512;
 			// NID_ED25519
 			} else if (last_key_id == NID_falcon512) {
-				next_required_id = NID_ED25519;
-			} else {
-				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
-				return PKI_ERR;
-			}
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-			// NID_sphincssha256128frobust
-			if (last_key_id <= 0) {
-				next_required_id = NID_sphincssha256128frobust;
-			// NID_prime256v1
-			} else if (last_key_id == NID_sphincssha256128frobust) {
-				next_required_id = NID_X9_62_prime256v1;
-			} else {
-				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
-				return PKI_ERR;
-			}
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-			// NID_sphincssha256128frobust
-			if (last_key_id <= 0) {
-				next_required_id = NID_sphincssha256128frobust;
-			// NID_brainpoolP256r1
-			} else if (last_key_id == NID_sphincssha256128frobust) {
-				next_required_id = NID_brainpoolP256r1;
-			} else {
-				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
-				return PKI_ERR;
-			}
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-			// NID_sphincssha256128frobust
-			if (last_key_id <= 0) {
-				next_required_id = NID_sphincssha256128frobust;
-			// NID_ED25519
-			} else if (last_key_id == NID_sphincssha256128frobust) {
 				next_required_id = NID_ED25519;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);

@@ -1,6 +1,7 @@
 /* openssl/pki_algor.c */
 
 #include <libpki/pki.h>
+#include <libpki/openssl/data_st.h>
 
 #ifdef max
 #undef max
@@ -85,18 +86,23 @@ PKI_ALGOR_ID PKI_ALGOR_ID_LIST_FALCON[] = {
 
 PKI_ALGOR_ID PKI_ALGOR_ID_LIST_DILITHIUM[] = {
 	PKI_ALGOR_ID_DILITHIUM2,
-	PKI_ALGOR_ID_DILITHIUM2_AES,
 	PKI_ALGOR_ID_DILITHIUM3,
-	PKI_ALGOR_ID_DILITHIUM3_AES,
 	PKI_ALGOR_ID_DILITHIUM5,
-	PKI_ALGOR_ID_DILITHIUM5_AES
 };
 
 PKI_ALGOR_ID PKI_ALGOR_ID_LIST_SPHINCS[] = {
-	PKI_ALGOR_ID_SPHINCS_SHA256_128_R,
-	PKI_ALGOR_ID_SPHINCS_SHA256_192_R,
-	PKI_ALGOR_ID_SPHINCS_SHA256_256_R,
-	PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R
+#ifdef NID_sphincssha2128fsimple
+	PKI_ALGOR_ID_SPHINCS_SHA2_128_F,
+#endif
+#ifdef NID_sphincssha2128ssimple
+	PKI_ALGOR_ID_SPHINCS_SHA2_128_S,
+#endif
+#ifdef NID_sphincssha2192fsimple
+	PKI_ALGOR_ID_SPHINCS_SHA2_192_F,
+#endif
+#ifdef NID_sphincssha2192ssimple
+	PKI_ALGOR_ID_SPHINCS_SHA2_192_S
+#endif
 };
 
 PKI_ALGOR_ID PKI_ALGOR_ID_LIST_CLASSIC_MCELIECE[] = {
@@ -384,13 +390,9 @@ int PKI_SCHEME_ID_is_explicit_composite(PKI_SCHEME_ID id) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521:
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
 			// Explicit Composite Combinations, nothing to do
 		} break;
@@ -415,21 +417,33 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
 	switch (id) {
 
 		// Signature
+	#ifdef OQS_ENABLE_SIG_DILITHIUM
 		case PKI_SCHEME_DILITHIUM:
+	#endif
+	#ifdef OQS_ENABLE_SIG_FALCON
 		case PKI_SCHEME_FALCON:
+	#endif
+	#ifdef OQS_ENABLE_SIG_PICNIC
 		case PKI_SCHEME_PICNIC:
+	#endif
 		case PKI_SCHEME_SPHINCS: {
 			// Nothing to do
 		} break;
 
 		// KEMs
+	#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
 		case PKI_SCHEME_CLASSIC_MCELIECE:
+	#endif
+	#ifdef OQS_ENABLE_KEM_KYBER
 		case PKI_SCHEME_KYBER: {
 			// Nothing to do
 		} break;
+	#endif
 
 		// Experimental
+	#ifdef OQS_ENABLE_KEM_BIKE
 		case PKI_SCHEME_BIKE:
+	#endif
 		case PKI_SCHEME_DILITHIUMX3: {
 			// Nothing to do
 		} break;
@@ -603,18 +617,6 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME;
 		} break;
 
-	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME;
-		} break;
-
-	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME;
-		} break;
-
-	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME;
-		} break;
-
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME;
 		} break;
@@ -625,10 +627,6 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 
 	    case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME;
-		} break;
-
-	    case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA: {
-			ret = OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_RSA_SHA256_NAME;
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
@@ -876,21 +874,6 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 			ret = (897 + 32) * 8;
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256: {
-			// kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME);
-			ret = (1312 + 32) * 8;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256: {
-			// kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME);
-			ret = (32 + 32) * 8;
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519: {
-			// kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME);
-			ret = (32 + 32) * 8;
-		} break;
-
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
 			// kp->oqs.algId = OBJ_sn2nid(OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME);
 			ret = (897 + 32) * 8;
@@ -1127,21 +1110,6 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
 			if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
 		} break;
 
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_P256:  {
-			if (classic_sec_bits) *classic_sec_bits = max(256, 256);
-			if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256:  {
-			if (classic_sec_bits) *classic_sec_bits = max(256, 256);
-			if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519:  {
-			if (classic_sec_bits) *classic_sec_bits = max(256, 128);
-			if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
-		} break;
-
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS:  {
 			if (classic_sec_bits) *classic_sec_bits = max(192, 128);
 			if (quantum_sec_bits) *quantum_sec_bits = max(192, 0);
@@ -1155,11 +1123,6 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
 			if (classic_sec_bits) *classic_sec_bits = max(max(256, 256), max(256, 521));
 			if (quantum_sec_bits) *quantum_sec_bits = max(max(256, 256), max(256, 0));
-		} break;
-
-		case PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_RSA: {
-			if (classic_sec_bits) *classic_sec_bits = max(256, 128);
-			if (quantum_sec_bits) *quantum_sec_bits = max(256, 0);
 		} break;
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
@@ -1273,18 +1236,6 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 				str_cmp_ex(data, "SPHINCS-ECDSA", 0, 1) == 0 || 
 				str_cmp_ex(data, "SPHINCS-P256", 0, 1) == 0) {
 		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS256-BRAINPOOL", 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS-BRAINPOOL", 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS-B256", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_BRAINPOOL256;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_ED25519_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS256-25519", 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS-ED25519", 0, 1) == 0 || 
-				str_cmp_ex(data, "SPHINCS-25519", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_SPHINCS256_ED25519;
 	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, 0, 1) == 0 || 
 				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, 0, 1) == 0 || 
 				str_cmp_ex(data, "DILITHIUM3-RSAPSS", 0, 1) == 0 || 
@@ -1828,24 +1779,22 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 			// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
 			// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
-			case PKI_ALGOR_ID_SPHINCS_SHA256_128_R: {
-				PKI_DEBUG("SPHINCS+-SHA256 -> Key Type [%d]; No Hash Returned", p_type);
-				digest = PKI_DIGEST_ALG_NULL;
-			} break;
-
-			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_256_R:
-			// case PKI_ALGOR_ID_SPHINCS_SHAKE256_192_R:
-			case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R: {
-				PKI_log_err("SPHINCS+-SHAKE256 -> Key Type [%d]; No Hash Returned", p_type);
-				digest = PKI_DIGEST_ALG_NULL;
-			} break;
+#ifdef NID_sphincssha2128fsimple
+			case PKI_ALGOR_ID_SPHINCS_SHA2_128_F:
 #endif
-
-#ifdef ENABLE_COMPOSITE_CRYPTO
-			case PKI_ALGOR_ID_COMPOSITE:
-			case PKI_ALGOR_ID_COMPOSITE_OR: {
+#ifdef NID_sphincssha2128fsimple
+			case PKI_ALGOR_ID_SPHINCS_SHA2_128_S:
+#endif
+#ifdef NID_sphincssha2128fsimple
+			case PKI_ALGOR_ID_SPHINCS_SHA2_192_F:
+#endif
+#ifdef NID_sphincssha2128fsimple
+			case PKI_ALGOR_ID_SPHINCS_SHA2_192_S:
+#endif
+				PKI_DEBUG("SPHINCS+: Key Type [%d]; No Hash Returned", p_type);
 				digest = PKI_DIGEST_ALG_NULL;
-			} break;
+			break;
+
 #endif
 
 		case EVP_PKEY_RSA:
