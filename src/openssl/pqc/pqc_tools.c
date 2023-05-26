@@ -30,13 +30,15 @@ int oqssl_sig_nids_list[] = {
         NID_sphincsshake128fsimple,
         NID_p256_sphincsshake128fsimple,
         NID_rsa3072_sphincsshake128fsimple,
+        NID_sphincssha2128ssimple,
+        NID_sphincssha2192fsimple,
 /////// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_NIDS_END
 };
 #ifdef OQS_OPENSSL_SIG_algs_length
 #undef OQS_OPENSSL_SIG_algs_length
 #endif
 
-#define OQS_OPENSSL_SIG_algs_length 34
+#define OQS_OPENSSL_SIG_algs_length 25
 
 int oqssl_kem_nids_list[] = {
 ///// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_KEM_NIDS_START
@@ -63,7 +65,7 @@ int oqssl_kem_nids_list[] = {
 #undef OQS_OPENSSL_KEM_algs_length
 #endif
 
-#define OQS_OPENSSL_KEM_algs_length 17
+#define OQS_OPENSSL_KEM_algs_length 15
 
 int* sig_nid_list = NULL;
 int* kem_nid_list = NULL;
