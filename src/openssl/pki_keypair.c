@@ -763,130 +763,166 @@ PKI_MEM *PKI_X509_KEYPAIR_get_privkey(const PKI_X509_KEYPAIR *kp)
 
 };
 
-/*!
- * \brief Returns the PKI_ID of the EC curve of the Key (EC keys only)
- */
+int PKI_X509_KEYPAIR_get_curve(const PKI_X509_KEYPAIR *kp) {
 
-int PKI_X509_KEYPAIR_get_curve (const PKI_X509_KEYPAIR *kp )
-{
+	// Input Checks
+	if (!kp || !kp->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
 #ifdef ENABLE_ECDSA
-	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
-	const EC_GROUP *gr;
-	EC_GROUP *gr2;
-	EC_KEY *ec = NULL;
-	EC_POINT *point = NULL;
-	BN_CTX *ctx = NULL;
-	int ret = PKI_ID_UNKNOWN;
 
-	EC_builtin_curve *curves = NULL;
-	size_t num_curves = 0;
-	int i;
-
-	BIGNUM *order = NULL;
-
-	unsigned long long keyBits = 0;
-	unsigned long long curveBits = 0;
-
-	pVal = kp->value;
-	if (!pVal ) return PKI_ID_UNKNOWN;
-
-	ctx = BN_CTX_new();
-
-	switch (EVP_PKEY_type(EVP_PKEY_id(pVal)))
-	{
-		case EVP_PKEY_EC: {
-			// ec = pVal->pkey.ec;
-			if ((ec = EVP_PKEY_get1_EC_KEY(pVal)) == NULL) goto err;
-		} break;
-
-		default: {
-			goto err;
-		} break;
+	// Checks if the key is an EC Key
+	if (PKI_X509_KEYPAIR_get_id(kp) != NID_X9_62_id_ecPublicKey) {
+		PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+		return PKI_ERR;
 	}
 
-	if ((gr = EC_KEY_get0_group(ec)) == NULL) return PKI_ID_UNKNOWN;
-
-	order = BN_new();
-	if (EC_GROUP_get_order(gr, order, NULL)) {
-		keyBits = (unsigned long long) BN_num_bits(order);
-	}
-	BN_free( order );
-	order = NULL;
-
-	if((point = EC_POINT_new( gr )) == NULL ) {
-		PKI_log_err("Can not generate a new point in Key's Group");
-		goto err;
-	};
-
-	/* Get the number of availabe ECDSA curves in OpenSSL */
-	if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
-		/* No curves available! */
-		goto err;
+	// Retrieves the EC key
+	EC_KEY * ec = EVP_PKEY_get0_EC_KEY((EVP_PKEY *)kp->value);
+	if (!ec) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return PKI_ERR;
 	}
 
-	/* Alloc the needed memory */
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
-	curves = OPENSSL_malloc((int)(sizeof(EC_builtin_curve) * num_curves));
-#else
-	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * num_curves);
-#endif
-	if (curves == NULL) goto err;
-
-	/* Get the builtin curves */
-	if (!EC_get_builtin_curves(curves, num_curves)) goto err;
-
-	// Allocates the BN
-	order = BN_new();
-
-	/* Cycle through the curves and display the names */
-	for( i = 0; i < num_curves; i++ ) {
-		int nid;
-
-		nid = curves[i].nid;
-
-		if(( gr2 = EC_GROUP_new_by_curve_name( nid )) == NULL) {
-			PKI_log_err("Can not get default curve [%d]", i);
-			break;
-		};
-
-		if (EC_GROUP_get_order(gr2, order, NULL)) {
-			curveBits = (unsigned long long) BN_num_bits(order);
-		};
-
-		if ( curveBits == keyBits ) {
-			if( EC_POINT_is_on_curve( gr2, point, ctx ) ) {
-				ret = nid;
-				break;
-			};
-		};
-
-		if( gr2 ) EC_GROUP_free ( gr2 );
-	};
-
-	// Free Memory
-	if (order) BN_free(order);
-	if (curves) free(curves);
-	if (ctx) BN_CTX_free(ctx);
-	if (ec) EC_KEY_free(ec);
-
-	// Return Result
-	return ret;
-
-err:
-
-	// Free Memory
-	if (order) BN_free (order);
-	if (curves) free(curves);
-	if (ctx) BN_CTX_free(ctx);
-	if (ec) EC_KEY_free(ec);
-
-	// Return Error
-	return PKI_ID_UNKNOWN;
+	// Retrieves the EC Group
+	const EC_GROUP * pkey_group = EC_KEY_get0_group(ec);
+	if (!pkey_group) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return PKI_ERR;
+	}
+	
+	// Returns the curve name
+	return EC_GROUP_get_curve_name(pkey_group);
 
 #else
 	return PKI_ID_UNKNOWN;
 #endif
+
 }
+
+// int PKI_X509_KEYPAIR_get_curve (const PKI_X509_KEYPAIR *kp ) {
+
+// #ifdef ENABLE_ECDSA
+// 	PKI_X509_KEYPAIR_VALUE *pVal = NULL;
+// 	const EC_GROUP *gr;
+// 	EC_GROUP *gr2;
+// 	EC_KEY *ec = NULL;
+// 	EC_POINT *point = NULL;
+// 	BN_CTX *ctx = NULL;
+// 	int ret = PKI_ID_UNKNOWN;
+
+// 	EC_builtin_curve *curves = NULL;
+// 	size_t num_curves = 0;
+// 	int i;
+
+// 	BIGNUM *order = NULL;
+
+// 	unsigned long long keyBits = 0;
+// 	unsigned long long curveBits = 0;
+
+// 	pVal = kp->value;
+// 	if (!pVal ) return PKI_ID_UNKNOWN;
+
+// 	ctx = BN_CTX_new();
+
+// 	switch (EVP_PKEY_type(EVP_PKEY_id(pVal)))
+// 	{
+// 		case EVP_PKEY_EC: {
+// 			// ec = pVal->pkey.ec;
+// 			if ((ec = EVP_PKEY_get1_EC_KEY(pVal)) == NULL) goto err;
+// 		} break;
+
+// 		default: {
+// 			goto err;
+// 		} break;
+// 	}
+
+// 	if ((gr = EC_KEY_get0_group(ec)) == NULL) return PKI_ID_UNKNOWN;
+
+// 	order = BN_new();
+// 	if (EC_GROUP_get_order(gr, order, NULL)) {
+// 		keyBits = (unsigned long long) BN_num_bits(order);
+// 	}
+// 	BN_free( order );
+// 	order = NULL;
+
+// 	if((point = EC_POINT_new( gr )) == NULL ) {
+// 		PKI_log_err("Can not generate a new point in Key's Group");
+// 		goto err;
+// 	};
+
+// 	/* Get the number of availabe ECDSA curves in OpenSSL */
+// 	if ((num_curves = EC_get_builtin_curves(NULL, 0)) < 1 ) {
+// 		/* No curves available! */
+// 		goto err;
+// 	}
+
+// 	/* Alloc the needed memory */
+// #if OPENSSL_VERSION_NUMBER < 0x1010000fL
+// 	curves = OPENSSL_malloc((int)(sizeof(EC_builtin_curve) * num_curves));
+// #else
+// 	curves = OPENSSL_malloc(sizeof(EC_builtin_curve) * num_curves);
+// #endif
+// 	if (curves == NULL) goto err;
+
+// 	/* Get the builtin curves */
+// 	if (!EC_get_builtin_curves(curves, num_curves)) goto err;
+
+// 	// Allocates the BN
+// 	order = BN_new();
+
+// 	/* Cycle through the curves and display the names */
+// 	for( i = 0; i < num_curves; i++ ) {
+// 		int nid;
+
+// 		nid = curves[i].nid;
+
+// 		if(( gr2 = EC_GROUP_new_by_curve_name( nid )) == NULL) {
+// 			PKI_log_err("Can not get default curve [%d]", i);
+// 			break;
+// 		};
+
+// 		if (EC_GROUP_get_order(gr2, order, NULL)) {
+// 			curveBits = (unsigned long long) BN_num_bits(order);
+// 		};
+
+// 		if ( curveBits == keyBits ) {
+// 			if( EC_POINT_is_on_curve( gr2, point, ctx ) ) {
+// 				ret = nid;
+// 				break;
+// 			};
+// 		};
+
+// 		if( gr2 ) EC_GROUP_free ( gr2 );
+// 	};
+
+// 	// Free Memory
+// 	if (order) BN_free(order);
+// 	if (curves) free(curves);
+// 	if (ctx) BN_CTX_free(ctx);
+// 	if (ec) EC_KEY_free(ec);
+
+// 	// Return Result
+// 	return ret;
+
+// err:
+
+// 	// Free Memory
+// 	if (order) BN_free (order);
+// 	if (curves) free(curves);
+// 	if (ctx) BN_CTX_free(ctx);
+// 	if (ec) EC_KEY_free(ec);
+
+// 	// Return Error
+// 	return PKI_ID_UNKNOWN;
+
+// #else
+// 	return PKI_ID_UNKNOWN;
+// #endif
+// }
+// 
 
 PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal, 
                                     	 const unsigned char          * const data, 

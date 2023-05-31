@@ -27,7 +27,7 @@ int main (int argc, char *argv[] ) {
 
 	gen_X509_tk(PKI_SCHEME_RSA, 1024, "results/cert_rsa_1024.pem");
 	gen_X509_tk(PKI_SCHEME_RSA, 2048, "results/cert_rsa_2048.pem");
-	gen_X509_tk(PKI_SCHEME_RSA, 4096, "results/cert_rsa_4096.pem");
+	gen_X509_tk(PKI_SCHEME_RSA, 3072, "results/cert_rsa_3072.pem");
 	gen_X509_tk(PKI_SCHEME_ECDSA, 128,"results/cert_ecdsa_128.pem");
 	gen_X509_tk(PKI_SCHEME_ECDSA, 192,"results/cert_ecdsa_192.pem");
 	gen_X509_tk(PKI_SCHEME_ECDSA, 256, "results/cert_ecdsa_256.pem");

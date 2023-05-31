@@ -1112,7 +1112,13 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_dilithium3;
 			// NID_brainpoolP256r1
 			} else if (last_key_id == NID_dilithium3) {
-				next_required_id = NID_brainpoolP256r1;
+				// Requires an EC key
+				next_required_id = NID_X9_62_id_ecPublicKey;
+				// Requires the Brainpool P256 curve
+				if (NID_brainpoolP256r1 != PKI_X509_KEYPAIR_get_curve(key)) {
+					PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+					return PKI_ERR;
+				}
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 				return PKI_ERR;
@@ -1138,7 +1144,23 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_dilithium5;
 			// NID_secp384r1
 			} else if (last_key_id == NID_dilithium5) {
-				next_required_id = NID_secp384r1;
+				// Requires an EC key
+				next_required_id = NID_X9_62_id_ecPublicKey;
+				// Requires the secp384r1 curve
+				if (NID_secp384r1 != PKI_X509_KEYPAIR_get_curve(key)) {
+					PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+					return PKI_ERR;
+				}
+				// EC_KEY * ec = EVP_PKEY_get0_EC_KEY((EVP_PKEY *)key->value);
+				// if (!ec) {
+				// 	PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+				// 	return PKI_ERR;
+				// }
+				// const EC_GROUP * pkey_group = EC_KEY_get0_group(ec);
+				// if (NID_secp384r1 != EC_GROUP_get_curve_name(pkey_group)) {
+				// 	PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+				// 	return PKI_ERR;
+				// }
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 				return PKI_ERR;
@@ -1151,7 +1173,13 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_dilithium5;
 			// NID_brainpoolP384r1
 			} else if (last_key_id == NID_dilithium5) {
-				next_required_id = NID_brainpoolP384r1;
+				// Requires an EC key
+				next_required_id = NID_X9_62_id_ecPublicKey;
+				// Requires the Brainpool P384 curve
+				if (NID_brainpoolP384r1 != PKI_X509_KEYPAIR_get_curve(key)) {
+					PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+					return PKI_ERR;
+				}
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 				return PKI_ERR;
@@ -1177,7 +1205,13 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_falcon512;
 			// NID_X9_62_prime256v1
 			} else if (last_key_id == NID_falcon512) {
-				next_required_id = NID_X9_62_prime256v1;
+				// Requires an EC key
+				next_required_id = NID_X9_62_id_ecPublicKey;
+				// Requires the prime256v1 curve
+				if (NID_X9_62_prime256v1 != PKI_X509_KEYPAIR_get_curve(key)) {
+					PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+					return PKI_ERR;
+				}
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 				return PKI_ERR;
@@ -1190,7 +1224,13 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_falcon512;
 			// NID_brainpoolP256r1
 			} else if (last_key_id == NID_falcon512) {
-				next_required_id = NID_brainpoolP256r1;
+				// Requires an EC key
+				next_required_id = NID_X9_62_id_ecPublicKey;
+				// Requires the Brainpool P256 curve
+				if (NID_brainpoolP256r1 != PKI_X509_KEYPAIR_get_curve(key)) {
+					PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+					return PKI_ERR;
+				}
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 				return PKI_ERR;
@@ -1232,7 +1272,13 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				next_required_id = NID_falcon1024;
 			// NID_secp521r1
 			} else if (last_key_id == NID_falcon1024) {
-				next_required_id = NID_secp521r1;
+				// Requires an EC key
+				next_required_id = NID_X9_62_id_ecPublicKey;
+				// Requires the Brainpool P256 curve
+				if (NID_secp521r1 != PKI_X509_KEYPAIR_get_curve(key)) {
+					PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
+					return PKI_ERR;
+				}
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 				return PKI_ERR;
@@ -1265,12 +1311,14 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 	if (next_required_id > 0 && next_required_id != add_key_id) {
 		PKI_DEBUG("Key type (%d) is not the right one (expected: %d)",
 				add_key_id, next_required_id);
+		PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
 		return PKI_ERR;
 	}
 
 	// Checks we have a good stack
 	if (PKI_STACK_X509_KEYPAIR_push(kp->comp.k_stack, key) <= 0) {
 		PKI_DEBUG("Cannot add a component key to the composite one");
+		PKI_ERROR(PKI_ERR_ALGOR_ADD, NULL);
 		return PKI_ERR;
 	}
 

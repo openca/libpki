@@ -537,10 +537,21 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
 
     if (kp->comp.k_stack != NULL) {
 
+        // // Clears current components (if any)
+        // if (k->components) COMPOSITE_KEY_clear(k);
+
+        // // Transfers the ownership of the stack to the composite key
+        // k->components = kp->comp.k_stack;
+
+        // // Let's replace the stack in the keyparams with a new one
+        // if ((kp->comp.k_stack = PKI_STACK_X509_KEYPAIR_new()) == NULL) {
+		//     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	    // }
+
         for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
 
             PKI_X509_KEYPAIR * tmp_key = NULL;
-            // PKI_X509_KEYPAIR_VALUE * tmp_val = NULL;
+            PKI_X509_KEYPAIR_VALUE * tmp_val = NULL;
 
             // Let's get the i-th PKI_X509_KEYPAIR
             tmp_key = PKI_STACK_X509_KEYPAIR_get_num(kp->comp.k_stack, i);
@@ -550,20 +561,26 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
                 return NULL;
             }
 
-            // // Let's get the internal value
-            // PKI_X509_detach(tmp_key, (void **)&tmp_val, NULL, NULL);
-            // if (!tmp_val) {
-            //     PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot get key value");
-            //     COMPOSITE_KEY_free(k);
-            //     return NULL;
-            // }
+            // Let's get the internal value
+            PKI_X509_detach(tmp_key, (void **)&tmp_val, NULL, NULL);
+            if (!tmp_val) {
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot get key value");
+                COMPOSITE_KEY_free(k);
+                return NULL;
+            }
+            tmp_key->value = NULL;
 
             // // Free the memory associated with the PKI_X509_KEYPAIR
             // PKI_X509_KEYPAIR_free(tmp_key);
+            tmp_key = NULL;
 
             // Pushes the Key onto the stack
             // COMPOSITE_KEY_push(k, tmp_key->value);
-            COMPOSITE_KEY_push(k, tmp_key->value);
+            if (PKI_ERR == COMPOSITE_KEY_push(k, tmp_val)) {
+                PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot push key onto stack");
+                COMPOSITE_KEY_free(k);
+                return NULL;
+            }
 
             // // Now we can use the CRTL interface to pass the new keys
             // if (EVP_PKEY_CTX_ctrl(ctx, -1, EVP_PKEY_OP_KEYGEN,
@@ -573,6 +590,8 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
             // }
         }
     }
+
+    // kp->comp.k_stack = NULL;
 
     // Adds the Parameter (k-of-n) to the key
     if (kp->comp.k_of_n != NULL) {

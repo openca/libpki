@@ -222,6 +222,7 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 	// Debugging Info
 	PKI_DEBUG("Loading Key from %s", url);
 
+	// Let's get the key from the URL
 	if ((tmp_stack = PKI_X509_KEYPAIR_STACK_get(url, 
 						PKI_DATA_FORMAT_UNKNOWN, cred, hsm)) == NULL) {
 		// Nothing was loaded
@@ -229,7 +230,9 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 		return 0;
 	}
 
+	// Transfer the Key to the KeyParams
 	while ((tmp_key = PKI_STACK_X509_KEYPAIR_pop(tmp_stack)) != NULL) {
+		// Add the key to the keyparams
 		if (PKI_KEYPARAMS_add_key(kp, tmp_key) != PKI_OK) {
 			PKI_STACK_X509_KEYPAIR_free_all(tmp_stack);
 			PKI_log_err("ERROR: Cannot add keys from %s", url);
@@ -237,7 +240,8 @@ int add_comp_stack(PKI_KEYPARAMS * kp, char * url, PKI_CRED * cred, HSM * hsm) {
 		}
 	}
 
-	PKI_STACK_X509_KEYPAIR_free(tmp_stack);
+	// Free the temporary stack
+	if (tmp_stack) PKI_STACK_X509_KEYPAIR_free_all(tmp_stack);
 
 	// All Done
 	return 1;

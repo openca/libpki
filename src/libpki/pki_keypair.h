@@ -125,6 +125,9 @@ PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest (const PKI_X509_KEYPAIR * pkey,
 
 /* ------------------------ EC Specific ------------------------------ */
 
+/*!
+ * \brief Returns the PKI_ID of the EC curve of the Key (EC keys only)
+ */
 int PKI_X509_KEYPAIR_get_curve(const PKI_X509_KEYPAIR *kp);
 
 /* ----------------------- PKCS#8 Format ----------------------------- */
