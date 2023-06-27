@@ -204,7 +204,9 @@ HSM *HSM_ENGINE_new (PKI_CONFIG *conf )
 	char *engine_id = NULL;
 
 	ENGINE_load_builtin_engines();
+#if OPENSSL_VERSION_NUMBER < 0x30000000
 	ERR_load_ENGINE_strings();
+#endif
 
 	hsm = (HSM *) PKI_Malloc ( sizeof( HSM ));
 	memcpy( hsm, &engine_hsm, sizeof( HSM ));

@@ -159,8 +159,10 @@ int PKI_init_all( void ) {
 		OpenSSL_add_all_ciphers();
 		OpenSSL_pthread_init();
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000
 		ERR_load_ERR_strings();
 		ERR_load_crypto_strings();
+#endif
 
 		PRQP_init_all_services();
 		PKI_X509_SCEP_init();
