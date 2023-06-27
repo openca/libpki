@@ -433,7 +433,10 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
         case PKI_SCHEME_ECDSA:
             if ( (int) kParams->ec.form > 0 )
             {
-# if OPENSSL_VERSION_NUMBER < 0x1010000fL
+# if OPENSSL_VERSION_NUMBER >= 0x30000000L
+              EC_KEY_set_conv_form(EVP_PKEY_get1_EC_KEY(certPubKeyVal), 
+              (point_conversion_form_t) kParams->ec.form);
+# elif OPENSSL_VERSION_NUMBER < 0x1010000fL
               EC_KEY_set_conv_form(certPubKeyVal->pkey.ec, 
               			   (point_conversion_form_t) kParams->ec.form);
 # else
@@ -443,7 +446,10 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
             }
           if ( kParams->ec.asn1flags > -1 )
           {
-# if OPENSSL_VERSION_NUMBER < 0x1010000fL
+# if OPENSSL_VERSION_NUMBER >= 0x30000000L
+            EC_KEY_set_asn1_flag(EVP_PKEY_get1_EC_KEY(certPubKeyVal),
+              kParams->ec.asn1flags );
+# elif OPENSSL_VERSION_NUMBER < 0x1010000fL
             EC_KEY_set_asn1_flag(certPubKeyVal->pkey.ec,
               kParams->ec.asn1flags );
 # else
