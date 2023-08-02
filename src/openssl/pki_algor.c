@@ -292,10 +292,10 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_by_name ( const char *alg_s ) {
 	}
 
 	// Check if the object is a valid OID
-	if((alg_nid = OBJ_sn2nid( buf )) == PKI_ALGOR_ID_UNKNOWN ) {
+	if ((alg_nid = OBJ_sn2nid( buf )) <= 0) {
 
 		// Checks the long name database for the OID
-		if((alg_nid = OBJ_ln2nid( buf )) == PKI_ALGOR_ID_UNKNOWN ) {
+		if ((alg_nid = OBJ_ln2nid( buf )) <= 0) {
 
 			// The text does not correspond to any known OID strings
 			// return a NULL pointer
@@ -1544,11 +1544,22 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 	    || pkey_type == PKI_ID_get_by_name("falcon1024")) {
 		// FALCON
 		return PKI_SCHEME_FALCON;
-
-	} else if (pkey_type == PKI_ID_get_by_name("dilithium3")
+	} else if (   pkey_type == PKI_ID_get_by_name("dilithium2")
+			   || pkey_type == PKI_ID_get_by_name("dilithium3")
 			   || pkey_type == PKI_ID_get_by_name("dilithium5")) {
 		// DILITHIUM
 		return PKI_SCHEME_DILITHIUM;
+    } else if (   pkey_type == PKI_ID_get_by_name("sphincssha2128fsimple")
+	           || pkey_type == PKI_ID_get_by_name("sphincssha2128ssimple")
+	           || pkey_type == PKI_ID_get_by_name("sphincssha2192fsimple")
+	           || pkey_type == PKI_ID_get_by_name("sphincsshake128fsimple")) {
+		// SPHINCS+
+		return PKI_SCHEME_SPHINCS;
+	} else if (   pkey_type == PKI_ID_get_by_name("kyber512")
+	           || pkey_type == PKI_ID_get_by_name("kyber768")
+			   || pkey_type == PKI_ID_get_by_name("kyber1024")) {
+		// KYBER
+		return PKI_SCHEME_KYBER;
 	}  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {
 		// DILITHIUMX
 		return PKI_SCHEME_DILITHIUMX3;
