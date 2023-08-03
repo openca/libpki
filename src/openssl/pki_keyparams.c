@@ -138,6 +138,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID 			  scheme_id,
 					PKI_Free (tmp_s);
 				};
 			} break;
+
 #endif
 
 #ifdef ENABLE_ECDSA
@@ -194,10 +195,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID 			  scheme_id,
 #endif
 
 			default:
-				if ( kp ) PKI_KEYPARAMS_free ( kp );
-				PKI_log(PKI_LOG_ERR, "Error: scheme %d is not supported!", kp->scheme);
-				PKI_KEYPARAMS_free(kp);
-				return NULL;
+				PKI_log(PKI_LOG_ERR, "No parameter processing for selected algorithm (%d).", kp->scheme);
 		}
 	}
 

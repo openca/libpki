@@ -1343,6 +1343,8 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		ret = PKI_SCHEME_FALCON;
 	} else if (str_cmp_ex(data, "COMPOSITE", 0, 1) == 0) {
 		ret = PKI_SCHEME_COMPOSITE;
+	} else if (str_cmp_ex(data, "KYBER", 0, 1) == 0) {
+		ret = PKI_SCHEME_KYBER;
 	}
 
 	if (!ret) {
