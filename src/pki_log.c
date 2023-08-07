@@ -377,7 +377,7 @@ static char * _pki_get_time_s( void ) {
 		// Time String
 
 	// Get the current time
-	if (clock_gettime(CLOCK_REALTIME, &now) < 0) {
+	if (clock_gettime(CLOCK_REALTIME, &now) >= 0) {
 
 		long millisec = 0;
 			// Milliseconds
