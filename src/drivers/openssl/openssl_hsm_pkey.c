@@ -429,19 +429,29 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
         return NULL;
     }
 
-    ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId);
-    if (!ameth) {
-       PKI_log_debug("Missing ASN1 Method for algorithm '%s' (%d)", 
+    // TODO:
+    // =====
+    //
+    // This mechanism does not seem to be working for Kyber
+    // we need to update the mechanism to include Kyber and other
+    // algorithms.
+
+    if ((ameth = EVP_PKEY_asn1_find(&tmpeng, kp->oqs.algId)) != NULL) {
+        ERR_clear_error();
+        EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
+        
+        PKI_DEBUG("Ameth = %d, AlgId = %d", pkey_id, kp->oqs.algId);
+
+    } else {
+
+       PKI_log_debug("Missing ASN1 Method for algorithm '%s', using the KeyId (%d).", 
            PKI_ALGOR_ID_txt(kp->oqs.algId), kp->oqs.algId);
-       return NULL;
+       pkey_id = kp->oqs.algId;
+
     }
 
-    ERR_clear_error();
-
-    EVP_PKEY_asn1_get0_info(&pkey_id, NULL, NULL, NULL, NULL, ameth);
-
-    if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL)
-        goto err;
+    // Generates the new context
+    if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL) goto err;
 
     // Let's set the operation (check EVP_PKEY_CTX_ctrl function -pmeth_lib.c:432)
     // Use the EVP interface to initialize the operation (crypto/evp/pmeth_gn.c:69)
