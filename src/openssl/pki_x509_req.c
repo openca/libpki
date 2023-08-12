@@ -74,16 +74,18 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 	} else if ( req_cnf ) {
 		char *tmp_s = NULL;
 
-		if(( tmp_s = PKI_CONFIG_get_value( req_cnf, "/profile/subject/dn")) != NULL ) {
+		if (( tmp_s = PKI_CONFIG_get_value( req_cnf, "/profile/subject/dn")) != NULL ) {
 			subj_s = tmp_s;
 
 			// PKI_log_debug("Subject DN found => %s", tmp_s);
 			subj = PKI_X509_NAME_new ( tmp_s );
 		} else {
-			// PKI_log_debug("Subject DN .. NOT found!");
-			subj = PKI_X509_NAME_new( "" );
-		};
-	} else {
+			PKI_log_debug("Subject DN not found in the profile, generating a default one");
+		}
+	}
+	
+	// If no subject, yet, let's try to get the hostname
+	if (!subj) {
 		struct utsname myself;
 		char tmp_name[1024];
 
@@ -93,11 +95,11 @@ PKI_X509_REQ *PKI_X509_REQ_new(const PKI_X509_KEYPAIR * k,
 			sprintf( tmp_name, "CN=%s", myself.nodename );
 			subj = PKI_X509_NAME_new( tmp_name );
 		}
-	};
 
-	if (!subj) {
-		PKI_ERROR(PKI_ERR_X509_CERT_CREATE_SUBJECT, subj_s );
-		goto err;
+		if (!subj) {
+			PKI_ERROR(PKI_ERR_X509_CERT_CREATE_SUBJECT, subj_s );
+			goto err;
+		}
 	}
 
 	if ((req = PKI_X509_REQ_new_null()) == NULL) {
