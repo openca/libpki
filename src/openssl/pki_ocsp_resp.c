@@ -794,7 +794,10 @@ const void * PKI_X509_OCSP_RESP_get_data(PKI_X509_OCSP_RESP * r,
 				PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL );
 				break;
 			}
-#if OPENSSL_VERSION_NUMBER > 0x1010000fL
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+			mem->size = (size_t)ASN1_item_i2d((void *)&(tmp_x->tbsResponseData),
+				&(mem->data), (ASN1_ITEM *) OCSP_RESPDATA_it );
+#elif OPENSSL_VERSION_NUMBER > 0x1010000fL
 			mem->size = (size_t)ASN1_item_i2d((void *)&(tmp_x->tbsResponseData),
 				&(mem->data), &OCSP_RESPDATA_it );
 #else

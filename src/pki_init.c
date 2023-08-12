@@ -109,9 +109,10 @@ int PKI_init_all( void ) {
 		// Pthread Initialization
 		OpenSSL_pthread_init();
 
-		// OpenSSL Error Interface Init
+#if OPENSSL_VERSION_NUMBER < 0x30000000
 		ERR_load_ERR_strings();
 		ERR_load_crypto_strings();
+#endif
 
 		// PKI Discovery Services
 		PRQP_init_all_services();
