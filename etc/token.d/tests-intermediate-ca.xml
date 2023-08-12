@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<!-- PKI service configurations -->
+<pki:tokenConfig xmlns:pki="http://www.openca.org/openca/pki/1/0/0">
+  <!-- Token Name -->
+  <pki:name>tests-intermediate-ca</pki:name>
+  <!-- Token Type (one of: software, engine, pkcs11) -->
+  <pki:type>software</pki:type>
+  <!-- HSM token (identifier from hsm.d/)-->
+  <!-- <pki:hsm>HSM Identifier</pki:hsm> -->
+  <!-- Private key identifier (URI - file:// id:// etc.. ) -->
+  <!--
+       SOFTWARE:
+       =========
+
+       The software types work with software keys that can be
+       retrieved from any of the supported URIs (file://, http://,
+       dns://, etc.)
+
+       TPM:
+       ====
+
+       To create the key, you must donwload and install the tpm
+       engine for OpenSSL, then use the "create_tpm_key" util.
+       The output file of the command is the key to be used with
+       the TPM
+
+       PKCS11:
+       =======
+
+       The format for the id for PKCS#11 is id://[LABEL]/[ID]
+       where the ID is optional and needed only if multiple
+       keypairs with the same LABEL are present on the token
+
+       Example:
+
+          <pki:key>id://$USER/00:11:22:33:44:55:66:77</pki:key>
+  -->
+  <!--
+      SLOT:
+      =====
+
+      To select the Slot in the HSM, please use the slot field
+
+      Example:
+
+           <pki:slot>0</pki:slot>
+  -->
+  <!-- Private key identifier (URI - file:// id:// etc.. ) -->
+  <pki:keypair>file://etc/certs.d/tests/ica_private_key.pem</pki:keypair>
+  <!-- Certificate identifier (URI) -->
+  <pki:cert>file://etc/certs.d/tests/ica_certificate.pem</pki:cert>
+  <!-- CA Certificate -->
+  <pki:cacert>file://etc/certs.d/tests/root_certificate.pem</pki:cacert>
+  <!-- Certificates -->
+  <!-- <pki:otherCerts /> -->
+  <pki:trustedCerts>file://etc/certs.d/tests/root_certificate.pem</pki:trustedCerts>
+  <!-- Where the Password should be read from -->
+  <pki:passin>stdin</pki:passin>
+  <!-- ... or simply specify the password here -->
+  <!-- <pki:password></pki:password> -->
+</pki:tokenConfig>

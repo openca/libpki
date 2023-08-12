@@ -600,12 +600,15 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 		// LibPKI's OCSP Response representation
 
 	if (!resp || !resp->value || !keypair || !keypair->value) {
+		if (!resp || !resp->value) PKI_DEBUG("Missing resp value (%p)", resp);
+		else if (!keypair || !keypair->value) PKI_DEBUG("Missing keypair value (%p)", keypair);
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
 	// Let's get the value
 	r = resp->value;
 	if (!r->resp || !r->bs) {
+		PKI_DEBUG("Missing resp or bs value in response (resp: %p, bs: %p)", r->resp, r->bs);
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
@@ -652,27 +655,34 @@ int PKI_X509_OCSP_RESP_sign(PKI_X509_OCSP_RESP        * resp,
 	r->resp->responseBytes = r_bytes;
 	
 	/* If there's old certs, let's clean the stack */
-	if (r && r->bs && r->bs->certs)	{
-
-		PKI_X509_CERT_VALUE *tmp_cert = NULL;
-			// Certificate Pointer
+	if (r->bs->certs)	{
 
 		// Cycle through the list of certificates and
 		// free them after removing them from the list
-		while((tmp_cert = sk_X509_pop( r->bs->certs )) != NULL ) {
-			// Free Memory
-			X509_free(tmp_cert);
+		while (sk_X509_num(r->bs->certs) > 0 ) {
+
+			PKI_X509_CERT_VALUE * tmp_cert = NULL;
+				// Pointer to the certificate to be freed
+			
+			if ((tmp_cert = sk_X509_pop(r->bs->certs)) != NULL) {
+				// Free Memory
+				X509_free(tmp_cert);
+			}
 		}
-	} else {
+	} else if (cert) {
 		// Creates a new empty stack & check for errors
 		r->bs->certs = sk_X509_new_null();
 		if (r->bs->certs == NULL) {
-			return PKI_ERROR(PKI_ERR_OCSP_RESP_SIGN, "ERROR, Can not Create stack of certificate in the response");
+			PKI_DEBUG("ERROR, Can not Create stack of certificate in the response");
+			return PKI_ERR;
 		}
 	}
 
 	/* Let's push the signer's certificate */
-	if ( cert ) OCSP_basic_add1_cert(r->bs, cert->value);
+	if (cert && !OCSP_basic_add1_cert(r->bs, cert->value)) {
+		PKI_DEBUG("ERROR, Can not add signer's certificate to the response");
+		return PKI_ERR;
+	}
 
 	// Let's now perform the real signing operation
 	return PKI_X509_OCSP_RESP_DATA_sign(resp, keypair, digest);

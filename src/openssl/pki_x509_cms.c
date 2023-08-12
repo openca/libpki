@@ -636,30 +636,36 @@ int PKI_X509_CMS_add_crl(PKI_X509_CMS     * cms,
 	if (!cms || !cms->value || !crl || !crl->value)
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 
-	// Adds the CRL to the PKCS7 value structure
-	PKCS7_add_crl(cms->value, crl->value);
+	// Adds the CRL to the CMS value structure
+	CMS_add1_crl(cms->value, crl->value);
 
 	// All Done
 	return PKI_OK;
 }
 
-int PKI_X509_CMS_add_crl_stack(PKI_X509_CMS           * cms, 
-				 const PKI_X509_CRL_STACK * const crl_sk ) {
-	int i;
+int PKI_X509_CMS_add_crl_stack(PKI_X509_CMS             * cms, 
+				               const PKI_X509_CRL_STACK * const crl_sk ) {
 
-	if( !cms || !cms->value || !crl_sk ) {
+	// Input Check
+	if (!cms || !cms->value || !crl_sk ) {
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-	for( i=0; i < PKI_STACK_X509_CRL_elements( crl_sk ); i++ ) {
+	// Cycle through the CRL stack and add them to the CMS
+	for (int i = 0; i < PKI_STACK_X509_CRL_elements(crl_sk); i++) {
 		PKI_X509_CRL *crl = NULL;
 
-		if ((crl = PKI_STACK_X509_CRL_get_num(crl_sk, i)) == NULL)
-			continue;
+		// Gets the CRL from the stack
+		if ((crl = PKI_STACK_X509_CRL_get_num(crl_sk, i)) == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return PKI_ERR;
+		}
 
-		PKCS7_add_crl( cms->value, crl->value);
+		// Adds the CRL to the CMS value structure
+		CMS_add1_crl( cms->value, crl->value);
 	}
 
+	// All Done
 	return PKI_OK;
 }
 
@@ -668,117 +674,150 @@ int PKI_X509_CMS_add_crl_stack(PKI_X509_CMS           * cms,
 
 int PKI_X509_CMS_get_crls_num(const PKI_X509_CMS * const cms ) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+	int n_elements = -1;
 
-	return -1;
+	STACK_OF(X509_CRL) * sk = NULL; 
+		// Retrieves the CRL stack from the CMS structure
 
-	/*
-	const STACK_OF(X509_CRL) *x_sk = NULL;
+	// Input Check
+	if (!cms || !cms->value) return n_elements;
 
-	if ((x_sk = __get_crl(cms)) == NULL) return -1;
+	// Gets the CRL stack from the CMS structure
+	sk = CMS_get1_crls(cms->value);
+	if (!sk) return -1;
 
-	return sk_X509_CRL_num((STACK_OF(X509_CRL) *) x_sk);
-	*/
+	// Gets the number of elements from the stack
+	n_elements = PKI_STACK_X509_CERT_elements(sk);
+
+	// Frees the stack
+	sk_X509_CRL_free(sk);
+
+	// All Done
+	return n_elements;
 }
 
 
 /*! \brief Returns a copy of the n-th CRL from the signature */
 
 PKI_X509_CRL *PKI_X509_CMS_get_crl(const PKI_X509_CMS * const cms,
-				     int idx) {
+				                   int                        idx) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
 
-	return NULL;
+	PKI_X509_CRL_VALUE * ret_value = NULL;
+	PKI_X509_CRL *ret = NULL;
+		// Return value
 
-	/*
-	PKI_X509_CRL_VALUE *x = NULL;
-	const STACK_OF(X509_CRL) *x_sk = NULL;
+	STACK_OF(X509_CRL) * sk = NULL; 
+		// Stack of X509_CRL_VALUE
 
-	if (!cms || !cms->value) return ( NULL );
+	// Input Check
+	if (!cms || !cms->value) return NULL;
 
-	if ((x_sk = __get_crl(cms)) == NULL) return NULL;
+	// Gets the CRL stack from the CMS structure
+	sk = CMS_get1_crls(cms->value);
+	if (!sk) return NULL;
 
-	if ( idx < 0 ) idx = 0;
+	// Gets the n-th element from the stack
+	ret_value = sk_X509_CRL_value(sk, idx);
+	if (!ret_value) return NULL;
 
-	if ((x = sk_X509_CRL_value(x_sk, idx)) == NULL) return NULL;
+	// Builds the return object
+	ret = PKI_X509_CRL_new_null();
+	if (!ret) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
 
-	return PKI_X509_new_dup_value(PKI_DATATYPE_X509_CRL, x, NULL);
-	*/
+	// Assigns the internal value
+	ret->value = ret_value;
+	ret_value = NULL;
+
+	// Free the memory
+	sk_X509_CRL_free(sk);
+	sk = NULL;
+
+	// All done
+	return ret;
 }
 
 /*! \brief Adds a certificate to the signature's certificate chain */
 
-int PKI_X509_CMS_add_cert(const PKI_X509_CMS * cms, 
-			    const PKI_X509_CERT  * const x) {
+int PKI_X509_CMS_add_cert(const PKI_X509_CMS  * cms, 
+			    		  const PKI_X509_CERT * const x) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
-
-	return -1;
-
-	/*
 	if (!cms || !cms->value || !x || !x->value) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
 	}
 
-	PKCS7_add_certificate( cms->value, x->value );
+	if (!CMS_add1_cert(cms->value, x->value)) {
+		PKI_DEBUG("Cannot Add the certificate to the CMS structure (%s)", 
+			HSM_get_errdesc(HSM_get_errno(NULL), NULL));
+		return PKI_ERR;
+	}
 
-	return( PKI_OK );
-	*/
+	return PKI_OK;
 }
 
 /*! \brief Adds a stack of certificates to the signature's certificate chain */
 
-int PKI_X509_CMS_add_cert_stack(const PKI_X509_CMS      * cms, 
-				  const PKI_X509_CERT_STACK * const x_sk) {
+int PKI_X509_CMS_add_cert_stack(const PKI_X509_CMS        * cms, 
+				  				const PKI_X509_CERT_STACK * const x_sk) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
-
-	return -1;
-
-	/*
-	int i;
-
+	// Input Checks
 	if( !cms || !cms->value || !x_sk ) {
-		PKI_log_err( "PKI_X509_CMS_add_crl_stack()::Missing param!");
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
 	}
 
-	for( i=0; i < PKI_STACK_X509_CERT_elements( x_sk ); i++ ) {
-		PKI_X509_CERT *x = NULL;
+	// Adds the individual certificates
+	for(int i = 0; i < PKI_STACK_X509_CERT_elements( x_sk ); i++ ) {
 
-		if(( x = PKI_STACK_X509_CERT_get_num( x_sk, i )) == NULL) {
-			continue;
+		PKI_X509_CERT *x = NULL;
+			// Certificate from the stack
+
+		if ((x = PKI_STACK_X509_CERT_get_num( x_sk, i )) == NULL) {
+			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+			return PKI_ERR;
 		}
 
-		PKCS7_add_certificate( cms->value, x->value );
+		if (!PKI_X509_CMS_add_cert(cms, x)) {
+			PKI_DEBUG("ERROR::Cannot add the %d-th certificate to the CMS", i);
+			return PKI_ERR;
+		}
 	}
 
-	return ( PKI_OK );
-	*/
+	// All done
+	return PKI_OK;
 }
 
 /*! \brief Returns the number of certificates present in the signature chain */
 
 int PKI_X509_CMS_get_certs_num(const PKI_X509_CMS * const cms ) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+	int ret = 0;
+	STACK_OF(X509) *x_sk = NULL;
+		// Internal stack of certificates
 
-	return -1;
+	// Input Check
+	if (!cms || !cms->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return -1;
+	}
 
-	/*
-	const STACK_OF(X509) *x_sk = NULL;
+	// Gets the internal stack of certificates
+	x_sk = CMS_get1_certs(cms->value);
+	if (!x_sk) return -1;
 
-	if ((x_sk = __get_chain(cms)) == NULL) return -1;
+	// Gets the number of elements in the stack
+	ret = sk_X509_num(x_sk);
 
-	return sk_X509_num((STACK_OF(X509) *)x_sk);
-	*/
+	// Free the stack
+	sk_X509_free(x_sk);
+	x_sk = NULL;
+
+	// All Done
+	return ret;
 }
 
 
@@ -813,25 +852,27 @@ PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
 
 int PKI_X509_CMS_clear_certs(const PKI_X509_CMS * cms) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
-
-	return -1;
-
-	/*
 	STACK_OF(X509) *x_sk = NULL;
 		// Pointer to the stack of certificates
 
-	// Gets the pointer to the stack structure
-	if ((x_sk = __get_chain(cms)) == NULL)
+	// Input Checks
+	if (!cms || !cms->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ERR;
+	}
 
-	// Frees the certificates stack
-	sk_X509_free(x_sk);
+	// Gets the internal stack of certificates
+	x_sk = CMS_get1_certs(cms->value);
+
+	// Free all the certificates on the stack
+	while (sk_X509_num(x_sk) > 0) {
+		X509 *x = sk_X509_pop(x_sk);
+		if (x) X509_free(x);
+	}
 
 	// All Done
 	return PKI_OK;
-	*/
+
 }
 
 /*!
@@ -859,10 +900,10 @@ int PKI_X509_CMS_add_signer_tk(PKI_X509_CMS         * cms,
  */
 
 int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * const cms,
-			                      const PKI_X509_CERT    * const signer,
-			                      const PKI_X509_KEYPAIR * const k,
-			                      const PKI_DIGEST_ALG   * md,
-			                      const int                flags ) {
+			                const PKI_X509_CERT    * const signer,
+			                const PKI_X509_KEYPAIR * const k,
+			                const PKI_DIGEST_ALG   * md,
+			                const int                flags ) {
 
 	PKI_X509_CMS_TYPE cms_type = PKI_X509_CMS_TYPE_UNKNOWN;
 		// CMS Type
@@ -915,8 +956,11 @@ int PKI_X509_CMS_add_signer(const PKI_X509_CMS     * const cms,
 	}
 
 	// Let's just Add the Signer
-	if ((si = CMS_add1_signer(cms->value, signer->value,
-							              k->value, md, si_flags)) == NULL) {
+	if ((si = CMS_add1_signer(cms->value, 
+	                          signer->value,
+							  k->value, 
+							  md,
+							  si_flags)) == NULL) {
 		// Describes the Error
 		PKI_DEBUG("Cannot Add Signer [%d::%s]",
 			HSM_get_errno(NULL),
@@ -1265,8 +1309,13 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 
 
 	// Input Checks
-	if (!cms || !cms->value || !cipher)
-		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	if (!cms || !cms->value || !cipher) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ERR;
+	}
+
+	// Aux Variable for signdness
+	unsigned int cms_status = (unsigned int) cms->status;
 
 	// Gets the CMS Type
 	type = PKI_X509_CMS_get_type(cms->value);
@@ -1277,16 +1326,14 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 
 		case PKI_X509_CMS_TYPE_ENVELOPED: {
 
-			// Aux Variable for signdness
-			// unsigned long tmp_status = (unsigned int) cms->status;
-
 			// Allocates the new CMS with the new cipher
-			if ((tmp_val = CMS_encrypt(NULL, NULL, cipher, 
-				                         (unsigned int) cms->status)) == NULL) {
-
+			if ((tmp_val = CMS_encrypt(NULL, 
+									   NULL, 
+									   cipher, 
+				                       cms_status)) == NULL) {
 				// Reports the error
 				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		  }
+		  	}
 
 			// Free the current value, if any
 			if (cms->value) PKI_X509_CMS_VALUE_free(cms->value);
@@ -1300,13 +1347,13 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 
 			// Allocates the new CMS with the new cipher
 			if ((tmp_val = CMS_EncryptedData_encrypt(NULL,
-				                                       PKI_CIPHER_AES(256, cbc), 
-				                                       NULL,
-				                                       0, 
-				                                       (unsigned int) cms->status)) == NULL) {
+				                                     PKI_CIPHER_AES(256, cbc), 
+				                                     NULL,
+				                                     0, 
+				                                     cms_status)) == NULL) {
 				// Reports the error
 				return PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		  }
+		  	}
 
 			// Free the current value, if any
 			if (cms->value) PKI_X509_CMS_VALUE_free(cms->value);
@@ -1317,7 +1364,8 @@ int PKI_X509_CMS_set_cipher(PKI_X509_CMS       * const cms,
 		} break;
 
 		default: {
-			return PKI_ERROR(PKI_ERR_X509_CMS_WRONG_TYPE, NULL);
+			PKI_ERROR(PKI_ERR_X509_CMS_WRONG_TYPE, NULL);
+			return PKI_ERR;
 		}
 	}
 

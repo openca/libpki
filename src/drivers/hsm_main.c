@@ -683,8 +683,8 @@ int PKI_X509_sign(PKI_X509               * x,
 								// ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
 
 	if (!success || !sig_asn1.data || !sig_asn1.length) {
-		PKI_DEBUG("Error while creating the signature: %s",
-			ERR_error_string(ERR_get_error(), NULL));
+		PKI_DEBUG("Error while creating the signature: %s (success: %d, sig_asn1.data: %p, sig_asn1.length: %d)",
+			ERR_error_string(ERR_get_error(), NULL), success, sig_asn1.data, sig_asn1.length);
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 		return PKI_ERR;
 	}

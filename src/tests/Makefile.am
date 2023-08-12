@@ -19,96 +19,72 @@ SUBDIRS =
 EXTRA_DIST =
 
 check_PROGRAMS = \
-	test1 \
-	test2 \
-	test3 \
-	test4 \
-	test5 \
-	test6 \
-	test7 \
-	test8 \
-	test9 \
-	test10 \
-	test11 \
-	test12 \
-	test13 \
-	test14 \
-	test15
+	1-key-gen-key-digest \
+	2-cert-gen-digest-alg-list \
+	3-token-generation-rsa-ec-dilithium-falcon \
+	4-token-generation-request-self-sign-export-cert-req \
+	5-token-init-load-profile \
+	6-token-digest-crl-sign \
+	7-url-file-https-ldap-mysql-pg-pkcs11 \
+	8-log-interface \
+	9-public-key-encryption-decryption \
+	10-ocsp-generation-req-resp-sign \
+	11-ameth-traditional-pqc-composite-explicit
 
 TESTS = $(check_PROGRAMS)
 
-test1_SOURCES = test1.c
-test1_LDFLAGS = $(testLDFLAGS)
-test1_LDADD   = $(testLDADD)
-test1_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+1_key_gen_key_digest_SOURCES = 1_key_gen_key_digest.c
+1_key_gen_key_digest_LDFLAGS = $(testLDFLAGS)
+1_key_gen_key_digest_LDADD   = $(testLDADD)
+1_key_gen_key_digest_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test2_SOURCES = test2.c
-test2_LDFLAGS = $(testLDFLAGS)
-test2_LDADD   = $(testLDADD)
-test2_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+2_cert_gen_digest_alg_list_SOURCES = 2_cert_gen_digest_alg_list.c
+2_cert_gen_digest_alg_list_LDFLAGS = $(testLDFLAGS)
+2_cert_gen_digest_alg_list_LDADD   = $(testLDADD)
+2_cert_gen_digest_alg_list_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test3_SOURCES = test3.c
-test3_LDFLAGS = $(testLDFLAGS)
-test3_LDADD   = $(testLDADD)
-test3_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+3_token_generation_rsa_ec_dilithium_falcon_SOURCES = 3_token_generation_rsa_ec_dilithium_falcon.c
+3_token_generation_rsa_ec_dilithium_falcon_LDFLAGS = $(testLDFLAGS)
+3_token_generation_rsa_ec_dilithium_falcon_LDADD   = $(testLDADD)
+3_token_generation_rsa_ec_dilithium_falcon_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test4_SOURCES = test4.c
-test4_LDFLAGS = $(testLDFLAGS)
-test4_LDADD   = $(testLDADD)
-test4_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+4_token_generation_request_self_sign_export_cert_req_SOURCES = 4_token_generation_request_self_sign.c
+4_token_generation_request_self_sign_export_cert_req_LDFLAGS = $(testLDFLAGS)
+4_token_generation_request_self_sign_export_cert_req_LDADD   = $(testLDADD)
+4_token_generation_request_self_sign_export_cert_req_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test5_SOURCES = test5.c
-test5_LDFLAGS = $(testLDFLAGS)
-test5_LDADD   = $(testLDADD)
-test5_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+5_token_init_load_profile_SOURCES = 5_token_init_load_profile.c
+5_token_init_load_profile_LDFLAGS = $(testLDFLAGS)
+5_token_init_load_profile_LDADD   = $(testLDADD)
+5_token_init_load_profile_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test6_SOURCES = test6.c
-test6_LDFLAGS = $(testLDFLAGS)
-test6_LDADD   = $(testLDADD)
-test6_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+6_token_digest_crl_sign_SOURCES = 6_token_digest_crl_sign.c
+6_token_digest_crl_sign_LDFLAGS = $(testLDFLAGS)
+6_token_digest_crl_sign_LDADD   = $(testLDADD)
+6_token_digest_crl_sign_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test7_SOURCES = test7.c
-test7_LDFLAGS = $(testLDFLAGS)
-test7_LDADD   = $(testLDADD)
-test7_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+7_url_file_https_ldap_mysql_pg_pkcs11_SOURCES = 7_url_file_https_ldap_mysql_pg_pkcs11.c
+7_url_file_https_ldap_mysql_pg_pkcs11_LDFLAGS = $(testLDFLAGS)
+7_url_file_https_ldap_mysql_pg_pkcs11_LDADD   = $(testLDADD)
+7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test8_SOURCES = test8.c
-test8_LDFLAGS = $(testLDFLAGS)
-test8_LDADD   = $(testLDADD)
-test8_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
+8_log_interface_SOURCES = 8_log_interface.c
+8_log_interface_LDFLAGS = $(testLDFLAGS)
+8_log_interface_LDADD   = $(testLDADD)
+8_log_interface_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test9_SOURCES = test9.c
-test9_LDFLAGS = $(testLDFLAGS)
-test9_LDADD   = $(testLDADD)
-test9_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+9_public_key_encryption_decryption_SOURCES = 9_public_key_encryption_decryption.c
+9_public_key_encryption_decryption_LDFLAGS = $(testLDFLAGS)
+9_public_key_encryption_decryption_LDADD   = $(testLDADD)
+9_public_key_encryption_decryption_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test10_SOURCES = test10.c
-test10_LDFLAGS = $(testLDFLAGS)
-test10_LDADD   = $(testLDADD)
-test10_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+10_ocsp_generation_req_resp_sign_SOURCES = 10_ocsp_generation_req_resp_sign.c
+10_ocsp_generation_req_resp_sign_LDFLAGS = $(testLDFLAGS)
+10_ocsp_generation_req_resp_sign_LDADD   = $(testLDADD)
+10_ocsp_generation_req_resp_sign_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
-test11_SOURCES = test11.c
-test11_LDFLAGS = $(testLDFLAGS)
-test11_LDADD   = $(testLDADD)
-test11_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-
-test12_SOURCES = test12.c
-test12_LDFLAGS = $(testLDFLAGS)
-test12_LDADD   = $(testLDADD)
-test12_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-
-test13_SOURCES = test13.c
-test13_LDFLAGS = $(testLDFLAGS)
-test13_LDADD   = $(testLDADD)
-test13_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-
-test14_SOURCES = test14.c
-test14_LDFLAGS = $(testLDFLAGS)
-test14_LDADD   = $(testLDADD)
-test14_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-
-test15_SOURCES = test15.c
-test15_LDFLAGS = $(testLDFLAGS)
-test15_LDADD   = $(testLDADD)
-test15_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+11_ameth_traditional_pqc_composite_explicit_SOURCES = 11_ameth_traditional_pqc_composite_explicit.c
+11_ameth_traditional_pqc_composite_explicit_LDFLAGS = $(testLDFLAGS)
+11_ameth_traditional_pqc_composite_explicit_LDADD   = $(testLDADD)
+11_ameth_traditional_pqc_composite_explicit_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 

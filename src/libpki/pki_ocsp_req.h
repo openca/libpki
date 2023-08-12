@@ -38,21 +38,39 @@ int PKI_X509_OCSP_REQ_sign_tk ( PKI_X509_OCSP_REQ *req, PKI_TOKEN *tk );
 
 /* --------------------------------- Parsing ---------------------------- */
 int PKI_X509_OCSP_REQ_has_nonce ( PKI_X509_OCSP_REQ *req );
+
 int PKI_X509_OCSP_REQ_elements ( PKI_X509_OCSP_REQ *req );
 
 PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid ( PKI_X509_OCSP_REQ *req, int num);
+
+void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req, PKI_X509_DATA type );
+
+char * PKI_X509_OCSP_REQ_get_parsed ( PKI_X509_OCSP_REQ *req, PKI_X509_DATA type );
+
+int PKI_X509_OCSP_REQ_print_parsed ( PKI_X509_OCSP_REQ *req, 
+				PKI_X509_DATA type, int fd );
+
+/* -------------------------------- CertID --------------------------------*/
 
 PKI_STRING * PKI_OCSP_CERTID_get_issuerNameHash(PKI_OCSP_CERTID * c_id);
 
 PKI_STRING * PKI_OCSP_CERTID_get_issuerKeyHash(PKI_OCSP_CERTID * c_id);
 
+PKI_INTEGER * PKI_OCSP_CERTID_get_serialNumber(PKI_OCSP_CERTID * c_id);
+
+const PKI_DIGEST_ALG * PKI_OCSP_CERTID_get_hashAlgorithm(PKI_OCSP_CERTID * c_id);
+
+/* ---------------------------- Request Tools ---------------------------- */
+
 PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial ( PKI_X509_OCSP_REQ *req, int num);
 
-void * PKI_X509_OCSP_REQ_get_data ( PKI_X509_OCSP_REQ *req, PKI_X509_DATA type );
-char * PKI_X509_OCSP_REQ_get_parsed ( PKI_X509_OCSP_REQ *req, PKI_X509_DATA type );
+const PKI_DIGEST_ALG * PKI_X509_OCSP_REQ_get_hashAlgorithm(PKI_X509_OCSP_REQ * req, 
+					  			                   		   int                 num);
+PKI_STRING * PKI_X509_OCSP_REQ_get_issuerNameHash(PKI_X509_OCSP_REQ * req, 
+								            	  int                 num);
 
-int PKI_X509_OCSP_REQ_print_parsed ( PKI_X509_OCSP_REQ *req, 
-				PKI_X509_DATA type, int fd );
+PKI_STRING * PKI_X509_OCSP_REQ_get_issuerKeyHash (PKI_X509_OCSP_REQ * req, 
+								            	   int                 num);
 
 /* --------------------------------- Tools ------------------------------ */
 

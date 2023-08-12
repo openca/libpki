@@ -2,6 +2,7 @@
 
 #include <libpki/pki.h>
 #include <libpki/datatypes.h>
+#include "internal/ossl_lcl.h"
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_null () {
 	return PKI_X509_new ( PKI_DATATYPE_X509_KEYPAIR, NULL );
@@ -22,10 +23,17 @@ void PKI_X509_KEYPAIR_free_void ( void *key ) {
  *         PKCS#11 HSMs ) as target
  */
 
-PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( PKI_SCHEME_ID type, int bits,
-					char *label, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new(PKI_SCHEME_ID   type, 
+									   int             bits,
+									   char          * label, 
+									   PKI_CRED      * cred,
+									   HSM           * hsm) {
 
 	PKI_KEYPARAMS kp;
+		// Key Parameters to use for key generation
+
+	// Initialize the Key Parameters
+	memset(&kp, 0, sizeof(PKI_KEYPARAMS));
 
 	// Common
 	kp.scheme = type;
@@ -34,14 +42,38 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new( PKI_SCHEME_ID type, int bits,
 	// RSA
 	kp.rsa.exponent = -1;
 
-	//DSA
-
 	// EC
 #ifdef ENABLE_ECDSA
 	kp.ec.form = PKI_EC_KEY_FORM_UNKNOWN;
 	kp.ec.curve = -1;
+	kp.ec.asn1flags = -1;
 #endif
 
+	// Open Quantum Safe
+#ifdef ENABLE_OQS
+	kp.oqs.algId = -1;
+#endif
+
+	switch (type) {
+
+		case PKI_SCHEME_DSA:
+		case PKI_SCHEME_RSA:
+		case PKI_SCHEME_RSAPSS: {
+			if (!PKI_KEYPARAMS_set_key_size(&kp, bits)) {
+				PKI_DEBUG("ERROR, can not set the key size during keypair generation!");
+				return NULL;
+			}
+		} break;
+
+		default:
+			// Use the value as the security bits
+			if (!PKI_KEYPARAMS_set_security_bits(&kp, bits)) {
+				PKI_DEBUG("ERROR, can not set the security bits during keypair generation!");
+				return NULL;
+			}
+	}
+
+	// Generate the Key
 	return HSM_X509_KEYPAIR_new ( &kp, label, cred, hsm );
 }
 

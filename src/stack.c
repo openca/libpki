@@ -171,13 +171,13 @@ void * PKI_STACK_pop ( PKI_STACK *st ) {
 	void *data = NULL;
 
 	// Checks the input
-	if((st == NULL) || ( st->tail == NULL)) return NULL;
+	if ((st == NULL) || ( st->tail == NULL)) return NULL;
 
 	// Get the last node of the structure
 	n = st->tail;
 
 	// Let's update the tail pointers
-	st->tail = n->prev;
+	st->tail = n ? n->prev : NULL;
 
 	// Let's check if the node we popped was also the head
 	if (st->head == n)

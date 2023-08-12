@@ -45,13 +45,6 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	/*
- 	if((PKI_TOKEN_set_scheme ( tk, PKI_SCHEME_RSA )) == PKI_ERR ) {
-		printf("ERROR, can not set the RSA crypto scheme!\n");
-		return (0);
-	}
-	*/
-
 	if((PKI_TOKEN_set_algor ( tk, PKI_ALGOR_RSA_SHA256 )) == PKI_ERR ) {
 		printf("ERROR, can not set the RSA crypto scheme!\n");
 		return (0);

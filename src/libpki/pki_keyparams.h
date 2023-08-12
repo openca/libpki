@@ -29,6 +29,18 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID schemeId, int sec
 
 int PKI_KEYPARAMS_set_security_bits(PKI_KEYPARAMS * kp, int sec_bits);
 
+/*! 
+ * \brief Sets the bits size for key generation 
+ *
+ * This function sets the bits size for key generation.  If the bits
+ * size is not supported, the function will return PKI_ERR.
+ * 
+ * @param kp The PKI_KEYPARAMS structure to set
+ * @param bits The requested bits size
+ * @retval PKI_OK on success, PKI_ERR on failure
+ */
+int PKI_KEYPARAMS_set_key_size(PKI_KEYPARAMS * kp, int bits);
+
 int PKI_KEYPARAMS_set_curve(PKI_KEYPARAMS   * kp, 
                             const char      * curveName, 
                             PKI_EC_KEY_FORM   curveForm,

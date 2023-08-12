@@ -516,6 +516,30 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_ID_RSA_RIPEMD160	NID_undef
 #endif
 
+#ifdef ENABLE_SHA3_256
+#define PKI_ALGOR_RSA_SHA3_256	  	NID_RSA_SHA3_256
+#define PKI_ALGOR_ID_RSA_SHA3_256	NID_RSA_SHA3_256
+#else
+#define PKI_ALGOR_RSA_SHA3_256	  	NID_undef
+#define PKI_ALGOR_ID_RSA_SHA3_256		NID_undef
+#endif
+
+#ifdef ENABLE_SHA3_384
+#define PKI_ALGOR_RSA_SHA3_384	  	NID_RSA_SHA3_384
+#define PKI_ALGOR_ID_RSA_SHA3_384	NID_RSA_SHA3_384
+#else
+#define PKI_ALGOR_RSA_SHA3_384	  	NID_undef
+#define PKI_ALGOR_ID_RSA_SHA3_384	NID_undef
+#endif
+
+#ifdef ENABLE_SHA3_512
+#define PKI_ALGOR_RSA_SHA3_512	  	NID_RSA_SHA3_512
+#define PKI_ALGOR_ID_RSA_SHA3_512	NID_RSA_SHA3_512
+#else
+#define PKI_ALGOR_RSA_SHA3_512	  	NID_undef
+#define PKI_ALGOR_ID_RSA_SHA3_512		NID_undef
+#endif
+
 /* Old DSS1 Algorithm - not needed in OpenSSL v1.0.0+ */
 #if OPENSSL_VERSION_NUMBER < 0x1000000fL
 #define PKI_ALGOR_DSS1          60000
@@ -643,6 +667,36 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_ID_ECDSA_SHA512	NID_undef
 #endif
 /* End - NID_ecdsa_with_SHA512 */
+
+/* Begin - NID_ecdsa_with_sha3_256 */
+#ifdef NID_ecdsa_with_SHA3_256
+#define PKI_ALGOR_ECDSA_SHA3_256	NID_ecdsa_with_SHA3_256
+#define PKI_ALGOR_ID_ECDSA_SHA3_256	NID_ecdsa_with_SHA3_256
+#else
+#define PKI_ALGOR_ECDSA_SHA3_256  	NID_undef
+#define PKI_ALGOR_ID_ECDSA_SHA3_256	NID_undef
+#endif
+/* End - NID_ecdsa_with_sha3_256 */
+
+/* Begin - NID_ecdsa_with_sha3_384 */
+#ifdef NID_ecdsa_with_SHA3_384
+#define PKI_ALGOR_ECDSA_SHA3_384	NID_ecdsa_with_SHA3_384
+#define PKI_ALGOR_ID_ECDSA_SHA3_384	NID_ecdsa_with_SHA3_384
+#else
+#define PKI_ALGOR_ECDSA_SHA3_384  	NID_undef
+#define PKI_ALGOR_ID_ECDSA_SHA3_384	NID_undef
+#endif
+/* End - NID_ecdsa_with_sha3_384 */
+
+/* Begin - NID_ecdsa_with_sha3_384 */
+#ifdef NID_ecdsa_with_SHA3_512
+#define PKI_ALGOR_ECDSA_SHA3_512	NID_ecdsa_with_SHA3_512
+#define PKI_ALGOR_ID_ECDSA_SHA3_512	NID_ecdsa_with_SHA3_512
+#else
+#define PKI_ALGOR_ECDSA_SHA3_512  	NID_undef
+#define PKI_ALGOR_ID_ECDSA_SHA3_512	NID_undef
+#endif
+/* End - NID_ecdsa_with_sha3_384 */
 
 // ======================= //
 // Post Quantum Algorithms //
