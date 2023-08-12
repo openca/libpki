@@ -563,7 +563,8 @@ PKI_X509_CERT * PKI_X509_CERT_new (const PKI_X509_CERT        * ca_cert,
 
   if (!digest && PKI_SCHEME_ID_requires_digest(scheme)) {
 
-    PKI_DEBUG("ERROR, no digest provided for scheme (%d), but it is required by the key (%d)", scheme, PKI_X509_KEYPAIR_VALUE_get_id);
+    PKI_DEBUG("ERROR, no digest provided for scheme (%d), but it is required by the key (%d)", 
+      scheme, PKI_X509_KEYPAIR_VALUE_get_id(signingKey));
 
     // digest = (PKI_DIGEST_ALG *)PKI_X509_ALGOR_VALUE_get_digest(algor);
     // if (!digest) {
