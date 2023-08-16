@@ -242,17 +242,17 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_OCSP_RESP_CALLBACKS = {
 	(void *) NULL, // PKI_X509_OCSP_RESP_print_parsed;
 
 	// Data Conversion
-	(void *) PEM_write_bio_PKI_OCSP_RESP,	// PEM format
+	(void *) PEM_write_bio_PKI_X509_OCSP_RESP_VALUE,	// PEM format
   NULL,  												// PEM EX (encrypted) format
-	(void *) i2d_PKI_OCSP_RESP_bio,	// DER format
+	(void *) i2d_PKI_X509_OCSP_RESP_VALUE_bio,	// DER format
 	(void *) NULL,			// TXT format
 	(void *) NULL,			// B64 format
 	(void *) NULL,			// XML format
 
 	// Data Conversion
-	(void *) PEM_read_bio_PKI_OCSP_RESP,// PEM format
-	(void *) d2i_PKI_OCSP_RESP_bio, // DER format
-	(void *) NULL,		       	// TXT format
+	(void *) PEM_read_bio_PKI_X509_OCSP_RESP_VALUE,// PEM format
+	(void *) d2i_PKI_X509_OCSP_RESP_VALUE_bio, // DER format
+	(void *) NULL,		    // TXT format
 	(void *) NULL,  		// B64 format
 	(void *) NULL			// XML format
 };

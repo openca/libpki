@@ -145,8 +145,26 @@ int subtest2() {
 		return 0;
 	}
 
+	PKI_X509_OCSP_RESP_VALUE * r_value = PKI_X509_get_value(resp);
+	if (!r_value || !r_value->bs) {
+		PKI_log_err("Internal Pointer Error");
+		return 0;
+	}
+
+	// OCSP_BASICRESP * basic_resp = r_value->bs;
+
+	PKI_X509_KEYPAIR * c_keypair = PKI_TOKEN_get_keypair(tk);
+	PKI_X509_CERT * c_subject = PKI_TOKEN_get_cert(tk);
+	PKI_X509_CERT * c_issuer = PKI_TOKEN_get_cacert(tk);
+
+	// PKI_X509_KEYPAIR_VALUE * c_keypair_ossl = PKI_X509_get_value(c_keypair);
+	// PKI_X509_CERT_VALUE * c_subject_ossl = PKI_X509_get_value(c_subject);
+	// // PKI_X509_CERT_VALUE * c_issuer_ossl = PKI_X509_get_value(c_issuer);
+
 	PKI_TIME * thisUpdate = PKI_TIME_new(0);
 	PKI_TIME * nextUpdate = PKI_TIME_new(PKI_VALIDITY_ONE_MONTH);
+
+	// PKI_X509_OCSP_RESP_set_keytype_by_cert(resp, c_subject);
 
 	int n_requests = PKI_X509_OCSP_REQ_elements(req);
 	for (int i = 0; i < n_requests; i++) {
@@ -158,7 +176,7 @@ int subtest2() {
 			PKI_log_err("ERROR::Cannot get the serial number or the certificate ID from the request.");
 			return 0;
 		}
-
+		
 		// Debugging Info
 		char * serial_s = PKI_INTEGER_get_parsed(serial);
 		PKI_DEBUG("CID: Got Cert Serial Number => %s", serial_s);
@@ -193,11 +211,24 @@ int subtest2() {
 		}
 	}
 
-	PKI_OCSP_RESP * r = PKI_X509_get_value(resp);
-	if (!r || !r->bs) {
-		PKI_log_err("Internal Pointer Error");
-		return 0;
-	}
+	// PKI_X509_OCSP_RESP_set_keytype_by_cert(resp, c_subject);
+
+	// PKI_OCSP_CERTID * cid = OCSP_cert_to_id(EVP_sha1(), c_subject_ossl, c_issuer_ossl );
+	// if (!cid) {
+	// 	PKI_log_err("ERROR::Cannot create the certificate ID for the response.");
+	// 	return 0;
+	// }
+
+	// if (!OCSP_basic_add1_status(r_value->bs, cid, V_OCSP_CERTSTATUS_GOOD, 0, NULL,thisUpdate, NULL)) {
+	// 	PKI_log_err("ERROR::Cannot add the basic response for the certificate to the response.");
+	// 	return 0;
+	// }
+
+
+	// if (!OCSP_basic_sign(r_value->bs, c_subject_ossl, c_keypair_ossl, EVP_sha256(), NULL, OCSP_NOCERTS | OCSP_RESPID_KEY)) {
+	// 	PKI_DEBUG("ERROR::Cannot sign the basic response for the certificate to the response.");
+	// 	return 0;
+	// }
 
 	// if (PKI_OK != PKI_X509_OCSP_RESP_sign_tk(resp,
 	// 										 tk,
@@ -217,6 +248,25 @@ int subtest2() {
 	// 	PKI_log_err("Error while signing the response\n\n");
 	// 	return 0;
 	// }
+
+	if (PKI_OK != PKI_X509_OCSP_RESP_sign(resp,
+										  c_keypair,
+										  c_subject,
+										  c_issuer,
+										  NULL,
+										  PKI_DIGEST_ALG_DEFAULT,
+										  PKI_X509_OCSP_RESPID_TYPE_BY_KEYID)) {
+		PKI_log_err("Error while signing the response\n\n");
+		return 0;
+	}
+
+	BIO * bio = BIO_new_file("results/ocsp-resp.der", "w");
+	if (!i2d_PKI_X509_OCSP_RESP_VALUE_bio(bio, r_value)) {
+		PKI_log_err("ERROR::Cannot write the response to the file.");
+		return 0;
+	}
+	BIO_free_all(bio);
+	bio = NULL;
 
 	if (thisUpdate) PKI_TIME_free(thisUpdate);
 	if (nextUpdate) PKI_TIME_free(nextUpdate);

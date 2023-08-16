@@ -32,6 +32,9 @@ int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
 	int digest_size = 0;
 		// Return Value
 
+	int success = 0;
+		// Tracks the success of the operation
+
 	// Input Checks
 	if (!data || !alg || !dst_buf) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -60,7 +63,8 @@ int PKI_DIGEST_new_value(unsigned char       ** dst_buf,
 	}
 
 	// Initializes the Digest
-	if ((EVP_DigestInit_ex(md_ctx, alg, NULL )) == 1 ) {
+	success = EVP_DigestInit_ex(md_ctx, alg, NULL);
+	if (success == 1 ) {
 
 		// Updates the digest value
 		EVP_DigestUpdate(md_ctx, data, size);

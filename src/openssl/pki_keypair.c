@@ -521,8 +521,6 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 		
 	} else if (PKI_SCHEME_ID_is_post_quantum(scheme) == PKI_OK) {
 
-		PKI_DEBUG("SCHEME is a post-quantum scheme");
-
 		// Gets the algorithm
 		ret = PKI_X509_ALGOR_VALUE_new_type(pkey_type);
 		
@@ -530,8 +528,6 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 
 	} else {
 
-		PKI_DEBUG("SCHEME is a traditional scheme or a composite (generic) one");
-	
 		// Retrieves the default digest
 		def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
 		if (def_ret <= 0) {
@@ -586,8 +582,8 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 		return NULL;
 	}
 
-	// Debugging
-	PKI_DEBUG("------> algId: %d, ret: %p", algId, ret);
+	// // Debugging
+	// PKI_DEBUG("------> algId: %d, ret: %p", algId, ret);
 
 	// All Done
 	return ret;
@@ -701,41 +697,159 @@ PKI_DIGEST *PKI_X509_KEYPAIR_pub_digest (const PKI_X509_KEYPAIR *k,
 
 }
 
+/*! \brief Returns the passed PKI_X509_KEYPAIR_VALUE in PKCS#8 format */
+
+PKI_MEM *PKI_X509_KEYPAIR_VALUE_get_p8 (const PKI_X509_KEYPAIR_VALUE * pkey ) {
+
+	BIO *mem = NULL;
+	PKI_MEM *ret = NULL;
+
+	// Input checks
+	if (!pkey) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Creates a new memory BIO
+	if((mem = BIO_new(BIO_s_mem())) == NULL ) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+
+	// Writes the PKCS8 Private Key
+	if (i2d_PKCS8PrivateKeyInfo_bio(mem, (EVP_PKEY *) pkey) > 0 ) {
+		if( BIO_flush ( mem ) <= 0 ) {
+			PKI_log_debug("ERROR flushing mem");
+		}
+		// Creates the PKI_MEM to be returned
+		ret = PKI_MEM_new_bio(mem, NULL);
+	}
+
+	// Frees the BIO
+	BIO_free ( mem );
+
+	// All done
+	return ret;
+}
+
 /*! \brief Returns the passed PKI_X509_KEYPAIR in PKCS#8 format */
 
 PKI_MEM *PKI_X509_KEYPAIR_get_p8 (const PKI_X509_KEYPAIR *k ) {
 
-	BIO *mem = NULL;
-	PKI_MEM *ret = NULL;
-	PKI_X509_KEYPAIR_VALUE *pkey = NULL;
-
-	if ( !k || !k->value ) return NULL;
-
-	pkey = k->value;
-
-	if((mem = BIO_new(BIO_s_mem())) == NULL ) {
+	if (!k || !k->value ) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
-	if(i2d_PKCS8PrivateKeyInfo_bio(mem, (EVP_PKEY *) pkey) > 0 ) {
-		if( BIO_flush ( mem ) <= 0 ) {
-			PKI_log_debug("ERROR flushing mem");
-		}
-		ret = PKI_MEM_new_bio ( mem, NULL );
+	// pkey = k->value;
+
+	// if((mem = BIO_new(BIO_s_mem())) == NULL ) {
+	// 	return NULL;
+	// }
+
+	// if(i2d_PKCS8PrivateKeyInfo_bio(mem, (EVP_PKEY *) pkey) > 0 ) {
+	// 	if( BIO_flush ( mem ) <= 0 ) {
+	// 		PKI_log_debug("ERROR flushing mem");
+	// 	}
+	// 	ret = PKI_MEM_new_bio ( mem, NULL );
+	// }
+
+	// BIO_free ( mem );
+
+	return PKI_X509_KEYPAIR_VALUE_get_p8(k->value);
+}
+
+/*! \brief Reads a PKI_X509_KEYPAIR from a PKCS#8 format */
+
+PKI_X509_KEYPAIR_VALUE *PKI_X509_KEYPAIR_VALUE_new_p8 (const PKI_MEM *buf ) {
+
+	BIO * bio = NULL;
+		// Memory BIO for reading the buffer
+
+	PKI_X509_KEYPAIR_VALUE * pkey_val = NULL;
+		// Internal PKI_X509_KEYPAIR_VALUE
+
+	// Input checks
+	if (!buf || !buf->data || !buf->size) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
 	}
 
-	BIO_free ( mem );
+	// Creates a new memory BIO
+	if ((bio = BIO_new(BIO_s_mem())) == NULL ) {
+		PKI_DEBUG("Memory Error");
+		return NULL;
+	}
 
-	return ( ret );
+	// Writes the data to the bio
+	BIO_write(bio, buf->data, (int) buf->size);
+
+	// Reads the PKCS8 Private Key
+	pkey_val = d2i_PKCS8PrivateKey_bio(bio, (EVP_PKEY **) &pkey_val, NULL, NULL);
+	if (!pkey_val) {
+		PKI_DEBUG("Can not read the PKCS8 Private Key");
+		BIO_free(bio);
+		return NULL;
+	}
+
+	// Frees the BIO
+	BIO_free(bio);
+	bio = NULL;
+
+	// All Done
+	return pkey_val;
 }
 
 /*! \brief Reads a PKI_X509_KEYPAIR from a PKCS#8 format */
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8 (const PKI_MEM *buf ) {
 
-	PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED, NULL );
+	PKI_X509_KEYPAIR_VALUE * pkey_val = NULL;
+		// Internal PKI_X509_KEYPAIR_VALUE
 
-	return ( NULL );
+	// Input checks
+	if (!buf || !buf->data || !buf->size) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// // Creates a new memory BIO
+	// if ((bio = BIO_new(BIO_s_mem())) == NULL ) {
+	// 	PKI_DEBUG("Memory Error");
+	// 	return NULL;
+	// }
+
+	// // Writes the data to the bio
+	// BIO_write(bio, buf->data, (int) buf->size);
+
+	// // Reads the PKCS8 Private Key
+	// pkey_val = d2i_PKCS8PrivateKey_bio(bio, (EVP_PKEY **) &pkey_val, NULL, NULL);
+	// if (!pkey_val) {
+	// 	PKI_DEBUG("Can not read the PKCS8 Private Key");
+	// 	BIO_free(bio);
+	// 	return NULL;
+	// }
+
+	// // Frees the BIO
+	// BIO_free(bio);
+	// bio = NULL;
+
+	// Creates the PKI_X509_KEYPAIR_VALUE
+	pkey_val = PKI_X509_KEYPAIR_VALUE_new_p8(buf);
+	if (!pkey_val) {
+		PKI_DEBUG("Can not read the PKCS8 Private Key");
+		return NULL;
+	}
+
+	// Creates the PKI_X509_KEYPAIR
+	PKI_X509_KEYPAIR * pkey = PKI_X509_new_value(PKI_DATATYPE_X509_KEYPAIR, pkey_val, NULL);
+	if (!pkey) {
+		PKI_DEBUG("Can not create the PKI_X509_KEYPAIR");
+		return NULL;
+	}
+
+	// All Done
+	return pkey;
 }
 
 /*!

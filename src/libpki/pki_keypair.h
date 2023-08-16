@@ -132,7 +132,11 @@ int PKI_X509_KEYPAIR_get_curve(const PKI_X509_KEYPAIR *kp);
 
 /* ----------------------- PKCS#8 Format ----------------------------- */
 
+PKI_MEM *PKI_X509_KEYPAIR_VALUE_get_p8 (const PKI_X509_KEYPAIR_VALUE * pkey );
+
 PKI_MEM *PKI_X509_KEYPAIR_get_p8(const PKI_X509_KEYPAIR *key );
+
+PKI_X509_KEYPAIR_VALUE *PKI_X509_KEYPAIR_VALUE_new_p8(const PKI_MEM *buf );
 
 PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_p8(const PKI_MEM *buf );
 

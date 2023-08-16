@@ -7,6 +7,9 @@
 *.deps
 *.la
 *.log
+*.deleted*
+*.removed*
+.gitignore
 
 .vscode/
 acinclude.m4.orig
@@ -31,3 +34,4 @@ src/tools/pki-siginfo
 src/tools/pki-tool
 src/tools/pki-xpair
 src/tools/url-tool
+results/*

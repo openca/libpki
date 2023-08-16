@@ -973,6 +973,7 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
             if (((rsa = (RSA *)EVP_PKEY_get0(kVal)) == NULL) ||
 #endif
                                    (!EVP_PKEY_set1_RSA(ret, rsa))) {
+                PKI_DEBUG("ERROR, can not duplicate the RSA key");
                 return NULL;
             }
         } break;
@@ -987,6 +988,7 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
             if ( ((dh = (DH *)EVP_PKEY_get0(kVal)) == NULL) ||
 #endif
                                    (!EVP_PKEY_set1_DH(ret, dh))) {
+                PKI_DEBUG("ERROR, can not duplicate the DH key");
                 return NULL;
             }
         } break;
@@ -1002,6 +1004,7 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
             if (((ec = (EC_KEY *)EVP_PKEY_get0(kVal)) == NULL) ||
 #endif
                                  (!EVP_PKEY_set1_EC_KEY(ret, ec))) {
+                PKI_DEBUG("ERROR, can not duplicate the ECDSA key");
                 return NULL;
             }
         } break;
@@ -1018,14 +1021,32 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
             if ( ((dsa = (DSA *)EVP_PKEY_get0(kVal)) == NULL) ||
 #endif
                                  (!EVP_PKEY_set1_DSA(ret, dsa))) {
+                PKI_DEBUG("ERROR, can not duplicate the DSA key");
                 return NULL;
             }
         } break;
 #endif
 
         default: {
-            PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-            return NULL;
+            PKI_MEM * mem = PKI_X509_KEYPAIR_VALUE_get_p8(kVal);
+            if (!mem) {
+                PKI_DEBUG("ERROR, can not serialize the key to PKCS8 format.");
+                return NULL;
+            }
+
+            // Free the memory associated with the PKI_X509_KEYPAIR
+            if (ret) EVP_PKEY_free(ret);
+
+            // Let's create a new PKI_X509_KEYPAIR from the PKCS8 data
+            ret = PKI_X509_KEYPAIR_VALUE_new_p8(mem);
+            if (!ret) {
+                PKI_DEBUG("ERROR, can not deserialize the key from PKCS8 format.");
+                return NULL;
+            }
+
+            // Returns the newly allocated key            
+            return ret;
+
         } break;
     }
 
@@ -1036,6 +1057,6 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
     }
 
     // All Done
-    return kVal;
+    return ret;
 };
 
