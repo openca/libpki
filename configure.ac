@@ -1504,7 +1504,7 @@ oqs_ldflags=
 oqs_ldadd=
 
 dnl Enable OQS support
-cli_oqs=
+cli_oqs=no
 
 AC_ARG_ENABLE(oqs,
 	[  --enable-oqs          enable oqs support (no)],
@@ -1512,9 +1512,9 @@ AC_ARG_ENABLE(oqs,
 	[cli_oqs=default]
  )
 
-if ! [[ "x$cli_oqs" = "xno" ]] ; then
-	AC_MSG_RESULT([Open Quantum Safe: Enabled via CLI option])
-	AC_DEFINE(ENABLE_OQS, 1, [Open Quantum Safe Support])
+if [[ "x$cli_oqs" = "xyes" ]] ; then
+	AC_MSG_RESULT([ Open Quantum Safe: Enabled via CLI option ($cli_oqs) ])
+	AC_DEFINE(ENABLE_OQS, 1, [ Open Quantum Safe Support ])
 	oqs_check="yes"
 	oqs_cflags="-DENABLE_OQS=1"
 	oqs_ldadd="-loqs"
