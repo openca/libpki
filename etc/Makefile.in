@@ -383,7 +383,14 @@ HSMS = hsm.d/*.xml
 STORES = store.d/*.xml
 CONFIGS = *.xml
 PKI_CONFIG = pki.conf
-EXTRA_DIST = $(PROFILES) $(TOKENS) $(HSMS) $(STORES) $(CONFIGS) $(PKI_CONFIG)
+EXTRA_DIST = \
+  $(PROFILES) \
+  $(TOKENS)   \
+  $(HSMS) \
+  $(STORES) \
+  $(CONFIGS) \
+  $(PKI_CONFIG)
+
 all: all-am
 
 .SUFFIXES:
@@ -586,6 +593,7 @@ install-data-local:
         $(mkinstalldirs) $(DESTDIR)$(exec_prefix)/etc/libpki/token.d; \
         $(mkinstalldirs) $(DESTDIR)$(exec_prefix)/etc/libpki/store.d; \
         $(mkinstalldirs) $(DESTDIR)$(exec_prefix)/etc/libpki/profile.d; \
+        $(mkinstalldirs) $(DESTDIR)$(exec_prefix)/etc/libpki/certs.d; \
         for file in $(PROFILES) ; do \
             if test -f $$file; then \
               $(INSTALL_DATA) $$file $(DESTDIR)$(exec_prefix)/etc/libpki/profile.d; \
@@ -605,12 +613,12 @@ install-data-local:
             if test -f $$file; then \
               $(INSTALL_DATA) $$file $(DESTDIR)$(exec_prefix)/etc/libpki/store.d; \
             fi \
-          done
-	@for file in $(CONFIGS) ; do \
+          done \
+  @for file in $(CONFIGS) ; do \
             if test -f $$file; then \
               $(INSTALL_DATA) $$file $(DESTDIR)$(exec_prefix)/etc/libpki; \
             fi \
-          done
+          done \
 	@$(INSTALL_DATA) $(PKI_CONFIG) $(DESTDIR)$(exec_prefix)/etc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

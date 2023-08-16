@@ -61,20 +61,32 @@ M4_EXTRA = \
 
 EXTRA_SCRIPTS = 
 
-EXTRA_EXAMPLES = examples/profiles/* examples/crl/* examples/prqp/* examples/prqp/certs/* examples/token/* examples/token/etc/* examples/token/etc/profile.d/*  examples/token/etc/token.d/* examples/token/etc/hsm.d/*
+EXTRA_EXAMPLES = \
+	examples/profiles/* \
+	examples/crl/* \
+	examples/prqp/* \
+	examples/prqp/certs/* \
+	examples/token/* \
+	examples/token/etc/* \
+	examples/token/etc/profile.d/* \
+	examples/token/etc/token.d/* \
+	examples/token/etc/hsm.d/*
+
+TEST_CERTS = \
+  etc/certs.d/*
 
 INCLUDE_DIST = \
-		README \
+		README.md \
 		README.OPENSOLARIS \
 		README.SOLARIS_10 \
 		README.SOLARIS_9 \
 		ChangeLog
 
 EXTRA_DIST = $(EXTRA_SCRIPTS) $(AUX_DIST) $(INCLUDE_DIST) \
-	$(EXTRA_EXAMPLES) contrib
+	$(EXTRA_EXAMPLES) $(TEST_CERTS) contrib
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 acinclude.m4 configure \
-	$(AUX_DIST)
+	$(AUX_DIST) $(TEST_CERTS)
 
 # pkgconfig_DATA  = contrib/libpki.pc contrib/openldap.pc
 # pkgconfigdir    = @libdir@/pkgconfig

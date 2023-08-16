@@ -194,7 +194,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/compile \
 	$(top_srcdir)/src/libpki/libpkiv.h.in \
 	$(top_srcdir)/src/libpki/pki_config.h.in \
 	$(top_srcdir)/src/scripts/libpki-config.in AUTHORS COPYING \
-	ChangeLog INSTALL NEWS README TODO build/compile \
+	ChangeLog INSTALL NEWS README.md TODO build/compile \
 	build/config.guess build/config.sub build/depcomp \
 	build/install-sh build/ltmain.sh build/missing \
 	build/mkinstalldirs
@@ -531,19 +531,32 @@ M4_EXTRA = \
 	m4/*.m4
 
 EXTRA_SCRIPTS = 
-EXTRA_EXAMPLES = examples/profiles/* examples/crl/* examples/prqp/* examples/prqp/certs/* examples/token/* examples/token/etc/* examples/token/etc/profile.d/*  examples/token/etc/token.d/* examples/token/etc/hsm.d/*
+EXTRA_EXAMPLES = \
+	examples/profiles/* \
+	examples/crl/* \
+	examples/prqp/* \
+	examples/prqp/certs/* \
+	examples/token/* \
+	examples/token/etc/* \
+	examples/token/etc/profile.d/* \
+	examples/token/etc/token.d/* \
+	examples/token/etc/hsm.d/*
+
+TEST_CERTS = \
+  etc/certs.d/*
+
 INCLUDE_DIST = \
-		README \
+		README.md \
 		README.OPENSOLARIS \
 		README.SOLARIS_10 \
 		README.SOLARIS_9 \
 		ChangeLog
 
 EXTRA_DIST = $(EXTRA_SCRIPTS) $(AUX_DIST) $(INCLUDE_DIST) \
-	$(EXTRA_EXAMPLES) contrib
+	$(EXTRA_EXAMPLES) $(TEST_CERTS) contrib
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 acinclude.m4 configure \
-	$(AUX_DIST)
+	$(AUX_DIST) $(TEST_CERTS)
 
 MAKEFILE = Makefile
 all: all-recursive
