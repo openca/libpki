@@ -613,12 +613,12 @@ install-data-local:
             if test -f $$file; then \
               $(INSTALL_DATA) $$file $(DESTDIR)$(exec_prefix)/etc/libpki/store.d; \
             fi \
-          done \
-  @for file in $(CONFIGS) ; do \
-            if test -f $$file; then \
-              $(INSTALL_DATA) $$file $(DESTDIR)$(exec_prefix)/etc/libpki; \
-            fi \
-          done \
+          done
+	@for file in $(CONFIGS) ; do \
+	    if test -f $$file; then \
+	      $(INSTALL_DATA) $$file $(DESTDIR)$(exec_prefix)/etc/libpki; \
+	    fi \
+	    done
 	@$(INSTALL_DATA) $(PKI_CONFIG) $(DESTDIR)$(exec_prefix)/etc
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
