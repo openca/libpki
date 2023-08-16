@@ -261,7 +261,6 @@ int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 		} break;
 
 		default:
-			PKI_DEBUG("Provided PKI_ID (%d) is not a PQC algorithm!", id);
 			break;
 	}
 

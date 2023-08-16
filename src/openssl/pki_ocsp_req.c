@@ -214,27 +214,51 @@ int PKI_X509_OCSP_REQ_elements ( PKI_X509_OCSP_REQ *req ) {
 
 /*! \brief Returns the n-th PKI_OCSP_CERTID from an OCSP_REQ */
 
-PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid ( PKI_X509_OCSP_REQ *req, int num) {
+PKI_OCSP_CERTID * PKI_X509_OCSP_REQ_get_cid(PKI_X509_OCSP_REQ *req, int num) {
 
+	PKI_OCSP_CERTID *ret = NULL;
 	PKI_OCSP_REQ_SINGLE *single = NULL;
-	PKI_X509_OCSP_REQ_VALUE *val = NULL;
 	int count = -1;
 
-	if ( !req || !req->value ) return NULL;
-
-	if ((count = PKI_X509_OCSP_REQ_elements ( req )) < num)
-	{
+	// Input checks
+	if (!req || !req->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
-	val = req->value;
+	// Make sure we have a good number
+	if (num < 0) num = 0;
 
-	if ((single = OCSP_request_onereq_get0(val, num)) == NULL)
-	{
+	// Check if the num-th single request exists
+	if ((count = PKI_X509_OCSP_REQ_elements(req)) < num) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th single request from the request (max: %d)", 
+			num, PKI_X509_OCSP_REQ_elements(req));
 		return NULL;
 	}
 
-	return OCSP_onereq_get0_id( single );
+	// Retrieve the pointer to the OCSP_REQ_VALUE
+	single = OCSP_request_onereq_get0(req->value, num);
+	if (!single) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th single request from the request", num);
+		return NULL;
+	}
+
+	// Retrieve the pointer to the OCSP_CERTID
+	ret = OCSP_onereq_get0_id( single );
+	if (!ret) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th certificate ID from the request", num);
+		return NULL;
+	}
+
+	// // Debugging Information
+	// PKI_DEBUG("CID: Details => serial (%p), hash (%p), name (%p), key (%p)", 
+	// 	PKI_OCSP_CERTID_get_issuerKeyHash(ret), 
+	// 	PKI_OCSP_CERTID_get_issuerNameHash(ret), 
+	// 	PKI_OCSP_CERTID_get_serialNumber(ret), 
+	// 	PKI_OCSP_CERTID_get_hashAlgorithm(ret));
+
+	// All Done
+	return ret;
 }
 
 PKI_STRING * PKI_OCSP_CERTID_get_issuerNameHash(PKI_OCSP_CERTID * c_id) {
@@ -245,16 +269,13 @@ PKI_STRING * PKI_OCSP_CERTID_get_issuerNameHash(PKI_OCSP_CERTID * c_id) {
 	// Input checks
 	if (!c_id) return NULL;
 
-  // Gets the pointer to the issuerNameHas
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-	ret = &(c_id->issuerNameHash);
-#else
-	ret = c_id->issuerNameHash;
-#endif
+	if (!OCSP_id_get0_info(&ret, NULL, NULL, NULL, c_id) || !ret) {
+		PKI_DEBUG("ERROR::Cannot get the issuerKeyHash from the certificate ID");
+		return NULL;
+	}
 
 	// Returns the pointer to the OCTET string
-  return ret;
-
+  	return ret;
 }
 
 PKI_STRING * PKI_OCSP_CERTID_get_issuerKeyHash(PKI_OCSP_CERTID * c_id) {
@@ -265,33 +286,161 @@ PKI_STRING * PKI_OCSP_CERTID_get_issuerKeyHash(PKI_OCSP_CERTID * c_id) {
 	// Input checks
 	if (!c_id) return NULL;
 
-  // Gets the pointer to the issuerNameHas
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
-	ret = &(c_id->issuerKeyHash);
-#else
-	ret = c_id->issuerKeyHash;
-#endif
+	if (!OCSP_id_get0_info(NULL, NULL, &ret, NULL, c_id) || !ret) {
+		PKI_DEBUG("ERROR::Cannot get the issuerKeyHash from the certificate ID");
+		return NULL;
+	}
 
-  // Returns the pointer to the OCTET string
-  return ret;
+  	// Returns the pointer to the OCTET string
+  	return ret;
+}
+
+PKI_INTEGER * PKI_OCSP_CERTID_get_serialNumber(PKI_OCSP_CERTID * c_id) {
+
+	PKI_INTEGER * ret = NULL;
+		// Return Value
+
+	// Input checks
+	if (!c_id) return NULL;
+
+	if (!OCSP_id_get0_info(NULL, NULL, NULL, &ret, c_id) || !ret) {
+		PKI_DEBUG("ERROR::Cannot get the issuerKeyHash from the certificate ID");
+		return NULL;
+	}
+
+  	// Returns the pointer to the OCTET string
+  	return ret;
+}
+
+const PKI_DIGEST_ALG * PKI_OCSP_CERTID_get_hashAlgorithm(PKI_OCSP_CERTID * c_id) {
+
+	PKI_OID * oid = NULL;
+		// OID of the hash algorithm
+
+	// Input checks
+	if (!c_id) return NULL;
+
+	if (!OCSP_id_get0_info(NULL, &oid, NULL, NULL, c_id) || !oid) {
+		PKI_DEBUG("ERROR::Cannot get the hashAlgorithm from the certificate ID");
+		return NULL;
+	}
+
+	const PKI_DIGEST_ALG * ret = EVP_get_digestbyobj(oid);
+	if (!ret) {
+		PKI_DEBUG("ERROR::Cannot convert the hashAlgorithm's OID to the hash algorithm");
+		return NULL;
+	}
+
+  	// Returns the pointer to the OCTET string
+  	return ret;
+}
+
+PKI_STRING * PKI_X509_OCSP_REQ_get_issuerKeyHash (PKI_X509_OCSP_REQ * req, 
+								            	   int                 num) {
+	PKI_OCSP_CERTID *cid = NULL;
+	PKI_STRING *ret = NULL;
+
+	// Input checks
+	if (!req) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	cid = PKI_X509_OCSP_REQ_get_cid(req, num);
+	if (!cid) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th certificate ID from the request", num);
+		return NULL;
+	}
+
+	ret = PKI_OCSP_CERTID_get_issuerKeyHash(cid);
+	if (!ret) {
+		PKI_DEBUG("ERROR::Cannot get the issuerKeyHash from the %d-th certificate ID", num);
+		return NULL;
+	}
+
+	return ret;
+}
+
+PKI_STRING * PKI_X509_OCSP_REQ_get_issuerNameHash(PKI_X509_OCSP_REQ * req, 
+								            	  int                 num) {
+	PKI_OCSP_CERTID *cid = NULL;
+	PKI_STRING *ret = NULL;
+
+	// Input checks
+	if (!req) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	cid = PKI_X509_OCSP_REQ_get_cid(req, num);
+	if (!cid) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th certificate ID from the request", num);
+		return NULL;
+	}
+
+	ret = PKI_OCSP_CERTID_get_issuerNameHash(cid);
+	if (!ret) {
+		PKI_DEBUG("ERROR::Cannot get the issuerKeyHash from the %d-th certificate ID", num);
+		return NULL;
+	}
+
+	return ret;
 }
 
 /*! \brief Returns the serial of the requested certificate from the n-th
  *         single request */
 
-PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial ( PKI_X509_OCSP_REQ *req, 
-								int num) {
+PKI_INTEGER * PKI_X509_OCSP_REQ_get_serial (PKI_X509_OCSP_REQ * req, 
+								            int                 num) {
 	PKI_OCSP_CERTID *cid = NULL;
 	PKI_INTEGER *ret = NULL;
 
-	if ((cid = PKI_X509_OCSP_REQ_get_cid(req, num)) == NULL)
-	{
+	// Input checks
+	if (!req) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
-	OCSP_id_get0_info(NULL, NULL, NULL, &ret, cid);
+	cid = PKI_X509_OCSP_REQ_get_cid(req, num);
+	if (!cid) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th certificate ID from the request", num);
+		return NULL;
+	}
+
+	ret = PKI_OCSP_CERTID_get_serialNumber(cid);
+	if (!ret) {
+		PKI_DEBUG("ERROR::Cannot get the serial number from the %d-th certificate ID", num);
+		return NULL;
+	}
 
 	return ret;
+}
+
+const PKI_DIGEST_ALG * PKI_X509_OCSP_REQ_get_hashAlgorithm(PKI_X509_OCSP_REQ * req, 
+								                   int                 num) {
+
+	PKI_OCSP_CERTID *cid = NULL;
+		// Certificate ID
+
+	// Input checks
+	if (!req) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	cid = PKI_X509_OCSP_REQ_get_cid(req, num);
+	if (!cid) {
+		PKI_DEBUG("ERROR::Cannot get the %d-th certificate ID from the request", num);
+		return NULL;
+	}
+
+	const PKI_DIGEST_ALG * digest = PKI_OCSP_CERTID_get_hashAlgorithm(cid);
+	if (!digest) {
+		PKI_DEBUG("ERROR::Cannot get the digest algorithm from the %d-th certificate ID", num);
+		return NULL;
+	}
+
+	return digest;
 }
 
 int PKI_X509_OCSP_REQ_DATA_sign (PKI_X509_OCSP_REQ * req, 

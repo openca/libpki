@@ -45,6 +45,17 @@ int main (int argc, char *argv[] ) {
 	// 	exit(1);
 	// }
 
+	PKI_MEM * out_mem = NULL;
+	printf("* Extracting the RAW public key ... :");
+	if (PKI_X509_KEYPAIR_get_public_bitstring(key_pair, &out_mem) == NULL) {
+		fprintf(stderr, "ERROR!\n");
+	}
+	printf("Ok.\n");
+
+	printf("* Freeing memory for the RAW public key ... :");
+	if (out_mem) PKI_MEM_free(out_mem);
+	out_mem = NULL;
+
 	// Info
 	printf("Ok\n\n");
 	

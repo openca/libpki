@@ -1,5 +1,5 @@
 # libpki Makefile
-# © 1999-2006 by Massimiliano Pala and OpenCA Project
+# ï¿½ 1999-2006 by Massimiliano Pala and OpenCA Project
 # OpenCA Licensed Software
 
 PACKAGE_NAME		= @PACKAGE_NAME@
@@ -82,15 +82,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 acinclude.m4 configure \
 # TESTS_ENVIRONMENT = \
 # 	LD_LIBRARY_PATH="@openssl_prefix@/lib:$$LD_LIBRARY_PATH"
 
-TESTS = src/tests/test1 \
- 	src/tests/test2 \
- 	src/tests/test3 \
- 	src/tests/test4 \
- 	src/tests/test5 \
- 	src/tests/test6 \
- 	src/tests/test7 \
- 	src/tests/test8 \
-	src/tests/test9
+# TESTS = 
 
 rebuild::
 	autoheader && aclocal && automake && autoconf
@@ -177,7 +169,7 @@ documentation:: pdfdocs
 
 distclean-local:
 	@echo "Cleaning local autoconf cache... " ; \
-	 rm -rf autom4te.cache/ contrib/libpki.spec .autotools .settings/ results
+	 rm -rf autom4te.cache/ contrib/libpki.spec .autotools .settings/ 
 
 ########################## BINARY DISTRO STUFF ###########################
 

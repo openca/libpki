@@ -88,11 +88,17 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-check_PROGRAMS = test1$(EXEEXT) test2$(EXEEXT) test3$(EXEEXT) \
-	test4$(EXEEXT) test5$(EXEEXT) test6$(EXEEXT) test7$(EXEEXT) \
-	test8$(EXEEXT) test9$(EXEEXT) test10$(EXEEXT) test11$(EXEEXT) \
-	test12$(EXEEXT) test13$(EXEEXT) test14$(EXEEXT) \
-	test15$(EXEEXT)
+check_PROGRAMS = 1-key-gen-key-digest$(EXEEXT) \
+	2-cert-gen-digest-alg-list$(EXEEXT) \
+	3-token-generation-rsa-ec-dilithium-falcon$(EXEEXT) \
+	4-token-generation-request-self-sign-export-cert-req$(EXEEXT) \
+	5-token-init-load-profile$(EXEEXT) \
+	6-token-digest-crl-sign$(EXEEXT) \
+	7-url-file-https-ldap-mysql-pg-pkcs11$(EXEEXT) \
+	8-log-interface$(EXEEXT) \
+	9-public-key-encryption-decryption$(EXEEXT) \
+	10-ocsp-generation-req-resp-sign$(EXEEXT) \
+	11-ameth-traditional-pqc-composite-explicit$(EXEEXT)
 subdir = src/tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -108,100 +114,111 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
 	$(top_builddir)/src/libpki/libpki_enables.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_test1_OBJECTS = test1-test1.$(OBJEXT)
-test1_OBJECTS = $(am_test1_OBJECTS)
-test1_DEPENDENCIES = $(testLDADD)
+am_1_key_gen_key_digest_OBJECTS =  \
+	1_key_gen_key_digest-1_key_gen_key_digest.$(OBJEXT)
+1_key_gen_key_digest_OBJECTS = $(am_1_key_gen_key_digest_OBJECTS)
+1_key_gen_key_digest_DEPENDENCIES = $(testLDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-test1_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test1_CFLAGS) $(CFLAGS) \
-	$(test1_LDFLAGS) $(LDFLAGS) -o $@
-am_test10_OBJECTS = test10-test10.$(OBJEXT)
-test10_OBJECTS = $(am_test10_OBJECTS)
-test10_DEPENDENCIES = $(testLDADD)
-test10_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test10_CFLAGS) $(CFLAGS) \
-	$(test10_LDFLAGS) $(LDFLAGS) -o $@
-am_test11_OBJECTS = test11-test11.$(OBJEXT)
-test11_OBJECTS = $(am_test11_OBJECTS)
-test11_DEPENDENCIES = $(testLDADD)
-test11_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test11_CFLAGS) $(CFLAGS) \
-	$(test11_LDFLAGS) $(LDFLAGS) -o $@
-am_test12_OBJECTS = test12-test12.$(OBJEXT)
-test12_OBJECTS = $(am_test12_OBJECTS)
-test12_DEPENDENCIES = $(testLDADD)
-test12_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test12_CFLAGS) $(CFLAGS) \
-	$(test12_LDFLAGS) $(LDFLAGS) -o $@
-am_test13_OBJECTS = test13-test13.$(OBJEXT)
-test13_OBJECTS = $(am_test13_OBJECTS)
-test13_DEPENDENCIES = $(testLDADD)
-test13_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test13_CFLAGS) $(CFLAGS) \
-	$(test13_LDFLAGS) $(LDFLAGS) -o $@
-am_test14_OBJECTS = test14-test14.$(OBJEXT)
-test14_OBJECTS = $(am_test14_OBJECTS)
-test14_DEPENDENCIES = $(testLDADD)
-test14_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test14_CFLAGS) $(CFLAGS) \
-	$(test14_LDFLAGS) $(LDFLAGS) -o $@
-am_test15_OBJECTS = test15-test15.$(OBJEXT)
-test15_OBJECTS = $(am_test15_OBJECTS)
-test15_DEPENDENCIES = $(testLDADD)
-test15_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test15_CFLAGS) $(CFLAGS) \
-	$(test15_LDFLAGS) $(LDFLAGS) -o $@
-am_test2_OBJECTS = test2-test2.$(OBJEXT)
-test2_OBJECTS = $(am_test2_OBJECTS)
-test2_DEPENDENCIES = $(testLDADD)
-test2_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test2_CFLAGS) $(CFLAGS) \
-	$(test2_LDFLAGS) $(LDFLAGS) -o $@
-am_test3_OBJECTS = test3-test3.$(OBJEXT)
-test3_OBJECTS = $(am_test3_OBJECTS)
-test3_DEPENDENCIES = $(testLDADD)
-test3_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test3_CFLAGS) $(CFLAGS) \
-	$(test3_LDFLAGS) $(LDFLAGS) -o $@
-am_test4_OBJECTS = test4-test4.$(OBJEXT)
-test4_OBJECTS = $(am_test4_OBJECTS)
-test4_DEPENDENCIES = $(testLDADD)
-test4_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test4_CFLAGS) $(CFLAGS) \
-	$(test4_LDFLAGS) $(LDFLAGS) -o $@
-am_test5_OBJECTS = test5-test5.$(OBJEXT)
-test5_OBJECTS = $(am_test5_OBJECTS)
-test5_DEPENDENCIES = $(testLDADD)
-test5_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test5_CFLAGS) $(CFLAGS) \
-	$(test5_LDFLAGS) $(LDFLAGS) -o $@
-am_test6_OBJECTS = test6-test6.$(OBJEXT)
-test6_OBJECTS = $(am_test6_OBJECTS)
-test6_DEPENDENCIES = $(testLDADD)
-test6_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test6_CFLAGS) $(CFLAGS) \
-	$(test6_LDFLAGS) $(LDFLAGS) -o $@
-am_test7_OBJECTS = test7-test7.$(OBJEXT)
-test7_OBJECTS = $(am_test7_OBJECTS)
-test7_DEPENDENCIES = $(testLDADD)
-test7_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test7_CFLAGS) $(CFLAGS) \
-	$(test7_LDFLAGS) $(LDFLAGS) -o $@
-am_test8_OBJECTS = test8-test8.$(OBJEXT)
-test8_OBJECTS = $(am_test8_OBJECTS)
-test8_DEPENDENCIES = $(testLDADD)
-test8_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test8_CFLAGS) $(CFLAGS) \
-	$(test8_LDFLAGS) $(LDFLAGS) -o $@
-am_test9_OBJECTS = test9-test9.$(OBJEXT)
-test9_OBJECTS = $(am_test9_OBJECTS)
-test9_DEPENDENCIES = $(testLDADD)
-test9_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(test9_CFLAGS) $(CFLAGS) \
-	$(test9_LDFLAGS) $(LDFLAGS) -o $@
+1_key_gen_key_digest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(1_key_gen_key_digest_CFLAGS) $(CFLAGS) \
+	$(1_key_gen_key_digest_LDFLAGS) $(LDFLAGS) -o $@
+am_10_ocsp_generation_req_resp_sign_OBJECTS = 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.$(OBJEXT)
+10_ocsp_generation_req_resp_sign_OBJECTS =  \
+	$(am_10_ocsp_generation_req_resp_sign_OBJECTS)
+10_ocsp_generation_req_resp_sign_DEPENDENCIES = $(testLDADD)
+10_ocsp_generation_req_resp_sign_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(10_ocsp_generation_req_resp_sign_CFLAGS) $(CFLAGS) \
+	$(10_ocsp_generation_req_resp_sign_LDFLAGS) $(LDFLAGS) -o $@
+am_11_ameth_traditional_pqc_composite_explicit_OBJECTS = 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.$(OBJEXT)
+11_ameth_traditional_pqc_composite_explicit_OBJECTS =  \
+	$(am_11_ameth_traditional_pqc_composite_explicit_OBJECTS)
+11_ameth_traditional_pqc_composite_explicit_DEPENDENCIES =  \
+	$(testLDADD)
+11_ameth_traditional_pqc_composite_explicit_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) \
+	$(11_ameth_traditional_pqc_composite_explicit_CFLAGS) \
+	$(CFLAGS) \
+	$(11_ameth_traditional_pqc_composite_explicit_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_2_cert_gen_digest_alg_list_OBJECTS = 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.$(OBJEXT)
+2_cert_gen_digest_alg_list_OBJECTS =  \
+	$(am_2_cert_gen_digest_alg_list_OBJECTS)
+2_cert_gen_digest_alg_list_DEPENDENCIES = $(testLDADD)
+2_cert_gen_digest_alg_list_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(2_cert_gen_digest_alg_list_CFLAGS) $(CFLAGS) \
+	$(2_cert_gen_digest_alg_list_LDFLAGS) $(LDFLAGS) -o $@
+am_3_token_generation_rsa_ec_dilithium_falcon_OBJECTS = 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.$(OBJEXT)
+3_token_generation_rsa_ec_dilithium_falcon_OBJECTS =  \
+	$(am_3_token_generation_rsa_ec_dilithium_falcon_OBJECTS)
+3_token_generation_rsa_ec_dilithium_falcon_DEPENDENCIES =  \
+	$(testLDADD)
+3_token_generation_rsa_ec_dilithium_falcon_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) \
+	$(3_token_generation_rsa_ec_dilithium_falcon_CFLAGS) $(CFLAGS) \
+	$(3_token_generation_rsa_ec_dilithium_falcon_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_4_token_generation_request_self_sign_export_cert_req_OBJECTS = 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.$(OBJEXT)
+4_token_generation_request_self_sign_export_cert_req_OBJECTS = $(am_4_token_generation_request_self_sign_export_cert_req_OBJECTS)
+4_token_generation_request_self_sign_export_cert_req_DEPENDENCIES =  \
+	$(testLDADD)
+4_token_generation_request_self_sign_export_cert_req_LINK =  \
+	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(4_token_generation_request_self_sign_export_cert_req_CFLAGS) \
+	$(CFLAGS) \
+	$(4_token_generation_request_self_sign_export_cert_req_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_5_token_init_load_profile_OBJECTS =  \
+	5_token_init_load_profile-5_token_init_load_profile.$(OBJEXT)
+5_token_init_load_profile_OBJECTS =  \
+	$(am_5_token_init_load_profile_OBJECTS)
+5_token_init_load_profile_DEPENDENCIES = $(testLDADD)
+5_token_init_load_profile_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(5_token_init_load_profile_CFLAGS) $(CFLAGS) \
+	$(5_token_init_load_profile_LDFLAGS) $(LDFLAGS) -o $@
+am_6_token_digest_crl_sign_OBJECTS =  \
+	6_token_digest_crl_sign-6_token_digest_crl_sign.$(OBJEXT)
+6_token_digest_crl_sign_OBJECTS =  \
+	$(am_6_token_digest_crl_sign_OBJECTS)
+6_token_digest_crl_sign_DEPENDENCIES = $(testLDADD)
+6_token_digest_crl_sign_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(6_token_digest_crl_sign_CFLAGS) $(CFLAGS) \
+	$(6_token_digest_crl_sign_LDFLAGS) $(LDFLAGS) -o $@
+am_7_url_file_https_ldap_mysql_pg_pkcs11_OBJECTS = 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.$(OBJEXT)
+7_url_file_https_ldap_mysql_pg_pkcs11_OBJECTS =  \
+	$(am_7_url_file_https_ldap_mysql_pg_pkcs11_OBJECTS)
+7_url_file_https_ldap_mysql_pg_pkcs11_DEPENDENCIES = $(testLDADD)
+7_url_file_https_ldap_mysql_pg_pkcs11_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CCLD) $(7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS) \
+	$(CFLAGS) $(7_url_file_https_ldap_mysql_pg_pkcs11_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_8_log_interface_OBJECTS =  \
+	8_log_interface-8_log_interface.$(OBJEXT)
+8_log_interface_OBJECTS = $(am_8_log_interface_OBJECTS)
+8_log_interface_DEPENDENCIES = $(testLDADD)
+8_log_interface_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(8_log_interface_CFLAGS) $(CFLAGS) $(8_log_interface_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_9_public_key_encryption_decryption_OBJECTS = 9_public_key_encryption_decryption-9_public_key_encryption_decryption.$(OBJEXT)
+9_public_key_encryption_decryption_OBJECTS =  \
+	$(am_9_public_key_encryption_decryption_OBJECTS)
+9_public_key_encryption_decryption_DEPENDENCIES = $(testLDADD)
+9_public_key_encryption_decryption_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CCLD) $(9_public_key_encryption_decryption_CFLAGS) $(CFLAGS) \
+	$(9_public_key_encryption_decryption_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -217,14 +234,17 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/test1-test1.Po \
-	./$(DEPDIR)/test10-test10.Po ./$(DEPDIR)/test11-test11.Po \
-	./$(DEPDIR)/test12-test12.Po ./$(DEPDIR)/test13-test13.Po \
-	./$(DEPDIR)/test14-test14.Po ./$(DEPDIR)/test15-test15.Po \
-	./$(DEPDIR)/test2-test2.Po ./$(DEPDIR)/test3-test3.Po \
-	./$(DEPDIR)/test4-test4.Po ./$(DEPDIR)/test5-test5.Po \
-	./$(DEPDIR)/test6-test6.Po ./$(DEPDIR)/test7-test7.Po \
-	./$(DEPDIR)/test8-test8.Po ./$(DEPDIR)/test9-test9.Po
+am__depfiles_remade = ./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po \
+	./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po \
+	./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po \
+	./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po \
+	./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po \
+	./$(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Po \
+	./$(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Po \
+	./$(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Po \
+	./$(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Po \
+	./$(DEPDIR)/8_log_interface-8_log_interface.Po \
+	./$(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -244,16 +264,28 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(test1_SOURCES) $(test10_SOURCES) $(test11_SOURCES) \
-	$(test12_SOURCES) $(test13_SOURCES) $(test14_SOURCES) \
-	$(test15_SOURCES) $(test2_SOURCES) $(test3_SOURCES) \
-	$(test4_SOURCES) $(test5_SOURCES) $(test6_SOURCES) \
-	$(test7_SOURCES) $(test8_SOURCES) $(test9_SOURCES)
-DIST_SOURCES = $(test1_SOURCES) $(test10_SOURCES) $(test11_SOURCES) \
-	$(test12_SOURCES) $(test13_SOURCES) $(test14_SOURCES) \
-	$(test15_SOURCES) $(test2_SOURCES) $(test3_SOURCES) \
-	$(test4_SOURCES) $(test5_SOURCES) $(test6_SOURCES) \
-	$(test7_SOURCES) $(test8_SOURCES) $(test9_SOURCES)
+SOURCES = $(1_key_gen_key_digest_SOURCES) \
+	$(10_ocsp_generation_req_resp_sign_SOURCES) \
+	$(11_ameth_traditional_pqc_composite_explicit_SOURCES) \
+	$(2_cert_gen_digest_alg_list_SOURCES) \
+	$(3_token_generation_rsa_ec_dilithium_falcon_SOURCES) \
+	$(4_token_generation_request_self_sign_export_cert_req_SOURCES) \
+	$(5_token_init_load_profile_SOURCES) \
+	$(6_token_digest_crl_sign_SOURCES) \
+	$(7_url_file_https_ldap_mysql_pg_pkcs11_SOURCES) \
+	$(8_log_interface_SOURCES) \
+	$(9_public_key_encryption_decryption_SOURCES)
+DIST_SOURCES = $(1_key_gen_key_digest_SOURCES) \
+	$(10_ocsp_generation_req_resp_sign_SOURCES) \
+	$(11_ameth_traditional_pqc_composite_explicit_SOURCES) \
+	$(2_cert_gen_digest_alg_list_SOURCES) \
+	$(3_token_generation_rsa_ec_dilithium_falcon_SOURCES) \
+	$(4_token_generation_request_self_sign_export_cert_req_SOURCES) \
+	$(5_token_init_load_profile_SOURCES) \
+	$(6_token_digest_crl_sign_SOURCES) \
+	$(7_url_file_https_ldap_mysql_pg_pkcs11_SOURCES) \
+	$(8_log_interface_SOURCES) \
+	$(9_public_key_encryption_decryption_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -782,66 +814,50 @@ LIBPKI_MYCFLAGS = @libpki_cflags@
 SUBDIRS = 
 EXTRA_DIST = 
 TESTS = $(check_PROGRAMS)
-test1_SOURCES = test1.c
-test1_LDFLAGS = $(testLDFLAGS)
-test1_LDADD = $(testLDADD)
-test1_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test2_SOURCES = test2.c
-test2_LDFLAGS = $(testLDFLAGS)
-test2_LDADD = $(testLDADD)
-test2_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test3_SOURCES = test3.c
-test3_LDFLAGS = $(testLDFLAGS)
-test3_LDADD = $(testLDADD)
-test3_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test4_SOURCES = test4.c
-test4_LDFLAGS = $(testLDFLAGS)
-test4_LDADD = $(testLDADD)
-test4_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test5_SOURCES = test5.c
-test5_LDFLAGS = $(testLDFLAGS)
-test5_LDADD = $(testLDADD)
-test5_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test6_SOURCES = test6.c
-test6_LDFLAGS = $(testLDFLAGS)
-test6_LDADD = $(testLDADD)
-test6_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test7_SOURCES = test7.c
-test7_LDFLAGS = $(testLDFLAGS)
-test7_LDADD = $(testLDADD)
-test7_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test8_SOURCES = test8.c
-test8_LDFLAGS = $(testLDFLAGS)
-test8_LDADD = $(testLDADD)
-test8_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS)
-test9_SOURCES = test9.c
-test9_LDFLAGS = $(testLDFLAGS)
-test9_LDADD = $(testLDADD)
-test9_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-test10_SOURCES = test10.c
-test10_LDFLAGS = $(testLDFLAGS)
-test10_LDADD = $(testLDADD)
-test10_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-test11_SOURCES = test11.c
-test11_LDFLAGS = $(testLDFLAGS)
-test11_LDADD = $(testLDADD)
-test11_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-test12_SOURCES = test12.c
-test12_LDFLAGS = $(testLDFLAGS)
-test12_LDADD = $(testLDADD)
-test12_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-test13_SOURCES = test13.c
-test13_LDFLAGS = $(testLDFLAGS)
-test13_LDADD = $(testLDADD)
-test13_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-test14_SOURCES = test14.c
-test14_LDFLAGS = $(testLDFLAGS)
-test14_LDADD = $(testLDADD)
-test14_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
-test15_SOURCES = test15.c
-test15_LDFLAGS = $(testLDFLAGS)
-test15_LDADD = $(testLDADD)
-test15_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -ggdb
+1_key_gen_key_digest_SOURCES = 1_key_gen_key_digest.c
+1_key_gen_key_digest_LDFLAGS = $(testLDFLAGS)
+1_key_gen_key_digest_LDADD = $(testLDADD)
+1_key_gen_key_digest_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+2_cert_gen_digest_alg_list_SOURCES = 2_cert_gen_digest_alg_list.c
+2_cert_gen_digest_alg_list_LDFLAGS = $(testLDFLAGS)
+2_cert_gen_digest_alg_list_LDADD = $(testLDADD)
+2_cert_gen_digest_alg_list_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+3_token_generation_rsa_ec_dilithium_falcon_SOURCES = 3_token_generation_rsa_ec_dilithium_falcon.c
+3_token_generation_rsa_ec_dilithium_falcon_LDFLAGS = $(testLDFLAGS)
+3_token_generation_rsa_ec_dilithium_falcon_LDADD = $(testLDADD)
+3_token_generation_rsa_ec_dilithium_falcon_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+4_token_generation_request_self_sign_export_cert_req_SOURCES = 4_token_generation_request_self_sign.c
+4_token_generation_request_self_sign_export_cert_req_LDFLAGS = $(testLDFLAGS)
+4_token_generation_request_self_sign_export_cert_req_LDADD = $(testLDADD)
+4_token_generation_request_self_sign_export_cert_req_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+5_token_init_load_profile_SOURCES = 5_token_init_load_profile.c
+5_token_init_load_profile_LDFLAGS = $(testLDFLAGS)
+5_token_init_load_profile_LDADD = $(testLDADD)
+5_token_init_load_profile_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+6_token_digest_crl_sign_SOURCES = 6_token_digest_crl_sign.c
+6_token_digest_crl_sign_LDFLAGS = $(testLDFLAGS)
+6_token_digest_crl_sign_LDADD = $(testLDADD)
+6_token_digest_crl_sign_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+7_url_file_https_ldap_mysql_pg_pkcs11_SOURCES = 7_url_file_https_ldap_mysql_pg_pkcs11.c
+7_url_file_https_ldap_mysql_pg_pkcs11_LDFLAGS = $(testLDFLAGS)
+7_url_file_https_ldap_mysql_pg_pkcs11_LDADD = $(testLDADD)
+7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+8_log_interface_SOURCES = 8_log_interface.c
+8_log_interface_LDFLAGS = $(testLDFLAGS)
+8_log_interface_LDADD = $(testLDADD)
+8_log_interface_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+9_public_key_encryption_decryption_SOURCES = 9_public_key_encryption_decryption.c
+9_public_key_encryption_decryption_LDFLAGS = $(testLDFLAGS)
+9_public_key_encryption_decryption_LDADD = $(testLDADD)
+9_public_key_encryption_decryption_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+10_ocsp_generation_req_resp_sign_SOURCES = 10_ocsp_generation_req_resp_sign.c
+10_ocsp_generation_req_resp_sign_LDFLAGS = $(testLDFLAGS)
+10_ocsp_generation_req_resp_sign_LDADD = $(testLDADD)
+10_ocsp_generation_req_resp_sign_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+11_ameth_traditional_pqc_composite_explicit_SOURCES = 11_ameth_traditional_pqc_composite_explicit.c
+11_ameth_traditional_pqc_composite_explicit_LDFLAGS = $(testLDFLAGS)
+11_ameth_traditional_pqc_composite_explicit_LDADD = $(testLDADD)
+11_ameth_traditional_pqc_composite_explicit_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 all: all-recursive
 
 .SUFFIXES:
@@ -885,65 +901,49 @@ clean-checkPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-test1$(EXEEXT): $(test1_OBJECTS) $(test1_DEPENDENCIES) $(EXTRA_test1_DEPENDENCIES) 
-	@rm -f test1$(EXEEXT)
-	$(AM_V_CCLD)$(test1_LINK) $(test1_OBJECTS) $(test1_LDADD) $(LIBS)
+1-key-gen-key-digest$(EXEEXT): $(1_key_gen_key_digest_OBJECTS) $(1_key_gen_key_digest_DEPENDENCIES) $(EXTRA_1_key_gen_key_digest_DEPENDENCIES) 
+	@rm -f 1-key-gen-key-digest$(EXEEXT)
+	$(AM_V_CCLD)$(1_key_gen_key_digest_LINK) $(1_key_gen_key_digest_OBJECTS) $(1_key_gen_key_digest_LDADD) $(LIBS)
 
-test10$(EXEEXT): $(test10_OBJECTS) $(test10_DEPENDENCIES) $(EXTRA_test10_DEPENDENCIES) 
-	@rm -f test10$(EXEEXT)
-	$(AM_V_CCLD)$(test10_LINK) $(test10_OBJECTS) $(test10_LDADD) $(LIBS)
+10-ocsp-generation-req-resp-sign$(EXEEXT): $(10_ocsp_generation_req_resp_sign_OBJECTS) $(10_ocsp_generation_req_resp_sign_DEPENDENCIES) $(EXTRA_10_ocsp_generation_req_resp_sign_DEPENDENCIES) 
+	@rm -f 10-ocsp-generation-req-resp-sign$(EXEEXT)
+	$(AM_V_CCLD)$(10_ocsp_generation_req_resp_sign_LINK) $(10_ocsp_generation_req_resp_sign_OBJECTS) $(10_ocsp_generation_req_resp_sign_LDADD) $(LIBS)
 
-test11$(EXEEXT): $(test11_OBJECTS) $(test11_DEPENDENCIES) $(EXTRA_test11_DEPENDENCIES) 
-	@rm -f test11$(EXEEXT)
-	$(AM_V_CCLD)$(test11_LINK) $(test11_OBJECTS) $(test11_LDADD) $(LIBS)
+11-ameth-traditional-pqc-composite-explicit$(EXEEXT): $(11_ameth_traditional_pqc_composite_explicit_OBJECTS) $(11_ameth_traditional_pqc_composite_explicit_DEPENDENCIES) $(EXTRA_11_ameth_traditional_pqc_composite_explicit_DEPENDENCIES) 
+	@rm -f 11-ameth-traditional-pqc-composite-explicit$(EXEEXT)
+	$(AM_V_CCLD)$(11_ameth_traditional_pqc_composite_explicit_LINK) $(11_ameth_traditional_pqc_composite_explicit_OBJECTS) $(11_ameth_traditional_pqc_composite_explicit_LDADD) $(LIBS)
 
-test12$(EXEEXT): $(test12_OBJECTS) $(test12_DEPENDENCIES) $(EXTRA_test12_DEPENDENCIES) 
-	@rm -f test12$(EXEEXT)
-	$(AM_V_CCLD)$(test12_LINK) $(test12_OBJECTS) $(test12_LDADD) $(LIBS)
+2-cert-gen-digest-alg-list$(EXEEXT): $(2_cert_gen_digest_alg_list_OBJECTS) $(2_cert_gen_digest_alg_list_DEPENDENCIES) $(EXTRA_2_cert_gen_digest_alg_list_DEPENDENCIES) 
+	@rm -f 2-cert-gen-digest-alg-list$(EXEEXT)
+	$(AM_V_CCLD)$(2_cert_gen_digest_alg_list_LINK) $(2_cert_gen_digest_alg_list_OBJECTS) $(2_cert_gen_digest_alg_list_LDADD) $(LIBS)
 
-test13$(EXEEXT): $(test13_OBJECTS) $(test13_DEPENDENCIES) $(EXTRA_test13_DEPENDENCIES) 
-	@rm -f test13$(EXEEXT)
-	$(AM_V_CCLD)$(test13_LINK) $(test13_OBJECTS) $(test13_LDADD) $(LIBS)
+3-token-generation-rsa-ec-dilithium-falcon$(EXEEXT): $(3_token_generation_rsa_ec_dilithium_falcon_OBJECTS) $(3_token_generation_rsa_ec_dilithium_falcon_DEPENDENCIES) $(EXTRA_3_token_generation_rsa_ec_dilithium_falcon_DEPENDENCIES) 
+	@rm -f 3-token-generation-rsa-ec-dilithium-falcon$(EXEEXT)
+	$(AM_V_CCLD)$(3_token_generation_rsa_ec_dilithium_falcon_LINK) $(3_token_generation_rsa_ec_dilithium_falcon_OBJECTS) $(3_token_generation_rsa_ec_dilithium_falcon_LDADD) $(LIBS)
 
-test14$(EXEEXT): $(test14_OBJECTS) $(test14_DEPENDENCIES) $(EXTRA_test14_DEPENDENCIES) 
-	@rm -f test14$(EXEEXT)
-	$(AM_V_CCLD)$(test14_LINK) $(test14_OBJECTS) $(test14_LDADD) $(LIBS)
+4-token-generation-request-self-sign-export-cert-req$(EXEEXT): $(4_token_generation_request_self_sign_export_cert_req_OBJECTS) $(4_token_generation_request_self_sign_export_cert_req_DEPENDENCIES) $(EXTRA_4_token_generation_request_self_sign_export_cert_req_DEPENDENCIES) 
+	@rm -f 4-token-generation-request-self-sign-export-cert-req$(EXEEXT)
+	$(AM_V_CCLD)$(4_token_generation_request_self_sign_export_cert_req_LINK) $(4_token_generation_request_self_sign_export_cert_req_OBJECTS) $(4_token_generation_request_self_sign_export_cert_req_LDADD) $(LIBS)
 
-test15$(EXEEXT): $(test15_OBJECTS) $(test15_DEPENDENCIES) $(EXTRA_test15_DEPENDENCIES) 
-	@rm -f test15$(EXEEXT)
-	$(AM_V_CCLD)$(test15_LINK) $(test15_OBJECTS) $(test15_LDADD) $(LIBS)
+5-token-init-load-profile$(EXEEXT): $(5_token_init_load_profile_OBJECTS) $(5_token_init_load_profile_DEPENDENCIES) $(EXTRA_5_token_init_load_profile_DEPENDENCIES) 
+	@rm -f 5-token-init-load-profile$(EXEEXT)
+	$(AM_V_CCLD)$(5_token_init_load_profile_LINK) $(5_token_init_load_profile_OBJECTS) $(5_token_init_load_profile_LDADD) $(LIBS)
 
-test2$(EXEEXT): $(test2_OBJECTS) $(test2_DEPENDENCIES) $(EXTRA_test2_DEPENDENCIES) 
-	@rm -f test2$(EXEEXT)
-	$(AM_V_CCLD)$(test2_LINK) $(test2_OBJECTS) $(test2_LDADD) $(LIBS)
+6-token-digest-crl-sign$(EXEEXT): $(6_token_digest_crl_sign_OBJECTS) $(6_token_digest_crl_sign_DEPENDENCIES) $(EXTRA_6_token_digest_crl_sign_DEPENDENCIES) 
+	@rm -f 6-token-digest-crl-sign$(EXEEXT)
+	$(AM_V_CCLD)$(6_token_digest_crl_sign_LINK) $(6_token_digest_crl_sign_OBJECTS) $(6_token_digest_crl_sign_LDADD) $(LIBS)
 
-test3$(EXEEXT): $(test3_OBJECTS) $(test3_DEPENDENCIES) $(EXTRA_test3_DEPENDENCIES) 
-	@rm -f test3$(EXEEXT)
-	$(AM_V_CCLD)$(test3_LINK) $(test3_OBJECTS) $(test3_LDADD) $(LIBS)
+7-url-file-https-ldap-mysql-pg-pkcs11$(EXEEXT): $(7_url_file_https_ldap_mysql_pg_pkcs11_OBJECTS) $(7_url_file_https_ldap_mysql_pg_pkcs11_DEPENDENCIES) $(EXTRA_7_url_file_https_ldap_mysql_pg_pkcs11_DEPENDENCIES) 
+	@rm -f 7-url-file-https-ldap-mysql-pg-pkcs11$(EXEEXT)
+	$(AM_V_CCLD)$(7_url_file_https_ldap_mysql_pg_pkcs11_LINK) $(7_url_file_https_ldap_mysql_pg_pkcs11_OBJECTS) $(7_url_file_https_ldap_mysql_pg_pkcs11_LDADD) $(LIBS)
 
-test4$(EXEEXT): $(test4_OBJECTS) $(test4_DEPENDENCIES) $(EXTRA_test4_DEPENDENCIES) 
-	@rm -f test4$(EXEEXT)
-	$(AM_V_CCLD)$(test4_LINK) $(test4_OBJECTS) $(test4_LDADD) $(LIBS)
+8-log-interface$(EXEEXT): $(8_log_interface_OBJECTS) $(8_log_interface_DEPENDENCIES) $(EXTRA_8_log_interface_DEPENDENCIES) 
+	@rm -f 8-log-interface$(EXEEXT)
+	$(AM_V_CCLD)$(8_log_interface_LINK) $(8_log_interface_OBJECTS) $(8_log_interface_LDADD) $(LIBS)
 
-test5$(EXEEXT): $(test5_OBJECTS) $(test5_DEPENDENCIES) $(EXTRA_test5_DEPENDENCIES) 
-	@rm -f test5$(EXEEXT)
-	$(AM_V_CCLD)$(test5_LINK) $(test5_OBJECTS) $(test5_LDADD) $(LIBS)
-
-test6$(EXEEXT): $(test6_OBJECTS) $(test6_DEPENDENCIES) $(EXTRA_test6_DEPENDENCIES) 
-	@rm -f test6$(EXEEXT)
-	$(AM_V_CCLD)$(test6_LINK) $(test6_OBJECTS) $(test6_LDADD) $(LIBS)
-
-test7$(EXEEXT): $(test7_OBJECTS) $(test7_DEPENDENCIES) $(EXTRA_test7_DEPENDENCIES) 
-	@rm -f test7$(EXEEXT)
-	$(AM_V_CCLD)$(test7_LINK) $(test7_OBJECTS) $(test7_LDADD) $(LIBS)
-
-test8$(EXEEXT): $(test8_OBJECTS) $(test8_DEPENDENCIES) $(EXTRA_test8_DEPENDENCIES) 
-	@rm -f test8$(EXEEXT)
-	$(AM_V_CCLD)$(test8_LINK) $(test8_OBJECTS) $(test8_LDADD) $(LIBS)
-
-test9$(EXEEXT): $(test9_OBJECTS) $(test9_DEPENDENCIES) $(EXTRA_test9_DEPENDENCIES) 
-	@rm -f test9$(EXEEXT)
-	$(AM_V_CCLD)$(test9_LINK) $(test9_OBJECTS) $(test9_LDADD) $(LIBS)
+9-public-key-encryption-decryption$(EXEEXT): $(9_public_key_encryption_decryption_OBJECTS) $(9_public_key_encryption_decryption_DEPENDENCIES) $(EXTRA_9_public_key_encryption_decryption_DEPENDENCIES) 
+	@rm -f 9-public-key-encryption-decryption$(EXEEXT)
+	$(AM_V_CCLD)$(9_public_key_encryption_decryption_LINK) $(9_public_key_encryption_decryption_OBJECTS) $(9_public_key_encryption_decryption_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -951,21 +951,17 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test1-test1.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test10-test10.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test11-test11.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test12-test12.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test13-test13.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test14-test14.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test15-test15.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2-test2.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3-test3.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test4-test4.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test5-test5.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test6-test6.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test7-test7.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test8-test8.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test9-test9.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/8_log_interface-8_log_interface.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -997,215 +993,159 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-test1-test1.o: test1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test1_CFLAGS) $(CFLAGS) -MT test1-test1.o -MD -MP -MF $(DEPDIR)/test1-test1.Tpo -c -o test1-test1.o `test -f 'test1.c' || echo '$(srcdir)/'`test1.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test1-test1.Tpo $(DEPDIR)/test1-test1.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test1.c' object='test1-test1.o' libtool=no @AMDEPBACKSLASH@
+1_key_gen_key_digest-1_key_gen_key_digest.o: 1_key_gen_key_digest.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(1_key_gen_key_digest_CFLAGS) $(CFLAGS) -MT 1_key_gen_key_digest-1_key_gen_key_digest.o -MD -MP -MF $(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Tpo -c -o 1_key_gen_key_digest-1_key_gen_key_digest.o `test -f '1_key_gen_key_digest.c' || echo '$(srcdir)/'`1_key_gen_key_digest.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Tpo $(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='1_key_gen_key_digest.c' object='1_key_gen_key_digest-1_key_gen_key_digest.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test1_CFLAGS) $(CFLAGS) -c -o test1-test1.o `test -f 'test1.c' || echo '$(srcdir)/'`test1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(1_key_gen_key_digest_CFLAGS) $(CFLAGS) -c -o 1_key_gen_key_digest-1_key_gen_key_digest.o `test -f '1_key_gen_key_digest.c' || echo '$(srcdir)/'`1_key_gen_key_digest.c
 
-test1-test1.obj: test1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test1_CFLAGS) $(CFLAGS) -MT test1-test1.obj -MD -MP -MF $(DEPDIR)/test1-test1.Tpo -c -o test1-test1.obj `if test -f 'test1.c'; then $(CYGPATH_W) 'test1.c'; else $(CYGPATH_W) '$(srcdir)/test1.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test1-test1.Tpo $(DEPDIR)/test1-test1.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test1.c' object='test1-test1.obj' libtool=no @AMDEPBACKSLASH@
+1_key_gen_key_digest-1_key_gen_key_digest.obj: 1_key_gen_key_digest.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(1_key_gen_key_digest_CFLAGS) $(CFLAGS) -MT 1_key_gen_key_digest-1_key_gen_key_digest.obj -MD -MP -MF $(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Tpo -c -o 1_key_gen_key_digest-1_key_gen_key_digest.obj `if test -f '1_key_gen_key_digest.c'; then $(CYGPATH_W) '1_key_gen_key_digest.c'; else $(CYGPATH_W) '$(srcdir)/1_key_gen_key_digest.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Tpo $(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='1_key_gen_key_digest.c' object='1_key_gen_key_digest-1_key_gen_key_digest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test1_CFLAGS) $(CFLAGS) -c -o test1-test1.obj `if test -f 'test1.c'; then $(CYGPATH_W) 'test1.c'; else $(CYGPATH_W) '$(srcdir)/test1.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(1_key_gen_key_digest_CFLAGS) $(CFLAGS) -c -o 1_key_gen_key_digest-1_key_gen_key_digest.obj `if test -f '1_key_gen_key_digest.c'; then $(CYGPATH_W) '1_key_gen_key_digest.c'; else $(CYGPATH_W) '$(srcdir)/1_key_gen_key_digest.c'; fi`
 
-test10-test10.o: test10.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test10_CFLAGS) $(CFLAGS) -MT test10-test10.o -MD -MP -MF $(DEPDIR)/test10-test10.Tpo -c -o test10-test10.o `test -f 'test10.c' || echo '$(srcdir)/'`test10.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test10-test10.Tpo $(DEPDIR)/test10-test10.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test10.c' object='test10-test10.o' libtool=no @AMDEPBACKSLASH@
+10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.o: 10_ocsp_generation_req_resp_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(10_ocsp_generation_req_resp_sign_CFLAGS) $(CFLAGS) -MT 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.o -MD -MP -MF $(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Tpo -c -o 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.o `test -f '10_ocsp_generation_req_resp_sign.c' || echo '$(srcdir)/'`10_ocsp_generation_req_resp_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Tpo $(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='10_ocsp_generation_req_resp_sign.c' object='10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test10_CFLAGS) $(CFLAGS) -c -o test10-test10.o `test -f 'test10.c' || echo '$(srcdir)/'`test10.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(10_ocsp_generation_req_resp_sign_CFLAGS) $(CFLAGS) -c -o 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.o `test -f '10_ocsp_generation_req_resp_sign.c' || echo '$(srcdir)/'`10_ocsp_generation_req_resp_sign.c
 
-test10-test10.obj: test10.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test10_CFLAGS) $(CFLAGS) -MT test10-test10.obj -MD -MP -MF $(DEPDIR)/test10-test10.Tpo -c -o test10-test10.obj `if test -f 'test10.c'; then $(CYGPATH_W) 'test10.c'; else $(CYGPATH_W) '$(srcdir)/test10.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test10-test10.Tpo $(DEPDIR)/test10-test10.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test10.c' object='test10-test10.obj' libtool=no @AMDEPBACKSLASH@
+10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.obj: 10_ocsp_generation_req_resp_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(10_ocsp_generation_req_resp_sign_CFLAGS) $(CFLAGS) -MT 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.obj -MD -MP -MF $(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Tpo -c -o 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.obj `if test -f '10_ocsp_generation_req_resp_sign.c'; then $(CYGPATH_W) '10_ocsp_generation_req_resp_sign.c'; else $(CYGPATH_W) '$(srcdir)/10_ocsp_generation_req_resp_sign.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Tpo $(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='10_ocsp_generation_req_resp_sign.c' object='10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test10_CFLAGS) $(CFLAGS) -c -o test10-test10.obj `if test -f 'test10.c'; then $(CYGPATH_W) 'test10.c'; else $(CYGPATH_W) '$(srcdir)/test10.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(10_ocsp_generation_req_resp_sign_CFLAGS) $(CFLAGS) -c -o 10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.obj `if test -f '10_ocsp_generation_req_resp_sign.c'; then $(CYGPATH_W) '10_ocsp_generation_req_resp_sign.c'; else $(CYGPATH_W) '$(srcdir)/10_ocsp_generation_req_resp_sign.c'; fi`
 
-test11-test11.o: test11.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -MT test11-test11.o -MD -MP -MF $(DEPDIR)/test11-test11.Tpo -c -o test11-test11.o `test -f 'test11.c' || echo '$(srcdir)/'`test11.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test11-test11.Tpo $(DEPDIR)/test11-test11.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test11.c' object='test11-test11.o' libtool=no @AMDEPBACKSLASH@
+11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.o: 11_ameth_traditional_pqc_composite_explicit.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(11_ameth_traditional_pqc_composite_explicit_CFLAGS) $(CFLAGS) -MT 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.o -MD -MP -MF $(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Tpo -c -o 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.o `test -f '11_ameth_traditional_pqc_composite_explicit.c' || echo '$(srcdir)/'`11_ameth_traditional_pqc_composite_explicit.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Tpo $(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='11_ameth_traditional_pqc_composite_explicit.c' object='11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -c -o test11-test11.o `test -f 'test11.c' || echo '$(srcdir)/'`test11.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(11_ameth_traditional_pqc_composite_explicit_CFLAGS) $(CFLAGS) -c -o 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.o `test -f '11_ameth_traditional_pqc_composite_explicit.c' || echo '$(srcdir)/'`11_ameth_traditional_pqc_composite_explicit.c
 
-test11-test11.obj: test11.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -MT test11-test11.obj -MD -MP -MF $(DEPDIR)/test11-test11.Tpo -c -o test11-test11.obj `if test -f 'test11.c'; then $(CYGPATH_W) 'test11.c'; else $(CYGPATH_W) '$(srcdir)/test11.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test11-test11.Tpo $(DEPDIR)/test11-test11.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test11.c' object='test11-test11.obj' libtool=no @AMDEPBACKSLASH@
+11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.obj: 11_ameth_traditional_pqc_composite_explicit.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(11_ameth_traditional_pqc_composite_explicit_CFLAGS) $(CFLAGS) -MT 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.obj -MD -MP -MF $(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Tpo -c -o 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.obj `if test -f '11_ameth_traditional_pqc_composite_explicit.c'; then $(CYGPATH_W) '11_ameth_traditional_pqc_composite_explicit.c'; else $(CYGPATH_W) '$(srcdir)/11_ameth_traditional_pqc_composite_explicit.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Tpo $(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='11_ameth_traditional_pqc_composite_explicit.c' object='11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test11_CFLAGS) $(CFLAGS) -c -o test11-test11.obj `if test -f 'test11.c'; then $(CYGPATH_W) 'test11.c'; else $(CYGPATH_W) '$(srcdir)/test11.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(11_ameth_traditional_pqc_composite_explicit_CFLAGS) $(CFLAGS) -c -o 11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.obj `if test -f '11_ameth_traditional_pqc_composite_explicit.c'; then $(CYGPATH_W) '11_ameth_traditional_pqc_composite_explicit.c'; else $(CYGPATH_W) '$(srcdir)/11_ameth_traditional_pqc_composite_explicit.c'; fi`
 
-test12-test12.o: test12.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test12_CFLAGS) $(CFLAGS) -MT test12-test12.o -MD -MP -MF $(DEPDIR)/test12-test12.Tpo -c -o test12-test12.o `test -f 'test12.c' || echo '$(srcdir)/'`test12.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test12-test12.Tpo $(DEPDIR)/test12-test12.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test12.c' object='test12-test12.o' libtool=no @AMDEPBACKSLASH@
+2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o: 2_cert_gen_digest_alg_list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(2_cert_gen_digest_alg_list_CFLAGS) $(CFLAGS) -MT 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o -MD -MP -MF $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Tpo -c -o 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o `test -f '2_cert_gen_digest_alg_list.c' || echo '$(srcdir)/'`2_cert_gen_digest_alg_list.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Tpo $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='2_cert_gen_digest_alg_list.c' object='2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test12_CFLAGS) $(CFLAGS) -c -o test12-test12.o `test -f 'test12.c' || echo '$(srcdir)/'`test12.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(2_cert_gen_digest_alg_list_CFLAGS) $(CFLAGS) -c -o 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o `test -f '2_cert_gen_digest_alg_list.c' || echo '$(srcdir)/'`2_cert_gen_digest_alg_list.c
 
-test12-test12.obj: test12.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test12_CFLAGS) $(CFLAGS) -MT test12-test12.obj -MD -MP -MF $(DEPDIR)/test12-test12.Tpo -c -o test12-test12.obj `if test -f 'test12.c'; then $(CYGPATH_W) 'test12.c'; else $(CYGPATH_W) '$(srcdir)/test12.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test12-test12.Tpo $(DEPDIR)/test12-test12.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test12.c' object='test12-test12.obj' libtool=no @AMDEPBACKSLASH@
+2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.obj: 2_cert_gen_digest_alg_list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(2_cert_gen_digest_alg_list_CFLAGS) $(CFLAGS) -MT 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.obj -MD -MP -MF $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Tpo -c -o 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.obj `if test -f '2_cert_gen_digest_alg_list.c'; then $(CYGPATH_W) '2_cert_gen_digest_alg_list.c'; else $(CYGPATH_W) '$(srcdir)/2_cert_gen_digest_alg_list.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Tpo $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='2_cert_gen_digest_alg_list.c' object='2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test12_CFLAGS) $(CFLAGS) -c -o test12-test12.obj `if test -f 'test12.c'; then $(CYGPATH_W) 'test12.c'; else $(CYGPATH_W) '$(srcdir)/test12.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(2_cert_gen_digest_alg_list_CFLAGS) $(CFLAGS) -c -o 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.obj `if test -f '2_cert_gen_digest_alg_list.c'; then $(CYGPATH_W) '2_cert_gen_digest_alg_list.c'; else $(CYGPATH_W) '$(srcdir)/2_cert_gen_digest_alg_list.c'; fi`
 
-test13-test13.o: test13.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test13_CFLAGS) $(CFLAGS) -MT test13-test13.o -MD -MP -MF $(DEPDIR)/test13-test13.Tpo -c -o test13-test13.o `test -f 'test13.c' || echo '$(srcdir)/'`test13.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test13-test13.Tpo $(DEPDIR)/test13-test13.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test13.c' object='test13-test13.o' libtool=no @AMDEPBACKSLASH@
+3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.o: 3_token_generation_rsa_ec_dilithium_falcon.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(3_token_generation_rsa_ec_dilithium_falcon_CFLAGS) $(CFLAGS) -MT 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.o -MD -MP -MF $(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Tpo -c -o 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.o `test -f '3_token_generation_rsa_ec_dilithium_falcon.c' || echo '$(srcdir)/'`3_token_generation_rsa_ec_dilithium_falcon.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Tpo $(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='3_token_generation_rsa_ec_dilithium_falcon.c' object='3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test13_CFLAGS) $(CFLAGS) -c -o test13-test13.o `test -f 'test13.c' || echo '$(srcdir)/'`test13.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(3_token_generation_rsa_ec_dilithium_falcon_CFLAGS) $(CFLAGS) -c -o 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.o `test -f '3_token_generation_rsa_ec_dilithium_falcon.c' || echo '$(srcdir)/'`3_token_generation_rsa_ec_dilithium_falcon.c
 
-test13-test13.obj: test13.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test13_CFLAGS) $(CFLAGS) -MT test13-test13.obj -MD -MP -MF $(DEPDIR)/test13-test13.Tpo -c -o test13-test13.obj `if test -f 'test13.c'; then $(CYGPATH_W) 'test13.c'; else $(CYGPATH_W) '$(srcdir)/test13.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test13-test13.Tpo $(DEPDIR)/test13-test13.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test13.c' object='test13-test13.obj' libtool=no @AMDEPBACKSLASH@
+3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.obj: 3_token_generation_rsa_ec_dilithium_falcon.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(3_token_generation_rsa_ec_dilithium_falcon_CFLAGS) $(CFLAGS) -MT 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.obj -MD -MP -MF $(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Tpo -c -o 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.obj `if test -f '3_token_generation_rsa_ec_dilithium_falcon.c'; then $(CYGPATH_W) '3_token_generation_rsa_ec_dilithium_falcon.c'; else $(CYGPATH_W) '$(srcdir)/3_token_generation_rsa_ec_dilithium_falcon.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Tpo $(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='3_token_generation_rsa_ec_dilithium_falcon.c' object='3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test13_CFLAGS) $(CFLAGS) -c -o test13-test13.obj `if test -f 'test13.c'; then $(CYGPATH_W) 'test13.c'; else $(CYGPATH_W) '$(srcdir)/test13.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(3_token_generation_rsa_ec_dilithium_falcon_CFLAGS) $(CFLAGS) -c -o 3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.obj `if test -f '3_token_generation_rsa_ec_dilithium_falcon.c'; then $(CYGPATH_W) '3_token_generation_rsa_ec_dilithium_falcon.c'; else $(CYGPATH_W) '$(srcdir)/3_token_generation_rsa_ec_dilithium_falcon.c'; fi`
 
-test14-test14.o: test14.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test14_CFLAGS) $(CFLAGS) -MT test14-test14.o -MD -MP -MF $(DEPDIR)/test14-test14.Tpo -c -o test14-test14.o `test -f 'test14.c' || echo '$(srcdir)/'`test14.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test14-test14.Tpo $(DEPDIR)/test14-test14.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test14.c' object='test14-test14.o' libtool=no @AMDEPBACKSLASH@
+4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.o: 4_token_generation_request_self_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(4_token_generation_request_self_sign_export_cert_req_CFLAGS) $(CFLAGS) -MT 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.o -MD -MP -MF $(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Tpo -c -o 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.o `test -f '4_token_generation_request_self_sign.c' || echo '$(srcdir)/'`4_token_generation_request_self_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Tpo $(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='4_token_generation_request_self_sign.c' object='4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test14_CFLAGS) $(CFLAGS) -c -o test14-test14.o `test -f 'test14.c' || echo '$(srcdir)/'`test14.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(4_token_generation_request_self_sign_export_cert_req_CFLAGS) $(CFLAGS) -c -o 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.o `test -f '4_token_generation_request_self_sign.c' || echo '$(srcdir)/'`4_token_generation_request_self_sign.c
 
-test14-test14.obj: test14.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test14_CFLAGS) $(CFLAGS) -MT test14-test14.obj -MD -MP -MF $(DEPDIR)/test14-test14.Tpo -c -o test14-test14.obj `if test -f 'test14.c'; then $(CYGPATH_W) 'test14.c'; else $(CYGPATH_W) '$(srcdir)/test14.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test14-test14.Tpo $(DEPDIR)/test14-test14.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test14.c' object='test14-test14.obj' libtool=no @AMDEPBACKSLASH@
+4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.obj: 4_token_generation_request_self_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(4_token_generation_request_self_sign_export_cert_req_CFLAGS) $(CFLAGS) -MT 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.obj -MD -MP -MF $(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Tpo -c -o 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.obj `if test -f '4_token_generation_request_self_sign.c'; then $(CYGPATH_W) '4_token_generation_request_self_sign.c'; else $(CYGPATH_W) '$(srcdir)/4_token_generation_request_self_sign.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Tpo $(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='4_token_generation_request_self_sign.c' object='4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test14_CFLAGS) $(CFLAGS) -c -o test14-test14.obj `if test -f 'test14.c'; then $(CYGPATH_W) 'test14.c'; else $(CYGPATH_W) '$(srcdir)/test14.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(4_token_generation_request_self_sign_export_cert_req_CFLAGS) $(CFLAGS) -c -o 4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.obj `if test -f '4_token_generation_request_self_sign.c'; then $(CYGPATH_W) '4_token_generation_request_self_sign.c'; else $(CYGPATH_W) '$(srcdir)/4_token_generation_request_self_sign.c'; fi`
 
-test15-test15.o: test15.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test15_CFLAGS) $(CFLAGS) -MT test15-test15.o -MD -MP -MF $(DEPDIR)/test15-test15.Tpo -c -o test15-test15.o `test -f 'test15.c' || echo '$(srcdir)/'`test15.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test15-test15.Tpo $(DEPDIR)/test15-test15.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test15.c' object='test15-test15.o' libtool=no @AMDEPBACKSLASH@
+5_token_init_load_profile-5_token_init_load_profile.o: 5_token_init_load_profile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(5_token_init_load_profile_CFLAGS) $(CFLAGS) -MT 5_token_init_load_profile-5_token_init_load_profile.o -MD -MP -MF $(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Tpo -c -o 5_token_init_load_profile-5_token_init_load_profile.o `test -f '5_token_init_load_profile.c' || echo '$(srcdir)/'`5_token_init_load_profile.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Tpo $(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='5_token_init_load_profile.c' object='5_token_init_load_profile-5_token_init_load_profile.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test15_CFLAGS) $(CFLAGS) -c -o test15-test15.o `test -f 'test15.c' || echo '$(srcdir)/'`test15.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(5_token_init_load_profile_CFLAGS) $(CFLAGS) -c -o 5_token_init_load_profile-5_token_init_load_profile.o `test -f '5_token_init_load_profile.c' || echo '$(srcdir)/'`5_token_init_load_profile.c
 
-test15-test15.obj: test15.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test15_CFLAGS) $(CFLAGS) -MT test15-test15.obj -MD -MP -MF $(DEPDIR)/test15-test15.Tpo -c -o test15-test15.obj `if test -f 'test15.c'; then $(CYGPATH_W) 'test15.c'; else $(CYGPATH_W) '$(srcdir)/test15.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test15-test15.Tpo $(DEPDIR)/test15-test15.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test15.c' object='test15-test15.obj' libtool=no @AMDEPBACKSLASH@
+5_token_init_load_profile-5_token_init_load_profile.obj: 5_token_init_load_profile.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(5_token_init_load_profile_CFLAGS) $(CFLAGS) -MT 5_token_init_load_profile-5_token_init_load_profile.obj -MD -MP -MF $(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Tpo -c -o 5_token_init_load_profile-5_token_init_load_profile.obj `if test -f '5_token_init_load_profile.c'; then $(CYGPATH_W) '5_token_init_load_profile.c'; else $(CYGPATH_W) '$(srcdir)/5_token_init_load_profile.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Tpo $(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='5_token_init_load_profile.c' object='5_token_init_load_profile-5_token_init_load_profile.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test15_CFLAGS) $(CFLAGS) -c -o test15-test15.obj `if test -f 'test15.c'; then $(CYGPATH_W) 'test15.c'; else $(CYGPATH_W) '$(srcdir)/test15.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(5_token_init_load_profile_CFLAGS) $(CFLAGS) -c -o 5_token_init_load_profile-5_token_init_load_profile.obj `if test -f '5_token_init_load_profile.c'; then $(CYGPATH_W) '5_token_init_load_profile.c'; else $(CYGPATH_W) '$(srcdir)/5_token_init_load_profile.c'; fi`
 
-test2-test2.o: test2.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2_CFLAGS) $(CFLAGS) -MT test2-test2.o -MD -MP -MF $(DEPDIR)/test2-test2.Tpo -c -o test2-test2.o `test -f 'test2.c' || echo '$(srcdir)/'`test2.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2-test2.Tpo $(DEPDIR)/test2-test2.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test2.c' object='test2-test2.o' libtool=no @AMDEPBACKSLASH@
+6_token_digest_crl_sign-6_token_digest_crl_sign.o: 6_token_digest_crl_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(6_token_digest_crl_sign_CFLAGS) $(CFLAGS) -MT 6_token_digest_crl_sign-6_token_digest_crl_sign.o -MD -MP -MF $(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Tpo -c -o 6_token_digest_crl_sign-6_token_digest_crl_sign.o `test -f '6_token_digest_crl_sign.c' || echo '$(srcdir)/'`6_token_digest_crl_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Tpo $(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='6_token_digest_crl_sign.c' object='6_token_digest_crl_sign-6_token_digest_crl_sign.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2_CFLAGS) $(CFLAGS) -c -o test2-test2.o `test -f 'test2.c' || echo '$(srcdir)/'`test2.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(6_token_digest_crl_sign_CFLAGS) $(CFLAGS) -c -o 6_token_digest_crl_sign-6_token_digest_crl_sign.o `test -f '6_token_digest_crl_sign.c' || echo '$(srcdir)/'`6_token_digest_crl_sign.c
 
-test2-test2.obj: test2.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2_CFLAGS) $(CFLAGS) -MT test2-test2.obj -MD -MP -MF $(DEPDIR)/test2-test2.Tpo -c -o test2-test2.obj `if test -f 'test2.c'; then $(CYGPATH_W) 'test2.c'; else $(CYGPATH_W) '$(srcdir)/test2.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2-test2.Tpo $(DEPDIR)/test2-test2.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test2.c' object='test2-test2.obj' libtool=no @AMDEPBACKSLASH@
+6_token_digest_crl_sign-6_token_digest_crl_sign.obj: 6_token_digest_crl_sign.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(6_token_digest_crl_sign_CFLAGS) $(CFLAGS) -MT 6_token_digest_crl_sign-6_token_digest_crl_sign.obj -MD -MP -MF $(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Tpo -c -o 6_token_digest_crl_sign-6_token_digest_crl_sign.obj `if test -f '6_token_digest_crl_sign.c'; then $(CYGPATH_W) '6_token_digest_crl_sign.c'; else $(CYGPATH_W) '$(srcdir)/6_token_digest_crl_sign.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Tpo $(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='6_token_digest_crl_sign.c' object='6_token_digest_crl_sign-6_token_digest_crl_sign.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2_CFLAGS) $(CFLAGS) -c -o test2-test2.obj `if test -f 'test2.c'; then $(CYGPATH_W) 'test2.c'; else $(CYGPATH_W) '$(srcdir)/test2.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(6_token_digest_crl_sign_CFLAGS) $(CFLAGS) -c -o 6_token_digest_crl_sign-6_token_digest_crl_sign.obj `if test -f '6_token_digest_crl_sign.c'; then $(CYGPATH_W) '6_token_digest_crl_sign.c'; else $(CYGPATH_W) '$(srcdir)/6_token_digest_crl_sign.c'; fi`
 
-test3-test3.o: test3.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3_CFLAGS) $(CFLAGS) -MT test3-test3.o -MD -MP -MF $(DEPDIR)/test3-test3.Tpo -c -o test3-test3.o `test -f 'test3.c' || echo '$(srcdir)/'`test3.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3-test3.Tpo $(DEPDIR)/test3-test3.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test3.c' object='test3-test3.o' libtool=no @AMDEPBACKSLASH@
+7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.o: 7_url_file_https_ldap_mysql_pg_pkcs11.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS) $(CFLAGS) -MT 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.o -MD -MP -MF $(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Tpo -c -o 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.o `test -f '7_url_file_https_ldap_mysql_pg_pkcs11.c' || echo '$(srcdir)/'`7_url_file_https_ldap_mysql_pg_pkcs11.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Tpo $(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='7_url_file_https_ldap_mysql_pg_pkcs11.c' object='7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3_CFLAGS) $(CFLAGS) -c -o test3-test3.o `test -f 'test3.c' || echo '$(srcdir)/'`test3.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS) $(CFLAGS) -c -o 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.o `test -f '7_url_file_https_ldap_mysql_pg_pkcs11.c' || echo '$(srcdir)/'`7_url_file_https_ldap_mysql_pg_pkcs11.c
 
-test3-test3.obj: test3.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3_CFLAGS) $(CFLAGS) -MT test3-test3.obj -MD -MP -MF $(DEPDIR)/test3-test3.Tpo -c -o test3-test3.obj `if test -f 'test3.c'; then $(CYGPATH_W) 'test3.c'; else $(CYGPATH_W) '$(srcdir)/test3.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3-test3.Tpo $(DEPDIR)/test3-test3.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test3.c' object='test3-test3.obj' libtool=no @AMDEPBACKSLASH@
+7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.obj: 7_url_file_https_ldap_mysql_pg_pkcs11.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS) $(CFLAGS) -MT 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.obj -MD -MP -MF $(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Tpo -c -o 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.obj `if test -f '7_url_file_https_ldap_mysql_pg_pkcs11.c'; then $(CYGPATH_W) '7_url_file_https_ldap_mysql_pg_pkcs11.c'; else $(CYGPATH_W) '$(srcdir)/7_url_file_https_ldap_mysql_pg_pkcs11.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Tpo $(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='7_url_file_https_ldap_mysql_pg_pkcs11.c' object='7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3_CFLAGS) $(CFLAGS) -c -o test3-test3.obj `if test -f 'test3.c'; then $(CYGPATH_W) 'test3.c'; else $(CYGPATH_W) '$(srcdir)/test3.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(7_url_file_https_ldap_mysql_pg_pkcs11_CFLAGS) $(CFLAGS) -c -o 7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.obj `if test -f '7_url_file_https_ldap_mysql_pg_pkcs11.c'; then $(CYGPATH_W) '7_url_file_https_ldap_mysql_pg_pkcs11.c'; else $(CYGPATH_W) '$(srcdir)/7_url_file_https_ldap_mysql_pg_pkcs11.c'; fi`
 
-test4-test4.o: test4.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test4_CFLAGS) $(CFLAGS) -MT test4-test4.o -MD -MP -MF $(DEPDIR)/test4-test4.Tpo -c -o test4-test4.o `test -f 'test4.c' || echo '$(srcdir)/'`test4.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test4-test4.Tpo $(DEPDIR)/test4-test4.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test4.c' object='test4-test4.o' libtool=no @AMDEPBACKSLASH@
+8_log_interface-8_log_interface.o: 8_log_interface.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(8_log_interface_CFLAGS) $(CFLAGS) -MT 8_log_interface-8_log_interface.o -MD -MP -MF $(DEPDIR)/8_log_interface-8_log_interface.Tpo -c -o 8_log_interface-8_log_interface.o `test -f '8_log_interface.c' || echo '$(srcdir)/'`8_log_interface.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/8_log_interface-8_log_interface.Tpo $(DEPDIR)/8_log_interface-8_log_interface.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='8_log_interface.c' object='8_log_interface-8_log_interface.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test4_CFLAGS) $(CFLAGS) -c -o test4-test4.o `test -f 'test4.c' || echo '$(srcdir)/'`test4.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(8_log_interface_CFLAGS) $(CFLAGS) -c -o 8_log_interface-8_log_interface.o `test -f '8_log_interface.c' || echo '$(srcdir)/'`8_log_interface.c
 
-test4-test4.obj: test4.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test4_CFLAGS) $(CFLAGS) -MT test4-test4.obj -MD -MP -MF $(DEPDIR)/test4-test4.Tpo -c -o test4-test4.obj `if test -f 'test4.c'; then $(CYGPATH_W) 'test4.c'; else $(CYGPATH_W) '$(srcdir)/test4.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test4-test4.Tpo $(DEPDIR)/test4-test4.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test4.c' object='test4-test4.obj' libtool=no @AMDEPBACKSLASH@
+8_log_interface-8_log_interface.obj: 8_log_interface.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(8_log_interface_CFLAGS) $(CFLAGS) -MT 8_log_interface-8_log_interface.obj -MD -MP -MF $(DEPDIR)/8_log_interface-8_log_interface.Tpo -c -o 8_log_interface-8_log_interface.obj `if test -f '8_log_interface.c'; then $(CYGPATH_W) '8_log_interface.c'; else $(CYGPATH_W) '$(srcdir)/8_log_interface.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/8_log_interface-8_log_interface.Tpo $(DEPDIR)/8_log_interface-8_log_interface.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='8_log_interface.c' object='8_log_interface-8_log_interface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test4_CFLAGS) $(CFLAGS) -c -o test4-test4.obj `if test -f 'test4.c'; then $(CYGPATH_W) 'test4.c'; else $(CYGPATH_W) '$(srcdir)/test4.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(8_log_interface_CFLAGS) $(CFLAGS) -c -o 8_log_interface-8_log_interface.obj `if test -f '8_log_interface.c'; then $(CYGPATH_W) '8_log_interface.c'; else $(CYGPATH_W) '$(srcdir)/8_log_interface.c'; fi`
 
-test5-test5.o: test5.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test5_CFLAGS) $(CFLAGS) -MT test5-test5.o -MD -MP -MF $(DEPDIR)/test5-test5.Tpo -c -o test5-test5.o `test -f 'test5.c' || echo '$(srcdir)/'`test5.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test5-test5.Tpo $(DEPDIR)/test5-test5.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test5.c' object='test5-test5.o' libtool=no @AMDEPBACKSLASH@
+9_public_key_encryption_decryption-9_public_key_encryption_decryption.o: 9_public_key_encryption_decryption.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(9_public_key_encryption_decryption_CFLAGS) $(CFLAGS) -MT 9_public_key_encryption_decryption-9_public_key_encryption_decryption.o -MD -MP -MF $(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Tpo -c -o 9_public_key_encryption_decryption-9_public_key_encryption_decryption.o `test -f '9_public_key_encryption_decryption.c' || echo '$(srcdir)/'`9_public_key_encryption_decryption.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Tpo $(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='9_public_key_encryption_decryption.c' object='9_public_key_encryption_decryption-9_public_key_encryption_decryption.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test5_CFLAGS) $(CFLAGS) -c -o test5-test5.o `test -f 'test5.c' || echo '$(srcdir)/'`test5.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(9_public_key_encryption_decryption_CFLAGS) $(CFLAGS) -c -o 9_public_key_encryption_decryption-9_public_key_encryption_decryption.o `test -f '9_public_key_encryption_decryption.c' || echo '$(srcdir)/'`9_public_key_encryption_decryption.c
 
-test5-test5.obj: test5.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test5_CFLAGS) $(CFLAGS) -MT test5-test5.obj -MD -MP -MF $(DEPDIR)/test5-test5.Tpo -c -o test5-test5.obj `if test -f 'test5.c'; then $(CYGPATH_W) 'test5.c'; else $(CYGPATH_W) '$(srcdir)/test5.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test5-test5.Tpo $(DEPDIR)/test5-test5.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test5.c' object='test5-test5.obj' libtool=no @AMDEPBACKSLASH@
+9_public_key_encryption_decryption-9_public_key_encryption_decryption.obj: 9_public_key_encryption_decryption.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(9_public_key_encryption_decryption_CFLAGS) $(CFLAGS) -MT 9_public_key_encryption_decryption-9_public_key_encryption_decryption.obj -MD -MP -MF $(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Tpo -c -o 9_public_key_encryption_decryption-9_public_key_encryption_decryption.obj `if test -f '9_public_key_encryption_decryption.c'; then $(CYGPATH_W) '9_public_key_encryption_decryption.c'; else $(CYGPATH_W) '$(srcdir)/9_public_key_encryption_decryption.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Tpo $(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='9_public_key_encryption_decryption.c' object='9_public_key_encryption_decryption-9_public_key_encryption_decryption.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test5_CFLAGS) $(CFLAGS) -c -o test5-test5.obj `if test -f 'test5.c'; then $(CYGPATH_W) 'test5.c'; else $(CYGPATH_W) '$(srcdir)/test5.c'; fi`
-
-test6-test6.o: test6.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test6_CFLAGS) $(CFLAGS) -MT test6-test6.o -MD -MP -MF $(DEPDIR)/test6-test6.Tpo -c -o test6-test6.o `test -f 'test6.c' || echo '$(srcdir)/'`test6.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test6-test6.Tpo $(DEPDIR)/test6-test6.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test6.c' object='test6-test6.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test6_CFLAGS) $(CFLAGS) -c -o test6-test6.o `test -f 'test6.c' || echo '$(srcdir)/'`test6.c
-
-test6-test6.obj: test6.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test6_CFLAGS) $(CFLAGS) -MT test6-test6.obj -MD -MP -MF $(DEPDIR)/test6-test6.Tpo -c -o test6-test6.obj `if test -f 'test6.c'; then $(CYGPATH_W) 'test6.c'; else $(CYGPATH_W) '$(srcdir)/test6.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test6-test6.Tpo $(DEPDIR)/test6-test6.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test6.c' object='test6-test6.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test6_CFLAGS) $(CFLAGS) -c -o test6-test6.obj `if test -f 'test6.c'; then $(CYGPATH_W) 'test6.c'; else $(CYGPATH_W) '$(srcdir)/test6.c'; fi`
-
-test7-test7.o: test7.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test7_CFLAGS) $(CFLAGS) -MT test7-test7.o -MD -MP -MF $(DEPDIR)/test7-test7.Tpo -c -o test7-test7.o `test -f 'test7.c' || echo '$(srcdir)/'`test7.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test7-test7.Tpo $(DEPDIR)/test7-test7.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test7.c' object='test7-test7.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test7_CFLAGS) $(CFLAGS) -c -o test7-test7.o `test -f 'test7.c' || echo '$(srcdir)/'`test7.c
-
-test7-test7.obj: test7.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test7_CFLAGS) $(CFLAGS) -MT test7-test7.obj -MD -MP -MF $(DEPDIR)/test7-test7.Tpo -c -o test7-test7.obj `if test -f 'test7.c'; then $(CYGPATH_W) 'test7.c'; else $(CYGPATH_W) '$(srcdir)/test7.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test7-test7.Tpo $(DEPDIR)/test7-test7.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test7.c' object='test7-test7.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test7_CFLAGS) $(CFLAGS) -c -o test7-test7.obj `if test -f 'test7.c'; then $(CYGPATH_W) 'test7.c'; else $(CYGPATH_W) '$(srcdir)/test7.c'; fi`
-
-test8-test8.o: test8.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test8_CFLAGS) $(CFLAGS) -MT test8-test8.o -MD -MP -MF $(DEPDIR)/test8-test8.Tpo -c -o test8-test8.o `test -f 'test8.c' || echo '$(srcdir)/'`test8.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test8-test8.Tpo $(DEPDIR)/test8-test8.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test8.c' object='test8-test8.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test8_CFLAGS) $(CFLAGS) -c -o test8-test8.o `test -f 'test8.c' || echo '$(srcdir)/'`test8.c
-
-test8-test8.obj: test8.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test8_CFLAGS) $(CFLAGS) -MT test8-test8.obj -MD -MP -MF $(DEPDIR)/test8-test8.Tpo -c -o test8-test8.obj `if test -f 'test8.c'; then $(CYGPATH_W) 'test8.c'; else $(CYGPATH_W) '$(srcdir)/test8.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test8-test8.Tpo $(DEPDIR)/test8-test8.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test8.c' object='test8-test8.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test8_CFLAGS) $(CFLAGS) -c -o test8-test8.obj `if test -f 'test8.c'; then $(CYGPATH_W) 'test8.c'; else $(CYGPATH_W) '$(srcdir)/test8.c'; fi`
-
-test9-test9.o: test9.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test9_CFLAGS) $(CFLAGS) -MT test9-test9.o -MD -MP -MF $(DEPDIR)/test9-test9.Tpo -c -o test9-test9.o `test -f 'test9.c' || echo '$(srcdir)/'`test9.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test9-test9.Tpo $(DEPDIR)/test9-test9.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test9.c' object='test9-test9.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test9_CFLAGS) $(CFLAGS) -c -o test9-test9.o `test -f 'test9.c' || echo '$(srcdir)/'`test9.c
-
-test9-test9.obj: test9.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test9_CFLAGS) $(CFLAGS) -MT test9-test9.obj -MD -MP -MF $(DEPDIR)/test9-test9.Tpo -c -o test9-test9.obj `if test -f 'test9.c'; then $(CYGPATH_W) 'test9.c'; else $(CYGPATH_W) '$(srcdir)/test9.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test9-test9.Tpo $(DEPDIR)/test9-test9.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='test9.c' object='test9-test9.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test9_CFLAGS) $(CFLAGS) -c -o test9-test9.obj `if test -f 'test9.c'; then $(CYGPATH_W) 'test9.c'; else $(CYGPATH_W) '$(srcdir)/test9.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(9_public_key_encryption_decryption_CFLAGS) $(CFLAGS) -c -o 9_public_key_encryption_decryption-9_public_key_encryption_decryption.obj `if test -f '9_public_key_encryption_decryption.c'; then $(CYGPATH_W) '9_public_key_encryption_decryption.c'; else $(CYGPATH_W) '$(srcdir)/9_public_key_encryption_decryption.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1453,107 +1393,79 @@ recheck: all $(check_PROGRAMS)
 	        am__force_recheck=am--force-recheck \
 	        TEST_LOGS="$$log_list"; \
 	exit $$?
-test1.log: test1$(EXEEXT)
-	@p='test1$(EXEEXT)'; \
-	b='test1'; \
+1-key-gen-key-digest.log: 1-key-gen-key-digest$(EXEEXT)
+	@p='1-key-gen-key-digest$(EXEEXT)'; \
+	b='1-key-gen-key-digest'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test2.log: test2$(EXEEXT)
-	@p='test2$(EXEEXT)'; \
-	b='test2'; \
+2-cert-gen-digest-alg-list.log: 2-cert-gen-digest-alg-list$(EXEEXT)
+	@p='2-cert-gen-digest-alg-list$(EXEEXT)'; \
+	b='2-cert-gen-digest-alg-list'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test3.log: test3$(EXEEXT)
-	@p='test3$(EXEEXT)'; \
-	b='test3'; \
+3-token-generation-rsa-ec-dilithium-falcon.log: 3-token-generation-rsa-ec-dilithium-falcon$(EXEEXT)
+	@p='3-token-generation-rsa-ec-dilithium-falcon$(EXEEXT)'; \
+	b='3-token-generation-rsa-ec-dilithium-falcon'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test4.log: test4$(EXEEXT)
-	@p='test4$(EXEEXT)'; \
-	b='test4'; \
+4-token-generation-request-self-sign-export-cert-req.log: 4-token-generation-request-self-sign-export-cert-req$(EXEEXT)
+	@p='4-token-generation-request-self-sign-export-cert-req$(EXEEXT)'; \
+	b='4-token-generation-request-self-sign-export-cert-req'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test5.log: test5$(EXEEXT)
-	@p='test5$(EXEEXT)'; \
-	b='test5'; \
+5-token-init-load-profile.log: 5-token-init-load-profile$(EXEEXT)
+	@p='5-token-init-load-profile$(EXEEXT)'; \
+	b='5-token-init-load-profile'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test6.log: test6$(EXEEXT)
-	@p='test6$(EXEEXT)'; \
-	b='test6'; \
+6-token-digest-crl-sign.log: 6-token-digest-crl-sign$(EXEEXT)
+	@p='6-token-digest-crl-sign$(EXEEXT)'; \
+	b='6-token-digest-crl-sign'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test7.log: test7$(EXEEXT)
-	@p='test7$(EXEEXT)'; \
-	b='test7'; \
+7-url-file-https-ldap-mysql-pg-pkcs11.log: 7-url-file-https-ldap-mysql-pg-pkcs11$(EXEEXT)
+	@p='7-url-file-https-ldap-mysql-pg-pkcs11$(EXEEXT)'; \
+	b='7-url-file-https-ldap-mysql-pg-pkcs11'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test8.log: test8$(EXEEXT)
-	@p='test8$(EXEEXT)'; \
-	b='test8'; \
+8-log-interface.log: 8-log-interface$(EXEEXT)
+	@p='8-log-interface$(EXEEXT)'; \
+	b='8-log-interface'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test9.log: test9$(EXEEXT)
-	@p='test9$(EXEEXT)'; \
-	b='test9'; \
+9-public-key-encryption-decryption.log: 9-public-key-encryption-decryption$(EXEEXT)
+	@p='9-public-key-encryption-decryption$(EXEEXT)'; \
+	b='9-public-key-encryption-decryption'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test10.log: test10$(EXEEXT)
-	@p='test10$(EXEEXT)'; \
-	b='test10'; \
+10-ocsp-generation-req-resp-sign.log: 10-ocsp-generation-req-resp-sign$(EXEEXT)
+	@p='10-ocsp-generation-req-resp-sign$(EXEEXT)'; \
+	b='10-ocsp-generation-req-resp-sign'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test11.log: test11$(EXEEXT)
-	@p='test11$(EXEEXT)'; \
-	b='test11'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test12.log: test12$(EXEEXT)
-	@p='test12$(EXEEXT)'; \
-	b='test12'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test13.log: test13$(EXEEXT)
-	@p='test13$(EXEEXT)'; \
-	b='test13'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test14.log: test14$(EXEEXT)
-	@p='test14$(EXEEXT)'; \
-	b='test14'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-test15.log: test15$(EXEEXT)
-	@p='test15$(EXEEXT)'; \
-	b='test15'; \
+11-ameth-traditional-pqc-composite-explicit.log: 11-ameth-traditional-pqc-composite-explicit$(EXEEXT)
+	@p='11-ameth-traditional-pqc-composite-explicit$(EXEEXT)'; \
+	b='11-ameth-traditional-pqc-composite-explicit'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -1676,21 +1588,17 @@ clean-am: clean-checkPROGRAMS clean-generic clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-recursive
-		-rm -f ./$(DEPDIR)/test1-test1.Po
-	-rm -f ./$(DEPDIR)/test10-test10.Po
-	-rm -f ./$(DEPDIR)/test11-test11.Po
-	-rm -f ./$(DEPDIR)/test12-test12.Po
-	-rm -f ./$(DEPDIR)/test13-test13.Po
-	-rm -f ./$(DEPDIR)/test14-test14.Po
-	-rm -f ./$(DEPDIR)/test15-test15.Po
-	-rm -f ./$(DEPDIR)/test2-test2.Po
-	-rm -f ./$(DEPDIR)/test3-test3.Po
-	-rm -f ./$(DEPDIR)/test4-test4.Po
-	-rm -f ./$(DEPDIR)/test5-test5.Po
-	-rm -f ./$(DEPDIR)/test6-test6.Po
-	-rm -f ./$(DEPDIR)/test7-test7.Po
-	-rm -f ./$(DEPDIR)/test8-test8.Po
-	-rm -f ./$(DEPDIR)/test9-test9.Po
+		-rm -f ./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po
+	-rm -f ./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po
+	-rm -f ./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po
+	-rm -f ./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po
+	-rm -f ./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po
+	-rm -f ./$(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Po
+	-rm -f ./$(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Po
+	-rm -f ./$(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Po
+	-rm -f ./$(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Po
+	-rm -f ./$(DEPDIR)/8_log_interface-8_log_interface.Po
+	-rm -f ./$(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1736,21 +1644,17 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-		-rm -f ./$(DEPDIR)/test1-test1.Po
-	-rm -f ./$(DEPDIR)/test10-test10.Po
-	-rm -f ./$(DEPDIR)/test11-test11.Po
-	-rm -f ./$(DEPDIR)/test12-test12.Po
-	-rm -f ./$(DEPDIR)/test13-test13.Po
-	-rm -f ./$(DEPDIR)/test14-test14.Po
-	-rm -f ./$(DEPDIR)/test15-test15.Po
-	-rm -f ./$(DEPDIR)/test2-test2.Po
-	-rm -f ./$(DEPDIR)/test3-test3.Po
-	-rm -f ./$(DEPDIR)/test4-test4.Po
-	-rm -f ./$(DEPDIR)/test5-test5.Po
-	-rm -f ./$(DEPDIR)/test6-test6.Po
-	-rm -f ./$(DEPDIR)/test7-test7.Po
-	-rm -f ./$(DEPDIR)/test8-test8.Po
-	-rm -f ./$(DEPDIR)/test9-test9.Po
+		-rm -f ./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po
+	-rm -f ./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po
+	-rm -f ./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po
+	-rm -f ./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po
+	-rm -f ./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po
+	-rm -f ./$(DEPDIR)/4_token_generation_request_self_sign_export_cert_req-4_token_generation_request_self_sign.Po
+	-rm -f ./$(DEPDIR)/5_token_init_load_profile-5_token_init_load_profile.Po
+	-rm -f ./$(DEPDIR)/6_token_digest_crl_sign-6_token_digest_crl_sign.Po
+	-rm -f ./$(DEPDIR)/7_url_file_https_ldap_mysql_pg_pkcs11-7_url_file_https_ldap_mysql_pg_pkcs11.Po
+	-rm -f ./$(DEPDIR)/8_log_interface-8_log_interface.Po
+	-rm -f ./$(DEPDIR)/9_public_key_encryption_decryption-9_public_key_encryption_decryption.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

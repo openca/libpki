@@ -548,7 +548,7 @@ int PKI_X509_sign(PKI_X509               * x,
 		}
 	}
 
-	PKI_DEBUG("Digest Algorithm set to %s", PKI_DIGEST_ALG_get_parsed(digest));
+	// PKI_DEBUG("Digest Algorithm set to %s", PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Let's make sure we do not use a digest with explicit composite
 	if (PKI_ID_is_explicit_composite(pkey_type, NULL)) {
@@ -639,9 +639,9 @@ int PKI_X509_sign(PKI_X509               * x,
 		// }
 	}
 
-	// Debugging Information
-	PKI_DEBUG("Signing Algorithm Is: %s", PKI_ID_get_txt(sig_nid));
-	PKI_DEBUG("Digest Signing Algorithm: %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
+	// // Debugging Information
+	// PKI_DEBUG("Signing Algorithm Is: %s", PKI_ID_get_txt(sig_nid));
+	// PKI_DEBUG("Digest Signing Algorithm: %p (%s)", digest, PKI_DIGEST_ALG_get_parsed(digest));
 
 	// Since we are using the DER representation for signing, we need to first
 	// update the data structure(s) with the right OIDs - we use the default
@@ -671,20 +671,39 @@ int PKI_X509_sign(PKI_X509               * x,
 			digest = NULL;
 		}
 	}
+	
+	// Special case for non-basic types to be signed. The main example is
+	// the OCSP response where we have three different internal fields
+	// suche as status, resp, and bs. We need to sign the bs field in
+	// this case.
+	void * item_data = NULL;
+	switch (x->type) {
+		case PKI_DATATYPE_X509_OCSP_RESP: {
+			PKI_X509_OCSP_RESP_VALUE * ocsp_resp = NULL;
+
+			// For OCSP Responses we need to sign the TBSResponseData
+			ocsp_resp = (PKI_X509_OCSP_RESP_VALUE *) x->value;
+			item_data = ocsp_resp->bs;
+		} break;
+
+		default: {
+			// Default use-case
+			item_data = x->value;
+		} break;
+	}
 
 	// Sets the right OID for the signature
 	int success = ASN1_item_sign(x->it, 
-								PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
-								PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
-								&sig_asn1,
-								x->value,
-								pkey,
-								digest);
-								// ((digest == PKI_DIGEST_ALG_NULL) ? NULL : digest));
+								 PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG1),
+								 PKI_X509_get_data(x, PKI_X509_DATA_SIGNATURE_ALG2),
+								 &sig_asn1,
+								 item_data,
+								 pkey,
+								 digest);
 
 	if (!success || !sig_asn1.data || !sig_asn1.length) {
-		PKI_DEBUG("Error while creating the signature: %s",
-			ERR_error_string(ERR_get_error(), NULL));
+		PKI_DEBUG("Error while creating the signature: %s (success: %d, sig_asn1.data: %p, sig_asn1.length: %d)",
+			ERR_error_string(ERR_get_error(), NULL), success, sig_asn1.data, sig_asn1.length);
 		PKI_ERROR(PKI_ERR_SIGNATURE_CREATE, NULL);
 		return PKI_ERR;
 	}
@@ -780,7 +799,8 @@ int PKI_X509_sign(PKI_X509               * x,
 		// Error: Can not retrieve the generated signature, aborting
 		if (sig_asn1.data) PKI_Free(sig_asn1.data);
 		// Return the error
-		return PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get signature data");
+		PKI_ERROR(PKI_ERR_POINTER_NULL, "Can not get signature data");
+		return PKI_ERR;
 	}
 
 	// // Transfer the ownership of the generated signature data (sig)

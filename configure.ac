@@ -23,7 +23,7 @@ mybits="32"
 mybits_install=""
 is_sparc="no"
 is_aix="no"
-my_arch=`uname -m`
+my_arch=`uname -p`
 
 case "$my_arch" in
   *i686)
@@ -40,7 +40,13 @@ case "$my_arch" in
     mybits="64"
     mybits_install="64"
         ;;
-  *aarch64)
+  *arm|*armv?)
+    mybits="32"
+    ;;
+  *powerpc)
+    mybits="32"
+    ;;
+  *aarch64|*arm64)
     mybits="64"
     mybits_install="64"
     ;;
@@ -57,7 +63,6 @@ case "$my_arch" in
   *powerpc*)
     mybits="64"
     mybits_install="64"
-    is_aix="yes"
     ;;
   *)
     AC_MSG_ERROR([Not supported arch ($my_arch)])

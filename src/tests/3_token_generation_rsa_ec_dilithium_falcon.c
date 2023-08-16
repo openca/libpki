@@ -25,12 +25,13 @@ int main (int argc, char *argv[] ) {
 		exit(1);
 	}
 
-	gen_X509_tk(PKI_SCHEME_RSA, 1024, "results/cert_rsa_1024.pem");
-	gen_X509_tk(PKI_SCHEME_RSA, 2048, "results/cert_rsa_2048.pem");
-	gen_X509_tk(PKI_SCHEME_RSA, 3072, "results/cert_rsa_3072.pem");
+	gen_X509_tk(PKI_SCHEME_RSA, 2048, "results/cert_rsa_1024.pem");
 	gen_X509_tk(PKI_SCHEME_ECDSA, 128,"results/cert_ecdsa_128.pem");
-	gen_X509_tk(PKI_SCHEME_ECDSA, 192,"results/cert_ecdsa_192.pem");
-	gen_X509_tk(PKI_SCHEME_ECDSA, 256, "results/cert_ecdsa_256.pem");
+
+#ifdef ENABLE_OQS
+	gen_X509_tk(PKI_SCHEME_DILITHIUM, 128, "results/cert_dilithium_128.pem");
+	gen_X509_tk(PKI_SCHEME_FALCON, 128, "results/cert_falcon_128.pem");
+#endif
 
 	PKI_log_end();
 
@@ -96,25 +97,6 @@ int gen_X509_tk(int scheme, int bits, char *file ) {
 		return(0);
 	}
 	printf("Ok.\n");
-
-	/* Assign the Certificate to the Token---when freeing the PKI_TOKEN
-	   the cert memory is also freed */
-	/*
-	if((PKI_TOKEN_set_cert( tk, r )) == 0 ) {
-		printf("ERROR!\n");
-		return(0);
-	}
-	*/
-
-	/*
-	if(!PKI_X509_CERT_write_file( r, PKI_FORMAT_PEM, file )) {
-		fprintf( stderr, "<file write error %s> ", file);
-	}
-	*/
-
-	// if( tk ) PKI_TOKEN_free ( tk );
-	// if( r ) PKI_X509_CERT_free ( r );
-	// if( p ) PKI_KEYPAIR_free( p );
 
 	printf("    - Freeing Token ... ");
 	if( tk ) PKI_TOKEN_free ( tk );

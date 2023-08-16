@@ -603,9 +603,6 @@ int PKI_TOKEN_login(PKI_TOKEN * const tk) {
 		return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 	}
 
-	// Checks if the Token requires logging in
-	if (tk->hsm && tk->hsm->isLoginRequired)
-
 	// Logs into the HSM, if any is configured for the token
 	if (tk->hsm // We have an HSM 
 	    && tk->hsm->isLoginRequired // Login is Required
