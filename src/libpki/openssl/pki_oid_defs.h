@@ -6,8 +6,10 @@
 * Released under OpenCA LICENSE
 */
 
-#ifndef OQS_H
-#include <oqs/oqs.h>
+#ifdef ENABLE_OQS
+# ifndef OQS_H
+#  include <oqs/oqs.h>
+# endif
 #endif
 
 #ifndef _LIBPKI_OID_DEFS_H

@@ -875,7 +875,9 @@ err:
     // Memory Cleanup
     if (value) EVP_PKEY_free(value);
     if (ret) PKI_X509_KEYPAIR_free(ret);
+#ifdef ENABLE_OQS
     if (ctx) EVP_PKEY_CTX_free(ctx);
+#endif
 
     // Error
     return NULL;
@@ -897,9 +899,13 @@ void HSM_OPENSSL_X509_KEYPAIR_free ( PKI_X509_KEYPAIR *pkey ) {
 // we have to provide our own function until OpenSSL solve
 // this issue
 
-int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x, 
-        const EVP_CIPHER *enc, unsigned char *out_buffer, int klen, 
-        pem_password_cb *cb, void *u) {
+int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp, 
+                                      EVP_PKEY          * x, 
+                                      const EVP_CIPHER  * enc, 
+                                      unsigned char     * out_buffer,
+                                      int                 klen, 
+                                      pem_password_cb   * cb,
+                                      void              * u) {
 
     int ret = PKI_ERR;
 
@@ -914,7 +920,7 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO *bp, EVP_PKEY *x,
         case EVP_PKEY_EC: {
 # if OPENSSL_VERSION_NUMBER >= 0x30000000L
             ret = PEM_write_bio_ECPrivateKey(bp, 
-                EVP_PKEY_get1_EC_KEY(x), enc, (unsigned char *) kstr, klen, cb, u);
+                EVP_PKEY_get1_EC_KEY(x), enc, (unsigned char *) out_buffer, klen, cb, u);
 # elif OPENSSL_VERSION_NUMBER < 0x1010000fL
             ret = PEM_write_bio_ECPrivateKey(bp, 
                 x->pkey.ec, enc, (unsigned char *) out_buffer, klen, cb, u);
