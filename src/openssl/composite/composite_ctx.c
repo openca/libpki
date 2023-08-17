@@ -312,7 +312,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                                        const COMPOSITE_KEY_STACK  * const components,
                                        X509_ALGORS               ** algors) {
 
-  int sk_num = 0;
+  int stack_elements_num = 0;
     // Number of elements in the stack
 
   X509_ALGORS * sk = NULL;
@@ -343,8 +343,8 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
   }
 
   // Gets the number of components
-  if ((sk_num = COMPOSITE_KEY_STACK_num(components)) < 2) {
-    PKI_DEBUG("Insufficient number of components in the key stack (%d)", sk_num);
+  if ((stack_elements_num = COMPOSITE_KEY_STACK_num(components)) < 2) {
+    PKI_DEBUG("Insufficient number of components in the key stack (%d)", stack_elements_num);
     return PKI_ERR;
   }
 
@@ -545,8 +545,8 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
-      if (sk_num != 3) {
-        PKI_DEBUG("Insufficient number of components in the key stack (%d)", sk_num);
+      if (stack_elements_num != 3) {
+        PKI_DEBUG("Insufficient number of components in the key stack (%d)", stack_elements_num);
         return PKI_ERR;
       }
       // Dilithium5 component
@@ -568,8 +568,8 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     } break;
 
     case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
-      if (sk_num != 3) {
-        PKI_DEBUG("Insufficient number of components in the key stack (%d)", sk_num);
+      if (stack_elements_num != 3) {
+        PKI_DEBUG("Insufficient number of components in the key stack (%d)", stack_elements_num);
         return PKI_ERR;
       }
       // Dilithium5 component
@@ -596,8 +596,11 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
       return PKI_ERR;
   }
 
+  int algor_num = sk_X509_ALGOR_num(sk);
+  int components_num = COMPOSITE_KEY_STACK_num(components);
+  
   // Checks the number of components and algorithms to be the same
-  if (sk_X509_ALGOR_num(sk) != COMPOSITE_KEY_STACK_num(components)) {
+  if (algor_num != components_num) {
     PKI_DEBUG("Number of components (%d) and algorithms (%d) do not match",
               COMPOSITE_KEY_STACK_num(components), sk_X509_ALGOR_num(ctx->sig_algs));
     sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);

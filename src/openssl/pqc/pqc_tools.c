@@ -5,6 +5,8 @@
 // Functions
 // =========
 
+#ifdef ENABLE_OQS
+
 int oqssl_sig_nids_list[] = {
 ///// OQS_TEMPLATE_FRAGMENT_LIST_KNOWN_NIDS_START
         NID_dilithium2,
@@ -453,3 +455,5 @@ int oqs_int_update(EVP_MD_CTX *ctx, const void *data, size_t count)
     }
     return 1;
 }
+
+#endif // End of ENABLE_OQS

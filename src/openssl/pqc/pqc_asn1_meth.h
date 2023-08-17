@@ -2,6 +2,11 @@
 #ifndef _LIBPKI_PQC_AMETH_LOCAL_H
 #define _LIBPKI_PQC_AMETH_LOCAL_H
 
+// Include the library configuration
+#include <libpki/config.h>
+
+#ifdef ENABLE_OQS
+
 #ifndef _LIBPKI_OS_H
 #include <libpki/os.h>
 #endif
@@ -20,6 +25,10 @@
 
 #ifndef _LIBPKI_PQC_TOOLS_H
 #include "pqc_tools.h"
+#endif
+
+#ifndef HEADER_OPENSSL_TYPES_H
+#include <openssl/ossl_typ.h>
 #endif
 
 #ifndef HEADER_ERR_H
@@ -127,4 +136,6 @@ int oqs_ameth_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2);
 
 END_C_DECLS
 
-# endif // End of _LIBPKI_PQC_AMETH_LOCAL_H
+# endif // End of ENABLE_OQS
+
+#endif // End of _LIBPKI_PQC_AMETH_LOCAL_H

@@ -195,6 +195,8 @@ int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 	// Checks the PKEY / Signatures
 	switch (id) {
 
+#ifdef ENABLE_PQC
+
 		// Signature Algorithms
 		case NID_dilithium2:
         case NID_dilithium3:
@@ -259,6 +261,8 @@ int PKI_ID_is_pqc(PKI_ID id, PKI_SCHEME_ID * scheme_id) {
 			if (scheme_id) *scheme_id = PKI_SCHEME_CLASSIC_MCELIECE;
 			return PKI_OK;
 		} break;
+
+#endif // End of ENABLE_PQC
 
 		default:
 			break;

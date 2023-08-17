@@ -434,6 +434,8 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
 
 	switch (id) {
 
+#ifdef ENABLE_OQS
+
 		// Signature
 	#ifdef OQS_ENABLE_SIG_DILITHIUM
 		case PKI_SCHEME_DILITHIUM:
@@ -465,6 +467,8 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
 		case PKI_SCHEME_DILITHIUMX3: {
 			// Nothing to do
 		} break;
+
+#endif // End of ENABLE_OQS
 
 		default:
 			// Non-Post Quantum
@@ -1184,6 +1188,8 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		return PKI_SCHEME_UNKNOWN;
 	}
 
+#ifdef ENABLE_OQS
+
 	// Explicit Composite - DILITHIUM3-P256
 	if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, 0, 1) == 0 ||
 		str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, 0, 1) == 0 ||
@@ -1295,39 +1301,6 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 				str_cmp_ex(data, "D5-F1024-RSA", 0, 1) == 0 ||
 				str_cmp_ex(data, "DILITHIUM5-FALCON1024-RSA", 0, 1) == 0) {
 		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
-	// RSA Option
-	} else if (str_cmp_ex(data, "RSA", 0, 1) == 0) {
-		ret = PKI_SCHEME_RSA;
-	// RSA-PSS Option
-	} else if (str_cmp_ex(data, "RSAPSS", 0, 1) == 0 ||
-			   str_cmp_ex(data, "RSA-PSS", 0, 1) == 0) {
-		ret = PKI_SCHEME_RSAPSS;
-	// ED 25519 Option
-	} else if (str_cmp_ex(data, "ED25519", 0, 1) == 0) {
-		ret = PKI_SCHEME_ED25519;
-	// X25519 Option
-	} else if (str_cmp_ex(data, "X25519", 0, 1) == 0) {
-		ret = PKI_SCHEME_X25519;
-	// ED 448 Option
-	} else if (str_cmp_ex(data, "ED448", 0, 1) == 0) {
-		ret = PKI_SCHEME_ED448;
-	// X448 Option
-	} else if (str_cmp_ex(data, "X448", 0, 1) == 0) {
-		ret = PKI_SCHEME_X448;
-	// EC Option
-	} else if (str_cmp_ex(data, "EC", 0, 1) == 0 ||
-			   str_cmp_ex(data, "ECDSA", 0, 1) == 0 ||
-			   str_cmp_ex(data, "B128", 0, 1) == 0 ||
-			   str_cmp_ex(data, "B192", 0, 1) == 0 ||
-			   str_cmp_ex(data, "B256", 0, 1) == 0 ||
-			   str_cmp_ex(data, "Brainpool", 9, 1) == 0 ||
-			   str_cmp_ex(data, "P256", 0, 1) == 0 ||
-			   str_cmp_ex(data, "P384", 0, 1) == 0 ||
-			   str_cmp_ex(data, "P512", 0, 1) == 0) {
-		ret = PKI_SCHEME_ECDSA;
-	// DSA
-	} else if (str_cmp_ex(data, "DSA", 0, 1) == 0) {
-		ret = PKI_SCHEME_DSA;
 	} else if (str_cmp_ex(data, "DILITHIUMX3", 0, 1) == 0) { 
 		ret = PKI_SCHEME_DILITHIUMX3;
 	} else if (str_cmp_ex(data, "DILITHIUM2", 0, 1) == 0) {
@@ -1365,17 +1338,60 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		ret = PKI_SCHEME_KYBER;
 	}
 
-	if (!ret) {
-		// Some debugging
-		PKI_DEBUG("Cannot Convert [%s] into a recognized OID.", data);
+#endif
+
+	// Checks for Traditional Crypto
+	// =============================
+	
+	if (ret == PKI_SCHEME_UNKNOWN) {
+		// RSA Option
+		if (str_cmp_ex(data, "RSA", 0, 1) == 0) {
+			ret = PKI_SCHEME_RSA;
+		// RSA-PSS Option
+		} else if (str_cmp_ex(data, "RSAPSS", 0, 1) == 0 ||
+				str_cmp_ex(data, "RSA-PSS", 0, 1) == 0) {
+			ret = PKI_SCHEME_RSAPSS;
+		// ED 25519 Option
+		} else if (str_cmp_ex(data, "ED25519", 0, 1) == 0) {
+			ret = PKI_SCHEME_ED25519;
+		// X25519 Option
+		} else if (str_cmp_ex(data, "X25519", 0, 1) == 0) {
+			ret = PKI_SCHEME_X25519;
+		// ED 448 Option
+		} else if (str_cmp_ex(data, "ED448", 0, 1) == 0) {
+			ret = PKI_SCHEME_ED448;
+		// X448 Option
+		} else if (str_cmp_ex(data, "X448", 0, 1) == 0) {
+			ret = PKI_SCHEME_X448;
+		// EC Option
+		} else if (str_cmp_ex(data, "EC", 0, 1) == 0 ||
+				str_cmp_ex(data, "ECDSA", 0, 1) == 0 ||
+				str_cmp_ex(data, "B128", 0, 1) == 0 ||
+				str_cmp_ex(data, "B192", 0, 1) == 0 ||
+				str_cmp_ex(data, "B256", 0, 1) == 0 ||
+				str_cmp_ex(data, "Brainpool", 9, 1) == 0 ||
+				str_cmp_ex(data, "P256", 0, 1) == 0 ||
+				str_cmp_ex(data, "P384", 0, 1) == 0 ||
+				str_cmp_ex(data, "P512", 0, 1) == 0) {
+			ret = PKI_SCHEME_ECDSA;
+		// DSA
+		} else if (str_cmp_ex(data, "DSA", 0, 1) == 0) {
+			ret = PKI_SCHEME_DSA;
+		}
 	}
 
-	// Checks if we need to retrieve the default security bits
-	if (default_sec_bits) {
-		// Returns the security bits for the scheme
-		if (PKI_ERR == PKI_SCHEME_ID_security_bits(ret, classic_sec_bits, quantum_sec_bits)) {
-			PKI_DEBUG("Cannot get security bits for scheme %d", ret);
-			return PKI_SCHEME_UNKNOWN;
+	// Checks if we found the scheme
+	if (ret == PKI_SCHEME_UNKNOWN) {
+		// Some debugging
+		PKI_DEBUG("Cannot Convert [%s] into a recognized OID.", data);
+	} else {
+		// Checks if we need to retrieve the default security bits
+		if (default_sec_bits) {
+			// Returns the security bits for the scheme
+			if (PKI_ERR == PKI_SCHEME_ID_security_bits(ret, classic_sec_bits, quantum_sec_bits)) {
+				PKI_DEBUG("Cannot get security bits for scheme %d", ret);
+				return PKI_SCHEME_UNKNOWN;
+			}
 		}
 	}
 

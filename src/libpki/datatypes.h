@@ -9,6 +9,9 @@
 #ifndef _LIBPKI_PKI_DATATYPES_H
 #define _LIBPKI_PKI_DATATYPES_H	
 
+// Include the library configuration
+#include <libpki/config.h>
+
 #ifndef _LIBPKI_COMPAT_H
 # include <libpki/compat.h>
 #endif

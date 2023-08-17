@@ -6,14 +6,17 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_OID_DEFS_H
+#define _LIBPKI_OID_DEFS_H
+
+// Include the library configuration
+#include <libpki/config.h>
+
 #ifdef ENABLE_OQS
 # ifndef OQS_H
 #  include <oqs/oqs.h>
 # endif
 #endif
-
-#ifndef _LIBPKI_OID_DEFS_H
-#define _LIBPKI_OID_DEFS_H
 
 // GENERAL
 # define LEVEL_OF_ASSURANCE_OID   		    "1.3.6.1.4.1.18227.50.1"

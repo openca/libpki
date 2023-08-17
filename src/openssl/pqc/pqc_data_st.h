@@ -1,16 +1,21 @@
 #ifndef _LIBPKI_PQC_LOCAL_H
 #define _LIBPKI_PQC_LOCAL_H
 
-#include <libpki/os.h>
-#include <libpki/compat.h>
+// Include the library configuration
+#include <libpki/config.h>
 
-#ifndef OQS_H
-#include <oqs/oqs.h>
-#endif
+# ifdef ENABLE_OQS
 
-#ifndef LIBPKI_X509_DATA_ST_H
-#include "../internal/x509_data_st.h"
-#endif
+#  include <libpki/os.h>
+#  include <libpki/compat.h>
+
+#  ifndef OQS_H
+#   include <oqs/oqs.h>
+#  endif
+
+#  ifndef LIBPKI_X509_DATA_ST_H
+#   include "../internal/x509_data_st.h"
+#  endif
 
 BEGIN_C_DECLS
 
@@ -45,4 +50,6 @@ typedef enum {
 
 END_C_DECLS
 
-# endif // End of _LIBPKI_PQC_LOCAL_H
+# endif // End of ENABLE_OQS
+
+#endif // End of _LIBPKI_PQC_LOCAL_H

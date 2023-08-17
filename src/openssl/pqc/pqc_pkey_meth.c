@@ -1,8 +1,8 @@
 
 
-#ifndef _LIBPKI_PQC_AMETH_LOCAL_H
 #include "pqc_pkey_meth.h"
-#endif
+
+#ifdef ENABLE_OQS
 
 #ifndef _LIBPKI_LOG_H
 #include <libpki/pki_log.h>
@@ -451,3 +451,5 @@ int pkey_oqs_digestverify(EVP_MD_CTX *ctx, const unsigned char *sig,
 int pkey_oqs_digestcustom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx) {
    return 1;
 }
+
+#endif // End of ENABLE_OQS

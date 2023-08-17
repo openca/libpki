@@ -2,6 +2,11 @@
 #ifndef _LIBPKI_PQC_TOOLS_H
 #define _LIBPKI_PQC_TOOLS_H
 
+// Include the library configuration
+#include <libpki/config.h>
+
+#ifdef ENABLE_OQS
+
 #ifndef _LIBPKI_OS_H
 #include <libpki/os.h>
 #endif
@@ -69,5 +74,7 @@ void oqs_pkey_ctx_free(OQS_KEY* key);
 int oqs_int_update(EVP_MD_CTX *ctx, const void *data, size_t count);
 
 END_C_DECLS
+
+#endif // End of ENABLE_OQS
 
 #endif // End of _LIBPKI_PQC_TOOLS_H
