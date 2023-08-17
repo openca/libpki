@@ -41,67 +41,77 @@ const ASN1_ITEM * _get_ossl_item(PKI_DATATYPE type) {
 	switch (type) {
 
 		case PKI_DATATYPE_X509_CERT : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-	        it = (ASN1_ITEM *) X509_CINF_it;
-#else
-			it = &X509_CINF_it;
-#endif
+			it = ASN1_ITEM_rptr(X509_CINF);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 	        it = (ASN1_ITEM *) X509_CINF_it;
+// #else
+// 			it = &X509_CINF_it;
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_CRL : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) X509_CRL_INFO_it;
-#else
-			it = &X509_CRL_INFO_it;
-#endif
+			it = ASN1_ITEM_rptr(X509_CRL_INFO);
+
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			// it = (ASN1_ITEM *)X509_CRL_INFO_it;
+// #else
+// 			// it = &X509_CRL_INFO_it;
+// 			it = ASN1_ITEM_rptr(X509_CRL_INFO);
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_REQ : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) X509_REQ_INFO_it;
-#else
-			it = &X509_REQ_INFO_it;
-#endif
+			it = ASN1_ITEM_rptr(X509_REQ_INFO);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) X509_REQ_INFO_it;
+// #else
+// 			it = &X509_REQ_INFO_it;
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_OCSP_REQ : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) OCSP_REQINFO_it;
-#else
-			it = &OCSP_REQINFO_it;
-#endif
+			it = ASN1_ITEM_rptr(OCSP_REQINFO);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) OCSP_REQINFO_it;
+// #else
+// 			it = &OCSP_REQINFO_it;
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_OCSP_RESP : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) OCSP_RESPDATA_it;
-#else
-			it = &OCSP_RESPDATA_it;
-#endif
+			it = ASN1_ITEM_rptr(OCSP_RESPDATA);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) OCSP_RESPDATA_it;
+// #else
+// 			it = &OCSP_RESPDATA_it;
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_PRQP_REQ : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) PKI_PRQP_REQ_it;
-#else
-			it = &PKI_PRQP_REQ_it;
-#endif
+			it = ASN1_ITEM_rptr(PKI_PRQP_REQ);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) PKI_PRQP_REQ_it;
+// #else
+// 			it = &PKI_PRQP_REQ_it;
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_PRQP_RESP : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) PKI_PRQP_RESP_it;
-#else
-			it = &PKI_PRQP_RESP_it;
-#endif
+			it = ASN1_ITEM_rptr(PKI_PRQP_RESP);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) PKI_PRQP_RESP_it;
+// #else
+// 			it = &PKI_PRQP_RESP_it;
+// #endif
 		} break;
 
 		case PKI_DATATYPE_X509_CMS : {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) CMS_ContentInfo_it;
-#else
-			it = &CMS_ContentInfo_it;
-#endif
+			it = ASN1_ITEM_rptr(CMS_ContentInfo);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) CMS_ContentInfo_it;
+// #else
+// 			it = &CMS_ContentInfo_it;
+// #endif
 		}
 
 		case PKI_DATATYPE_X509_KEYPAIR: {
@@ -109,11 +119,12 @@ const ASN1_ITEM * _get_ossl_item(PKI_DATATYPE type) {
 		} break;
 
 		case PKI_DATATYPE_X509_EXTENSION: {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-			it = (ASN1_ITEM *) X509_EXTENSION_it;
-#else
-			it = &X509_EXTENSION_it;
-#endif
+			it = ASN1_ITEM_rptr(X509_EXTENSION);
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+// 			it = (ASN1_ITEM *) X509_EXTENSION_it;
+// #else
+// 			it = &X509_EXTENSION_it;
+// #endif
 		} break;
 
 		default: {
