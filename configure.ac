@@ -1566,6 +1566,67 @@ AC_SUBST(oqs_cflags)
 AC_SUBST(oqs_ldflags)
 AC_SUBST(oqs_ldadd)
 
+dnl ================= Open Quantum Safe - PQ and Composite Crypto PROVIDER ===================
+
+dnl Defaults
+oqsprov_config=
+oqsprov_cflags=
+oqsprov_check=
+oqsprov_prefix=/usr
+oqsprov_ldflags=
+oqsprov_ldadd=
+
+dnl Enable OQS support
+cli_oqsprov=no
+
+AC_ARG_ENABLE(oqsprov,
+	[  --enable-oqsprov      enable support for the OQS provider (no)],
+	[cli_oqsprov=$enableval], 
+	[cli_oqsprov=default]
+ )
+
+if [[ "x$cli_oqs" = "xyes" ]] ; then
+	AC_MSG_RESULT([ Open Quantum Safe Provider: Enabled via CLI option ($cli_oqsprov) ])
+	AC_DEFINE(ENABLE_OQSPROV, 1, [ Open Quantum Safe Provider Support ])
+	oqsprov_check="yes"
+	oqsprov_cflags="-DENABLE_OQSPROV=1"
+	oqsprov_ldadd=""
+	oqsprov_ldflags=""
+else
+
+	if [[ "x$cli_oqsprov" = "xdefault" ]] ; then
+		AC_MSG_RESULT([Checking support for Open Quantum Safe Provider])
+
+		oqs_provider_prefix=$prefix
+		if [[ "x$liboqs_prefix" = "x" ]] ; then
+			oqsprov_prefix=$liboqs_prefix
+		fi
+
+		if [[ -f "${oqsprov_prefix}/lib/ossl-modules/oqsprovider.*" ]] ; then
+			AC_MSG_RESULT([Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)])
+			AC_DEFINE(ENABLE_OQSPROV, 1, [Open Quantum Safe Library])],
+			oqsprov_check="yes"
+			oqsprov_cflags="-DENABLE_OQSPROV=1"
+		else
+			AC_MSG_RESULT([Open Quantum Safe: Module NOT Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/)])
+			oqsprov_check="no"
+			oqsprov_cflags=""
+		fi
+
+	else
+		AC_MSG_RESULT([Open Quantum Safe Provider: Disabled (oqs=$oqsprov_check)])
+		oqsprov_check="no"
+		oqsprov_ldadd=""
+		oqsprov_cflags=""
+	fi
+fi
+
+AM_CONDITIONAL(ENABLE_OQSPROV, test "${oqsprov_check}" = "yes")
+
+AC_SUBST(oqsprov_cflags)
+AC_SUBST(oqsprov_ldflags)
+AC_SUBST(oqsprov_ldadd)
+
 dnl ================= OpenSSL Composite Crypto Native Support ===================
 
 dnl Defaults

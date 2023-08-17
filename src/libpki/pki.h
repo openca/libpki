@@ -27,6 +27,7 @@
 #include <libxml/xpathInternals.h>
 // #include <libxml/nanohttp.h>
 
+// Library configuration
 #ifdef __LIB_BUILD__
 #include <libpki/config.h>
 #endif
