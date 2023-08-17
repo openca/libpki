@@ -435,6 +435,14 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			}
 			kp->pkey_type = kp->oqs.algId;
 		} break;
+#endif
+
+#ifdef ENABLE_COMBINED
+		case PKI_SCHEME_COMBINED: {
+			// No need to translate, output the input
+			ret = sec_bits;
+		} break;
+#endif
 
 #ifdef ENABLE_COMPOSITE
 
@@ -447,15 +455,8 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->pkey_type = PKI_ID_get_by_name(OPENCA_ALG_PKEY_EXP_COMP_NAME);
 			kp->sec_bits = sec_bits;
 		} break;
-#endif
 
-#ifdef ENABLE_COMBINED
-		case PKI_SCHEME_COMBINED: {
-			// No need to translate, output the input
-			ret = sec_bits;
-		} break;
-#endif
-
+#ifdef ENABLE_OQS
 		// ===============================
 		// Explicit Composite Combinations
 		// ===============================
@@ -573,7 +574,9 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->pq_sec_bits = 256;
 		} break;
 
-#endif // ENABLE_OQS
+#endif // End of ENABLE_OQS
+
+#endif // End of ENABLE_COMPOSITE
 
 		default: {
 			// Sets the sec_bits

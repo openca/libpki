@@ -1188,156 +1188,173 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		return PKI_SCHEME_UNKNOWN;
 	}
 
-#ifdef ENABLE_OQS
+#ifdef ENABLE_COMPOSITE
 
-	// Explicit Composite - DILITHIUM3-P256
-	if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, 0, 1) == 0 ||
-		str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, 0, 1) == 0 ||
-		str_cmp_ex(data, "DILITHIUM3-ECDSA", 0, 1) == 0 ||
-		str_cmp_ex(data, "DILITHIUM3-EC", 0, 1) == 0 ||
-		str_cmp_ex(data, "DILITHIUM3-P256", 0, 1) == 0 ||
-		str_cmp_ex(data, "D3-P256", 0, 1) == 0 ||
-		str_cmp_ex(data, "DILITHIUM-P256", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256;
-	// Explicit Composite - DILITHIUM3-RSA
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID, 0, 1) == 0 ||
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-RSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "D3-RSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM3-RSA", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA;
-	// Explicit Composite - DILITHIUM3-BRAINPOOL256
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM-BRAINPOOL", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM3-BRAINPOOL", 0, 1) == 0 ||
-				str_cmp_ex(data, "D3-B256", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM3-B256", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM-ED25519", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-25519", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM3-ED25519", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM3-25519", 0, 1) == 0 ||
-				str_cmp_ex(data, "D3-ED25519", 0, 1) == 0 ||
-				str_cmp_ex(data, "D3-25519", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM3-25519", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM5-ECDSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM5-EC", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-P384", 0, 1) == 0 ||
-				str_cmp_ex(data, "D5-P384", 0, 1) == 0 ||
-				str_cmp_ex(data, "D5-ECDSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM5-P384", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM5-BRAINPOOL", 0, 1) == 0 ||
-				str_cmp_ex(data, "D5-B384", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM5-B384", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM5-448", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-ED448", 0, 1) == 0 ||
-				str_cmp_ex(data, "D5-ED448", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-448", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON512-P256", 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-ECDSA", 0, 1) == 0 || 
-				str_cmp_ex(data, "F512-ECDSA", 0, 1) == 0 || 
-				str_cmp_ex(data, "F512-P256", 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-P256", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON512-BRAINPOOL", 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-BRAINPOOL256", 0, 1) == 0 || 
-				str_cmp_ex(data, "F512-B256", 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-BRAINPOOL", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, 0, 1) == 0 ||
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON512-25519", 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-ED25519", 0, 1) == 0 || 
-				str_cmp_ex(data, "F512-ED25519", 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-25519", 0, 1) == 0) {
-		return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
-	// } else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, 0, 1) == 0 || 
-	// 			str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, 0, 1) == 0 || 
-	// 			str_cmp_ex(data, "SPHINCS256-ECDSA", 0, 1) == 0 || 
-	// 			str_cmp_ex(data, "SPHINCS-ECDSA", 0, 1) == 0 || 
-	// 			str_cmp_ex(data, "SPHINCS-P256", 0, 1) == 0) {
-	// 	return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM3-RSAPSS", 0, 1) == 0 || 
-				str_cmp_ex(data, "D3-RSAPSS", 0, 1) == 0 || 
-				str_cmp_ex(data, "DILITHIUM-RSAPSS", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS;
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID, 0, 1) == 0 || 
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, 0, 1) == 0 || 
-				str_cmp_ex(data, "FALCON-RSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "F512-RSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "FALCON512-RSA", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA;
-	// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-P521
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID, 0, 1) == 0 ||
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-FALCON-EC", 0, 1) == 0 ||
-				str_cmp_ex(data, "D5-F1024-P521", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM5-FALCON1024-P521", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-FALCON-P521", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521;
-	// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-RSA
-	} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_OID, 0, 1) == 0 ||
-				str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME, 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM-FALCON-RSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "D5-F1024-RSA", 0, 1) == 0 ||
-				str_cmp_ex(data, "DILITHIUM5-FALCON1024-RSA", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
-	} else if (str_cmp_ex(data, "DILITHIUMX3", 0, 1) == 0) { 
-		ret = PKI_SCHEME_DILITHIUMX3;
-	} else if (str_cmp_ex(data, "DILITHIUM2", 0, 1) == 0) {
-		default_sec_bits = 0;
-		if (classic_sec_bits) *classic_sec_bits = 128;
-		if (quantum_sec_bits) *quantum_sec_bits = 128;
-		ret = PKI_SCHEME_DILITHIUM;
-	} else if (str_cmp_ex(data, "DILITHIUM3", 0, 1) == 0) {
-		default_sec_bits = 0;
-		if (classic_sec_bits) *classic_sec_bits = 192;
-		if (quantum_sec_bits) *quantum_sec_bits = 192;
-		ret = PKI_SCHEME_DILITHIUM;
-	} else if (str_cmp_ex(data, "DILITHIUM5", 0, 1) == 0) {
-		default_sec_bits = 0;
-		if (classic_sec_bits) *classic_sec_bits = 256;
-		if (quantum_sec_bits) *quantum_sec_bits = 256;
-		ret = PKI_SCHEME_DILITHIUM;
-	} else if (str_cmp_ex(data, "DILITHIUM", 0, 1) == 0) {
-		ret = PKI_SCHEME_DILITHIUM;
-	} else if (str_cmp_ex(data, "FALCON512", 0, 1) == 0) {
-		default_sec_bits = 0;
-		if (classic_sec_bits) *classic_sec_bits = 128;
-		if (quantum_sec_bits) *quantum_sec_bits = 128;
-		ret = PKI_SCHEME_FALCON;
-	} else if (str_cmp_ex(data, "FALCON1024", 0, 1) == 0) {
-		default_sec_bits = 0;
-		if (classic_sec_bits) *classic_sec_bits = 256;
-		if (quantum_sec_bits) *quantum_sec_bits = 256;
-		ret = PKI_SCHEME_FALCON;
-	} else if (str_cmp_ex(data, "FALCON", 0, 1) == 0) {
-		ret = PKI_SCHEME_FALCON;
-	} else if (str_cmp_ex(data, "COMPOSITE", 0, 1) == 0) {
-		ret = PKI_SCHEME_COMPOSITE;
-	} else if (str_cmp_ex(data, "KYBER", 0, 1) == 0) {
-		ret = PKI_SCHEME_KYBER;
+	// Generic Composite
+	if (ret == PKI_SCHEME_UNKNOWN) {
+		if (str_cmp_ex(data, "COMPOSITE", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE;
+		}
 	}
 
+#ifdef ENABLE_OQS
+
+	// Explicit Composite
+	if (ret == PKI_SCHEME_UNKNOWN) {
+		// Explicit Composite - DILITHIUM3-P256
+		if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_OID, 0, 1) == 0 ||
+			str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_P256_SHA256_NAME, 0, 1) == 0 ||
+			str_cmp_ex(data, "DILITHIUM3-ECDSA", 0, 1) == 0 ||
+			str_cmp_ex(data, "DILITHIUM3-EC", 0, 1) == 0 ||
+			str_cmp_ex(data, "DILITHIUM3-P256", 0, 1) == 0 ||
+			str_cmp_ex(data, "D3-P256", 0, 1) == 0 ||
+			str_cmp_ex(data, "DILITHIUM-P256", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256;
+		// Explicit Composite - DILITHIUM3-RSA
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_OID, 0, 1) == 0 ||
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSA_SHA256_NAME, 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-RSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "D3-RSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM3-RSA", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA;
+		// Explicit Composite - DILITHIUM3-BRAINPOOL256
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM-BRAINPOOL", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM3-BRAINPOOL", 0, 1) == 0 ||
+					str_cmp_ex(data, "D3-B256", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM3-B256", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_ED25519_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM-ED25519", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-25519", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM3-ED25519", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM3-25519", 0, 1) == 0 ||
+					str_cmp_ex(data, "D3-ED25519", 0, 1) == 0 ||
+					str_cmp_ex(data, "D3-25519", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM3-25519", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_P384_SHA384_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM5-ECDSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM5-EC", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-P384", 0, 1) == 0 ||
+					str_cmp_ex(data, "D5-P384", 0, 1) == 0 ||
+					str_cmp_ex(data, "D5-ECDSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM5-P384", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_BRAINPOOL384_SHA384_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM5-BRAINPOOL", 0, 1) == 0 ||
+					str_cmp_ex(data, "D5-B384", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM5-B384", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_ED448_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM5-448", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-ED448", 0, 1) == 0 ||
+					str_cmp_ex(data, "D5-ED448", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-448", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_P256_SHA256_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON512-P256", 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-ECDSA", 0, 1) == 0 || 
+					str_cmp_ex(data, "F512-ECDSA", 0, 1) == 0 || 
+					str_cmp_ex(data, "F512-P256", 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-P256", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_BRAINPOOL256_SHA256_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON512-BRAINPOOL", 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-BRAINPOOL256", 0, 1) == 0 || 
+					str_cmp_ex(data, "F512-B256", 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-BRAINPOOL", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_OID, 0, 1) == 0 ||
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_ED25519_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON512-25519", 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-ED25519", 0, 1) == 0 || 
+					str_cmp_ex(data, "F512-ED25519", 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-25519", 0, 1) == 0) {
+			return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
+		// } else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_OID, 0, 1) == 0 || 
+		// 			str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_SPHINCS256_P256_SHA256_NAME, 0, 1) == 0 || 
+		// 			str_cmp_ex(data, "SPHINCS256-ECDSA", 0, 1) == 0 || 
+		// 			str_cmp_ex(data, "SPHINCS-ECDSA", 0, 1) == 0 || 
+		// 			str_cmp_ex(data, "SPHINCS-P256", 0, 1) == 0) {
+		// 	return PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM3_RSAPSS_SHA256_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM3-RSAPSS", 0, 1) == 0 || 
+					str_cmp_ex(data, "D3-RSAPSS", 0, 1) == 0 || 
+					str_cmp_ex(data, "DILITHIUM-RSAPSS", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSAPSS;
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_OID, 0, 1) == 0 || 
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_FALCON512_RSA_SHA256_NAME, 0, 1) == 0 || 
+					str_cmp_ex(data, "FALCON-RSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "F512-RSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "FALCON512-RSA", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA;
+		// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-P521
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_OID, 0, 1) == 0 ||
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_P521_SHA512_NAME, 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-FALCON-EC", 0, 1) == 0 ||
+					str_cmp_ex(data, "D5-F1024-P521", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM5-FALCON1024-P521", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-FALCON-P521", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521;
+		// Explicit Composite - DILITHIUM5-FALCON1024-ECDSA-RSA
+		} else if (str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_OID, 0, 1) == 0 ||
+					str_cmp_ex(data, OPENCA_ALG_PKEY_EXP_COMP_EXPLICIT_DILITHIUM5_FALCON1024_RSA_SHA256_NAME, 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM-FALCON-RSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "D5-F1024-RSA", 0, 1) == 0 ||
+					str_cmp_ex(data, "DILITHIUM5-FALCON1024-RSA", 0, 1) == 0) {
+			ret = PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA;
+		}
+	}
+#endif // End of ENABLE_OQS
+
+#endif // End of ENABLE_COMPOSITE
+
+#ifdef ENABLE_OQS
+	if (ret == PKI_SCHEME_UNKNOWN) {
+		if (str_cmp_ex(data, "DILITHIUMX3", 0, 1) == 0) { 
+			ret = PKI_SCHEME_DILITHIUMX3;
+		} else if (str_cmp_ex(data, "DILITHIUM2", 0, 1) == 0) {
+			default_sec_bits = 0;
+			if (classic_sec_bits) *classic_sec_bits = 128;
+			if (quantum_sec_bits) *quantum_sec_bits = 128;
+			ret = PKI_SCHEME_DILITHIUM;
+		} else if (str_cmp_ex(data, "DILITHIUM3", 0, 1) == 0) {
+			default_sec_bits = 0;
+			if (classic_sec_bits) *classic_sec_bits = 192;
+			if (quantum_sec_bits) *quantum_sec_bits = 192;
+			ret = PKI_SCHEME_DILITHIUM;
+		} else if (str_cmp_ex(data, "DILITHIUM5", 0, 1) == 0) {
+			default_sec_bits = 0;
+			if (classic_sec_bits) *classic_sec_bits = 256;
+			if (quantum_sec_bits) *quantum_sec_bits = 256;
+			ret = PKI_SCHEME_DILITHIUM;
+		} else if (str_cmp_ex(data, "DILITHIUM", 0, 1) == 0) {
+			ret = PKI_SCHEME_DILITHIUM;
+		} else if (str_cmp_ex(data, "FALCON512", 0, 1) == 0) {
+			default_sec_bits = 0;
+			if (classic_sec_bits) *classic_sec_bits = 128;
+			if (quantum_sec_bits) *quantum_sec_bits = 128;
+			ret = PKI_SCHEME_FALCON;
+		} else if (str_cmp_ex(data, "FALCON1024", 0, 1) == 0) {
+			default_sec_bits = 0;
+			if (classic_sec_bits) *classic_sec_bits = 256;
+			if (quantum_sec_bits) *quantum_sec_bits = 256;
+			ret = PKI_SCHEME_FALCON;
+		} else if (str_cmp_ex(data, "FALCON", 0, 1) == 0) {
+			ret = PKI_SCHEME_FALCON;
+		} else if (str_cmp_ex(data, "KYBER", 0, 1) == 0) {
+			ret = PKI_SCHEME_KYBER;
+		}
+	}
 #endif
 
 	// Checks for Traditional Crypto
@@ -1351,6 +1368,8 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		} else if (str_cmp_ex(data, "RSAPSS", 0, 1) == 0 ||
 				str_cmp_ex(data, "RSA-PSS", 0, 1) == 0) {
 			ret = PKI_SCHEME_RSAPSS;
+
+#ifdef ENABLE_ECDSA
 		// ED 25519 Option
 		} else if (str_cmp_ex(data, "ED25519", 0, 1) == 0) {
 			ret = PKI_SCHEME_ED25519;
@@ -1374,6 +1393,8 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 				str_cmp_ex(data, "P384", 0, 1) == 0 ||
 				str_cmp_ex(data, "P512", 0, 1) == 0) {
 			ret = PKI_SCHEME_ECDSA;
+#endif // End of ENABLE_ECDSA
+
 		// DSA
 		} else if (str_cmp_ex(data, "DSA", 0, 1) == 0) {
 			ret = PKI_SCHEME_DSA;
