@@ -435,6 +435,14 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			}
 			kp->pkey_type = kp->oqs.algId;
 		} break;
+#endif
+
+#ifdef ENABLE_COMBINED
+		case PKI_SCHEME_COMBINED: {
+			// No need to translate, output the input
+			ret = sec_bits;
+		} break;
+#endif
 
 #ifdef ENABLE_COMPOSITE
 
@@ -447,15 +455,8 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->pkey_type = PKI_ID_get_by_name(OPENCA_ALG_PKEY_EXP_COMP_NAME);
 			kp->sec_bits = sec_bits;
 		} break;
-#endif
 
-#ifdef ENABLE_COMBINED
-		case PKI_SCHEME_COMBINED: {
-			// No need to translate, output the input
-			ret = sec_bits;
-		} break;
-#endif
-
+#ifdef ENABLE_OQS
 		// ===============================
 		// Explicit Composite Combinations
 		// ===============================
@@ -573,7 +574,9 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->pq_sec_bits = 256;
 		} break;
 
-#endif // ENABLE_OQS
+#endif // End of ENABLE_OQS
+
+#endif // End of ENABLE_COMPOSITE
 
 		default: {
 			// Sets the sec_bits
@@ -790,6 +793,8 @@ int PKI_KEYPARAMS_set_oqs_key_params(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM alg
 /*! \brief Sets the bits size for key generation */
 int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
+#ifdef ENABLE_COMPOSITE
+
 	int add_key_id = -1;
 	int last_key_id = -1;
 	int next_required_id = -1;
@@ -839,6 +844,8 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE: {
 			next_required_id = 0; // No Required ID (any can work)
 		} break;
+
+#ifdef ENABLE_OQS
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
 
@@ -1064,6 +1071,8 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 				return PKI_ERR;
 			}
 		} break;
+		
+#endif // End of ENABLE_OQS
 
 		default: {
 			// Not Handled
@@ -1088,6 +1097,14 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
 	// All Done
 	return PKI_OK;
+
+#else
+
+	// No Composite Support
+	return PKI_ERR;
+
+#endif // End of ENABLE_COMPOSITE
+
 }
 
 /*! \brief Sets the k_of_n parameter for Composite keys */

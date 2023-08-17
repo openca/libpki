@@ -926,7 +926,7 @@ int PKI_X509_KEYPAIR_get_curve(const PKI_X509_KEYPAIR *kp) {
 	}
 
 	// Retrieves the EC key
-	EC_KEY * ec = EVP_PKEY_get0_EC_KEY((EVP_PKEY *)kp->value);
+	EC_KEY * ec = (EC_KEY *)EVP_PKEY_get0_EC_KEY((EVP_PKEY *)kp->value);
 	if (!ec) {
 		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
 		return PKI_ERR;

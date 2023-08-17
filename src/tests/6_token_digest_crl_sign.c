@@ -71,7 +71,6 @@ int subtest1() {
 	// PKI_OID *oid = NULL;
 
 	PKI_X509_CRL *crl = NULL;
-	PKI_X509_CRL_ENTRY *entry = NULL;
 	PKI_X509_CRL_ENTRY_STACK *sk = NULL;
 
 	if ((tk = PKI_TOKEN_new_null()) == NULL ) {
@@ -113,7 +112,16 @@ int subtest1() {
 	// 		return(0);
 	// }
 
+	PKI_DEBUG("Generating a new stack of entries");
+	sk = PKI_STACK_X509_CRL_ENTRY_new();
+	if (!sk) {
+		PKI_log_err("ERROR!\n");
+		return 0;
+	}
+	PKI_DEBUG("Stack of entries generated successfuly");
+
 	PKI_DEBUG("Generating a new CRL ENTRY");
+	PKI_X509_CRL_ENTRY *entry = NULL;
 	if((entry = PKI_X509_CRL_ENTRY_new_serial("12345678", 
 											  CRL_REASON_KEY_COMPROMISE,
 											  NULL,
@@ -123,11 +131,10 @@ int subtest1() {
 		return 0;
 	}
 	PKI_DEBUG("CRL ENTRY Generated Successfuly");
-
-	sk = PKI_STACK_X509_CRL_ENTRY_new();
 	PKI_STACK_X509_CRL_ENTRY_push( sk, entry );
 
 	PKI_DEBUG("Generating new CRL");
+
 	if((crl = PKI_TOKEN_issue_crl (tk, 
 								   "3", 
 								   0,
@@ -138,6 +145,7 @@ int subtest1() {
 		PKI_log_err("ERROR, can not generate new CRL!\n");
 		return 0;
 	}
+
 	PKI_DEBUG("CRL Generated Successfuly");
 
 	if( tk ) PKI_TOKEN_free ( tk );

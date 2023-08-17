@@ -115,13 +115,20 @@ if [[ "$library_setup" = "no" ]] ; then
 
 
 		AC_MSG_RESULT([Searching OpenSSL Version: $library_includes]);
-		ver=`grep "^ *# *define  *OPENSSL_VERSION_NUMBER" "$library_includes" | sed 's/.*0x/0x/g' | sed 's|\L||g'`;
+
+		# Try the OpenSSL 0.9 ... 1.1.1+ format first
+		ver=`grep "^ *# *define  *OPENSSL_VERSION_NUMBER" "$library_includes" | sed 's/.*0x/0x/g' | sed 's|.*\\||g' | sed 's|\L||g'`;
 		if [[ "x$ver" == "x" ]] ; then
-		   pver=`grep "^ *# *define OPENSSL_VERSION_PRE_RELEASE" "$library_includes" | sed 's|.* "|"|g' | sed 's|""|fL|g' | sed 's|".*"|0L|g'`
-		   bver=`grep "^ *# *define OPENSSL_VERSION_STR" "$library_includes"  | sed 's|.* "||g' | sed 's|".*||g' | sed 's|\.| |g' | xargs printf "0x%1x%02X%02X" `
-		   ver="$bver$pver"
+			# checks the OpenSSL 3+ format second
+			ossl_major=`grep "define OPENSSL_VERSION_MAJOR" "$library_includes" | sed 's|.*OPENSSL_VERSION_MAJOR[ ]*||g'`
+			ossl_minor=`grep "define OPENSSL_VERSION_MINOR" "$library_includes" | sed 's|.*OPENSSL_VERSION_MINOR[ ]*||g'`
+			ossl_patch=`grep "define OPENSSL_VERSION_PATCH" "$library_includes" | sed 's|.*OPENSSL_VERSION_PATCH[ ]*||g'`
+			ver=`printf "0x%d%2.2d%2.2d00f" $ossl_major $ossl_minor $ossl_patch`
+			# pver=`grep "^ *# *define OPENSSL_VERSION_PRE_RELEASE" "$library_includes" | sed 's|.* "|"|g' | sed 's|""|fL|g' | sed 's|".*"|0L|g'`
+			# bver=`grep "^ *# *define OPENSSL_VERSION_STR" "$library_includes"  | sed 's|.* "||g' | sed 's|".*||g' | sed 's|\.| |g' | xargs printf "0x%1x%02X%02X" `
+			# ver="$bver$pver"
 		fi
-                detected_v=`echo $((ver))`
+    	detected_v=`echo $((ver))`
 		required_v=`echo $(($_version))`
 
 		dnl ver=`grep "^ *# *define  *SHLIB_VERSION_NUMBER" $library_includes | sed 's/[#_a-zA-Z" ]//g' | sed 's|\.|0|g'`;
@@ -314,11 +321,13 @@ if [[ $ok = 0 ]] ; then
 	library_libs=
 	library_setup=no
 else
-	AC_MSG_RESULT([Library OPENSSL prefix... $library_prefix ])
-	AC_MSG_RESULT([Library OPENSSL is SHARED... $library_shared ])
-	AC_MSG_RESULT([Library OPENSSL C flags... $library_cflags ])
-	AC_MSG_RESULT([Library OPENSSL LD flags... $library_ldflags ])
-	AC_MSG_RESULT([Library OPENSSL LIBS flags ... $library_libs ])
+	AC_MSG_RESULT([ Library OPENSSL prefix... $library_prefix ])
+	AC_MSG_RESULT([ Library OPENSSL is SHARED... $library_shared ])
+	AC_MSG_RESULT([ Library OPENSSL C flags... $library_cflags ])
+	AC_MSG_RESULT([ Library OPENSSL LD flags... $library_ldflags ])
+	AC_MSG_RESULT([ Library OPENSSL LIBS flags ... $library_libs ])
+	AC_MSG_RESULT([ Library OPENSSL required version ... $_version ])
+	AC_MSG_RESULT([ Library OPENSSL detected version... $ver ])
 	library_setup=yes
 fi
 

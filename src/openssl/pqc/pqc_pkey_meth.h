@@ -2,6 +2,11 @@
 #ifndef _LIBPKI_PQC_PKEY_METH_LOCAL_H
 #define _LIBPKI_PQC_PKEY_METH_LOCAL_H
 
+// Include the library configuration
+#include <libpki/config.h>
+
+#ifdef ENABLE_OQS
+
 #ifndef _LIBPKI_OS_H
 #include <libpki/os.h>
 #endif
@@ -73,5 +78,7 @@ int pkey_oqs_digestcustom(EVP_PKEY_CTX *ctx, EVP_MD_CTX *mctx);
 
 
 END_C_DECLS
+
+#endif // End of ENABLE_OQS
 
 #endif // End of _LIBPKI_PQC_PKEY_METH_LOCAL_H

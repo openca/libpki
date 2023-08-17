@@ -6,12 +6,17 @@
 * Released under OpenCA LICENSE
 */
 
-#ifndef OQS_H
-#include <oqs/oqs.h>
-#endif
-
 #ifndef _LIBPKI_PQC_DEFS_H
 #define _LIBPKI_PQC_DEFS_H
+
+// Include the library configuration
+#include <libpki/config.h>
+
+#ifdef ENABLE_OQS
+# ifndef OQS_H
+#  include <oqs/oqs.h>
+# endif
+#endif
 
 // ===============
 // OQS definitions

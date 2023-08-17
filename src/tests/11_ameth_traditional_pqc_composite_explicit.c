@@ -61,7 +61,7 @@ int subtest1() {
 	int idx = 0;
 	int arr[22] = { 0x0 };
 
-	printf("  - Subtest 1: ASN1 method find\n");
+	printf("   - Subtest 1: ASN1 method find\n");
 
 	// Populate the array with the algorithm IDs
 	arr[idx++] = PKI_ALGOR_ID_RSA;
@@ -78,6 +78,8 @@ int subtest1() {
 #ifdef ENABLE_COMPOSITE
 	// Generic Composite
 	arr[idx++] = PKI_ID_get_by_name("COMPOSITE");
+
+#ifdef ENABLE_OQS
 	// Explicit Composite
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-RSA-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-P256-SHA256");
@@ -94,21 +96,24 @@ int subtest1() {
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-FALCON1024-P512-SHA512");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-FALCON1024-RSA-SHA256");
 #endif
+#endif
 
 	const EVP_PKEY_ASN1_METHOD *ameth_one;
 	// const EVP_PKEY_ASN1_METHOD *ameth_two;
 
-	for (int idx = 0; idx < 11; idx++) {
-		ameth_one = EVP_PKEY_asn1_find(NULL, arr[idx]);
+	for (int i = 0; i < idx; i++) {
+		printf("     + Method %s ...: ", PKI_ID_get_txt(arr[i]));
+		ameth_one = EVP_PKEY_asn1_find(NULL, arr[i]);
 		if (!ameth_one) {
 			printf("ERROR, can not find method for %s (%d)!\n",
-				PKI_ID_get_txt(arr[idx]), arr[idx]);
+				PKI_ID_get_txt(arr[i]), arr[i]);
 			exit(1);
 		}
+		printf("Ok\n");
 	}
 
 	// Info
-	printf("  - Subtest 1: Passed\n\n");
+	printf("   - Subtest 1: Passed\n\n");
 
 	// All Done
 	return 1;

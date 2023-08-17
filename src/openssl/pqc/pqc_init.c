@@ -1,4 +1,9 @@
 
+// Include the library configuration
+#include <libpki/config.h>
+
+#ifdef ENABLE_OQS
+
 #ifndef _LIBPKI_LOG_H
 #include <libpki/pki_log.h>
 #endif
@@ -248,7 +253,7 @@ EVP_PKEY_ASN1_METHOD * PKI_PQC_PKEY_ASN1_METH_new(int                nid,
 
   // All Done
   return a_meth;
-};
+}
 
 int PKI_PQC_ALG_new(const char * name, int flags) {
 
@@ -309,7 +314,7 @@ int PKI_PQC_ALG_new(const char * name, int flags) {
 
   // All Done
   return PKI_OK;
-};
+}
 
 int PKI_PQC_init() {
 
@@ -323,4 +328,6 @@ int PKI_PQC_init() {
 
   // All Done
   return PKI_OK;
-};
+}
+
+#endif // End of ENABLE_OQS

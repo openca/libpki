@@ -1,8 +1,7 @@
 
-
-#ifndef _LIBPKI_PQC_AMETH_LOCAL_H
 #include "pqc_asn1_meth.h"
-#endif
+
+#ifdef ENABLE_OQS
 
 // ===========
 // AMETH Tools
@@ -514,3 +513,5 @@ int oqs_ameth_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
 // DEFINE_OQS_EVP_METHODS(sphincssha256128frobust, NID_sphincssha256128frobust, "sphincssha256128frobust", "OpenSSL SPHINCS+-SHA256-128f-robust algorithm")
 // DEFINE_OQS_EVP_METHODS(sphincsshake256128frobust, NID_sphincsshake256128frobust, "sphincsshake256128frobust", "OpenSSL SPHINCS+-SHAKE256-128f-robust algorithm")
 // ///// OQS_TEMPLATE_FRAGMENT_DEFINE_OQS_EVP_METHS_END
+
+#endif // End of ENABLE_OQS
