@@ -394,7 +394,6 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 				return -1;
 			}
 			kp->pkey_type = kp->oqs.algId;
-			PKI_DEBUG("FALCON ALGORITHM => ID is %d", kp->oqs.algId);
 		} break;
 		
 		case PKI_SCHEME_DILITHIUM: {
