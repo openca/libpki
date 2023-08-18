@@ -686,6 +686,11 @@ ENABLE_COMPOSITE_TRUE
 composite_ldadd
 composite_ldflags
 composite_cflags
+oqsprov_ldadd
+oqsprov_ldflags
+oqsprov_cflags
+ENABLE_OQSPROV_FALSE
+ENABLE_OQSPROV_TRUE
 oqs_ldadd
 oqs_ldflags
 oqs_cflags
@@ -984,6 +989,7 @@ with_openssl_prefix
 enable_ecdsa
 enable_openssl_engine
 enable_oqs
+enable_oqsprov
 enable_composite
 enable_strict
 '
@@ -1662,6 +1668,7 @@ Optional Features:
   --enable-ecdsa         enable Elliptic Curves DSA support
   --enable-openssl-engine      enable openssl engine support (yes)
   --enable-oqs          enable oqs support (no)
+  --enable-oqsprov      enable support for the OQS provider (no)
   --enable-composite      enable openssl composite crypto support (no)
   --enable-strict         enable strict compilation error warnings (default is
                           no)
@@ -18581,6 +18588,86 @@ fi
 
 
 
+oqsprov_config=
+oqsprov_cflags=
+oqsprov_check=
+oqsprov_prefix=/usr
+oqsprov_ldflags=
+oqsprov_ldadd=
+
+cli_oqsprov=no
+
+# Check whether --enable-oqsprov was given.
+if test ${enable_oqsprov+y}
+then :
+  enableval=$enable_oqsprov; cli_oqsprov=$enableval
+else $as_nop
+  cli_oqsprov=default
+
+fi
+
+
+if [ "x$cli_oqsprov" = "xyes" ] ; then
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result:  Open Quantum Safe Provider: Enabled via CLI option ($cli_oqsprov) " >&5
+printf "%s\n" " Open Quantum Safe Provider: Enabled via CLI option ($cli_oqsprov) " >&6; }
+
+printf "%s\n" "#define ENABLE_OQSPROV 1" >>confdefs.h
+
+	oqsprov_check="yes"
+	oqsprov_cflags="-DENABLE_OQSPROV=1"
+	oqsprov_ldadd=""
+	oqsprov_ldflags=""
+else
+
+	if [ "x$cli_oqsprov" = "xdefault" ] ; then
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result:  Checking support for Open Quantum Safe Provider " >&5
+printf "%s\n" " Checking support for Open Quantum Safe Provider " >&6; }
+
+		for prefix_dir in $prefix $openssl_prefix ; do
+			provider_lib=${prefix_dir}/lib/ossl-modules/oqsprovider.*
+			echo "Checking for Provider Library File ...." ${provider_lib}
+			if [ -f ${provider_lib} ] ; then
+				{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)" >&5
+printf "%s\n" "Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)" >&6; }
+
+printf "%s\n" "#define ENABLE_OQSPROV 1" >>confdefs.h
+],
+				oqsprov_check="yes"
+				oqsprov_cflags="-DENABLE_OQSPROV=1"
+				oqsprov_prefix=$prefix_dir
+			fi
+		done
+
+		if [ "$oqsprov_check" = "" ] ; then
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe: Module NOT Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/)" >&5
+printf "%s\n" "Open Quantum Safe: Module NOT Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/)" >&6; }
+			oqsprov_check="no"
+			oqsprov_cflags=""
+		fi
+
+	else
+		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: Open Quantum Safe Provider: Disabled (oqs=$oqsprov_check)" >&5
+printf "%s\n" "Open Quantum Safe Provider: Disabled (oqs=$oqsprov_check)" >&6; }
+		oqsprov_check="no"
+		oqsprov_ldadd=""
+		oqsprov_cflags=""
+	fi
+fi
+
+ if test "${oqsprov_check}" = "yes"; then
+  ENABLE_OQSPROV_TRUE=
+  ENABLE_OQSPROV_FALSE='#'
+else
+  ENABLE_OQSPROV_TRUE='#'
+  ENABLE_OQSPROV_FALSE=
+fi
+
+
+
+
+
+
+
 composite=
 composite_cflags=
 composite_ldflags=
@@ -19023,6 +19110,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_OQS_TRUE}" && test -z "${ENABLE_OQS_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_OQS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_OQSPROV_TRUE}" && test -z "${ENABLE_OQSPROV_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_OQSPROV\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_COMPOSITE_TRUE}" && test -z "${ENABLE_COMPOSITE_FALSE}"; then
@@ -21281,13 +21372,14 @@ OpenSSL Configuration:
  Prefix ...............: $openssl_prefix
  Compiler Flags .......: $openssl_cflags $oqs_cflags"
 if [ "${enable_shared}" = "yes" ] ; then
-echo " Linker Flags .........: $openssl_ldflags $oqs_ldflags"
-echo " libs .................: $openssl_ldadd $oqs_ldadd"
+echo " Linker Flags .........: $openssl_ldflags $oqs_ldflags $oqsprov_ldflags"
+echo " libs .................: $openssl_ldadd $oqs_ldadd $oqsprov_ldadd"
 else
 echo " Libs Flags (static)...: $openssl_static_libs (${enable_shared})"
 fi
-echo " Support for ECDSA ....: $activate_ecdsa
-"
+echo " Support for ECDSA ....: $activate_ecdsa"
+echo " Support for OQS ......: $oqs_check"
+echo " Support for OQS Prov .: $oqsprov_check"
 fi
 
 if [ "${enable_kmf}" = "yes" ] ; then
@@ -21318,6 +21410,7 @@ Configuration for $PACKAGE $VERSION :
  Linker Flags .........: $rpath $my_ldflags
  Libs .................: $my_ldadd
  Open Post Quantum ....: $oqs_check
+ Open Post Quantum Prov: $oqsprov_check
  Composite Native .....: $composite
 "
 echo "

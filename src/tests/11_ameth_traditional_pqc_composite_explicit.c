@@ -67,19 +67,19 @@ int subtest1() {
 	arr[idx++] = PKI_ALGOR_ID_RSA;
 	arr[idx++] = PKI_ALGOR_ID_RSAPSS;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	arr[idx++] = PKI_ID_get_by_name("dilithium2");
 	arr[idx++] = PKI_ID_get_by_name("dilithium3");
 	arr[idx++] = PKI_ID_get_by_name("dilithium5");
 	arr[idx++] = PKI_ID_get_by_name("falcon512");
 	arr[idx++] = PKI_ID_get_by_name("falcon1024");
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #ifdef ENABLE_COMPOSITE
 	// Generic Composite
 	arr[idx++] = PKI_ID_get_by_name("COMPOSITE");
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	// Explicit Composite
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-RSA-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-P256-SHA256");
@@ -95,8 +95,8 @@ int subtest1() {
 	arr[idx++] = PKI_ID_get_by_name("FALCON512-RSA-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-FALCON1024-P512-SHA512");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-FALCON1024-RSA-SHA256");
-#endif
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
+#endif // End of ENABLE_COMPOSITE
 
 	const EVP_PKEY_ASN1_METHOD *ameth_one;
 	// const EVP_PKEY_ASN1_METHOD *ameth_two;

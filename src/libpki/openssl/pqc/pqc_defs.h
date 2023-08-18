@@ -10,7 +10,9 @@
 #define _LIBPKI_PQC_DEFS_H
 
 // Include the library configuration
+#ifdef __LIB_BUILD__
 #include <libpki/config.h>
+#endif
 
 #ifdef ENABLE_OQS
 # ifndef OQS_H
@@ -110,4 +112,4 @@ DEFINE_OQS_EVP_PKEY_METHOD(ALG, NID_ALG)                              \
 DEFINE_OQS_EVP_PKEY_ASN1_METHOD(ALG, NID_ALG, SHORT_NAME, LONG_NAME)
 
 
-#endif // End of _LIBPKI_POST_QUANTUM_SIGS_H
+#endif // End of _LIBPKI_PQC_DEFS_H

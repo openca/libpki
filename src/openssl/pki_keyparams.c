@@ -124,7 +124,7 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID 			  scheme_id,
 		// Get the Profile Params
 		switch (kp->scheme) {
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 			case PKI_SCHEME_DILITHIUM: {
 				if ((tmp_s = PKI_CONFIG_get_value(prof, 
@@ -193,6 +193,8 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID 			  scheme_id,
 				};
 			} break;
 
+#endif // End of ENABLE_ECDSA
+
 			case PKI_SCHEME_RSA:
 			case PKI_SCHEME_RSAPSS: {
 				if ((tmp_s = PKI_CONFIG_get_value(prof, 
@@ -207,8 +209,6 @@ PKI_KEYPARAMS *PKI_KEYPARAMS_new(PKI_SCHEME_ID 			  scheme_id,
 					PKI_Free(tmp_s);
 				}
 			} break;
-
-#endif
 
 			default:
 				PKI_DEBUG("No supported special parameter processing for selected algorithm (%d).", kp->scheme);
@@ -379,7 +379,7 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->sec_bits = 128;
 		} break;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 		// =============================================
 		// Post Quantum Cryptography: Digital Signatures
@@ -387,20 +387,21 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 
 		case PKI_SCHEME_FALCON: {
 			kp->scheme = PKI_SCHEME_FALCON;
-			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_FALCON512; kp->sec_bits = 128; }
-			else if (sec_bits <= 256) { kp->oqs.algId = PKI_ALGOR_ID_FALCON1024; kp->sec_bits = 256; }
+			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME); kp->sec_bits = 128; }
+			else if (sec_bits <= 256) { kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME); kp->sec_bits = 256; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
 			}
 			kp->pkey_type = kp->oqs.algId;
+			PKI_DEBUG("FALCON ALGORITHM => ID is %d", kp->oqs.algId);
 		} break;
 		
 		case PKI_SCHEME_DILITHIUM: {
 			kp->scheme = PKI_SCHEME_DILITHIUM;
-			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM2; kp->sec_bits = 128; }
-			else if (sec_bits <= 192) { kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM3; kp->sec_bits = 192; } 
-			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ALGOR_ID_DILITHIUM5; kp->sec_bits = 256; }
+			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME); kp->sec_bits = 128; }
+			else if (sec_bits <= 192) { kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME); kp->sec_bits = 192; } 
+			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME); kp->sec_bits = 256; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
@@ -413,10 +414,8 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 		//       going to be standardized
 		case PKI_SCHEME_SPHINCS: {
 			kp->scheme = PKI_SCHEME_SPHINCS;
-				 if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_128_F; kp->sec_bits = 128; } 
-			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_128_S; kp->sec_bits = 128; }
-			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_192_F; kp->sec_bits = 192; }
-			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_SPHINCS_SHA2_192_S; kp->sec_bits = 192; }
+				 if (sec_bits <= 128) { kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_SPHINCS128_F_SIMPLE_NAME); kp->sec_bits = 128; } 
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_SPHINCS192_F_SIMPLE_NAME); kp->sec_bits = 128; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
@@ -426,16 +425,17 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 
 		case PKI_SCHEME_KYBER: {
 			kp->scheme = PKI_SCHEME_KYBER;
-			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ALGOR_ID_KYBER512; kp->sec_bits = 128; } 
-			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ALGOR_ID_KYBER768; kp->sec_bits = 192; }
-			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ALGOR_ID_KYBER1024; kp->sec_bits = 256; }
+			     if (sec_bits <= 128) { kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_KYBER512_NAME); kp->sec_bits = 128; } 
+			else if (sec_bits <= 192) {	kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_KYBER512_NAME); kp->sec_bits = 192; }
+			else if (sec_bits <= 256) {	kp->oqs.algId = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_KYBER512_NAME); kp->sec_bits = 256; }
 			else { 
 				PKI_DEBUG("Security Bits value not supported (%d)", sec_bits);
 				return -1;
 			}
 			kp->pkey_type = kp->oqs.algId;
 		} break;
-#endif
+
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #ifdef ENABLE_COMBINED
 		case PKI_SCHEME_COMBINED: {
@@ -456,7 +456,7 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->sec_bits = sec_bits;
 		} break;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 		// ===============================
 		// Explicit Composite Combinations
 		// ===============================
@@ -574,7 +574,7 @@ int PKI_KEYPARAMS_set_scheme(PKI_KEYPARAMS * kp, PKI_SCHEME_ID scheme_id, int se
 			kp->pq_sec_bits = 256;
 		} break;
 
-#endif // End of ENABLE_OQS
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #endif // End of ENABLE_COMPOSITE
 
@@ -720,7 +720,7 @@ int PKI_KEYPARAMS_set_key_size(PKI_KEYPARAMS * kp, int bits) {
 	return PKI_OK;
 };
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 
 /*! \brief Sets the bits size for key generation */
 int PKI_KEYPARAMS_set_oqs_key_params(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam) {
@@ -845,15 +845,15 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 			next_required_id = 0; // No Required ID (any can work)
 		} break;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA: {
 
 			// NID_dilithium3
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium3;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME);
 			// NID_rsaEncryption
-			} else if (last_key_id == NID_dilithium3) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME)) {
 				next_required_id = NID_rsaEncryption;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -866,9 +866,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 
 			// NID_dilithium3
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium3;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME);
 			// NID_rsaEncryption
-			} else if (last_key_id == NID_dilithium3) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME)) {
 				next_required_id = NID_rsassaPss;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -880,9 +880,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_BRAINPOOL256: {
 			// NID_dilithium3
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium3;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME);
 			// NID_brainpoolP256r1
-			} else if (last_key_id == NID_dilithium3) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME)) {
 				// Requires an EC key
 				next_required_id = NID_X9_62_id_ecPublicKey;
 				// Requires the Brainpool P256 curve
@@ -899,9 +899,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_ED25519: {
 			// NID_dilithium3
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium3;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME);
 			// NID_secp256v1
-			} else if (last_key_id == NID_dilithium3) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME)) {
 				next_required_id = NID_ED25519;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -912,9 +912,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_P384: {
 			// NID_dilithium5
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium5;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME);
 			// NID_secp384r1
-			} else if (last_key_id == NID_dilithium5) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
 				// Requires an EC key
 				next_required_id = NID_X9_62_id_ecPublicKey;
 				// Requires the secp384r1 curve
@@ -941,9 +941,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_BRAINPOOL384: {
 			// NID_dilithium5
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium5;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME);
 			// NID_brainpoolP384r1
-			} else if (last_key_id == NID_dilithium5) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
 				// Requires an EC key
 				next_required_id = NID_X9_62_id_ecPublicKey;
 				// Requires the Brainpool P384 curve
@@ -960,9 +960,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_ED448: {
 			// NID_dilithium5
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium5;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME);
 			// NID_ED448
-			} else if (last_key_id == NID_dilithium5) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
 				next_required_id = NID_ED448;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -973,9 +973,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_P256: {
 			// NID_falcon512
 			if (last_key_id <= 0) {
-				next_required_id = NID_falcon512;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME);
 			// NID_X9_62_prime256v1
-			} else if (last_key_id == NID_falcon512) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME)) {
 				// Requires an EC key
 				next_required_id = NID_X9_62_id_ecPublicKey;
 				// Requires the prime256v1 curve
@@ -992,9 +992,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_BRAINPOOL256: {
 			// NID_falcon512
 			if (last_key_id <= 0) {
-				next_required_id = NID_falcon512;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME);
 			// NID_brainpoolP256r1
-			} else if (last_key_id == NID_falcon512) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME)) {
 				// Requires an EC key
 				next_required_id = NID_X9_62_id_ecPublicKey;
 				// Requires the Brainpool P256 curve
@@ -1011,9 +1011,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_ED25519: {
 			// NID_falcon512
 			if (last_key_id <= 0) {
-				next_required_id = NID_falcon512;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME);
 			// NID_ED25519
-			} else if (last_key_id == NID_falcon512) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME)) {
 				next_required_id = NID_ED25519;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -1024,9 +1024,9 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_FALCON512_RSA: {
 			// NID_falcon512
 			if (last_key_id <= 0) {
-				next_required_id = NID_falcon512;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME);
 			// NID_rsaEncryption
-			} else if (last_key_id == NID_falcon512) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME)) {
 				next_required_id = NID_rsaEncryption;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -1037,12 +1037,12 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_P521: {
 			// NID_dilithium5
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium5;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME);
 			// NID_falcon1024
-			} else if (last_key_id == NID_dilithium5) {
-				next_required_id = NID_falcon1024;
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME);
 			// NID_secp521r1
-			} else if (last_key_id == NID_falcon1024) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME)) {
 				// Requires an EC key
 				next_required_id = NID_X9_62_id_ecPublicKey;
 				// Requires the Brainpool P256 curve
@@ -1059,12 +1059,12 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA: {
 			// NID_dilithium5
 			if (last_key_id <= 0) {
-				next_required_id = NID_dilithium5;
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME);
 			// NID_falcon1024
-			} else if (last_key_id == NID_dilithium5) {
-				next_required_id = NID_falcon1024;
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
+				next_required_id = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME);
 			// NID_rsaEncryption
-			} else if (last_key_id == NID_falcon1024) {
+			} else if (last_key_id == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME)) {
 				next_required_id = NID_rsaEncryption;
 			} else {
 				PKI_ERROR(PKI_ERR_ALGOR_COMPOSITE_EXPLICIT_WRONG_COMPONENT, NULL);
@@ -1072,7 +1072,7 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 			}
 		} break;
 		
-#endif // End of ENABLE_OQS
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 		default: {
 			// Not Handled

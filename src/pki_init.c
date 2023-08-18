@@ -14,6 +14,10 @@
 # include <libpki/openssl/composite/composite_init.h>
 #endif
 
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+#include <openssl/provider.h>
+#endif
+
 #ifndef _LIBPKI_ERR_H
 #include <libpki/pki_err.h>
 #endif
@@ -52,9 +56,24 @@ static int _libpki_fips_mode = 0;
 extern EVP_PKEY_ASN1_METHOD composite_asn1_meth;
 extern EVP_PKEY_METHOD composite_pkey_meth;
 
-#if OPENSSL_VERSION_NUMBER < 0x00908000
+#if OPENSSL_VERSION_NUMBER < 0x00908000L
 int NID_proxyCertInfo = -1;
 #endif
+
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+OSSL_PROVIDER * ossl_providers[4] = {
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "default"),
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "legacy"),
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "oqsprovider"),
+	NULL
+};
+#endif
+
+// OpenSSL Library Context
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+static OSSL_LIB_CTX * _ossl_lib_ctx = NULL;
+#endif
+
 
 // ================================
 // MACRO for Algorithm Registration
@@ -129,6 +148,10 @@ int PKI_init_all( void ) {
 		// Initializes the OID layer
 		PKI_X509_OID_init();
 
+#if OPENSSL_VERSION_NUMBER >= 0x3000000fL
+		// Initializes the OQS Provider layer
+		PKI_init_providers();
+#endif
 #ifdef ENABLE_OQS
 		// Post-Quantum Crypto Implementation
 		PKI_PQC_init();
@@ -198,6 +221,7 @@ void PKI_final_all( void )
 		OBJ_cleanup();
 		EVP_cleanup();
 		CRYPTO_cleanup_all_ex_data();
+		PKI_cleanup_providers();
 #if HAVE_MYSQL
 		mysql_library_end();
 #endif
@@ -531,3 +555,86 @@ PKI_ID_INFO_STACK * PKI_list_all_id ( void ) {
 	return ( NULL );
 }
 
+int PKI_init_providers(void) {
+
+	OSSL_PROVIDER* provider = NULL;
+		// Internal pointer
+
+	OSSL_LIB_CTX * lib_ctx = PKI_init_get_ossl_library_ctx();
+		// OpenSSL Library Context
+
+	// Loads the Default Provider
+	if (ossl_providers[0] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, "default");
+		if (provider == NULL) {
+			fprintf(stderr, "Failed to load Default provider\n");
+			return 0;
+		}
+
+		// Debugging Info
+		PKI_DEBUG("Default Provider name: %s\n", OSSL_PROVIDER_get0_name(provider));
+	}
+
+	// Loads the Legacy Provider
+	if (ossl_providers[1] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, "legacy");
+		if (provider == NULL) {
+			fprintf(stderr, "Failed to load Default provider\n");
+			return 0;
+		}
+
+		// Debugging Info
+		PKI_DEBUG("Default Provider name: %s\n", OSSL_PROVIDER_get0_name(provider));
+	}
+
+#ifdef ENABLE_OQSPROV
+
+	// Loads the OQS Provider
+	if (ossl_providers[2] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, "oqsprovider");
+		if (provider == NULL) {
+			fprintf(stderr, "Failed to load Default provider\n");
+			return 0;
+		}
+
+		// Debugging Info
+		PKI_DEBUG("Default Provider name: %s\n", OSSL_PROVIDER_get0_name(provider));
+	}
+
+#endif
+
+	// Debugging Info
+	PKI_DEBUG("OSSL Providers Initialized Successfully.");
+ 
+	// All Done
+	return 1;
+}
+
+int PKI_cleanup_providers(void) {
+
+	// Unloads all the providers
+	for (int i = 0; ossl_providers[i] != NULL; i++) {
+		OSSL_PROVIDER_unload(ossl_providers[i]);
+	}
+
+	// All Done
+	return 1;
+}
+
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+OSSL_LIB_CTX * PKI_init_get_ossl_library_ctx() {
+	if (_ossl_lib_ctx == NULL) {
+		_ossl_lib_ctx = OSSL_LIB_CTX_new();
+	}
+	if (!_ossl_lib_ctx) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
+	return _ossl_lib_ctx;
+}
+#else
+void * PKI_init_get_ossl_library_ctx() {
+	PKI_DEBUG("Function not implemented for OpenSSL < 3.0.0");
+	return NULL;
+}
+#endif

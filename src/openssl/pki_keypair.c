@@ -50,7 +50,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new(PKI_SCHEME_ID   type,
 #endif
 
 	// Open Quantum Safe
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 	kp.oqs.algId = -1;
 #endif
 
@@ -103,7 +103,7 @@ PKI_X509_KEYPAIR *PKI_X509_KEYPAIR_new_url( PKI_SCHEME_ID type, int bits,
 #endif
 
 	// Open Quantum Safe
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 	kp.oqs.algId = -1;
 #endif
 

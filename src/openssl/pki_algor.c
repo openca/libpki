@@ -396,7 +396,7 @@ int PKI_SCHEME_ID_is_explicit_composite(PKI_SCHEME_ID id) {
 	switch(id) {
 
 #ifdef ENABLE_COMPOSITE
-# ifdef ENABLE_OQS
+# if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 		// Post Quantum Cryptography - Composite Crypto
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
@@ -434,41 +434,28 @@ int PKI_SCHEME_ID_is_post_quantum(PKI_SCHEME_ID id) {
 
 	switch (id) {
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 		// Signature
-	#ifdef OQS_ENABLE_SIG_DILITHIUM
 		case PKI_SCHEME_DILITHIUM:
-	#endif
-	#ifdef OQS_ENABLE_SIG_FALCON
 		case PKI_SCHEME_FALCON:
-	#endif
-	#ifdef OQS_ENABLE_SIG_PICNIC
-		case PKI_SCHEME_PICNIC:
-	#endif
 		case PKI_SCHEME_SPHINCS: {
 			// Nothing to do
 		} break;
 
 		// KEMs
-	#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
 		case PKI_SCHEME_CLASSIC_MCELIECE:
-	#endif
-	#ifdef OQS_ENABLE_KEM_KYBER
 		case PKI_SCHEME_KYBER: {
 			// Nothing to do
 		} break;
-	#endif
 
 		// Experimental
-	#ifdef OQS_ENABLE_KEM_BIKE
 		case PKI_SCHEME_BIKE:
-	#endif
 		case PKI_SCHEME_DILITHIUMX3: {
 			// Nothing to do
 		} break;
 
-#endif // End of ENABLE_OQS
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 		default:
 			// Non-Post Quantum
@@ -555,7 +542,7 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 		// Post-Quantum Crypto
 		// ===================
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 
 		case PKI_SCHEME_FALCON: {
 			ret = "FALCON";
@@ -581,11 +568,9 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 			ret = "DILITHIUMX3";
 		} break;
 
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #ifdef ENABLE_COMPOSITE
-
-# ifdef ENABLE_OQS
 
 		// =====================
 		// Composite (PQ) Crypto
@@ -594,6 +579,8 @@ const char * PKI_SCHEME_ID_get_parsed ( PKI_SCHEME_ID id ) {
 		case PKI_SCHEME_COMPOSITE: {
 			ret = OPENCA_ALG_PKEY_EXP_COMP_NAME;
 		} break;
+
+# if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 		// =========================
 		// Composite: Generic and PQ
@@ -767,7 +754,28 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 			}
 		}
 
-#ifdef ENABLE_OQS
+#ifdef ENABLE_COMPOSITE
+
+		// =============================
+		// Native Composite Cryptography
+		// =============================
+
+		case PKI_SCHEME_COMPOSITE: {
+			// No need to translate, same sec bits for
+			// the generation of all components, if they
+			// support it.
+			ret = -1;
+		} break;
+#endif
+
+#ifdef ENABLE_COMBINED
+		case PKI_SCHEME_COMBINED: {
+			// No need to translate, output the input
+			ret = sec_bits;
+		} break;
+#endif
+
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 		// =============================================
 		// Post Quantum Cryptography: Digital Signatures
@@ -816,25 +824,6 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 		} break;
 
 #ifdef ENABLE_COMPOSITE
-
-		// =============================
-		// Native Composite Cryptography
-		// =============================
-
-		case PKI_SCHEME_COMPOSITE: {
-			// No need to translate, same sec bits for
-			// the generation of all components, if they
-			// support it.
-			ret = -1;
-		} break;
-#endif
-
-#ifdef ENABLE_COMBINED
-		case PKI_SCHEME_COMBINED: {
-			// No need to translate, output the input
-			ret = sec_bits;
-		} break;
-#endif
 
 		// ===============================
 		// Explicit Composite Combinations
@@ -911,7 +900,8 @@ int PKI_SCHEME_ID_get_bitsize(const PKI_SCHEME_ID scheme_id, const int sec_bits)
 			ret = (2593 + 64 + 400) * 8;
 		} break;
 
-#endif // ENABLE_OQS
+#endif // End of ENABLE_COMPOSITE
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 		default: {
 			// Sets the sec_bits
@@ -999,60 +989,42 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
 			if (quantum_sec_bits) *quantum_sec_bits = 0;
 		} break;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
+
 		// Post Quantum Cryptography - KEMS
-#ifdef OQS_ENABLE_KEM_NTRU
-	
-		case PKI_SCHEME_NTRU_PRIME: {
-			if (classic_sec_bits) *classic_sec_bits = -1;
-			if (quantum_sec_bits) *quantum_sec_bits = -1;
-		} break;
 
-#endif
-
-#ifdef OQS_ENABLE_KEM_BIKE
 		case PKI_SCHEME_BIKE: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
 
-#endif
-#ifdef OQS_ENABLE_KEM_FRODOKEM
 		case PKI_SCHEME_FRODOKEM: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
 
-#endif
-#ifdef OQS_ENABLE_KEM_CLASSIC_MCELIECE
 		case PKI_SCHEME_CLASSIC_MCELIECE: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
 
-#endif
-#ifdef OQS_ENABLE_KEM_KYBER
 		case PKI_SCHEME_KYBER: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
 
-#endif
+		// Post Quantum Cryptography - Digital Signatures
 
-	// Post Quantum Cryptography - Digital Signatures
-#ifdef OQS_ENABLE_SIG_FALCON
 		case PKI_SCHEME_FALCON: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
-#endif
 
 		case PKI_SCHEME_SPHINCS: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
 
-#ifdef OQS_ENABLE_SIG_DILITHIUM
 		case PKI_SCHEME_DILITHIUM: {
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
@@ -1064,15 +1036,7 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
 			if (quantum_sec_bits) *quantum_sec_bits = 192;
 		} break;
 
-#endif
-#ifdef OQS_ENABLE_SIG_PICNIC
-		case PKI_SCHEME_PICNIC:  {
-			if (classic_sec_bits) *classic_sec_bits = -1;
-			if (quantum_sec_bits) *quantum_sec_bits = -1;
-		} break;
-
-#endif
-#endif // End of ENABLE_OQS
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #ifdef ENABLE_COMPOSITE
 		// Composite Crypto Schemes
@@ -1080,6 +1044,8 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
 			if (classic_sec_bits) *classic_sec_bits = -1;
 			if (quantum_sec_bits) *quantum_sec_bits = -1;
 		} break;
+
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 		// Explicit Composite Crypto Schemes
 		case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA:  {
@@ -1152,8 +1118,10 @@ int PKI_SCHEME_ID_security_bits(const PKI_SCHEME_ID   scheme_id,
 			if (quantum_sec_bits) *quantum_sec_bits = max(max(256, 256), max(256, 0));
 		} break;
 
-#endif
-#ifdef ENABLE_COMPOSITE
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
+#endif // End of ENABLE_COMPOSITE
+
+#ifdef ENABLE_COMBINED
 		// Combined Crypto Schemes
 		case PKI_SCHEME_COMBINED:  {
 			if (classic_sec_bits) *classic_sec_bits = -1;
@@ -1197,7 +1165,7 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 		}
 	}
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 
 	// Explicit Composite
 	if (ret == PKI_SCHEME_UNKNOWN) {
@@ -1318,7 +1286,7 @@ PKI_SCHEME_ID PKI_SCHEME_ID_get_by_name(const char * data, int *classic_sec_bits
 
 #endif // End of ENABLE_COMPOSITE
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	if (ret == PKI_SCHEME_UNKNOWN) {
 		if (str_cmp_ex(data, "DILITHIUMX3", 0, 1) == 0) { 
 			ret = PKI_SCHEME_DILITHIUMX3;
@@ -1594,7 +1562,8 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 	}
 #endif
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
+
 	// Let's see if we can find the scheme via the
 	// dynamic approach:
 	if (   pkey_type == PKI_ID_get_by_name("falcon512")
@@ -1621,7 +1590,8 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		// DILITHIUMX
 		return PKI_SCHEME_DILITHIUMX3;
 	}
-#endif
+
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 	// Let's check the pkey type
 	return PKI_SCHEME_UNKNOWN;
@@ -1827,8 +1797,18 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 	switch (p_type) {
 
+		case EVP_PKEY_RSA:
+		case EVP_PKEY_RSA_PSS:
+			digest=PKI_DIGEST_ALG_RSA_DEFAULT;
+			break;
+
 		case EVP_PKEY_DSA:
 			digest=PKI_DIGEST_ALG_DSA_DEFAULT;
+			break;
+
+		case EVP_PKEY_ED25519:
+		case EVP_PKEY_ED448:
+		    digest=NULL;
 			break;
 
 #ifdef ENABLE_ECDSA
@@ -1884,12 +1864,30 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 #endif
 
-		case EVP_PKEY_RSA:
-			digest=PKI_DIGEST_ALG_RSA_DEFAULT;
-			break;
-
 		default:
+
+#ifdef ENABLE_OQSPROV
+			// Dynamically checks for the support
+			// of different types of keys
+			if (   PKI_ID_get_by_name("dilithium2") == p_type 
+			    || PKI_ID_get_by_name("dilithium3") == p_type
+			    || PKI_ID_get_by_name("dilithium5") == p_type
+			    || PKI_ID_get_by_name("falcon512") == p_type
+			    || PKI_ID_get_by_name("falcon1024") == p_type
+				|| PKI_ID_get_by_name("sphincssha2128fsimple") == p_type
+				|| PKI_ID_get_by_name("sphincssha2128ssimple") == p_type
+				|| PKI_ID_get_by_name("sphincssha2192fsimple") == p_type
+				|| PKI_ID_get_by_name("sphincsshake128fsimple") == p_type) {
+				// Use the NULL digest for these algorithms
+				digest = PKI_DIGEST_ALG_NULL;
+			} else {
+				// No digest for other types
+				digest = NULL;
+			}
+#else
+			// No digest by default
 			digest = NULL;
+#endif
 	}
 
 	return (const PKI_DIGEST_ALG *)digest;
@@ -2023,7 +2021,7 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 		} break;
 #endif
 
-#ifdef ENABLE_OQS
+#ifdef 		ENABLE_OQS
 		case PKI_SCHEME_FALCON: {
 			ret = PKI_ALGOR_ID_LIST_FALCON;
 		} break;
@@ -2044,8 +2042,20 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 			ret = PKI_ALGOR_ID_LIST_DILITHIUM;
 		} break;
 
+#else
+
+#ifdef ENABLE_OQSPROV
+		case PKI_SCHEME_FALCON:
+		case PKI_SCHEME_DILITHIUM:
+		case PKI_SCHEME_SPHINCS:
+		case PKI_SCHEME_CLASSIC_MCELIECE:
+		case PKI_SCHEME_DILITHIUMX3: {
+			PKI_DEBUG("OQS Support not enabled in this build (only OQSPROV)!");
+		} break;
+
 #endif
 
+#endif
 		default:
 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 			ret = NULL;

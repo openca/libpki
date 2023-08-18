@@ -413,21 +413,35 @@ void * _pki_ecdsakey_new( PKI_KEYPARAMS *kp ) {
 
 #endif
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
 
-    const EVP_PKEY_ASN1_METHOD *ameth;
-
-    ENGINE *tmpeng = NULL;
     EVP_PKEY_CTX *ctx = NULL;
+        // Key generation context to be returned
 
-    int pkey_id = -1;
+    // Input Checks
+    if (!kp) {
+        PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+        return NULL;
+    }
 
+    // Checks we have an algorithm Identifier
     if (!kp->oqs.algId) {
         PKI_DEBUG("Missing algorithm ID for OQS key generation");
         return NULL;
     }
+
+#ifdef ENABLE_OQS
+
+    const EVP_PKEY_ASN1_METHOD *ameth;
+        // ASN1 Method
+
+    ENGINE *tmpeng = NULL;
+        // Temporary Engine
+
+    int pkey_id = -1;
+        // PKEY ID
 
     // TODO:
     // =====
@@ -453,6 +467,26 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
     // Generates the new context
     if ((ctx = EVP_PKEY_CTX_new_id(pkey_id, NULL)) == NULL) goto err;
 
+#else
+    OSSL_LIB_CTX * libctx = PKI_init_get_ossl_library_ctx();
+        // OpenSSL Library Context
+
+    // Gets the name of the algorithm
+    const char * sigalg_name = PKI_ID_get_txt(kp->oqs.algId);
+    if (!sigalg_name) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot get algorithm name");
+        goto err;
+    }
+
+    // Generates the new context
+    ctx = EVP_PKEY_CTX_new_from_name(libctx, sigalg_name, NULL);
+    if (!ctx) {
+        PKI_DEBUG("Cannot create the pkey context for algorithm '%s'", sigalg_name);
+        goto err;
+    }
+
+#endif
+
     // Let's set the operation (check EVP_PKEY_CTX_ctrl function -pmeth_lib.c:432)
     // Use the EVP interface to initialize the operation (crypto/evp/pmeth_gn.c:69)
     if (EVP_PKEY_keygen_init(ctx) <= 0) {
@@ -470,11 +504,14 @@ EVP_PKEY_CTX * _pki_get_evp_pkey_ctx(PKI_KEYPARAMS *kp) {
     // EVP_PKEY_CTRL_COMPOSITE_DEL        
     // EVP_PKEY_CTRL_COMPOSITE_CLEAR      
 
-
+#ifdef ENABLE_COMBINED
     if ((kp->scheme == PKI_SCHEME_COMPOSITE ||
          kp->scheme == PKI_SCHEME_COMBINED)
          && kp->comp.k_stack != NULL) {
-
+#else
+    if (kp->scheme == PKI_SCHEME_COMPOSITE
+        && kp->comp.k_stack != NULL) {
+#endif
         for (int i = 0; i < PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack); i++) {
 
             PKI_X509_KEYPAIR * tmp_key = NULL;
@@ -628,7 +665,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new(PKI_KEYPARAMS * kp,
     PKI_EC_KEY *ec = NULL;
 #endif
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
     EVP_PKEY_CTX * ctx = NULL;
 #endif
 
@@ -823,7 +860,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new(PKI_KEYPARAMS * kp,
 
         default:
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
             if ((ctx = _pki_get_evp_pkey_ctx(kp)) == NULL) {
                 PKI_DEBUG("Cannot generate the PQC key");
                 goto err;
@@ -840,7 +877,7 @@ PKI_X509_KEYPAIR *HSM_OPENSSL_X509_KEYPAIR_new(PKI_KEYPARAMS * kp,
             PKI_ERROR(PKI_ERR_HSM_SCHEME_UNSUPPORTED, "%d", type );
             goto err;
 
-#endif // ENABLE_OQS
+#endif // ENABLE_OQS || ENABLE_OQSPROV
 
     }
 
@@ -875,9 +912,10 @@ err:
     // Memory Cleanup
     if (value) EVP_PKEY_free(value);
     if (ret) PKI_X509_KEYPAIR_free(ret);
-#ifdef ENABLE_OQS
+    
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
     if (ctx) EVP_PKEY_CTX_free(ctx);
-#endif
+#endif // ENABLE_OQS || ENABLE_OQSPROV
 
     // Error
     return NULL;

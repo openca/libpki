@@ -428,7 +428,7 @@ int gen_keypair(PKI_TOKEN 		* tk,
 
 			} break;
 
-# ifdef ENABLE_OQS
+# if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
                // Post Quantum Cryptography - Composite Crypto
                case PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_P256:
@@ -518,13 +518,22 @@ int gen_keypair(PKI_TOKEN 		* tk,
 					bit_size);
 		fprintf(stderr, "  - Is Quantum Safe ....: %s (%d)\n", 
 					PKI_SCHEME_ID_is_post_quantum(kp->scheme) ? "Yes" : "No", kp->scheme);
+
+#ifdef ENABLE_COMPOSITE
 		fprintf(stderr, "  - Is Composite .......: %s (explicit: %s)\n", 
 					PKI_SCHEME_ID_is_composite(kp->scheme) ? "Yes" : "No",
 					PKI_SCHEME_ID_is_explicit_composite(kp->scheme) ? "Yes" : "No" );
 
-		if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
-		fprintf(stderr, "  - Validation Policy ..: %ld (K of N)\n", kp->comp.k_of_n ? ASN1_INTEGER_get(kp->comp.k_of_n) : -1);
+		if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)) {
+			fprintf(stderr, "  - Number of Keys .....: %d\n", 
+				PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack));
 		}
+
+		if (PKI_SCHEME_ID_is_composite(kp->scheme)) {
+			fprintf(stderr, "  - Validation Policy ..: %ld (K of N)\n", 
+				kp->comp.k_of_n ? ASN1_INTEGER_get(kp->comp.k_of_n) : -1);
+		}
+#endif
 
 #ifdef ENABLE_ECDSA
 		if (kp->scheme == PKI_SCHEME_ECDSA) {
@@ -532,12 +541,6 @@ int gen_keypair(PKI_TOKEN 		* tk,
 		}
 #endif
 
-#ifdef ENABLE_COMPOSITE
-	if (PKI_SCHEME_ID_supports_multiple_components(kp->scheme)) {
-		fprintf(stderr, "  - Number of Keys .....: %d\n", 
-			PKI_STACK_X509_KEYPAIR_elements(kp->comp.k_stack) );
-	}
-#endif
 		fprintf(stderr, "  - Output URI .........: %s\n", keyurl->url_s );
 
 		prompt = prompt_str ("\nAre you sure [y/N] ? ");

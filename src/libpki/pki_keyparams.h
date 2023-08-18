@@ -64,7 +64,7 @@ int PKI_KEYPARAMS_set_kofn(PKI_KEYPARAMS * kp, int kofn);
 // Open Quantum Safe Support
 // =========================
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 int PKI_KEYPARAMS_set_oqs_key_params(PKI_KEYPARAMS * kp, PKI_ALGOR_OQS_PARAM algParam);
 
