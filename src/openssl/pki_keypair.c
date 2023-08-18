@@ -364,7 +364,13 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 
 	// Retrieves the default digest for the PKEY
 	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
-	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail *****", digestResult);
+	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail (nid: %d) *****", digestResult, def_nid);
+
+	char buff[50] = { 0 };
+	int buff_size = 50;
+	digestResult = EVP_PKEY_get_default_digest_name((EVP_PKEY *)pkey, buff, buff_size);
+	def_nid = PKI_ID_get_by_name(buff);
+	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_name (%d) does work.... ???? (nid: %d) *****", digestResult, def_nid);
 
 	// Check for error condition
 	if (digestResult <= 0) {
@@ -533,7 +539,10 @@ PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor(const PKI_X509_KEYPAIR_V
 
 		// Retrieves the default digest
 		def_ret = EVP_PKEY_get_default_digest_nid((EVP_PKEY *)pVal, &def_nid);
-		PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail *****", def_nid);
+		PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (ret: %d, nid: %d) seems to fail *****", def_ret, def_nid);
+
+		def_nid = PKI_X509_KEYPAIR_VALUE_get_default_digest(pVal);
+		PKI_DEBUG("***** OSSL3 UPGRADE: PKI_X509_KEYPAIR_VALUE_get_default_digest (nid: %d) *****", def_nid);
 
 		if (def_nid <= 0) {
 			if (PKI_SCHEME_ID_is_composite(scheme)) {
