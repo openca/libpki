@@ -366,11 +366,13 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
 	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail (nid: %d) *****", digestResult, def_nid);
 
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
 	char buff[50] = { 0 };
 	int buff_size = 50;
 	digestResult = EVP_PKEY_get_default_digest_name((EVP_PKEY *)pkey, buff, buff_size);
 	def_nid = PKI_ID_get_by_name(buff);
 	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_name (%d) does work.... ???? (nid: %d) *****", digestResult, def_nid);
+#endif
 
 	// Check for error condition
 	if (digestResult <= 0) {

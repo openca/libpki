@@ -557,6 +557,8 @@ PKI_ID_INFO_STACK * PKI_list_all_id ( void ) {
 
 int PKI_init_providers(void) {
 
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+
 	OSSL_PROVIDER* provider = NULL;
 		// Internal pointer
 
@@ -592,7 +594,8 @@ int PKI_init_providers(void) {
 		}
 	}
 
-#endif
+#endif // End of ENABLE_OQSPROV
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 
 	// All Done
 	return 1;
@@ -600,10 +603,14 @@ int PKI_init_providers(void) {
 
 int PKI_cleanup_providers(void) {
 
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+
 	// Unloads all the providers
 	for (int i = 0; ossl_providers[i] != NULL; i++) {
 		OSSL_PROVIDER_unload(ossl_providers[i]);
 	}
+
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 
 	// All Done
 	return 1;
