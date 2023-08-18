@@ -1775,7 +1775,6 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 	int size = 0;
 	int p_type = 0;
-	int p_id = 0;
 
 	/* Let's set the digest for the right signature scheme */
 	if( !pkey ) return NULL;
@@ -1790,6 +1789,7 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 	pp = (EVP_PKEY *) pkey->value;
 
 #if OPENSSL_VERSION_NUMBER > 0x30000000L
+	int p_id = 0;
 	p_id = PKI_X509_KEYPAIR_get_id(pkey);
 	p_type = EVP_PKEY_type(p_id);
 	// TODO: Fix this trick

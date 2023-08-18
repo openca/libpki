@@ -843,7 +843,7 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 			last_key_id = last_key;
 #else
 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-			return NULL;
+			return PKI_ERR;
 #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 		}
 		PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
