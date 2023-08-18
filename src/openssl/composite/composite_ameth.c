@@ -475,9 +475,9 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
     }
   }
 
-  if (pkey_id == OBJ_txt2nid("COMPOSITE_KEY") 
+  if (PKI_ID_is_composite(pkey_id, NULL) 
 #ifdef ENABLE_COMBINED
-      || pkey_id == OBJ_txt2nid("COMBINED_KEY")
+      || PKI_ID_is_comined(pkey_id, NULL)
 #endif
       ) {
     BIO_printf(out, "%*s", indent, "");
@@ -1421,7 +1421,7 @@ int item_sign(EVP_MD_CTX      * ctx,
   }
 
   // Retrieves the Composite Public Key Type
-  pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey_val);
+  pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey_val));
 
   // Here we shall generate and validate the list of components
   // when the pkey_id is one of the explicit composite

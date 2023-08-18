@@ -47,11 +47,13 @@ int PKI_X509_ITEM_verify(const ASN1_ITEM * it,
 		return PKI_ERR;
 	}
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	/* Check public key OID matches public key type */
 	if (EVP_PKEY_type(pknid) != pkey->ameth->pkey_id) {
 		PKI_DEBUG("Public key type mismatch (%d != %d)", EVP_PKEY_type(pknid), pkey->ameth->pkey_id);
 		goto end;
 	}
+#endif
 
 	pctx = EVP_PKEY_CTX_new(pkey, NULL);
     if (ctx == NULL || pctx == NULL) {

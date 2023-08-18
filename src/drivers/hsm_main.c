@@ -503,6 +503,9 @@ int PKI_X509_sign(PKI_X509               * x,
 	  // Pointer for the Signature in the PKIX data
 
 	int pkey_type = NID_undef;
+	int pkey_id = NID_undef;
+	  // Key Type and ID
+
 	PKI_SCHEME_ID pkey_scheme = PKI_SCHEME_UNKNOWN;
 	  // Signature Scheme
 
@@ -524,10 +527,15 @@ int PKI_X509_sign(PKI_X509               * x,
 	}
 
 	// Gets the PKEY type
-	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	pkey_type = EVP_PKEY_type(pkey_id);
 	if (pkey_type == NID_undef) {
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+		pkey_type = pkey_id;
+#else
 		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key's Internal Value");
 		return PKI_ERR;
+#endif
 	}
 
 	// Gets the Signature Scheme

@@ -374,6 +374,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     EVP_PKEY * x_pkey = NULL;
       // The keypair and context references
 
+    int x_pkey_id = 0;
     int x_pkey_type = NID_undef;
     int x_pkey_size = 0;
       // The type of the key for the component
@@ -401,11 +402,16 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // Retrieves the type of key
-    x_pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(x_pkey);
-    if (x_pkey_type == NID_undef) {
+    x_pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(x_pkey);
+    x_pkey_type = EVP_PKEY_type(x_pkey_id);
+    if (x_pkey_type <= 0) {
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+			x_pkey_type = x_pkey_id;
+#else
       PKI_DEBUG("[Comp #%d] Cannot get the component's type from Key", idx);
       goto err;
-    }
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+		}
 
     // Retrieves the i-th algorithm
     if ((alg = sk_X509_ALGOR_value(sig_algs, idx)) == NULL) {
@@ -775,6 +781,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
   ASN1_BIT_STRING aBitStr;
     // Temp Bit String
 
+  int pkey_id = 0;
   int pkey_type = 0;
     // The keypair and context references
 
@@ -795,10 +802,16 @@ static int verify(EVP_PKEY_CTX        * ctx,
   }
 
   // Retrieves the PKEY type (or ID)
-  pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+
+  pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+  pkey_type = EVP_PKEY_type(pkey_id);
   if (pkey_type <= 0) {
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+			pkey_type = pkey_id;
+#else
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
     return 0;
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
   }
 
   // Check for the use of a global hash

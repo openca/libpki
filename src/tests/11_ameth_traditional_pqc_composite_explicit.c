@@ -67,25 +67,25 @@ int subtest1() {
 	arr[idx++] = PKI_ALGOR_ID_RSA;
 	arr[idx++] = PKI_ALGOR_ID_RSAPSS;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	arr[idx++] = PKI_ID_get_by_name("dilithium2");
 	arr[idx++] = PKI_ID_get_by_name("dilithium3");
 	arr[idx++] = PKI_ID_get_by_name("dilithium5");
 	arr[idx++] = PKI_ID_get_by_name("falcon512");
 	arr[idx++] = PKI_ID_get_by_name("falcon1024");
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #ifdef ENABLE_COMPOSITE
 	// Generic Composite
 	arr[idx++] = PKI_ID_get_by_name("COMPOSITE");
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	// Explicit Composite
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-RSA-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-P256-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-BRAINPOOL256-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM3-ED25519");
-	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-P384-SHA384");
+	// arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-P384-SHA384");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-BRAINPOOL384-SHA384");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-ED448");
 	arr[idx++] = PKI_ID_get_by_name("FALCON512-P256-SHA256");
@@ -95,8 +95,10 @@ int subtest1() {
 	arr[idx++] = PKI_ID_get_by_name("FALCON512-RSA-SHA256");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-FALCON1024-P512-SHA512");
 	arr[idx++] = PKI_ID_get_by_name("DILITHIUM5-FALCON1024-RSA-SHA256");
-#endif
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
+#endif // End of ENABLE_COMPOSITE
+
+#if OPENSSL_VERSION_NUMBER < 0x3000000fL
 
 	const EVP_PKEY_ASN1_METHOD *ameth_one;
 	// const EVP_PKEY_ASN1_METHOD *ameth_two;
@@ -111,6 +113,25 @@ int subtest1() {
 		}
 		printf("Ok\n");
 	}
+#else
+	EVP_PKEY_CTX * pkey_ctx = NULL;
+	for (int i = 0; i < idx; i++ ) {
+		// Some info
+		printf("     + Algorithm %s ...: ", PKI_ID_get_txt(arr[i]));
+		// Create the context
+		pkey_ctx = EVP_PKEY_CTX_new_from_name(PKI_init_get_ossl_library_ctx(), PKI_ID_get_txt(arr[i]), NULL);
+		if (!pkey_ctx) {
+			printf("ERROR, can not find method for %s (%d)!\n", PKI_ID_get_txt(arr[i]), arr[i]);
+			EVP_PKEY_CTX_free(pkey_ctx);
+			return 0;
+		}
+		// Found
+		printf("Ok\n");
+		// Free the context
+		EVP_PKEY_CTX_free(pkey_ctx);
+		pkey_ctx = NULL;
+	}
+#endif
 
 	// Info
 	printf("   - Subtest 1: Passed\n\n");

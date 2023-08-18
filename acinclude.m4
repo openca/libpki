@@ -117,8 +117,9 @@ if [[ "$library_setup" = "no" ]] ; then
 		AC_MSG_RESULT([Searching OpenSSL Version: $library_includes]);
 
 		# Try the OpenSSL 0.9 ... 1.1.1+ format first
-		ver=`grep "^ *# *define  *OPENSSL_VERSION_NUMBER" "$library_includes" | sed 's/.*0x/0x/g' | sed 's|.*\\||g' | sed 's|\L||g'`;
-		if [[ "x$ver" == "x" ]] ; then
+		ver=`grep "^ *# *define  *OPENSSL_VERSION_NUMBER" "$library_includes" | sed 's/.*0x/0x/g' | sed 's|\L||g'`;
+		if ! [[[ "x$ver" =~ ^x0x.*$ ]]] ; then
+		# if [[ "x$ver" == "x" ]] ; then
 			# checks the OpenSSL 3+ format second
 			ossl_major=`grep "define OPENSSL_VERSION_MAJOR" "$library_includes" | sed 's|.*OPENSSL_VERSION_MAJOR[ ]*||g'`
 			ossl_minor=`grep "define OPENSSL_VERSION_MINOR" "$library_includes" | sed 's|.*OPENSSL_VERSION_MINOR[ ]*||g'`

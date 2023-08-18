@@ -28,7 +28,7 @@ int main (int argc, char *argv[] ) {
 	gen_X509_tk(PKI_SCHEME_RSA, 2048, "results/cert_rsa_1024.pem");
 	gen_X509_tk(PKI_SCHEME_ECDSA, 128,"results/cert_ecdsa_128.pem");
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	gen_X509_tk(PKI_SCHEME_DILITHIUM, 128, "results/cert_dilithium_128.pem");
 	gen_X509_tk(PKI_SCHEME_FALCON, 128, "results/cert_falcon_128.pem");
 #endif

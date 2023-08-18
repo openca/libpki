@@ -105,7 +105,8 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libpki_openssl_la_DEPENDENCIES = $(OBJECTS)
+am__DEPENDENCIES_1 =
+libpki_openssl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__objects_1 =
 am__objects_2 = $(am__objects_1) libpki_openssl_la-pthread_init.lo \
 	libpki_openssl_la-pki_id.lo libpki_openssl_la-pki_oid.lo \
@@ -476,6 +477,9 @@ openssl_static_libs = @openssl_static_libs@
 oqs_cflags = @oqs_cflags@
 oqs_ldadd = @oqs_ldadd@
 oqs_ldflags = @oqs_ldflags@
+oqsprov_cflags = @oqsprov_cflags@
+oqsprov_ldadd = @oqsprov_ldadd@
+oqsprov_ldflags = @oqsprov_ldflags@
 package_build = @package_build@
 package_prefix = @package_prefix@
 pdfdir = @pdfdir@
@@ -526,14 +530,6 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-
-# Composite Support
-COMPOSITE_SUBDIR = composite
-COMPOSITE_OBJ = composite/libpki-composite.la
-
-# OQS Support
-PQC_SUBDIR = pqc
-PQC_OBJ = pqc/libpki-pqc.la
 OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
 SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 NOINST_SRCS = \
@@ -1229,6 +1225,18 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 include $(TOP)/global-vars
+
+# Composite Support
+@ENABLE_COMPOSITE_TRUE@	COMPOSITE_SUBDIR = composite
+@ENABLE_COMPOSITE_TRUE@	COMPOSITE_OBJ = composite/libpki-composite.la
+@ENABLE_COMPOSITE_FALSE@	COMPOSITE_SUBDIR =
+@ENABLE_COMPOSITE_FALSE@	COMPOSITE_OBJ =
+
+# OQS Support
+@ENABLE_OQS_TRUE@	PQC_SUBDIR = pqc
+@ENABLE_OQS_TRUE@	PQC_OBJ = pqc/libpki-pqc.la
+@ENABLE_OQS_FALSE@	PQC_SUBDIR =
+@ENABLE_OQS_FALSE@	PQC_OBJ =
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

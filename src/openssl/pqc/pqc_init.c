@@ -1,6 +1,8 @@
 
 // Include the library configuration
+#ifdef __LIB_BUILD__
 #include <libpki/config.h>
+#endif
 
 #ifdef ENABLE_OQS
 

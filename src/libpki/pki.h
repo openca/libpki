@@ -6,6 +6,9 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_PKI_H
+#define _LIBPKI_PKI_H	1
+
 #ifndef _LIBPKI_COMPAT_H
 # include <libpki/compat.h>
 #endif
@@ -17,9 +20,6 @@
 #ifndef _LIBPKI_ENABLED_FEATURES
 # include <libpki/libpki_enables.h>
 #endif
-
-#ifndef _LIBPKI_PKI_H
-#define _LIBPKI_PKI_H	1
 
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>

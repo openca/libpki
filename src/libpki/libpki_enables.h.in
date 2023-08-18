@@ -8,6 +8,9 @@
 /* Open Quantum Safe Library */
 #undef ENABLE_OQS
 
+/* Open Quantum Safe Library */
+#undef ENABLE_OQSPROV
+
 /* Composite Crypto Native OpenSSL Support */
 #undef ENABLE_COMPOSITE
 

@@ -1278,7 +1278,7 @@ typedef struct pki_keyparams_st {
 	} ec;
 #endif // ENABLE_ECDSA
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 	struct {
 		PKI_ALGOR_ID algId;
 	} oqs;
@@ -1294,7 +1294,7 @@ typedef struct pki_keyparams_st {
 
 } PKI_KEYPARAMS;
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 typedef enum {
 	PKI_ALGOR_OQS_PARAM_UNKNOWN       = 0,
