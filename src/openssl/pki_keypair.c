@@ -180,7 +180,7 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 	}
 
 	// Let's get the type of the keypair
-	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+	pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pVal));
 	if ( pkey_type == PKI_ID_UNKNOWN) {
 		PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme!");
 		return ret;
@@ -368,7 +368,7 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 
 #if OPENSSL_VERSION_NUMBER > 0x3000000fL
 	char buff[50] = { 0 };
-	int buff_size = 50;
+	size_t buff_size = 50;
 	digestResult = EVP_PKEY_get_default_digest_name((EVP_PKEY *)pkey, buff, buff_size);
 	def_nid = PKI_ID_get_by_name(buff);
 	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_name (%d) does work.... ???? (nid: %d) *****", digestResult, def_nid);
@@ -413,7 +413,7 @@ int PKI_X509_KEYPAIR_VALUE_requires_digest(const PKI_X509_KEYPAIR_VALUE * pkey) 
 	if (!pkey) return PKI_ERR;
 
 	// Retrieves the PKEY ID
-	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 	if (pkey_type <= 0) {
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 		return PKI_ERR;
@@ -479,7 +479,8 @@ int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pk
 	}
 
 	// Checks the combined OID existence
-	if (!OBJ_find_sigid_by_algs(&algor_nid, EVP_MD_nid(digest), PKI_X509_KEYPAIR_VALUE_get_id(pkey))) {
+	int pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
+	if (!OBJ_find_sigid_by_algs(&algor_nid, EVP_MD_nid(digest), pkey_type)) {
 		// Combined Algorithm is not found
 		return PKI_ERR;
 	}
@@ -1119,7 +1120,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 	// Checks the padding
 	if (flags <= 0) {
 		// No padding specified, let's check the keypair type
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+		int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pVal));
 		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d (checking against RSA - %d, RSA2 - %d, and RSAPSS - %d)", 
 			pkey_id, EVP_PKEY_RSA, EVP_PKEY_RSA2, EVP_PKEY_RSA_PSS);
 
@@ -1151,7 +1152,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 	// Sets the padding, if one is set
 	if (padding > 0) {
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+		int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 		PKI_DEBUG("**** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
 
 		// Sets the padding via the CTRL interface
@@ -1250,7 +1251,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 
 	// Checks the padding
 	if (flags <= 0) {
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+		int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pVal));
 		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
 
 		if (EVP_PKEY_RSA == pkey_id || 
@@ -1280,7 +1281,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 	// Sets the padding, if one is set
 	if (padding > 0) {
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+		int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
 
 		// Sets the padding via the CTRL interface

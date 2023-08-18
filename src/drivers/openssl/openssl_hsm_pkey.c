@@ -952,7 +952,7 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
     if (!x || !bp) return PKI_ERR;
 
     // Let's get the type of key
-    int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(x);
+    int pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
     if (!pkey_type) {
         PKI_DEBUG("ERROR, can not get the type of key");
         return PKI_ERR;

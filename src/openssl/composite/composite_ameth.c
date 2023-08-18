@@ -449,7 +449,7 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
   if (!BIO_indent(out, indent, 128))
     return 0;
 
-  PKI_ID pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+  PKI_ID pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 
   BIO_printf(out, "Composite Public Alternative Keys (%d Equivalent Keys):\n",
     COMPOSITE_KEY_num(comp_key));
@@ -1421,7 +1421,7 @@ int item_sign(EVP_MD_CTX      * ctx,
   }
 
   // Retrieves the Composite Public Key Type
-  pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey_val);
+  pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey_val));
 
   // Here we shall generate and validate the list of components
   // when the pkey_id is one of the explicit composite

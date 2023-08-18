@@ -633,7 +633,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     }
 
     // Gets the PKEY type
-    x_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+    x_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
     if (!x_type) {
       PKI_DEBUG("Cannot retrieve PKEY type for component #%d", idx);
       return PKI_ERR;
@@ -751,7 +751,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     // Gets the type of component (PKEY)
     x_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
     PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d (type %d)", 
-      PKI_X509_KEYPAIR_VALUE_get_id(x), EVP_PKEY_id(x), x_type);
+      EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x)), EVP_PKEY_id(x), x_type);
     if (!x_type) {
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       PKI_DEBUG("Cannot get the type of component #%d", idx);

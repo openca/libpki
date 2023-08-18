@@ -836,7 +836,7 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		}
 
 		// Gets the Last Key's ID
-		last_key_id = PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey);
+		last_key_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey));
 		PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
 	}
 

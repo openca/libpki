@@ -401,7 +401,7 @@ static int sign(EVP_PKEY_CTX        * ctx,
     }
 
     // Retrieves the type of key
-    x_pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(x_pkey);
+    x_pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x_pkey));
     if (x_pkey_type == NID_undef) {
       PKI_DEBUG("[Comp #%d] Cannot get the component's type from Key", idx);
       goto err;
@@ -795,7 +795,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
   }
 
   // Retrieves the PKEY type (or ID)
-  pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+  pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
   if (pkey_type <= 0) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
     return 0;

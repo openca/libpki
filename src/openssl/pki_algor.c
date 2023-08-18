@@ -1999,7 +1999,7 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_default(const PKI_X509_KEYPAIR * const
 	// Checks for error
 	if (digestResult <= 0) {
 		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", 
-			PKI_X509_KEYPAIR_VALUE_get_id(pkey));
+			EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey)));
 #if OPENSSL_VERSION_NUMBER > 0x30000000L
 		PKI_DEBUG("Returning the default digest (%s)", PKI_ID_get_txt(PKI_DIGEST_ALG_ID_DEFAULT));
 		return PKI_DIGEST_ALG_DEFAULT;
@@ -2039,13 +2039,12 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 		} break;
 
 #ifdef ENABLE_ECDSA
-		case PKI_SCHEME_ECDSA: 
-		{
+		case PKI_SCHEME_ECDSA: {
 			ret = PKI_ALGOR_ID_LIST_ECDSA;
 		} break;
 #endif
 
-#ifdef 		ENABLE_OQS
+#ifdef ENABLE_OQS
 		case PKI_SCHEME_FALCON: {
 			ret = PKI_ALGOR_ID_LIST_FALCON;
 		} break;
@@ -2075,6 +2074,7 @@ const PKI_ALGOR_ID *PKI_ALGOR_ID_list ( PKI_SCHEME_ID scheme ) {
 		case PKI_SCHEME_CLASSIC_MCELIECE:
 		case PKI_SCHEME_DILITHIUMX3: {
 			PKI_DEBUG("OQS Support not enabled in this build (only OQSPROV)!");
+			ret = NULL;
 		} break;
 
 #endif

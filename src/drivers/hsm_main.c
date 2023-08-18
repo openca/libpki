@@ -524,7 +524,7 @@ int PKI_X509_sign(PKI_X509               * x,
 	}
 
 	// Gets the PKEY type
-	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 	if (pkey_type == NID_undef) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key's Internal Value");
 		return PKI_ERR;
