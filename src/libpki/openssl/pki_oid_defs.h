@@ -10,9 +10,7 @@
 #define _LIBPKI_OID_DEFS_H
 
 // Library configuration
-#ifdef __LIB_BUILD__
-#include <libpki/config.h>
-#endif
+#include <libpki/libpki_enables.h>
 
 #ifdef ENABLE_OQS
 # ifndef OQS_H
