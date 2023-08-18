@@ -449,7 +449,7 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
   if (!BIO_indent(out, indent, 128))
     return 0;
 
-  PKI_ID pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
+  PKI_ID pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
 
   BIO_printf(out, "Composite Public Alternative Keys (%d Equivalent Keys):\n",
     COMPOSITE_KEY_num(comp_key));
@@ -475,9 +475,9 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
     }
   }
 
-  if (pkey_id == OBJ_txt2nid("COMPOSITE_KEY") 
+  if (PKI_ID_is_composite(pkey_id, NULL) 
 #ifdef ENABLE_COMBINED
-      || pkey_id == OBJ_txt2nid("COMBINED_KEY")
+      || PKI_ID_is_comined(pkey_id, NULL)
 #endif
       ) {
     BIO_printf(out, "%*s", indent, "");

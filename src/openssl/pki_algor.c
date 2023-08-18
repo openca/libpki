@@ -1775,6 +1775,7 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 	int size = 0;
 	int p_type = 0;
+	int p_id = 0;
 
 	/* Let's set the digest for the right signature scheme */
 	if( !pkey ) return NULL;
@@ -1789,7 +1790,10 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 	pp = (EVP_PKEY *) pkey->value;
 
 #if OPENSSL_VERSION_NUMBER > 0x30000000L
-	p_type = EVP_PKEY_type(PKI_X509_KEYPAIR_get_id(pkey));
+	p_id = PKI_X509_KEYPAIR_get_id(pkey);
+	p_type = EVP_PKEY_type(p_id);
+	// TODO: Fix this trick
+	if (p_type <= 0) p_type = p_id;
 #elif OPENSSL_VERSION_NUMBER < 0x1010000fL
 	p_type = EVP_PKEY_type(pp->type);
 #else
@@ -1998,8 +2002,7 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_default(const PKI_X509_KEYPAIR * const
 
 	// Checks for error
 	if (digestResult <= 0) {
-		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", 
-			EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey)));
+		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 #if OPENSSL_VERSION_NUMBER > 0x30000000L
 		PKI_DEBUG("Returning the default digest (%s)", PKI_ID_get_txt(PKI_DIGEST_ALG_ID_DEFAULT));
 		return PKI_DIGEST_ALG_DEFAULT;

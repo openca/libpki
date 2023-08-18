@@ -836,7 +836,16 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 		}
 
 		// Gets the Last Key's ID
-		last_key_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey));
+		int last_key = PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey);
+		last_key_id = EVP_PKEY_type(last_key);
+		if (last_key_id <= 0) {
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+			last_key_id = last_key;
+#else
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+			return NULL;
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+		}
 		PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
 	}
 

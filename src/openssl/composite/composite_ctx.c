@@ -618,6 +618,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     PKI_X509_KEYPAIR_VALUE * pkey = NULL;
       // Pointer to a key in the components' stack
 
+    int x_id = 0;
     int x_type = 0;
     int pkey_id = 0;
     int md_id = 0;
@@ -633,11 +634,16 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     }
 
     // Gets the PKEY type
-    x_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pkey));
-    if (!x_type) {
+    x_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+    x_type = EVP_PKEY_type(x_id);
+    if (x_type <= 0) {
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+			x_type = pkey_id;
+#else
       PKI_DEBUG("Cannot retrieve PKEY type for component #%d", idx);
       return PKI_ERR;
-    }
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+		}
 
     // Gets the algorithm
     algor = sk_X509_ALGOR_value(sk, idx);
@@ -731,6 +737,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
 
     PKI_X509_KEYPAIR_VALUE * x = NULL;
     PKI_SCHEME_ID x_scheme_id = PKI_SCHEME_UNKNOWN;
+
+    int x_id = 0;
     int x_type = 0;
 
     const PKI_DIGEST_ALG * x_md = NULL;
@@ -749,14 +757,18 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     }
 
     // Gets the type of component (PKEY)
-    x_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
-    PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d (type %d)", 
-      EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x)), EVP_PKEY_id(x), x_type);
-    if (!x_type) {
+    x_id = PKI_X509_KEYPAIR_VALUE_get_id(x);
+    x_type = EVP_PKEY_type(x_id);
+    if (x_type <= 0) {
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+			x_type = x_id;
+#else
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       PKI_DEBUG("Cannot get the type of component #%d", idx);
       return PKI_ERR;
-    }
+#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+		}
+    PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", x_type, x_id);
 
     // Checks we are not recursing
     if (PKI_ID_is_composite(x_type, &x_scheme_id) ||
