@@ -1315,7 +1315,8 @@ int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
 
 	// Let's get the X509 algorithm from key and digest
 	int alg_nid = PKI_ID_UNKNOWN;
-	if (!OBJ_find_sigid_by_algs(&alg_nid, EVP_MD_nid(digest), EVP_PKEY_id(k_val))) {
+	int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(k_val));
+	if (!OBJ_find_sigid_by_algs(&alg_nid, EVP_MD_nid(digest), pkey_id)) {
 		PKI_ERROR(PKI_ERR_ALGOR_SET, "Error while setting the X509 algorithm");
 		return PKI_ERR;
 	}

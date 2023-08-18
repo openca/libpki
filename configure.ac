@@ -1566,6 +1566,69 @@ AC_SUBST(oqs_cflags)
 AC_SUBST(oqs_ldflags)
 AC_SUBST(oqs_ldadd)
 
+dnl ================= Open Quantum Safe - PQ and Composite Crypto PROVIDER ===================
+
+dnl Defaults
+oqsprov_config=
+oqsprov_cflags=
+oqsprov_check=
+oqsprov_prefix=/usr
+oqsprov_ldflags=
+oqsprov_ldadd=
+
+dnl Enable OQS support
+cli_oqsprov=no
+
+AC_ARG_ENABLE(oqsprov,
+	[  --enable-oqsprov      enable support for the OQS provider (no)],
+	[cli_oqsprov=$enableval], 
+	[cli_oqsprov=default]
+ )
+
+if [[ "x$cli_oqsprov" = "xyes" ]] ; then
+	AC_MSG_RESULT([ Open Quantum Safe Provider: Enabled via CLI option ($cli_oqsprov) ])
+	AC_DEFINE(ENABLE_OQSPROV, 1, [ Open Quantum Safe Provider Support ])
+	oqsprov_check="yes"
+	oqsprov_cflags="-DENABLE_OQSPROV=1"
+	oqsprov_ldadd=""
+	oqsprov_ldflags=""
+else
+
+	if [[ "x$cli_oqsprov" = "xdefault" ]] ; then
+		AC_MSG_RESULT([ Checking support for Open Quantum Safe Provider ])
+
+		for prefix_dir in $prefix $openssl_prefix ; do
+			provider_lib=${prefix_dir}/lib/ossl-modules/oqsprovider.*
+			echo "Checking for Provider Library File ...." ${provider_lib}
+			if [[ -f ${provider_lib} ]] ; then
+				AC_MSG_RESULT([Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)])
+				AC_DEFINE(ENABLE_OQSPROV, 1, [Open Quantum Safe Library])],
+				oqsprov_check="yes"
+				oqsprov_cflags="-DENABLE_OQSPROV=1"
+				oqsprov_prefix=$prefix_dir
+			fi
+		done
+
+		if [[ "$oqsprov_check" = "" ]] ; then
+			AC_MSG_RESULT([Open Quantum Safe: Module NOT Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/)])
+			oqsprov_check="no"
+			oqsprov_cflags=""
+		fi
+
+	else
+		AC_MSG_RESULT([Open Quantum Safe Provider: Disabled (oqs=$oqsprov_check)])
+		oqsprov_check="no"
+		oqsprov_ldadd=""
+		oqsprov_cflags=""
+	fi
+fi
+
+AM_CONDITIONAL(ENABLE_OQSPROV, test "${oqsprov_check}" = "yes")
+
+AC_SUBST(oqsprov_cflags)
+AC_SUBST(oqsprov_ldflags)
+AC_SUBST(oqsprov_ldadd)
+
 dnl ================= OpenSSL Composite Crypto Native Support ===================
 
 dnl Defaults
@@ -1646,14 +1709,14 @@ fi
 AC_SUBST(sys_ldadd)
 AC_SUBST(sys_cflags)
 
-libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
 
 if [[ "${enable_shared}" = "yes" ]] ; then
-  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
   libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
-  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
 fi
 
 # Harmonize the linker directories
@@ -1879,15 +1942,16 @@ OpenSSL Configuration:
 
  Library ..............: OpenSSL
  Prefix ...............: $openssl_prefix
- Compiler Flags .......: $openssl_cflags $oqs_cflags"
+ Compiler Flags .......: $openssl_cflags $oqs_cflags $oqsprov_cflags"
 if [[ "${enable_shared}" = "yes" ]] ; then
-echo " Linker Flags .........: $openssl_ldflags $oqs_ldflags"
-echo " libs .................: $openssl_ldadd $oqs_ldadd"
+echo " Linker Flags .........: $openssl_ldflags $oqs_ldflags $oqsprov_ldflags"
+echo " libs .................: $openssl_ldadd $oqs_ldadd $oqsprov_ldadd"
 else
 echo " Libs Flags (static)...: $openssl_static_libs (${enable_shared})"
 fi
-echo " Support for ECDSA ....: $activate_ecdsa
-"
+echo " Support for ECDSA ....: $activate_ecdsa"
+echo " Support for OQS ......: $oqs_check"
+echo " Support for OQS Prov .: $oqsprov_check"
 fi
 
 if [[ "${enable_kmf}" = "yes" ]] ; then
@@ -1918,6 +1982,7 @@ Configuration for $PACKAGE $VERSION :
  Linker Flags .........: $rpath $my_ldflags
  Libs .................: $my_ldadd
  Open Post Quantum ....: $oqs_check
+ Open Post Quantum Prov: $oqsprov_check
  Composite Native .....: $composite
 "
 echo "

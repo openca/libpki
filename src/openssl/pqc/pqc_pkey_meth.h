@@ -3,7 +3,9 @@
 #define _LIBPKI_PQC_PKEY_METH_LOCAL_H
 
 // Include the library configuration
+#ifdef __LIB_BUILD__
 #include <libpki/config.h>
+#endif
 
 #ifdef ENABLE_OQS
 

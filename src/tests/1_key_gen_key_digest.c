@@ -147,7 +147,7 @@ int subtest3() {
 
 int subtest4() {
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined (ENABLE_OQSPROV)
 
 	int sec_level_array[] = { 128, 192, 256 };
 
@@ -173,7 +173,7 @@ int subtest4() {
 	// Info
 	printf("  - Subtest 4: Passed\n\n");
 
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 	// Test Passed
 	return 1;
