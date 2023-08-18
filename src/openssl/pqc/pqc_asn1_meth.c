@@ -493,7 +493,9 @@ int oqs_ameth_pkey_ctrl(EVP_PKEY *pkey, int op, long arg1, void *arg2) {
             if (hnid == NID_undef) {
                 return -1;
             }
-            if (!OBJ_find_sigid_by_algs(&snid, hnid, EVP_PKEY_id(pkey))) {
+            int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+            PKI_DEBUG("****** OSSL3 UPGRADE: GOT PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
+            if (!OBJ_find_sigid_by_algs(&snid, hnid, pkey_id)) {
                 return -1;
             }
             X509_ALGOR_set0(alg2, OBJ_nid2obj(snid), V_ASN1_UNDEF, 0);

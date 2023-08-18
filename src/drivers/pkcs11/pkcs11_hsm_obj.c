@@ -1293,7 +1293,9 @@ CK_OBJECT_HANDLE * HSM_PKCS11_X509_CERT_find_private_key ( PKI_X509_CERT *x,
 	idx = 0;
 	HSM_PKCS11_set_attr_int( CKA_CLASS, CKO_PRIVATE_KEY, &templ[idx++]);
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+	key_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(pk));
+#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
 	key_type = EVP_PKEY_type ( ((EVP_PKEY*)pk)->type );
 #else
 	key_type = EVP_PKEY_type(EVP_PKEY_id(pk));

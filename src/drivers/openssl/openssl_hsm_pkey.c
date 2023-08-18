@@ -946,12 +946,20 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
                                       void              * u) {
 
     int ret = PKI_ERR;
+        // Return value
 
     // Input Check
     if (!x || !bp) return PKI_ERR;
 
+    // Let's get the type of key
+    int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(x);
+    if (!pkey_type) {
+        PKI_DEBUG("ERROR, can not get the type of key");
+        return PKI_ERR;
+    }
+
     // Different functions depending on the Key type
-    switch(EVP_PKEY_type(EVP_PKEY_id(x)))
+    switch(pkey_type)
     {
 
 #ifdef ENABLE_ECDSA
@@ -977,8 +985,7 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
             if ((ret = PEM_write_bio_PKCS8PrivateKey(bp, x, enc, 
                 (char *) out_buffer, klen, cb, u)) != 1) {
                 // Debug Info
-                PKI_DEBUG("Key Type NOT supported (%d)", 
-                    EVP_PKEY_type(EVP_PKEY_id(x)));
+                PKI_DEBUG("Key Type NOT supported (%d)", pkey_type);
                 // Error Condition
                 return PKI_ERR;
             }
@@ -996,7 +1003,13 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
 
 EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 {
-    EVP_PKEY *ret = NULL;
+   EVP_PKEY *ret = NULL;
+   
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+
+    ret = EVP_PKEY_dup(kVal);
+
+#else
 
     if(!kVal) return NULL;
 
@@ -1099,6 +1112,8 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
         PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot update PKEY references");
         return NULL;
     }
+#endif
+
 
     // All Done
     return ret;

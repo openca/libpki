@@ -672,8 +672,11 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 			// Internal Value
 
-		int pkey_type = EVP_PKEY_type(EVP_PKEY_id(p_val));
+		int pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(p_val));
 			// Key Type
+
+		PKI_DEBUG("**** OSSL3 UPGRADE: GOT PKEY ID %d vs. EVP_PKEY_id() -> %d (type: %d)",
+			PKI_X509_KEYPAIR_VALUE_get_id(p_val), EVP_PKEY_id(p_val), pkey_type);
 
 		// Explicit does not allow for hash-n-sign
 		if (PKI_ID_requires_digest(pkey_type) == PKI_OK) {

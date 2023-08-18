@@ -749,7 +749,9 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     }
 
     // Gets the type of component (PKEY)
-    x_type = EVP_PKEY_type(EVP_PKEY_id(x));
+    x_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
+    PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d (type %d)", 
+      PKI_X509_KEYPAIR_VALUE_get_id(x), EVP_PKEY_id(x), x_type);
     if (!x_type) {
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       PKI_DEBUG("Cannot get the type of component #%d", idx);
@@ -783,6 +785,8 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
         
         // Search for a default digest for the type of key
         if (!EVP_PKEY_get_default_digest_nid(x, &md_nid)) {
+        	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid seems to fail *****");
+
           PKI_DEBUG("No default exists for component #%d, using library default (%d)",
             idx, EVP_MD_type(PKI_DIGEST_ALG_DEFAULT));
           // Use the library's default for the digest

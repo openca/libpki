@@ -1520,8 +1520,18 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 		return PKI_SCHEME_UNKNOWN;
 	}
 
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
+
 	// Gets the Type of PKEY
 	int pkey_type = EVP_PKEY_type(pkey_id);
+
+#else
+
+	int pkey_type = pkey_id;
+
+#endif // End of OPENSSL_VERSION_NUMBER
+
+	PKI_DEBUG("******** OSSL3 UPGRADE: Check pkey_type (%d) vs. pkey_id (%d) ************", pkey_type, pkey_id);
 
 	// Let's check the PKEY types
 	switch (pkey_type) {
@@ -1778,15 +1788,21 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 	pp = (EVP_PKEY *) pkey->value;
 
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+	p_type = EVP_PKEY_type(PKI_X509_KEYPAIR_get_id(pkey));
+#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
 	p_type = EVP_PKEY_type(pp->type);
 #else
 	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
 #endif
 
+	// TODO: Remove this debug
+	PKI_DEBUG("******* OSSL3 UPGRADE: Retrieved p_type (%d) from pkey (%d) ************", p_type, pkey->type);
+
 	// Gets the default digest for the key
 	int default_nid = -1;
 	int digestResult = EVP_PKEY_get_default_digest_nid(pp, &default_nid);
+	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail *****", digestResult);
 
 	// Returns the default digest for the key if it is
 	// the only one supported
@@ -1978,11 +1994,19 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_default(const PKI_X509_KEYPAIR * const
 	// Gets the default digest for the key
 	int def_nid = -1;
 	int digestResult = EVP_PKEY_get_default_digest_nid(pkey, &def_nid);
+	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail *****", digestResult);
 
 	// Checks for error
 	if (digestResult <= 0) {
-		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", EVP_PKEY_id(pkey));
+		PKI_DEBUG("Cannot get the default digest for signing (pkey type: %d)", 
+			PKI_X509_KEYPAIR_VALUE_get_id(pkey));
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+		PKI_DEBUG("Returning the default digest (%s)", PKI_ID_get_txt(PKI_DIGEST_ALG_ID_DEFAULT));
+		return PKI_DIGEST_ALG_DEFAULT;
+#else
+		// Error condition
 		return NULL;
+#endif
 	}
 
 	// If the returned value is == 2, then the returned
