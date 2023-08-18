@@ -570,9 +570,6 @@ int PKI_init_providers(void) {
 			fprintf(stderr, "Failed to load Default provider\n");
 			return 0;
 		}
-
-		// Debugging Info
-		PKI_DEBUG("Default Provider name: %s\n", OSSL_PROVIDER_get0_name(provider));
 	}
 
 	// Loads the Legacy Provider
@@ -582,9 +579,6 @@ int PKI_init_providers(void) {
 			fprintf(stderr, "Failed to load Default provider\n");
 			return 0;
 		}
-
-		// Debugging Info
-		PKI_DEBUG("Default Provider name: %s\n", OSSL_PROVIDER_get0_name(provider));
 	}
 
 #ifdef ENABLE_OQSPROV
@@ -596,16 +590,10 @@ int PKI_init_providers(void) {
 			fprintf(stderr, "Failed to load Default provider\n");
 			return 0;
 		}
-
-		// Debugging Info
-		PKI_DEBUG("Default Provider name: %s\n", OSSL_PROVIDER_get0_name(provider));
 	}
 
 #endif
 
-	// Debugging Info
-	PKI_DEBUG("OSSL Providers Initialized Successfully.");
- 
 	// All Done
 	return 1;
 }
