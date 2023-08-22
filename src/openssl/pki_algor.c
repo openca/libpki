@@ -1788,17 +1788,19 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 	pp = (EVP_PKEY *) pkey->value;
 
-#if OPENSSL_VERSION_NUMBER > 0x30000000L
-	int p_id = 0;
-	p_id = PKI_X509_KEYPAIR_get_id(pkey);
-	p_type = EVP_PKEY_type(p_id);
-	// TODO: Fix this trick
-	if (p_type <= 0) p_type = p_id;
-#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
-	p_type = EVP_PKEY_type(pp->type);
-#else
-	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
-#endif
+// #if OPENSSL_VERSION_NUMBER > 0x30000000L
+// 	int p_id = 0;
+// 	p_id = PKI_X509_KEYPAIR_get_id(pkey);
+// 	p_type = EVP_PKEY_type(p_id);
+// 	// TODO: Fix this trick
+// 	if (p_type <= 0) p_type = p_id;
+// #elif OPENSSL_VERSION_NUMBER < 0x1010000fL
+// 	p_type = EVP_PKEY_type(pp->type);
+// #else
+// 	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
+// #endif
+
+	p_type = PKI_X509_KEYPAIR_get_id(pkey);
 
 	// TODO: Remove this debug
 	PKI_DEBUG("******* OSSL3 UPGRADE: Retrieved p_type (%d) from pkey (%d) ************", p_type, pkey->type);

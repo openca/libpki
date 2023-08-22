@@ -15,6 +15,7 @@ int subtest2();
 int subtest3();
 int subtest4();
 int subtest5();
+int subtest6();
 
 int main (int argc, char *argv[] ) {
 
@@ -42,6 +43,7 @@ int main (int argc, char *argv[] ) {
 		&& subtest3()
 		&& subtest4()
 		&& subtest5()
+		&& subtest6()
 	);
 
 	// Info
@@ -195,7 +197,7 @@ int subtest5() {
 		// Generate a Keypair (128)
 		keypair = PKI_X509_KEYPAIR_new(PKI_SCHEME_FALCON, sec_level, NULL, NULL, NULL);
 		if (!keypair) {
-			PKI_DEBUG("ERROR: Cannot generate a Dilithium key (Sec Bits: %d).", sec_level);
+			PKI_DEBUG("ERROR: Cannot generate a Falcon key (Sec Bits: %d).", sec_level);
 			return 0;
 		}
 
@@ -219,11 +221,18 @@ int subtest6() {
 
 	PKI_SCHEME_ID arr[] = {
 		PKI_SCHEME_RSA,
+#ifdef ENABLE_ECDSA
 		PKI_SCHEME_ECDSA,
 		PKI_SCHEME_ED25519,
 		PKI_SCHEME_ED448,
+#endif
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 		PKI_SCHEME_DILITHIUM,
 		PKI_SCHEME_FALCON,
+#endif
+#ifdef ENABLE_COMPOSITE
+		PKI_SCHEME_COMPOSITE,
+#endif
 		0,
 	};
 
@@ -236,19 +245,20 @@ int subtest6() {
 		// Generate a Keypair
 		keypair = PKI_X509_KEYPAIR_new(arr[idx], 128, NULL, NULL, NULL);
 		if (!keypair) {
-			PKI_DEBUG("ERROR: Cannot generate a new key (%s).", PKI_SCHEME_ID_get_parsed(arr[idx]));
+			printf("ERROR: Cannot generate a new key (%s).\n\n", PKI_SCHEME_ID_get_parsed(arr[idx]));
 			return 0;
 		}
 
-		int pkey_type = PKI_X509_KEYPAIR_get_ossl_type(keypair);
+		int pkey_type = PKI_X509_KEYPAIR_get_id(keypair);
 		if (pkey_type <= 0) {
-			PKI_DEBUG("ERROR: Cannot get the PKEY type.");
+			printf("ERROR: Cannot get the PKEY type.\n\n");
 			return 0;
 		}
 
-		// Checks the results
-		if (pkey_type != EVP_PKEY_ED25519) {
-			PKI_DEBUG("ERROR: PKEY type is not ED25519.");
+		PKI_SCHEME_ID pkey_scheme = PKI_X509_KEYPAIR_get_scheme(keypair);
+		if (!pkey_scheme || pkey_scheme != arr[idx]) {
+			PKI_DEBUG("ERROR: Expected scheme was %s, got %s.\n\n", 
+				PKI_SCHEME_ID_get_parsed(arr[idx]), PKI_SCHEME_ID_get_parsed(pkey_scheme));
 			return 0;
 		}
 

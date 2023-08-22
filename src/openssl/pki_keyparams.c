@@ -822,10 +822,10 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 	// Let's get the ID for the that is being added
 	// add_key_id = EVP_PKEY_id((EVP_PKEY *)key->value);
 	add_key_id = PKI_X509_KEYPAIR_get_id(key);
-	PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
+	// PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
 	if (add_key_id <= NID_undef) {
-		return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, 
-			"Missing Type for the new key component");
+		PKI_DEBUG("Cannot retrieve the type of key being added.");
+		return PKI_ERR;
 	}
 	
 	// Let's check if we have any key in the stack already
@@ -841,18 +841,23 @@ int PKI_KEYPARAMS_add_key(PKI_KEYPARAMS * kp, PKI_X509_KEYPAIR * key) {
 			return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
 		}
 
-		// Gets the Last Key's ID
-		int last_key = PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey);
-		last_key_id = EVP_PKEY_type(last_key);
-		if (last_key_id <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			last_key_id = last_key;
-#else
-			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-			return PKI_ERR;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		// Gets the Last Key's ID
+// 		int last_key = PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey);
+// 		last_key_id = EVP_PKEY_type(last_key);
+// 		if (last_key_id <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			last_key_id = last_key;
+// #else
+// 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 			return PKI_ERR;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+
+		last_key_id = PKI_X509_KEYPAIR_VALUE_get_id(evp_pkey);
+		if (!last_key_id) {
+			PKI_DEBUG("Cannot get the type of key to be added to the component #%d", key_sk_elements);
+			return PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, NULL);
 		}
-		PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
+		// PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", add_key_id, EVP_PKEY_id((EVP_PKEY *)key->value));
 	}
 
 	// Checks ID requirements (explicit composite only)	

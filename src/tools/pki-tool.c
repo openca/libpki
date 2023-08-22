@@ -673,22 +673,21 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 
 	} else {
 
-		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
+		// PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 			// Internal Value
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
-		int pkey_type = EVP_PKEY_type(pkey_id);
-		if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			pkey_type = pkey_id;
-#else
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
-			return 0;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
-  		}
-
-		PKI_DEBUG("**** OSSL3 UPGRADE: GOT PKEY ID %d (Type: %d) vs. EVP_PKEY_id() -> %d",
-			pkey_id, pkey_type, EVP_PKEY_id(p_val));
+// 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
+// 		int pkey_type = EVP_PKEY_type(pkey_id);
+// 		if (pkey_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			pkey_type = pkey_id;
+// #else
+// 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
+// 			return 0;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+//   		}
+		int pkey_type = PKI_X509_KEYPAIR_get_id(tk->keypair);
+		PKI_DEBUG("**** OSSL3 UPGRADE: GOT PKEY ID %d (Type)", pkey_type);
 
 		// Explicit does not allow for hash-n-sign
 		if (PKI_ID_requires_digest(pkey_type) == PKI_OK) {

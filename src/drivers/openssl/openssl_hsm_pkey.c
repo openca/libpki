@@ -966,13 +966,26 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
 #ifdef ENABLE_ECDSA
 
         // EC
-        case PKI_SCHEME_ED25519:
-        case PKI_SCHEME_X25519:
-        case PKI_SCHEME_ED448:
-        case PKI_SCHEME_X448:
+        case PKI_SCHEME_ED25519: {
+            pkey_type = EVP_PKEY_ED25519;
+        } break;
+
+        case PKI_SCHEME_X25519: {
+            pkey_type = EVP_PKEY_X25519;
+        } break;
+
+        case PKI_SCHEME_ED448: {
+            pkey_type = EVP_PKEY_ED448;
+        } break;
+
+        case PKI_SCHEME_X448: {
+            pkey_type = EVP_PKEY_X448;
+        } break;
+
         case PKI_SCHEME_ECDSA: {
             pkey_type = EVP_PKEY_EC;
         } break;
+
 #endif // End of ENABLE_ECDSA
 
         default: {
@@ -980,7 +993,7 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
             pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(x);
         } break;
     }
-#else
+#else // OpenSSL 1.1.1
     // Let's get the type of key
     int pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
 #endif // End of OPENSSL_VERSION_NUMBER >= 0x30000000L
@@ -1039,20 +1052,21 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 
 #else
 
+    int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(kVal);
     if(!kVal) return NULL;
 
     if ((ret = EVP_PKEY_new()) == NULL) return NULL;
 
     if (!EVP_PKEY_copy_parameters(ret, kVal)) return NULL;
 
-    switch (EVP_PKEY_type(EVP_PKEY_id(kVal)))
+    switch (pkey_type)
     {
 
         case EVP_PKEY_RSA: {
             RSA *rsa = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-            if (((rsa = EVP_PKEY_get1_RSA(kVal)) == NULL) ||
-#elif OPENSSL_VERSION_NUMBER >= 0x1010000fL
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+//             if (((rsa = EVP_PKEY_get1_RSA(kVal)) == NULL) ||
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if (((rsa = EVP_PKEY_get0_RSA(kVal)) == NULL) ||
 #else
             if (((rsa = (RSA *)EVP_PKEY_get0(kVal)) == NULL) ||
@@ -1065,9 +1079,9 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 
         case EVP_PKEY_DH: {
             DH *dh = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-            if ( ((dh = EVP_PKEY_get1_DH(kVal)) == NULL) ||
-#elif OPENSSL_VERSION_NUMBER >= 0x1010000fL
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+//             if ( ((dh = EVP_PKEY_get1_DH(kVal)) == NULL) ||
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if ( ((dh = EVP_PKEY_get0_DH(kVal)) == NULL) ||
 #else
             if ( ((dh = (DH *)EVP_PKEY_get0(kVal)) == NULL) ||
@@ -1081,9 +1095,9 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 #ifdef ENABLE_ECDSA
         case EVP_PKEY_EC: {
             EC_KEY * ec = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-            if (((ec = EVP_PKEY_get1_EC_KEY(kVal)) == NULL) ||
-#elif OPENSSL_VERSION_NUMBER >= 0x1010000fL
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+//             if (((ec = EVP_PKEY_get1_EC_KEY(kVal)) == NULL) ||
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if (((ec = EVP_PKEY_get0_EC_KEY(kVal)) == NULL) ||
 #else
             if (((ec = (EC_KEY *)EVP_PKEY_get0(kVal)) == NULL) ||
@@ -1098,9 +1112,9 @@ EVP_PKEY *OPENSSL_HSM_KEYPAIR_dup(EVP_PKEY *kVal)
 #ifdef ENABLE_DSA
         case EVP_PKEY_DSA: {
             DSA *dsa = NULL;
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
-            if ( ((dsa = EVP_PKEY_get1_DSA(kVal)) == NULL) ||
-#elif OPENSSL_VERSION_NUMBER >= 0x1010000fL
+// #if OPENSSL_VERSION_NUMBER >= 0x30000000L
+//             if ( ((dsa = EVP_PKEY_get1_DSA(kVal)) == NULL) ||
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
             if ( ((dsa = EVP_PKEY_get0_DSA(kVal)) == NULL) ||
 #else
             if ( ((dsa = (DSA *)EVP_PKEY_get0(kVal)) == NULL) ||

@@ -177,21 +177,29 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 		return ret;
 	}
 
-	// Let's get the type of the keypair
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
-#else
-	int pkey_id = EVP_PKEY_id(pVal);
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 	// Let's get the type of the keypair
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+// #else
+// 	int pkey_id = EVP_PKEY_id(pVal);
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 
-	int pkey_type = EVP_PKEY_type(pkey_id);
-	if (pkey_type == PKI_ID_UNKNOWN) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-		pkey_type = pkey_id;
-#else
-		PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme (ID: %d, TYPE: %d)!", pkey_id, pkey_type);
+// 	int pkey_type = EVP_PKEY_type(pkey_id);
+// 	if (pkey_type == PKI_ID_UNKNOWN) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		pkey_type = pkey_id;
+// #else
+// 		PKI_DEBUG("ERROR, can not get the type of the keypair to get the scheme (ID: %d, TYPE: %d)!", pkey_id, pkey_type);
+// 		return ret;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 	}
+
+	int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+		// Type of keypair
+
+	if (!pkey_type) {
+		PKI_DEBUG("ERROR, can not get the type of the keypair (type: %d)!", pkey_type);
 		return ret;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 	}
 
 	// Let's retrieve the scheme from the keypair type
@@ -204,15 +212,12 @@ PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pV
 				// Checks if the keypair is a traditional one
 				if (PKI_ERR == PKI_ID_is_traditional(pkey_type, &ret)) {
 					// If we are here, the key ID is not recognized
-					PKI_DEBUG("Can not get the type of the keypair to get the scheme (type: %d)", pkey_type);
+					PKI_DEBUG("Unrecognized keypair's type while retrieving the scheme (type: %d)", pkey_type);
 					return PKI_ERR;
 				} 
 			}
 		}
 	}
-
-	// // Debugging Info
-	PKI_DEBUG("Found Scheme (%d) for pkey type (%d)", ret, pkey_type);
 
 	// All Done
 	return ret;
@@ -339,69 +344,112 @@ int PKI_X509_KEYPAIR_get_id(const PKI_X509_KEYPAIR * key) {
 
 int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey) {
 
-	int pkey_type = PKI_ID_UNKNOWN;
+	int pkey_id = PKI_ID_UNKNOWN;
 
 	// Input Check
 	if (!pkey) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_ID_UNKNOWN;
 	}
+
 #if OPENSSL_VERSION_NUMBER > 0x3000000fL
-	pkey_type = PKI_ID_get_by_name(EVP_PKEY_get0_type_name(pkey));
-#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
-	pkey_type = EVP_PKEY_type(pVal->type);
-#else
-	pkey_type = EVP_PKEY_type(EVP_PKEY_id(pkey));
+	
+	// Use the name of the keypair
+	const char * type_name = EVP_PKEY_get0_type_name(pkey);
+	if (!type_name) {
+		PKI_DEBUG("OSSL3: Error, cannot get the type name from the keypair value");
+		return PKI_ID_UNKNOWN;
+	}
+
+	// Special case because the string "EC" is not a valid type name
+	// therefore we need to check it explicitly. The name that should
+	// have been used is id-ecPublicKey (408)
+
+	if (EVP_PKEY_is_a(pkey, "EC")) {
+		pkey_id = EVP_PKEY_EC;
+	} else if (EVP_PKEY_is_a(pkey, "RSAPSS")) {
+		pkey_id = EVP_PKEY_RSA_PSS;
+	} else if (EVP_PKEY_is_a(pkey, "RSA")) {
+		pkey_id = EVP_PKEY_RSA;
+#ifdef ENABLE_DSA
+	} else if (EVP_PKEY_is_a(pkey, "DSA")) {
+		pkey_id = EVP_PKEY_DSA;
 #endif
+	} else if (EVP_PKEY_is_a(pkey, "DH")) {
+		pkey_id = EVP_PKEY_DH;
+	} else {
+		pkey_id = PKI_ID_get_by_name(type_name);
+	}
+#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
+	pkey_id = pVal->type;
+#else
+	pkey_id = EVP_PKEY_id(pkey);
+#endif
+
+	// Retrieves the PKEY type
+	int pkey_type = EVP_PKEY_type(pkey_id);
+	if (!pkey_type) {
+		// For explicit composite, pkey_id and pkey_type are the same
+		if (PKI_ID_is_explicit_composite(pkey_id, NULL)
+		    || PKI_ID_is_composite(pkey_id, NULL)
+		    || PKI_ID_is_pqc(pkey_id, NULL)) {
+			// Type and ID are the same (no aliases)
+			pkey_type = pkey_id;
+		} else {
+			PKI_DEBUG("Error while getting the PKEY type from the keypair value (%s)", PKI_ID_get_txt(pkey_id));
+			return PKI_ERR;
+		}
+	}
 
 	// Returns the PKEY ID
 	return pkey_type;
 }
 
-int PKI_X509_KEYPAIR_get_ossl_type(const PKI_X509_KEYPAIR * key) {
+// int PKI_X509_KEYPAIR_get_ossl_type(const PKI_X509_KEYPAIR * key) {
 
-	// Input check
-	if (!key || !key->value) return PKI_ID_UNKNOWN;
+// 	// Input check
+// 	if (!key || !key->value) return PKI_ID_UNKNOWN;
 
-	// Forward
-	return PKI_X509_KEYPAIR_VALUE_get_ossl_type(key->value);
-}
+// 	// Forward
+// 	return PKI_X509_KEYPAIR_VALUE_get_ossl_type(key->value);
+// }
 
-int PKI_X509_KEYPAIR_VALUE_get_ossl_type(const PKI_X509_KEYPAIR_VALUE * pkey) {
+// int PKI_X509_KEYPAIR_VALUE_get_ossl_type(const PKI_X509_KEYPAIR_VALUE * pkey) {
 
-	int pkey_type = PKI_ID_UNKNOWN;
-		// Return Value
+// 	int pkey_type = PKI_ID_UNKNOWN;
+// 		// Return Value
 
-	// Input Check
-	if (!pkey) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return PKI_ID_UNKNOWN;
-	}
+// 	// Input Check
+// 	if (!pkey) {
+// 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+// 		return PKI_ID_UNKNOWN;
+// 	}
 
-	// Retrieves the PKEY type
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-	const char * type_name = EVP_PKEY_get0_type_name(pkey);
-	pkey_type = PKI_ID_get_by_name(type_name);
-#else
-	// Retrieves the PKEY ID
-	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
-	if (pkey_id <= 0) {
-		PKI_DEBUG("Cannot retrieve the PKEY ID from the keypair value");
-		return PKI_ID_UNKNOWN;
-	}
-	pkey_type = EVP_PKEY_type(pkey_id);
-#endif
+// 	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+// 	if (pkey_id <= 0) {
+// 		PKI_DEBUG("Cannot retrieve the PKEY ID from the keypair value");
+// 		return PKI_ID_UNKNOWN;
+// 	}
 
-	// Checks we have a good value
-	if (pkey_type <= 0) {
-		PKI_DEBUG("Cannot retrieve the PKEY type from the keypair value");
-		return PKI_ID_UNKNOWN;
-	}
+// 	// Retrieves the PKEY type
+// 	pkey_type = EVP_PKEY_type(pkey_id);
+// 	if (!pkey_type) {
+// 		// For explicit composite, pkey_id and pkey_type are the same
+// 		if (PKI_ID_is_explicit_composite(pkey_id, NULL)
+// 		    || PKI_ID_is_composite(pkey_id, NULL)
+// 		    || PKI_ID_is_pqc(pkey_id, NULL)) {
+// 			// Type and ID are the same (no aliases)
+// 			pkey_type = pkey_id;
+// 		} else {
+// 			PKI_DEBUG("Error while getting the PKEY type from the keypair value (%s)", PKI_ID_get_txt(pkey_id));
+// 			return PKI_ERR;
+// 		}
+// 	}
 
-	// All Done
-	return pkey_type;
+// 	// All Done
+// 	return pkey_type;
 
-}
+// }
 
 int PKI_X509_KEYPAIR_get_default_digest(const PKI_X509_KEYPAIR * key) {
     return PKI_X509_KEYPAIR_VALUE_get_default_digest(key ? key->value : NULL);
@@ -417,19 +465,23 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 
 	// Retrieves the default digest for the PKEY
 	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
-	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail (nid: %d) *****", digestResult, def_nid);
 
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-	char buff[50] = { 0 };
-	size_t buff_size = 50;
-	digestResult = EVP_PKEY_get_default_digest_name((EVP_PKEY *)pkey, buff, buff_size);
-	def_nid = PKI_ID_get_by_name(buff);
-	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_name (%d) does work.... ???? (nid: %d - %s) *****", digestResult, def_nid, buff);
-#endif
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 	char buff[50] = { 0 };
+// 	size_t buff_size = 50;
+// 	digestResult = EVP_PKEY_get_default_digest_name((EVP_PKEY *)pkey, buff, buff_size);
+// 	def_nid = PKI_ID_get_by_name(buff);
+// 	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_name (%d) does work.... ???? (nid: %d - %s) *****", digestResult, def_nid, buff);
+// #endif
 
 	// Check for error condition
-	if (digestResult <= 0) {
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+	if (digestResult == -2) {
+		PKI_DEBUG("Digest is not supported for keypair of type %s", PKI_ID_get_txt(PKI_X509_KEYPAIR_VALUE_get_id(pkey)));
+		def_nid = PKI_ID_UNKNOWN;
+	} else if (digestResult <= 0) {
+		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+		PKI_DEBUG("ERROR, can not get the default digest for the keypair value (pkey: %s, result: %d)", 
+			PKI_ID_get_txt(pkey_id), digestResult);
 		return PKI_ID_UNKNOWN;
 	}
 
@@ -1234,17 +1286,23 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 	// Sets the padding, if one is set
 	if (padding > 0) {
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
-		int pkey_type = EVP_PKEY_type(pkey_id);
-		if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			pkey_type = pkey_id;
-#else
-			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
-			return NULL;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+// 		int pkey_type = EVP_PKEY_type(pkey_id);
+// 		if (pkey_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			pkey_type = pkey_id;
+// #else
+// 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 			return NULL;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		}
+// 		PKI_DEBUG("**** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
+
+		int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+		if (!pkey_type) {
+			PKI_DEBUG("Cannot retrieve the PKEY type from the EVP_PKEY object");
+			goto err;
 		}
-		PKI_DEBUG("**** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
 
 		// Sets the padding via the CTRL interface
 		switch (pkey_type) {
@@ -1342,17 +1400,23 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 
 	// Checks the padding
 	if (flags <= 0) {
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
-		int pkey_type = EVP_PKEY_type(pkey_id);
-		if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			pkey_type = pkey_id;
-#else
-			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+// 		int pkey_type = EVP_PKEY_type(pkey_id);
+// 		if (pkey_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			pkey_type = pkey_id;
+// #else
+// 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 			return NULL;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		}
+// 		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
+
+		int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pVal);
+		if (!pkey_type) {
+			PKI_DEBUG("Cannot retrieve the PKEY type from the EVP_PKEY object");
 			return NULL;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 		}
-		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
 
 		if (EVP_PKEY_RSA == pkey_type || 
 		    EVP_PKEY_RSA2 == pkey_type ||
@@ -1381,20 +1445,25 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 	// Sets the padding, if one is set
 	if (padding > 0) {
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
-		int pkey_type = EVP_PKEY_type(pkey_id);
-		if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			pkey_type = pkey_id;
-#else
-			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+// 		int pkey_type = EVP_PKEY_type(pkey_id);
+// 		if (pkey_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			pkey_type = pkey_id;
+// #else
+// 			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
+// 			return NULL;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		}
+// 		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_type, EVP_PKEY_type(pkey_id));
+		int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+		if (!pkey_type) {
+			PKI_DEBUG("Cannot retrieve the PKEY type for PKEY decrypt.");
 			return NULL;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 		}
-		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_type, EVP_PKEY_type(pkey_id));
 
 		// Sets the padding via the CTRL interface
-		switch (pkey_id) {
+		switch (pkey_type) {
 
 			// RSA Algorithm(s)
 			case EVP_PKEY_RSA:
