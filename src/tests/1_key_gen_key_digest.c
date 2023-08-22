@@ -8,7 +8,7 @@ int sign_ocsp_response();
 // Main
 // ====
 
-const char * test_name = "Test One";
+const char * test_name = "Keypair Generation, Key Digest, and PKEY ID/Type Testing";
 
 int subtest1();
 int subtest2();
@@ -181,7 +181,7 @@ int subtest4() {
 
 int subtest5() {
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 	int sec_level_array[] = { 128, 256 };
 
@@ -208,6 +208,59 @@ int subtest5() {
 	printf("  - Subtest 5: Passed\n\n");
 
 #endif
+
+	// Test Passed
+	return 1;
+}
+
+int subtest6() {
+
+	PKI_X509_KEYPAIR * keypair = NULL;
+
+	PKI_SCHEME_ID arr[] = {
+		PKI_SCHEME_RSA,
+		PKI_SCHEME_ECDSA,
+		PKI_SCHEME_ED25519,
+		PKI_SCHEME_ED448,
+		PKI_SCHEME_DILITHIUM,
+		PKI_SCHEME_FALCON,
+		0,
+	};
+
+	printf("  - Subtest 6: PKEY identities and OSSL types\n");
+
+	for (int idx = 0; arr[idx] != 0; idx++) {
+
+		printf("	* Testing %s ... ", PKI_SCHEME_ID_get_parsed(arr[idx]));
+
+		// Generate a Keypair
+		keypair = PKI_X509_KEYPAIR_new(arr[idx], 128, NULL, NULL, NULL);
+		if (!keypair) {
+			PKI_DEBUG("ERROR: Cannot generate a new key (%s).", PKI_SCHEME_ID_get_parsed(arr[idx]));
+			return 0;
+		}
+
+		int pkey_type = PKI_X509_KEYPAIR_get_ossl_type(keypair);
+		if (pkey_type <= 0) {
+			PKI_DEBUG("ERROR: Cannot get the PKEY type.");
+			return 0;
+		}
+
+		// Checks the results
+		if (pkey_type != EVP_PKEY_ED25519) {
+			PKI_DEBUG("ERROR: PKEY type is not ED25519.");
+			return 0;
+		}
+
+		// Free Memory
+		PKI_X509_KEYPAIR_free(keypair);
+		keypair = NULL;
+
+		printf("Ok.\n");
+	}
+
+	// Info
+	printf("  - Subtest 6: Passed\n\n");
 
 	// Test Passed
 	return 1;

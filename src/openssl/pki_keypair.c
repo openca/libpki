@@ -358,6 +358,51 @@ int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey) {
 	return pkey_type;
 }
 
+int PKI_X509_KEYPAIR_get_ossl_type(const PKI_X509_KEYPAIR * key) {
+
+	// Input check
+	if (!key || !key->value) return PKI_ID_UNKNOWN;
+
+	// Forward
+	return PKI_X509_KEYPAIR_VALUE_get_ossl_type(key->value);
+}
+
+int PKI_X509_KEYPAIR_VALUE_get_ossl_type(const PKI_X509_KEYPAIR_VALUE * pkey) {
+
+	int pkey_type = PKI_ID_UNKNOWN;
+		// Return Value
+
+	// Input Check
+	if (!pkey) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ID_UNKNOWN;
+	}
+
+	// Retrieves the PKEY type
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+	const char * type_name = EVP_PKEY_get0_type_name(pkey);
+	pkey_type = PKI_ID_get_by_name(type_name);
+#else
+	// Retrieves the PKEY ID
+	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	if (pkey_id <= 0) {
+		PKI_DEBUG("Cannot retrieve the PKEY ID from the keypair value");
+		return PKI_ID_UNKNOWN;
+	}
+	pkey_type = EVP_PKEY_type(pkey_id);
+#endif
+
+	// Checks we have a good value
+	if (pkey_type <= 0) {
+		PKI_DEBUG("Cannot retrieve the PKEY type from the keypair value");
+		return PKI_ID_UNKNOWN;
+	}
+
+	// All Done
+	return pkey_type;
+
+}
+
 int PKI_X509_KEYPAIR_get_default_digest(const PKI_X509_KEYPAIR * key) {
     return PKI_X509_KEYPAIR_VALUE_get_default_digest(key ? key->value : NULL);
 }
