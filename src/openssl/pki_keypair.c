@@ -1208,7 +1208,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_encrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 			case EVP_PKEY_RSA:
 			case EVP_PKEY_RSA2:
 			case EVP_PKEY_RSA_PSS: {
-				if (EVP_PKEY_CTX_ctrl(pkey_ctx, pkey_id, EVP_PKEY_OP_ENCRYPT, EVP_PKEY_CTRL_RSA_PADDING, padding, NULL) <= 0) {
+				if (EVP_PKEY_CTX_ctrl(pkey_ctx, pkey_type, EVP_PKEY_OP_ENCRYPT, EVP_PKEY_CTRL_RSA_PADDING, padding, NULL) <= 0) {
 					PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, NULL);
 					goto err;
 				}
@@ -1346,7 +1346,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 			return NULL;
 #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 		}
-		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_id, EVP_PKEY_id(pkey));
+		PKI_DEBUG("***** OSSL3 UPGRADE: Got PKEY ID %d vs. EVP_PKEY_id() -> %d", pkey_type, EVP_PKEY_type(pkey_id));
 
 		// Sets the padding via the CTRL interface
 		switch (pkey_id) {
@@ -1355,7 +1355,7 @@ PKI_MEM * PKI_X509_KEYPAIR_VALUE_decrypt(const PKI_X509_KEYPAIR_VALUE * pVal,
 			case EVP_PKEY_RSA:
 			case EVP_PKEY_RSA2:
 			case EVP_PKEY_RSA_PSS: {
-				if (EVP_PKEY_CTX_ctrl(pkey_ctx, pkey_id, EVP_PKEY_OP_DECRYPT, EVP_PKEY_CTRL_RSA_PADDING, padding, NULL) <= 0) {
+				if (EVP_PKEY_CTX_ctrl(pkey_ctx, pkey_type, EVP_PKEY_OP_DECRYPT, EVP_PKEY_CTRL_RSA_PADDING, padding, NULL) <= 0) {
 					PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCRYPT_INIT, NULL);
 					goto err;
 				}
