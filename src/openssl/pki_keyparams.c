@@ -2,7 +2,13 @@
 
 #include <libpki/pki.h>
 
+#ifndef _LIBPKI_OID_DEFS_H
+#include <libpki/openssl/pki_oid_defs.h>
+#endif
+
+#ifndef _LIBPKI_PKI_DATATYPES_H
 #include <libpki/datatypes.h>
+#endif
 
 /*!
  * \brief Allocates memory for a new PKI_KEYPARAMS (for key of type 'scheme')

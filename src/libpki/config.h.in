@@ -21,7 +21,7 @@
 /* Open Quantum Safe Library */
 #undef ENABLE_OQS
 
-/* Open Quantum Safe Provider */
+/* Open Quantum Safe Library */
 #undef ENABLE_OQSPROV
 
 /* Define to 1 if you have the `bzero' function. */

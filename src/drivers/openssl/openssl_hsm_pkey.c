@@ -951,12 +951,40 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
     // Input Check
     if (!x || !bp) return PKI_ERR;
 
-    // Let's get the type of key
-    int pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
-    if (!pkey_type) {
-        PKI_DEBUG("ERROR, can not get the type of key");
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    // Let's get the scheme of the key
+    PKI_SCHEME_ID pkey_scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(x);
+    if (!pkey_scheme) {
+        PKI_DEBUG("ERROR, can not get the scheme of key (key id: %d)", 
+            PKI_X509_KEYPAIR_VALUE_get_id(x));
         return PKI_ERR;
     }
+    // Let's get the type of the key
+    int pkey_type = PKI_ID_UNKNOWN;
+    switch (pkey_scheme) {
+
+#ifdef ENABLE_ECDSA
+
+        // EC
+        case PKI_SCHEME_ED25519:
+        case PKI_SCHEME_X25519:
+        case PKI_SCHEME_ED448:
+        case PKI_SCHEME_X448:
+        case PKI_SCHEME_ECDSA: {
+            pkey_type = EVP_PKEY_EC;
+        } break;
+#endif // End of ENABLE_ECDSA
+
+        default: {
+            // Nothing to do here
+            pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(x);
+        } break;
+    }
+#else
+    // Let's get the type of key
+    int pkey_type = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(x));
+#endif // End of OPENSSL_VERSION_NUMBER >= 0x30000000L
+
 
     // Different functions depending on the Key type
     switch(pkey_type)
@@ -966,7 +994,7 @@ int OPENSSL_HSM_write_bio_PrivateKey (BIO               * bp,
         case EVP_PKEY_EC: {
 # if OPENSSL_VERSION_NUMBER >= 0x30000000L
             ret = PEM_write_bio_ECPrivateKey(bp, 
-                EVP_PKEY_get1_EC_KEY(x), enc, (unsigned char *) out_buffer, klen, cb, u);
+                EVP_PKEY_get0_EC_KEY(x), enc, (unsigned char *) out_buffer, klen, cb, u);
 # elif OPENSSL_VERSION_NUMBER < 0x1010000fL
             ret = PEM_write_bio_ECPrivateKey(bp, 
                 x->pkey.ec, enc, (unsigned char *) out_buffer, klen, cb, u);

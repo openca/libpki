@@ -29,7 +29,8 @@ check_PROGRAMS = \
 	8-log-interface \
 	9-public-key-encryption-decryption \
 	10-ocsp-generation-req-resp-sign \
-	11-ameth-traditional-pqc-composite-explicit
+	11-ameth-traditional-pqc-composite-explicit \
+	12-signature-algorithm-identifier
 
 TESTS = $(check_PROGRAMS)
 
@@ -88,3 +89,7 @@ TESTS = $(check_PROGRAMS)
 11_ameth_traditional_pqc_composite_explicit_LDADD   = $(testLDADD)
 11_ameth_traditional_pqc_composite_explicit_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 
+12_signature_algorithm_identifier_SOURCES = 12_signature_algorithm_identifier.c
+12_signature_algorithm_identifier_LDFLAGS = $(testLDFLAGS)
+12_signature_algorithm_identifier_LDADD   = $(testLDADD)
+12_signature_algorithm_identifier_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb

@@ -1585,11 +1585,7 @@ AC_ARG_ENABLE(oqsprov,
 	[cli_oqsprov=default]
  )
 
-<<<<<<< HEAD
-if [[ "x$cli_oqs" = "xyes" ]] ; then
-=======
 if [[ "x$cli_oqsprov" = "xyes" ]] ; then
->>>>>>> c7de60fee53ec7c26736101a995858e14bc3f192
 	AC_MSG_RESULT([ Open Quantum Safe Provider: Enabled via CLI option ($cli_oqsprov) ])
 	AC_DEFINE(ENABLE_OQSPROV, 1, [ Open Quantum Safe Provider Support ])
 	oqsprov_check="yes"
@@ -1599,21 +1595,6 @@ if [[ "x$cli_oqsprov" = "xyes" ]] ; then
 else
 
 	if [[ "x$cli_oqsprov" = "xdefault" ]] ; then
-<<<<<<< HEAD
-		AC_MSG_RESULT([Checking support for Open Quantum Safe Provider])
-
-		oqs_provider_prefix=$prefix
-		if [[ "x$liboqs_prefix" = "x" ]] ; then
-			oqsprov_prefix=$liboqs_prefix
-		fi
-
-		if [[ -f "${oqsprov_prefix}/lib/ossl-modules/oqsprovider.*" ]] ; then
-			AC_MSG_RESULT([Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)])
-			AC_DEFINE(ENABLE_OQSPROV, 1, [Open Quantum Safe Library])],
-			oqsprov_check="yes"
-			oqsprov_cflags="-DENABLE_OQSPROV=1"
-		else
-=======
 		AC_MSG_RESULT([ Checking support for Open Quantum Safe Provider ])
 
 		for prefix_dir in $prefix $openssl_prefix ; do
@@ -1629,7 +1610,6 @@ else
 		done
 
 		if [[ "$oqsprov_check" = "" ]] ; then
->>>>>>> c7de60fee53ec7c26736101a995858e14bc3f192
 			AC_MSG_RESULT([Open Quantum Safe: Module NOT Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/)])
 			oqsprov_check="no"
 			oqsprov_cflags=""

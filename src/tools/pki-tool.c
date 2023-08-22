@@ -445,14 +445,16 @@ int gen_keypair(PKI_TOKEN 		* tk,
                        fprintf(stderr, "\n    ERROR, explicit composite schemes not supported yet!\n\n");
                        return PKI_ERR;
                } break;
-# endif
-#endif
+# endif // End of ENABLE_OQS || ENABLE_OQSPROV
+#endif // End of ENABLE_COMPOSITE
 
 			default: {
 				// Nothing to do here
 			}
 		}
 	}
+
+#ifdef ENABLE_COMPOSITE
 
 	// This processes the key components
     if (PKI_SCHEME_ID_is_composite(kp->scheme) || PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
@@ -487,6 +489,8 @@ int gen_keypair(PKI_TOKEN 		* tk,
 	} else if (PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
 		// anything to do here (?)
 	}
+
+#endif
 
 	if (!batch)	{
 
@@ -1132,7 +1136,10 @@ int main (int argc, char *argv[] ) {
 	int token_slot = 0;
 	int selfsign = 0;
 	int newkey = 0;
+
+#ifdef ENABLE_COMPOSITE
 	int comp_kofn = 0;
+#endif
 
 	char * algor_opt = NULL;
 	char * digest_opt = NULL;
@@ -1686,9 +1693,6 @@ int main (int argc, char *argv[] ) {
 				 comp_keys,
 				 comp_keys_num,
 				 comp_kofn,
-#else
-				 NULL,
-				 0,
 #endif
 				 batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
@@ -1741,8 +1745,8 @@ int main (int argc, char *argv[] ) {
 				exit(1);
 			}
 #else
-			if ((gen_keypair(tk, bits, param_s, outkey_s, scheme_id, 
-					profile, outFormVal, NULL, 0, batch)) == PKI_ERR ) 
+			if ((gen_keypair(tk, sec_bits, param_s, outkey_s, scheme_id, 
+					profile, outFormVal, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);

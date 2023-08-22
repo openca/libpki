@@ -2,6 +2,10 @@
 
 #include <libpki/pki.h>
 
+#ifndef _LIBPKI_OID_DEFS_H
+# include <libpki/openssl/pki_oid_defs.h>
+#endif
+
 typedef struct oids_and_scheme {
 	int oid;
 	PKI_SCHEME_ID scheme;
@@ -69,21 +73,17 @@ static OIDS_AND_SCHEME _qs_nids[_qs_nids_size] = {
 
 };
 
+#ifdef ENABLE_COMPOSITE
 #define _composite_nids_size 1
 static OIDS_AND_SCHEME _composite_nids[_composite_nids_size] = {
 
-#ifdef ENABLE_COMPOSITE
-
 	{ 0, PKI_SCHEME_COMPOSITE }, // Composite
-
-#endif // End of ENABLE_COMPOSITE
 
 };
 
 #define _explicit_composite_nids_size 14
 static OIDS_AND_SCHEME _fixed_composite_nids[_explicit_composite_nids_size] = {
 
-#ifdef ENABLE_COMPOSITE
 #if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 	{ 0, PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM3_RSA }, // Dilithium3-RSA-SHA256
@@ -102,9 +102,9 @@ static OIDS_AND_SCHEME _fixed_composite_nids[_explicit_composite_nids_size] = {
 	{ 0, PKI_SCHEME_COMPOSITE_EXPLICIT_DILITHIUM5_FALCON1024_RSA }, // Dilithium5-Falcon1024-RSA-SHA256
 
 #endif // End of ENABLE_OQS || ENABLE_OQSPROV
-#endif // End of ENABLE_COMPOSITE
 
 };
+#endif // End of ENABLE_COMPOSITE
 
 static uint8_t __local_id_initialized__ = 0;
 
@@ -151,7 +151,7 @@ static void _init_local_ids() {
 	_qs_nids[++idx].oid = PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_KYBER1024_NAME);
 	if (_qs_nids[idx].oid == PKI_ID_UNKNOWN) PKI_DEBUG("Kyber1024 not found during initialization!");
 
-#endif
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 
 #ifdef ENABLE_COMPOSITE
 

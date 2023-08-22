@@ -1315,7 +1315,17 @@ int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
 
 	// Let's get the X509 algorithm from key and digest
 	int alg_nid = PKI_ID_UNKNOWN;
-	int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(k_val));
+	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(k_val);
+	int pkey_type = EVP_PKEY_type(pkey_id);
+	if (!pkey_type) {
+		// For explicit composite, pkey_id and pkey_type are the same
+		if (PKI_ID_is_explicit_composite(pkey_id, NULL)) {
+			pkey_type = pkey_id;
+		} else {
+			PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Error while getting the PKEY type");
+			return PKI_ERR;
+		}
+	}
 	if (!OBJ_find_sigid_by_algs(&alg_nid, EVP_MD_nid(digest), pkey_id)) {
 		PKI_ERROR(PKI_ERR_ALGOR_SET, "Error while setting the X509 algorithm");
 		return PKI_ERR;
