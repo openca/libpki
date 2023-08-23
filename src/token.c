@@ -208,11 +208,13 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const toke
 	PKI_TOKEN *tk = NULL;
 		// Token data structure
 
-	if((tk = PKI_TOKEN_new_null()) == NULL )
-	{
+	if ((tk = PKI_TOKEN_new_null()) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
+
+	// Sets all the internal values to 0
+	memset(tk, 0, sizeof(PKI_TOKEN));
 
 	/* Initialize OpenSSL so that it adds all the needed algor and dgst */
 	if (PKI_get_init_status() == PKI_STATUS_NOT_INIT ) PKI_init_all();
@@ -250,7 +252,7 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const toke
 			}
 		}
 
-	} 
+	}
 
 	return tk;
 }
@@ -1927,6 +1929,8 @@ int PKI_TOKEN_set_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *pkey )
 		tk->algor = pKeyAlgor;
 	} else {
 		PKI_log_debug("WARNING: can not get default algorithm from Key!");
+		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
+		tk->algor = NULL;
 	}
 
 	return PKI_OK;

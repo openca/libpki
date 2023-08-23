@@ -373,8 +373,13 @@ int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey) {
 	// Use the name of the keypair
 	const char * type_name = EVP_PKEY_get0_type_name(pkey);
 	if (!type_name) {
-		PKI_DEBUG("OSSL3: Error, cannot get the type name from the keypair value");
-		return PKI_ID_UNKNOWN;
+		// if (EVP_PKEY_is_a(pkey, "COMPOSITE")) {
+		// 	PKI_DEBUG("OSSL3: Composite keypair detected");
+		// 	pkey_id = PKI_ID_get_by_name("COMPOSITE");
+		// } else {
+			PKI_DEBUG("OSSL3: Error, cannot get the type name from the keypair value");
+			return PKI_ID_UNKNOWN;
+		// }
 	}
 
 	// Special case because the string "EC" is not a valid type name
@@ -399,7 +404,7 @@ int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey) {
 #elif OPENSSL_VERSION_NUMBER < 0x1010000fL
 	pkey_id = pVal->type;
 #else
-	pkey_id = EVP_PKEY_id(pkey);
+	pkey_id = EVP_PKEY_type(EVP_PKEY_id(pkey));
 #endif
 
 	// Retrieves the PKEY type

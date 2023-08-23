@@ -145,7 +145,7 @@ int PKI_init_all( void ) {
 
 		// Initializes the OID layer
 		PKI_X509_OID_init();
-		
+
 		// PKI Discovery Services
 		PRQP_init_all_services();
 
@@ -187,10 +187,6 @@ int PKI_init_all( void ) {
 				LIBPKI_OS_CLASS | LIBPKI_OS_BITS | 
 					LIBPKI_OS_VENDOR);
 	}
-
-	// TODO: Remove this test
-	PKI_DEBUG("TEST: Re-Initializing the OIDs...");
-	PKI_X509_OID_init();
 
 #ifdef HAVE_MYSQL
 	/* MySQL Initialization */
