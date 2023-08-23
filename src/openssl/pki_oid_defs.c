@@ -40,6 +40,10 @@
 # include <libpki/drivers/hsm_main.h>
 #endif
 
+#ifndef _LIBPKI_PKI_X509_ALGOR_H
+# include <libpki/pki_algor.h>
+#endif
+
 // Default
 #ifndef PKI_OK
 #define PKI_OK		1
@@ -687,6 +691,74 @@ int PKI_X509_OID_init() {
 		// Advances the index
 		alias = &alias_table[++index];
 	}
+
+	PKI_DEBUG("===== BEGIN: Extra Experimental OID stuff for DEBUGGING =====");
+
+	PKI_OID * pkey_obj = PKI_OID_new_text(OPENCA_ALG_PKEY_EXP_COMP_NAME);
+	int pkey_obj_id = PKI_OID_get_id(pkey_obj);
+	PKI_OID * sig_obj = PKI_OID_new_text(OPENCA_ALG_SIGS_COMP_SHA256_NAME);
+	int sig_obj_id = PKI_OID_get_id(sig_obj);
+
+	// PKI_DIGEST_ALG * digest = PKI_DIGEST_ALG_SHA256;
+	PKI_DIGEST_ALG * digest = PKI_DIGEST_ALG_SHA3_512;
+
+	PKI_ID digest_id = EVP_MD_get_type(digest);
+
+	int success = OBJ_add_sigid(sig_obj_id, digest_id, pkey_obj_id);
+	PKI_DEBUG("Added (success: %d) New Signing Algorithm (%s) with ID (%d), Hash ID (%d), and Pkey ID (%d)", 
+		success, OPENCA_ALG_SIGS_COMP_SHA256_NAME, sig_obj_id, digest_id, pkey_obj_id);
+
+	int test_digest_nid = 0;
+	int test_pkey_nid = 0;
+	int test_sig_nid = 0;
+	success = OBJ_find_sigid_algs(sig_obj_id, &test_digest_nid, &test_pkey_nid);
+	PKI_DEBUG("Retrieved (success: %d) Digest ID (%d), and Pkey ID (%d)", 
+		success, test_digest_nid, test_pkey_nid);
+	success = OBJ_find_sigid_by_algs(&test_sig_nid, test_digest_nid, test_pkey_nid);
+	PKI_DEBUG("Retrieved (success: %d) New Signing Algorithm (%s) ID (%d), Hash ID (%d), and Pkey ID (%d)", 
+		success, OPENCA_ALG_SIGS_COMP_SHA256_NAME, test_sig_nid, test_digest_nid, test_pkey_nid);
+
+	success = OBJ_create("1.2.3.4.5.6", "TEST-KEY-OID", "TEST-KEY-OID");
+	if (!success) {
+		PKI_DEBUG("Cannot create new OID for TEST-KEY-OID");
+	} else {
+		PKI_DEBUG("Created new OID for TEST-KEY-OID");
+		success = OBJ_create("1.2.3.4.5.6.7", "TEST-SIG-OID", "TEST-SIG-OID");
+		if (!success) {
+			PKI_DEBUG("Cannot create new OID for TEST-SIG-OID");
+		} else {
+			PKI_DEBUG("Created new OID for TEST-SIG-OID");
+			// test_pkey_nid = EVP_PKEY_EC;
+			test_sig_nid = OBJ_sn2nid("TEST-SIG-OID");
+			success = OBJ_add_sigid(test_sig_nid, digest_id, test_pkey_nid);
+			if (!success) {
+				PKI_DEBUG("Cannot add new signature ID for TEST-SIG-OID");
+			} else {
+				PKI_DEBUG("Added new signature ID for TEST-SIG-OID");
+
+				test_sig_nid = OBJ_sn2nid("TEST-SIG-OID");
+				test_pkey_nid = OBJ_sn2nid("TEST-KEY-OID");
+				success = OBJ_find_sigid_algs(test_sig_nid, &test_digest_nid, &test_pkey_nid);
+				if (!success) {
+					PKI_DEBUG("Cannot find algorithm components from signature id (%d)", test_sig_nid);
+				} else {
+					PKI_DEBUG("Found new signature ID for TEST-SIG-OID");
+				}
+
+				success = OBJ_find_sigid_by_algs(&test_sig_nid, test_digest_nid, test_pkey_nid);
+				if (!success) {
+					PKI_DEBUG("Cannot find new signature ID from hash (%d) and pkey (%d)",
+						test_digest_nid, test_pkey_nid);
+				} else {
+					PKI_DEBUG("Found new signature ID for TEST-SIG-OID");
+				}
+				
+			}
+		}
+	}
+
+
+	PKI_DEBUG("===== END: Extra Experimental OID stuff for DEBUGGING =====");
 
 	// All Done
 	return 1;

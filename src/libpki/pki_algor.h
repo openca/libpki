@@ -14,14 +14,18 @@ void PKI_X509_ALGORITHM_VALUE_free ( PKI_X509_ALGOR_VALUE *a );
 /*! \brief Returns a new PKI_X509_ALGORITHM_VALUE of the identified type */
 PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type );
 
-/*! \brief Returns a new PKI_X509_ALGORITHM_VALIE from the passed PKI_DIGEST_ALG structure */
-PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg );
+/*! \brief Returns a new PKI_X509_ALGORITHM_VALUE from PKEY and DIGEST id */
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_pkey(const PKI_X509_KEYPAIR_VALUE * pkey, 
+                                                     const PKI_ID                   digest_id);
+
+// /*! \brief Returns a new PKI_X509_ALGORITHM_VALIE from the passed PKI_DIGEST_ALG structure */
+// PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg );
 
 /*! \brief Get PKI_X509_ALGOR (AlgorithmIdentifier) from a specified algorithm ID */
 PKI_X509_ALGOR_VALUE *PKI_X509_ALGOR_VALUE_get ( PKI_ALGOR_ID algor );
 
-/*! \brief Get the PKI_X509_ALGOR (AlgorithmIdentifier) for a pubkey and digest combination */
-PKI_X509_ALGOR_VALUE *PKI_X509_ALGOR_VALUE_get_ex(PKI_ALGOR_ID pubkey_id, PKI_ALGOR_ID digest_id);
+// /*! \brief Get the PKI_X509_ALGOR (AlgorithmIdentifier) for a pubkey and digest combination */
+// PKI_X509_ALGOR_VALUE *PKI_X509_ALGOR_VALUE_get_ex(PKI_ALGOR_ID pubkey_id, PKI_ALGOR_ID digest_id);
 
 /*! \brief Build a PKI_ALGOR structure from its name (char *)
  *
@@ -40,6 +44,8 @@ void PKI_X509_ALGOR_VALUE_free( PKI_X509_ALGOR_VALUE *algor);
 PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id (const PKI_X509_ALGOR_VALUE * algor );
 
 PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id (const PKI_X509_ALGOR_VALUE *algor );
+
+const PKI_DIGEST_ALG * PKI_X509_ALGOR_VALUE_get_digest (const PKI_X509_ALGOR_VALUE *algor );
 
 /*! 
  * \brief Returns a text representation of the algorithm identifier

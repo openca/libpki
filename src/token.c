@@ -1547,23 +1547,20 @@ int PKI_TOKEN_new_keypair_url_ex ( PKI_TOKEN *tk, PKI_KEYPARAMS *kp,
 	// // Let's check if we need to login
 	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
-	if ((p = PKI_X509_KEYPAIR_new_url_kp( kp, label, tk->cred, tk->hsm )) == NULL)
-	{
+	if ((p = PKI_X509_KEYPAIR_new_url_kp( kp, label, tk->cred, tk->hsm )) == NULL) {
 		if (free_params) PKI_KEYPARAMS_free(kp);
 		if (prof) PKI_X509_PROFILE_free(prof);
 
 		return PKI_ERR;
-	};
+	}
 
 	if (tk->keypair) PKI_X509_KEYPAIR_free(tk->keypair);
-
 	tk->keypair = p;
 
-	if(free_params && kp) PKI_KEYPARAMS_free(kp);
+	if (free_params && kp) PKI_KEYPARAMS_free(kp);
 
 	if (tk->algor) X509_ALGOR_free(tk->algor);
-
-	tk->algor = PKI_X509_KEYPAIR_get_algor(tk->keypair);
+	tk->algor = PKI_X509_KEYPAIR_get_algor(tk->keypair, tk->digest);
 
 	return PKI_OK;
 }
@@ -1924,12 +1921,13 @@ int PKI_TOKEN_set_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *pkey )
 
 	tk->keypair = pkey;
 
-	if (( pKeyAlgor = PKI_X509_KEYPAIR_get_algor(tk->keypair)) != NULL)
-	{
+	pKeyAlgor = PKI_X509_KEYPAIR_get_algor(tk->keypair, tk->digest);
+	if (pKeyAlgor != NULL) {
 		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 		tk->algor = pKeyAlgor;
+	} else {
+		PKI_log_debug("WARNING: can not get default algorithm from Key!");
 	}
-	else PKI_log_debug("WARNING: can not get default algorithm from Key!");
 
 	return PKI_OK;
 }

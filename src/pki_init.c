@@ -180,13 +180,17 @@ int PKI_init_all( void ) {
 	_libpki_init = 1;
 
 	/* Check Application and LibPKI coherence */
-	if( (LIBPKI_OS_CLASS | LIBPKI_OS_BITS | LIBPKI_OS_VENDOR ) !=
+	if ((LIBPKI_OS_CLASS | LIBPKI_OS_BITS | LIBPKI_OS_VENDOR ) !=
 							LIBPKI_OS_DETAILS ) {
 		PKI_log_err ("WARNING::LibPKI and Application OS details are "
 				"different [%d/%d]", LIBPKI_OS_DETAILS,
 				LIBPKI_OS_CLASS | LIBPKI_OS_BITS | 
 					LIBPKI_OS_VENDOR);
-	};
+	}
+
+	// TODO: Remove this test
+	PKI_DEBUG("TEST: Re-Initializing the OIDs...");
+	PKI_X509_OID_init();
 
 #ifdef HAVE_MYSQL
 	/* MySQL Initialization */
