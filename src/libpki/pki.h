@@ -17,16 +17,6 @@
 # include <libpki/libpkiv.h>
 #endif
 
-#ifndef _LIBPKI_ENABLED_FEATURES
-# include <libpki/libpki_enables.h>
-#endif
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>
-// #include <libxml/nanohttp.h>
-
 // Library configuration
 #ifdef __LIB_BUILD__
 #include <libpki/config.h>
@@ -35,8 +25,6 @@
 #endif
 
 #include <libpki/os.h>
-
-extern const long LIBPKI_OS_DETAILS;
 
 #include <limits.h>
 #include <syslog.h>
@@ -62,7 +50,16 @@ extern const long LIBPKI_OS_DETAILS;
 #include <fcntl.h>
 #endif
 
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
+// #include <libxml/nanohttp.h>
+
+
 BEGIN_C_DECLS
+
+extern const long LIBPKI_OS_DETAILS;
 
 #define PKI_NAMESPACE_PREFIX		"pki"
 #define PKI_NAMESPACE_HREF		    "http://www.openca.org/openca/pki/1/0/0"
@@ -296,26 +293,9 @@ typedef enum {
 #include <libpki/pki_x509_p12.h>
 #include <libpki/pki_x509_cms.h>
 
-#ifdef ENABLE_COMPOSITE
+#ifdef _LIBPKI_OID_DEFS_H
 #include <libpki/openssl/pki_oid_defs.h>
 #endif
-
-// /* OCSP support */
-
-// typedef enum {
-// 	PKI_OCSP_CERTSTATUS_GOOD 	= V_OCSP_CERTSTATUS_GOOD,
-// 	PKI_OCSP_CERTSTATUS_REVOKED	= V_OCSP_CERTSTATUS_REVOKED,
-// 	PKI_OCSP_CERTSTATUS_UNKNOWN	= V_OCSP_CERTSTATUS_UNKNOWN
-// } PKI_OCSP_CERTSTATUS;
-
-// typedef enum {
-// 	PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL 			= 0,
-// 	PKI_X509_OCSP_RESP_STATUS_MALFORMEDREQUEST		= 1,
-// 	PKI_X509_OCSP_RESP_STATUS_INTERNALERROR 		= 2,
-// 	PKI_X509_OCSP_RESP_STATUS_TRYLATER 			    = 3,
-// 	PKI_X509_OCSP_RESP_STATUS_SIGREQUIRED 			= 5,
-// 	PKI_X509_OCSP_RESP_STATUS_UNAUTHORIZED 			= 6
-// } PKI_X509_OCSP_RESP_STATUS;
 
 #include <libpki/pki_ocsp_req.h>
 #include <libpki/pki_ocsp_resp.h>

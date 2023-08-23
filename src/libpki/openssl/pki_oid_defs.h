@@ -18,6 +18,18 @@
 # endif
 #endif
 
+BEGIN_C_DECLS
+
+// =======================
+// Initialization Function
+// =======================
+
+int PKI_X509_OID_init();
+
+// ===============
+// General Defines
+// ===============
+
 // GENERAL
 # define LEVEL_OF_ASSURANCE_OID   		    "1.3.6.1.4.1.18227.50.1"
 # define LEVEL_OF_ASSURANCE_NAME            "levelOfAssurance"
@@ -55,7 +67,7 @@
 // PKEY - COMPOSITE KEY
 # define OPENCA_ALG_PKEY_EXP_COMP_OID           "2.16.840.1.114027.80.4.1"
 # define OPENCA_ALG_PKEY_EXP_COMP_NAME          "COMPOSITE"
-# define OPENCA_ALG_PKEY_EXP_COMP_DESC          "id-Composite-Key"
+# define OPENCA_ALG_PKEY_EXP_COMP_DESC          "Composite Key"
 
 // PKEY - EXP - ALT KEY
 # define OPENCA_ALG_PKEY_EXP_ALT_OID  	        OPENCA_ALG_PKEY_EXP_OID ".2"
@@ -118,7 +130,7 @@
 
 # define OPENCA_ALG_PKEY_PQC_SPHINCS192_F_SIMPLE_OID "1.3.9999.6.5.10"
 # define OPENCA_ALG_PKEY_PQC_SPHINCS192_F_SIMPLE_NAME "sphincssha2192fsimple"
-# define OPENCA_ALG_PKEY_PQC_SPHINCS182_F_SIMPLE_DESC "sphincs192f"
+# define OPENCA_ALG_PKEY_PQC_SPHINCS192_F_SIMPLE_DESC "sphincs192f"
 
 // PKEY - PQC - KYBER
 
@@ -140,10 +152,11 @@
 
 // PKEY - COMPOSITE
 
-// # define OPENCA_ALG_SIGS_COMP_OID		        OPENCA_ALG_SIGS_OID ".1"
-# define OPENCA_ALG_SIGS_COMP_OID		        OPENCA_ALG_OID ".1"
-# define OPENCA_ALG_SIGS_COMP_NAME		        "COMPOSITE-NULL"
+# define OPENCA_ALG_SIGS_COMP_OID		        OPENCA_ALG_SIGS_OID ".1"
+// # define OPENCA_ALG_SIGS_COMP_OID		        OPENCA_ALG_OID ".1"
+// # define OPENCA_ALG_SIGS_COMP_OID		        OPENCA_ALG_PKEY_EXP_COMP_OID
 # define OPENCA_ALG_SIGS_COMP_DESC		        "CompositeWithNoHash"
+# define OPENCA_ALG_SIGS_COMP_NAME		        "COMPOSITE-NULL"
 
 # define OPENCA_ALG_SIGS_COMP_SHA1_OID	        OPENCA_ALG_SIGS_COMP_OID ".1"
 # define OPENCA_ALG_SIGS_COMP_SHA1_DESC		    "CompositeWithSha1"
@@ -641,11 +654,6 @@
 // # define OPENCA_ALG_SIGS_EXP_SPHINCS256_SHA256_ECDSA_DESC         "Sha256WithSphincs256sAndECDSA"
 // # define OPENCA_ALG_SIGS_EXP_SPHINCS256_SHA256_ECDSA_NAME         "SPHINCS256-SHA256-ECDSA"
 
-// =======================
-// Initialization Function
-// =======================
-
-int PKI_X509_OID_init();
-
+END_C_DECLS
 
 #endif // End of _LIBPKI_POST_QUANTUM_SIGS_H

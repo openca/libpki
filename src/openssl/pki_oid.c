@@ -92,19 +92,27 @@ PKI_OID *PKI_OID_get( const char *name ) {
 PKI_OID *PKI_OID_new_text ( const char *name ) {
 
 	PKI_OID *ret = NULL;
+		// return value
 
-	if ( !name ) return ( NULL );
+	// Check the input
+	if (!name) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
 
+	// Try to get the OID from the OpenSSL internal DB
 	ret = OBJ_txt2obj ( name, 0 );
+	if (ret == NID_undef) {
+		// If not found, try to get it from the short name
+		ret = OBJ_nid2obj(OBJ_sn2nid(name));
+		if (ret == NID_undef) {
+			// If not found, try to get it from the long name
+			ret = OBJ_nid2obj(OBJ_ln2nid(name));
+		}
+	}
 
-	/* Check if the object already exists */
-	/*
-	if( ((nid = OBJ_sn2nid(name)) != NID_undef) ||
-		((nid = OBJ_ln2nid(name)) != NID_undef) )
-			ret = OBJ_nid2obj(nid);
-	*/
-
-	return( ret );
+	// All Done
+	return ret ;
 }
 
 /*!

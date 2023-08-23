@@ -2,9 +2,13 @@
 
 #include <libpki/pki.h>
 
-#ifdef _LIBPKI_OID_DEFS_H
+#ifndef _LIBPKI_FEATURES_H
+#include <libpki/libpki_enables.h>
+#endif
+
+#ifndef _LIBPKI_OID_DEFS_H
 #include <libpki/openssl/pki_oid_defs.h>
-#endif 
+#endif
 
 #ifdef ENABLE_OQS
 # include <libpki/openssl/pqc/pqc_init.h>
@@ -128,10 +132,19 @@ int PKI_init_all( void ) {
 		// Pthread Initialization
 		OpenSSL_pthread_init();
 
+		// Initializes the SSL layer
+		SSL_library_init();
+
 #if OPENSSL_VERSION_NUMBER < 0x30000000
 		ERR_load_ERR_strings();
 		ERR_load_crypto_strings();
 #endif
+
+		// Parser for Config files
+		xmlInitParser();
+
+		// Initializes the OID layer
+		PKI_X509_OID_init();
 
 		// PKI Discovery Services
 		PRQP_init_all_services();
@@ -139,19 +152,11 @@ int PKI_init_all( void ) {
 		// SCEP Init
 		PKI_X509_SCEP_init();
 
-		// Parser for Config files
-		xmlInitParser();
-
-		// Initializes the SSL layer
-		SSL_library_init();
-
-		// Initializes the OID layer
-		PKI_X509_OID_init();
-
 #if OPENSSL_VERSION_NUMBER >= 0x3000000fL
 		// Initializes the OQS Provider layer
 		PKI_init_providers();
 #endif
+
 #ifdef ENABLE_OQS
 		// Post-Quantum Crypto Implementation
 		PKI_PQC_init();
@@ -175,13 +180,13 @@ int PKI_init_all( void ) {
 	_libpki_init = 1;
 
 	/* Check Application and LibPKI coherence */
-	if( (LIBPKI_OS_CLASS | LIBPKI_OS_BITS | LIBPKI_OS_VENDOR ) !=
+	if ((LIBPKI_OS_CLASS | LIBPKI_OS_BITS | LIBPKI_OS_VENDOR ) !=
 							LIBPKI_OS_DETAILS ) {
 		PKI_log_err ("WARNING::LibPKI and Application OS details are "
 				"different [%d/%d]", LIBPKI_OS_DETAILS,
 				LIBPKI_OS_CLASS | LIBPKI_OS_BITS | 
 					LIBPKI_OS_VENDOR);
-	};
+	}
 
 #ifdef HAVE_MYSQL
 	/* MySQL Initialization */

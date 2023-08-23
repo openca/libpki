@@ -445,14 +445,16 @@ int gen_keypair(PKI_TOKEN 		* tk,
                        fprintf(stderr, "\n    ERROR, explicit composite schemes not supported yet!\n\n");
                        return PKI_ERR;
                } break;
-# endif
-#endif
+# endif // End of ENABLE_OQS || ENABLE_OQSPROV
+#endif // End of ENABLE_COMPOSITE
 
 			default: {
 				// Nothing to do here
 			}
 		}
 	}
+
+#ifdef ENABLE_COMPOSITE
 
 	// This processes the key components
     if (PKI_SCHEME_ID_is_composite(kp->scheme) || PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
@@ -487,6 +489,8 @@ int gen_keypair(PKI_TOKEN 		* tk,
 	} else if (PKI_SCHEME_ID_is_explicit_composite(kp->scheme)) {
 		// anything to do here (?)
 	}
+
+#endif
 
 	if (!batch)	{
 
@@ -669,22 +673,21 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 
 	} else {
 
-		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
+		// PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 			// Internal Value
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
-		int pkey_type = EVP_PKEY_type(pkey_id);
-		if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			pkey_type = pkey_id;
-#else
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
-			return 0;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
-  		}
-
-		PKI_DEBUG("**** OSSL3 UPGRADE: GOT PKEY ID %d (Type: %d) vs. EVP_PKEY_id() -> %d",
-			pkey_id, pkey_type, EVP_PKEY_id(p_val));
+// 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
+// 		int pkey_type = EVP_PKEY_type(pkey_id);
+// 		if (pkey_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			pkey_type = pkey_id;
+// #else
+// 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
+// 			return 0;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+//   		}
+		int pkey_type = PKI_X509_KEYPAIR_get_id(tk->keypair);
+		PKI_DEBUG("**** OSSL3 UPGRADE: GOT PKEY ID %d (Type)", pkey_type);
 
 		// Explicit does not allow for hash-n-sign
 		if (PKI_ID_requires_digest(pkey_type) == PKI_OK) {
@@ -702,38 +705,54 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	// Updates the algorithm
 	if (tk->keypair != NULL) {
 
-		PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
+		// PKI_X509_KEYPAIR_VALUE * p_val = PKI_X509_get_value(tk->keypair);
 			// Internal Value
 
-		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
-		int pkey_type = EVP_PKEY_type(pkey_id);
-		if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			pkey_type = pkey_id;
-#else
-			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
-			return 0;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
-  		}
+// 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(p_val);
+// 		int pkey_type = EVP_PKEY_type(pkey_id);
+// 		if (pkey_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			pkey_type = pkey_id;
+// #else
+// 			PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot get the PKEY type");
+// 			return 0;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+//   		}
+
+		int pkey_type = PKI_X509_KEYPAIR_get_id(tk->keypair);
+		if (!pkey_type) {
+			PKI_DEBUG("ERROR, cannot get the PKEY type from the keypair");
+			return PKI_ERR;
+		}
 
 		// Gets the Signature ID for the digest/pkey combination
 		if (!OBJ_find_sigid_by_algs(&sig_alg, EVP_MD_nid(digest), pkey_type)) {
 
 			// Checks for possible fixes
 			if (digest == NULL || digest == PKI_DIGEST_ALG_NULL) {
+
 				// If we have a PQC or an explicit composite key, we
 				// can use the pkey_type as the signature algorithm
 				// if the digest is NULL
-				if (PKI_ID_is_pqc(pkey_type, NULL) ||
-					PKI_ID_is_composite(pkey_type, NULL) ||
-					PKI_ID_is_explicit_composite(pkey_type, NULL)) {
+				if (PKI_ID_is_explicit_composite(pkey_type, NULL)
+					|| PKI_ID_is_pqc(pkey_type, NULL)) {
+
 					// If we do not have a defined one, let's use
 					// the pkey_type as the signature algorithm
 					sig_alg = pkey_type;
-				} else if(PKI_ID_requires_digest(pkey_type) == PKI_ERR) {
+
+				} else if (PKI_ID_is_composite(pkey_type, NULL)) {
+
+					// For Composite with NO digest, we have defined the
+					// signature algorithm, so we can just use that
+					sig_alg = PKI_ID_get_by_name(OPENCA_ALG_SIGS_COMP_NAME);
+
+				} else if (PKI_ID_requires_digest(pkey_type) == PKI_ERR) {
+
 					// If we have a non-digest algorithm, we can
 					// use the pkey_type as the signature algorithm
 					sig_alg = pkey_type;
+
 				} else {
 					// No available algorithm for pkey without digest
 					PKI_DEBUG("No available combined digest/pkey algorithm for (digest: %d, pkey_type: %d)",
@@ -1132,7 +1151,10 @@ int main (int argc, char *argv[] ) {
 	int token_slot = 0;
 	int selfsign = 0;
 	int newkey = 0;
+
+#ifdef ENABLE_COMPOSITE
 	int comp_kofn = 0;
+#endif
 
 	char * algor_opt = NULL;
 	char * digest_opt = NULL;
@@ -1686,9 +1708,6 @@ int main (int argc, char *argv[] ) {
 				 comp_keys,
 				 comp_keys_num,
 				 comp_kofn,
-#else
-				 NULL,
-				 0,
 #endif
 				 batch )) == PKI_ERR ) {
 			printf("\nERROR, can not create keypair!\n\n");
@@ -1741,8 +1760,8 @@ int main (int argc, char *argv[] ) {
 				exit(1);
 			}
 #else
-			if ((gen_keypair(tk, bits, param_s, outkey_s, scheme_id, 
-					profile, outFormVal, NULL, 0, batch)) == PKI_ERR ) 
+			if ((gen_keypair(tk, sec_bits, param_s, outkey_s, scheme_id, 
+					profile, outFormVal, batch)) == PKI_ERR ) 
 			{
 				fprintf(stderr, "\nERROR, can not create keypair!\n\n");
 				exit(1);
@@ -1763,7 +1782,8 @@ int main (int argc, char *argv[] ) {
 		// fprintf(stderr, "DEBUG: algor_opt = %s, digest_opt = %s\n", algor_opt, digest_opt);
 
 		if (PKI_OK != set_token_algorithm(tk, algor_opt, digest_opt)) {
-			fprintf(stderr, "\n    ERROR: Cannot set the token's algorithm\n\n");
+			fprintf(stderr, "\n    FATAL ERROR: Cannot set the token's algorithm (pubkey: %s, digest: %s)\n\n",
+				tk->keypair ? PKI_ID_get_txt(PKI_X509_KEYPAIR_get_id(tk->keypair)) : algor_opt, digest_opt);
 			exit(1);
 		}
 

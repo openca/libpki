@@ -738,9 +738,6 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     PKI_X509_KEYPAIR_VALUE * x = NULL;
     PKI_SCHEME_ID x_scheme_id = PKI_SCHEME_UNKNOWN;
 
-    int x_id = 0;
-    int x_type = 0;
-
     const PKI_DIGEST_ALG * x_md = NULL;
 
     int algid = PKI_ALGOR_ID_UNKNOWN;
@@ -756,19 +753,21 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
       return PKI_ERR;
     }
 
-    // Gets the type of component (PKEY)
-    x_id = PKI_X509_KEYPAIR_VALUE_get_id(x);
-    x_type = EVP_PKEY_type(x_id);
-    if (x_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-			x_type = x_id;
-#else
-      sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
-      PKI_DEBUG("Cannot get the type of component #%d", idx);
-      return PKI_ERR;
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
-		}
-    PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d vs. EVP_PKEY_id() -> %d", x_type, x_id);
+//     // Gets the type of component (PKEY)
+//     int x_id = PKI_X509_KEYPAIR_VALUE_get_id(x);
+//     int x_type = EVP_PKEY_type(x_id);
+//     if (x_type <= 0) {
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 			x_type = x_id;
+// #else
+//       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
+//       PKI_DEBUG("Cannot get the type of component #%d", idx);
+//       return PKI_ERR;
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		}
+
+    int x_type = PKI_X509_KEYPAIR_VALUE_get_id(x);
+    PKI_DEBUG("***** OSSL3 UPGRADE: GOT KEY ID %d (type)", x_type);
 
     // Checks we are not recursing
     if (PKI_ID_is_composite(x_type, &x_scheme_id) ||

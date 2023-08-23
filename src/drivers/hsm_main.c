@@ -503,8 +503,7 @@ int PKI_X509_sign(PKI_X509               * x,
 	  // Pointer for the Signature in the PKIX data
 
 	int pkey_type = NID_undef;
-	int pkey_id = NID_undef;
-	  // Key Type and ID
+	  // Key Type
 
 	PKI_SCHEME_ID pkey_scheme = PKI_SCHEME_UNKNOWN;
 	  // Signature Scheme
@@ -526,22 +525,29 @@ int PKI_X509_sign(PKI_X509               * x,
 		return PKI_ERR;
 	}
 
-	// Gets the PKEY type
-	pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
-	pkey_type = EVP_PKEY_type(pkey_id);
-	if (pkey_type == NID_undef) {
-#if OPENSSL_VERSION_NUMBER > 0x30000000L
-		pkey_type = pkey_id;
-#else
-		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key's Internal Value");
+// 	// Gets the PKEY type
+// 	pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+// 	pkey_type = EVP_PKEY_type(pkey_id);
+// 	if (pkey_type == NID_undef) {
+// #if OPENSSL_VERSION_NUMBER > 0x30000000L
+// 		pkey_type = pkey_id;
+// #else
+// 		PKI_ERROR(PKI_ERR_PARAM_NULL, "Missing Key's Internal Value");
+// 		return PKI_ERR;
+// #endif
+// 	}
+
+	pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	if (!pkey_type) {
+		PKI_DEBUG("Cannot get the key's type (nid: %d)", PKI_X509_KEYPAIR_VALUE_get_id(pkey));
 		return PKI_ERR;
-#endif
 	}
 
 	// Gets the Signature Scheme
 	pkey_scheme = PKI_X509_KEYPAIR_VALUE_get_scheme(pkey);
 	if (pkey_scheme == PKI_SCHEME_UNKNOWN) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, "Scheme not recognized for key (%d)", pkey_type);
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Scheme not recognized for key (scheme: %d, type: %d)", 
+			PKI_SCHEME_ID_get_parsed(pkey_scheme), pkey_type);
 		return PKI_ERR;
 	}
 
@@ -1111,9 +1117,6 @@ int PKI_verify_signature(const PKI_MEM              * data,
 
 	const PKI_DIGEST_ALG *dgst = NULL;
 		// Digest Algorithm
-
-	// PKI_ID pkey_type = EVP_PKEY_id(k_val);
-	// 	// Type of PKEY
 
 	// Input Checks
 	if (!data || !data->data || !sig || !sig->data ||

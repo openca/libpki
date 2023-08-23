@@ -257,7 +257,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA-224
 #ifdef NID_sha224
-#define ENABLE_SHA_2
+#define ENABLE_SHA2
 #define ENABLE_SHA224
 #define PKI_ALGOR_SHA224	    	NID_sha224
 #define PKI_ALGOR_ID_SHA224	  		NID_sha224
@@ -273,6 +273,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA-256
 #ifdef NID_sha256
+#define ENABLE_SHA2
 #define ENABLE_SHA256
 #define PKI_ALGOR_SHA256	    	NID_sha256
 #define PKI_ALGOR_ID_SHA256	 		NID_sha256
@@ -289,6 +290,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA-384
 #ifdef NID_sha384
+#define ENABLE_SHA2
 #define ENABLE_SHA384
 #define PKI_ALGOR_SHA384	    	NID_sha384
 #define PKI_ALGOR_ID_SHA384   		NID_sha384
@@ -305,6 +307,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA-512
 #ifdef NID_sha512
+#define ENABLE_SHA2
 #define ENABLE_SHA512
 #define PKI_ALGOR_SHA512	    	NID_sha512
 #define PKI_ALGOR_ID_SHA512	  		NID_sha512
@@ -324,6 +327,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 						// ==============
 
 #ifdef NID_ripemd128
+#define ENABLE_RIPEMD
 #define ENABLE_RIPEMD128
 #define PKI_ALGOR_RIPEMD128       NID_ripemd128
 #define PKI_ALGOR_ID_RIPEMD128    NID_ripemd128
@@ -339,6 +343,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 #define PKI_ALGOR_RIPEMD128_SIZE   16
 
 #ifdef NID_ripemd160
+#define ENABLE_RIPEMD
 #define ENABLE_RIPEMD160
 #define PKI_ALGOR_RIPEMD160	      	NID_ripemd160
 #define PKI_ALGOR_ID_RIPEMD160	  	NID_ripemd160
@@ -360,6 +365,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA3-256
 #ifdef NID_sha3_256
+#define ENABLE_SHA3
 #define ENABLE_SHA3_256
 #define PKI_ALGOR_SHA3_256	    	NID_sha3_256
 #define PKI_ALGOR_ID_SHA3_256   	NID_sha3_256
@@ -376,6 +382,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA3-384
 #ifdef NID_sha3_384
+#define ENABLE_SHA3
 #define ENABLE_SHA3_384
 #define PKI_ALGOR_SHA3_384	    	NID_sha3_384
 #define PKI_ALGOR_ID_SHA3_384   	NID_sha3_384
@@ -392,6 +399,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHA3-512
 #ifdef NID_sha3_512
+#define ENABLE_SHA3
 #define ENABLE_SHA3_512
 #define PKI_ALGOR_SHA3_512	    	NID_sha3_512
 #define PKI_ALGOR_ID_SHA3_512   	NID_sha3_512
@@ -412,6 +420,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHAKE-128
 #ifdef NID_shake128
+#define ENABLE_SHAKE
 #define ENABLE_SHAKE128
 #define PKI_ALGOR_SHAKE128	    	NID_shake128
 #define PKI_ALGOR_ID_SHAKE128	  	NID_shake128
@@ -427,6 +436,7 @@ typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
 
 // Support for SHAKE-256
 #ifdef NID_shake256
+#define ENABLE_SHAKE
 #define ENABLE_SHAKE256
 #define PKI_ALGOR_SHAKE256	    	NID_shake256
 #define PKI_ALGOR_ID_SHAKE256	  	NID_shake256

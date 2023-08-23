@@ -208,11 +208,13 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const toke
 	PKI_TOKEN *tk = NULL;
 		// Token data structure
 
-	if((tk = PKI_TOKEN_new_null()) == NULL )
-	{
+	if ((tk = PKI_TOKEN_new_null()) == NULL) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
 	}
+
+	// Sets all the internal values to 0
+	memset(tk, 0, sizeof(PKI_TOKEN));
 
 	/* Initialize OpenSSL so that it adds all the needed algor and dgst */
 	if (PKI_get_init_status() == PKI_STATUS_NOT_INIT ) PKI_init_all();
@@ -250,7 +252,7 @@ PKI_TOKEN *PKI_TOKEN_new( const char * const config_dir, const char * const toke
 			}
 		}
 
-	} 
+	}
 
 	return tk;
 }
@@ -1313,11 +1315,28 @@ int PKI_TOKEN_set_digest(PKI_TOKEN * tk, const PKI_DIGEST_ALG * digest) {
 		return PKI_ERR;
 	}
 
-	// Let's get the X509 algorithm from key and digest
+	// // Let's get the X509 algorithm from key and digest
+	// int alg_nid = PKI_ID_UNKNOWN;
+	// int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(k_val);
+	// int pkey_type = EVP_PKEY_type(pkey_id);
+	// if (!pkey_type) {
+	// 	// For explicit composite, pkey_id and pkey_type are the same
+	// 	if (PKI_ID_is_explicit_composite(pkey_id, NULL)) {
+	// 		pkey_type = pkey_id;
+	// 	} else {
+	// 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Error while getting the PKEY type");
+	// 		return PKI_ERR;
+	// 	}
+	// }
 	int alg_nid = PKI_ID_UNKNOWN;
-	int pkey_id = EVP_PKEY_type(PKI_X509_KEYPAIR_VALUE_get_id(k_val));
-	if (!OBJ_find_sigid_by_algs(&alg_nid, EVP_MD_nid(digest), pkey_id)) {
-		PKI_ERROR(PKI_ERR_ALGOR_SET, "Error while setting the X509 algorithm");
+	int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(k_val);
+	if (pkey_type <= 0) {
+		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "Error while getting the PKEY type");
+		return PKI_ERR;
+	}
+	if (!OBJ_find_sigid_by_algs(&alg_nid, EVP_MD_nid(digest), pkey_type)) {
+		PKI_ERROR(PKI_ERR_ALGOR_SET, "No combined PKEY and MD Algorithm found (%s, %s)", 
+			EVP_MD_name(digest), OBJ_nid2sn(pkey_type));
 		return PKI_ERR;
 	}
 
@@ -1530,23 +1549,20 @@ int PKI_TOKEN_new_keypair_url_ex ( PKI_TOKEN *tk, PKI_KEYPARAMS *kp,
 	// // Let's check if we need to login
 	// if (!tk->isLoggedIn) PKI_TOKEN_login(tk);
 
-	if ((p = PKI_X509_KEYPAIR_new_url_kp( kp, label, tk->cred, tk->hsm )) == NULL)
-	{
+	if ((p = PKI_X509_KEYPAIR_new_url_kp( kp, label, tk->cred, tk->hsm )) == NULL) {
 		if (free_params) PKI_KEYPARAMS_free(kp);
 		if (prof) PKI_X509_PROFILE_free(prof);
 
 		return PKI_ERR;
-	};
+	}
 
 	if (tk->keypair) PKI_X509_KEYPAIR_free(tk->keypair);
-
 	tk->keypair = p;
 
-	if(free_params && kp) PKI_KEYPARAMS_free(kp);
+	if (free_params && kp) PKI_KEYPARAMS_free(kp);
 
 	if (tk->algor) X509_ALGOR_free(tk->algor);
-
-	tk->algor = PKI_X509_KEYPAIR_get_algor(tk->keypair);
+	tk->algor = PKI_X509_KEYPAIR_get_algor(tk->keypair, tk->digest);
 
 	return PKI_OK;
 }
@@ -1907,12 +1923,15 @@ int PKI_TOKEN_set_keypair ( PKI_TOKEN *tk, PKI_X509_KEYPAIR *pkey )
 
 	tk->keypair = pkey;
 
-	if (( pKeyAlgor = PKI_X509_KEYPAIR_get_algor(tk->keypair)) != NULL)
-	{
+	pKeyAlgor = PKI_X509_KEYPAIR_get_algor(tk->keypair, tk->digest);
+	if (pKeyAlgor != NULL) {
 		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
 		tk->algor = pKeyAlgor;
+	} else {
+		PKI_log_debug("WARNING: can not get default algorithm from Key!");
+		if (tk->algor) PKI_X509_ALGOR_VALUE_free(tk->algor);
+		tk->algor = NULL;
 	}
-	else PKI_log_debug("WARNING: can not get default algorithm from Key!");
 
 	return PKI_OK;
 }

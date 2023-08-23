@@ -8,13 +8,14 @@ int sign_ocsp_response();
 // Main
 // ====
 
-const char * test_name = "Test One";
+const char * test_name = "Keypair Generation, Key Digest, and PKEY ID/Type Testing";
 
 int subtest1();
 int subtest2();
 int subtest3();
 int subtest4();
 int subtest5();
+int subtest6();
 
 int main (int argc, char *argv[] ) {
 
@@ -42,6 +43,7 @@ int main (int argc, char *argv[] ) {
 		&& subtest3()
 		&& subtest4()
 		&& subtest5()
+		&& subtest6()
 	);
 
 	// Info
@@ -181,7 +183,7 @@ int subtest4() {
 
 int subtest5() {
 
-#ifdef ENABLE_OQS
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
 	int sec_level_array[] = { 128, 256 };
 
@@ -195,7 +197,7 @@ int subtest5() {
 		// Generate a Keypair (128)
 		keypair = PKI_X509_KEYPAIR_new(PKI_SCHEME_FALCON, sec_level, NULL, NULL, NULL);
 		if (!keypair) {
-			PKI_DEBUG("ERROR: Cannot generate a Dilithium key (Sec Bits: %d).", sec_level);
+			PKI_DEBUG("ERROR: Cannot generate a Falcon key (Sec Bits: %d).", sec_level);
 			return 0;
 		}
 
@@ -208,6 +210,67 @@ int subtest5() {
 	printf("  - Subtest 5: Passed\n\n");
 
 #endif
+
+	// Test Passed
+	return 1;
+}
+
+int subtest6() {
+
+	PKI_X509_KEYPAIR * keypair = NULL;
+
+	PKI_SCHEME_ID arr[] = {
+		PKI_SCHEME_RSA,
+#ifdef ENABLE_ECDSA
+		PKI_SCHEME_ECDSA,
+		PKI_SCHEME_ED25519,
+		PKI_SCHEME_ED448,
+#endif
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
+		PKI_SCHEME_DILITHIUM,
+		PKI_SCHEME_FALCON,
+#endif
+#ifdef ENABLE_COMPOSITE
+		PKI_SCHEME_COMPOSITE,
+#endif
+		0,
+	};
+
+	printf("  - Subtest 6: PKEY identities and OSSL types\n");
+
+	for (int idx = 0; arr[idx] != 0; idx++) {
+
+		printf("	* Testing %s ... ", PKI_SCHEME_ID_get_parsed(arr[idx]));
+
+		// Generate a Keypair
+		keypair = PKI_X509_KEYPAIR_new(arr[idx], 128, NULL, NULL, NULL);
+		if (!keypair) {
+			printf("ERROR: Cannot generate a new key (%s).\n\n", PKI_SCHEME_ID_get_parsed(arr[idx]));
+			return 0;
+		}
+
+		int pkey_type = PKI_X509_KEYPAIR_get_id(keypair);
+		if (pkey_type <= 0) {
+			printf("ERROR: Cannot get the PKEY type.\n\n");
+			return 0;
+		}
+
+		PKI_SCHEME_ID pkey_scheme = PKI_X509_KEYPAIR_get_scheme(keypair);
+		if (!pkey_scheme || pkey_scheme != arr[idx]) {
+			PKI_DEBUG("ERROR: Expected scheme was %s, got %s.\n\n", 
+				PKI_SCHEME_ID_get_parsed(arr[idx]), PKI_SCHEME_ID_get_parsed(pkey_scheme));
+			return 0;
+		}
+
+		// Free Memory
+		PKI_X509_KEYPAIR_free(keypair);
+		keypair = NULL;
+
+		printf("Ok.\n");
+	}
+
+	// Info
+	printf("  - Subtest 6: Passed\n\n");
 
 	// Test Passed
 	return 1;

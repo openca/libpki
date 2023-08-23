@@ -216,6 +216,12 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type ) {
 	PKI_X509_ALGOR_VALUE *ret = NULL;
 	  // Return Value
 
+	// Input checks
+	if (type <= 0) {
+		PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+		return NULL;
+	}
+
 	if (( ret = X509_ALGOR_new()) == NULL ) {
 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
 		return NULL;
@@ -230,41 +236,89 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_type ( int type ) {
 	return ret;
 }
 
-PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
+PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_pkey(const PKI_X509_KEYPAIR_VALUE * pkey, 
+													 const PKI_ID                   digest_id) {
 
 	PKI_X509_ALGOR_VALUE *ret = NULL;
-		// Pointer for returned item
+	  // Return Value
 
-	PKI_ID id = PKI_ID_UNKNOWN;
-		// Identifier for the algorithm
-
-	// Input checks
-	if (!alg) return NULL;
-
-	// Checks for the MD identifier
-	if ((id = EVP_MD_nid(alg)) == NID_undef) return NULL;
-
-	// Creates a new empty X509_ALGOR
-	if ((ret = X509_ALGOR_new()) == NULL) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+	// Input Checks
+	if (!pkey) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return NULL;
 	}
 
-	if (!X509_ALGOR_set0(ret, OBJ_nid2obj(id), V_ASN1_UNDEF, NULL)) {
-		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-		goto err;
+	if (digest_id < 0) {
+		PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+		return NULL;
 	}
 
-	// Success
+	// Checks we have a good digest_id
+	if (digest_id > 0 && EVP_get_digestbynid(digest_id) == NULL) {
+		PKI_DEBUG("Cannot get digest by NID (%d)", digest_id);
+		return NULL;
+	}
+
+	// Gets the PKEY type
+	const int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	if (!pkey_type) {
+		PKI_DEBUG("Cannot get PKEY identifier/type from the PKEY");
+		return NULL;
+	}
+
+	// Looks up the algorithm identifier
+	int algor_id;
+	if (!OBJ_find_sigid_by_algs(&algor_id, digest_id, pkey_type)) {
+		PKI_DEBUG("Cannot find the algorithm identifier for the PKEY (digest: %d, pkey: %d)", 
+			digest_id, pkey_type);
+		return NULL;
+	}
+
+	ret = PKI_X509_ALGOR_VALUE_new_type(algor_id);
+	if (!ret) {
+		PKI_DEBUG("Cannot create a new X509_ALGOR_VALUE from the algorithm identifier (%d)", algor_id);
+		return NULL;
+	}
+
+	// All Done
 	return ret;
-
-err:
-	// Freeing allocated memory
-	if (ret) X509_ALGOR_free ( ret );
-
-	// Error Condition
-	return NULL;
 }
+
+// PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_new_digest ( PKI_DIGEST_ALG *alg ) {
+
+// 	PKI_X509_ALGOR_VALUE *ret = NULL;
+// 		// Pointer for returned item
+
+// 	PKI_ID id = PKI_ID_UNKNOWN;
+// 		// Identifier for the algorithm
+
+// 	// Input checks
+// 	if (!alg) return NULL;
+
+// 	// Checks for the MD identifier
+// 	if ((id = EVP_MD_nid(alg)) == NID_undef) return NULL;
+
+// 	// Creates a new empty X509_ALGOR
+// 	if ((ret = X509_ALGOR_new()) == NULL) {
+// 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+// 		return NULL;
+// 	}
+
+// 	if (!X509_ALGOR_set0(ret, OBJ_nid2obj(id), V_ASN1_UNDEF, NULL)) {
+// 		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+// 		goto err;
+// 	}
+
+// 	// Success
+// 	return ret;
+
+// err:
+// 	// Freeing allocated memory
+// 	if (ret) X509_ALGOR_free ( ret );
+
+// 	// Error Condition
+// 	return NULL;
+// }
 
 
 PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_by_name ( const char *alg_s ) {
@@ -1405,42 +1459,45 @@ PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get(PKI_ALGOR_ID algor) {
 	return PKI_X509_ALGOR_VALUE_new_type(algor);
 }
 
-/*!
- * \brief Build a PKI_ALGOR structure from its ID
- */
+// /*!
+//  * \brief Build a PKI_ALGOR structure from its ID
+//  */
 
-PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_ex(PKI_ALGOR_ID pubkey_id, PKI_ALGOR_ID digest_id) {
+// PKI_X509_ALGOR_VALUE * PKI_X509_ALGOR_VALUE_get_ex(PKI_ALGOR_ID pubkey_id, PKI_ALGOR_ID digest_id) {
 
-	int alg_nid = PKI_ALGOR_ID_UNKNOWN;
-	  // Algorithm Identifier
+// 	int alg_nid = PKI_ALGOR_ID_UNKNOWN;
+// 	  // Algorithm Identifier
 
-	// Input Checks
-	if (pubkey_id <= 0) {
-		PKI_ERROR(PKI_ERR_PARAM_NULL, "No Algorithm ID provided!");
-		return NULL;
-	}
-	if (!EVP_get_digestbynid(digest_id)) {
-		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Digest Algorithm ID unknown (%d)", digest_id);
-		return NULL;
-	}
+// 	// Input Checks
+// 	if (pubkey_id <= 0) {
+// 		PKI_ERROR(PKI_ERR_PARAM_NULL, "No Algorithm ID provided!");
+// 		return NULL;
+// 	}
+// 	if (!EVP_get_digestbynid(digest_id)) {
+// 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, "ERROR, Digest Algorithm ID unknown (%d)", digest_id);
+// 		return NULL;
+// 	}
 
-	// Gets the combined algorithm ID
-	if (!OBJ_find_sigid_by_algs(&alg_nid, digest_id, pubkey_id)) {
-		PKI_DEBUG("Cannot find an algorithm for the pubkey (%d) and hash (%d) combination",
-			pubkey_id, digest_id);
-		return NULL;
-	}
+// 	// Gets the combined algorithm ID
+// 	if (!OBJ_find_sigid_by_algs(&alg_nid, digest_id, pubkey_id)) {
+// 		PKI_DEBUG("Cannot find an algorithm for the pubkey (%d) and hash (%d) combination",
+// 			pubkey_id, digest_id);
+// 		return NULL;
+// 	}
 
-	// Let's return the PKIX X509 Algorithm Data structure
-	return PKI_X509_ALGOR_VALUE_new_type(alg_nid);
-}
+// 	// Let's return the PKIX X509 Algorithm Data structure
+// 	return PKI_X509_ALGOR_VALUE_new_type(alg_nid);
+// }
 
 /* ! \brief Get a PKI_ALGOR from an PKI_ALGOR object */
 
 PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_id(const PKI_X509_ALGOR_VALUE *algor ) {
 
 	// Input Checks
-	if (!algor || !algor->algorithm) return PKI_ALGOR_ID_UNKNOWN;
+	if (!algor || !algor->algorithm) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return PKI_ALGOR_ID_UNKNOWN;
+	}
 
 	// Gets the Algorithm Id
 	return OBJ_obj2nid(algor->algorithm);
@@ -1505,12 +1562,21 @@ PKI_ALGOR_ID PKI_X509_ALGOR_VALUE_get_digest_id(const PKI_X509_ALGOR_VALUE *algo
 /*! \brief Returns the PKI_SCHEME_ID (signature scheme ID) of the algorithm */
 PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor) {
 
-	PKI_ALGOR_ID id, pkey_id, digest_id;
+	PKI_ALGOR_ID pkey_id = 0;
+	PKI_ALGOR_ID digest_id = 0;
+		// Algorithm Identifiers
 
-	if (!algor) return PKI_SCHEME_UNKNOWN;
-
-	if ((id = PKI_X509_ALGOR_VALUE_get_id ( algor )) == PKI_ALGOR_ID_UNKNOWN)
+	if (!algor) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return PKI_SCHEME_UNKNOWN;
+	}
+
+	PKI_ALGOR_ID id = PKI_X509_ALGOR_VALUE_get_id(algor);
+	if (id == PKI_ALGOR_ID_UNKNOWN) {
+		PKI_DEBUG("Cannot get the algorithm ID from the PKI_ALGOR_VALUE (%s)", 
+			PKI_X509_ALGOR_VALUE_get_parsed(algor));
+		return PKI_SCHEME_UNKNOWN;
+	}
 
 	// Gets the MD and PKEY components
 	// if (!OBJ_find_sigid_algs(id, &pkey_id, &digest_id)) {
@@ -1521,14 +1587,10 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
-
 	// Gets the Type of PKEY
 	int pkey_type = EVP_PKEY_type(pkey_id);
-
 #else
-
 	int pkey_type = pkey_id;
-
 #endif // End of OPENSSL_VERSION_NUMBER
 
 	PKI_DEBUG("******** OSSL3 UPGRADE: Check pkey_type (%d) vs. pkey_id (%d) ************", pkey_type, pkey_id);
@@ -1537,9 +1599,29 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 	switch (pkey_type) {
 
 		// RSA
+		case EVP_PKEY_RSA_PSS:
 		case EVP_PKEY_RSA: {
 			return PKI_SCHEME_RSA;
 		} break;
+
+		// DH
+		case EVP_PKEY_DH: {
+			return PKI_SCHEME_DH;
+		} break;
+
+		// ED25519
+#ifdef ENABLE_ED25519
+		case EVP_PKEY_ED25519: {
+			return PKI_SCHEME_ED25519;
+		} break;
+#endif
+
+		// ED448
+#ifdef ENABLE_ED448
+		case EVP_PKEY_ED448: {
+			return PKI_SCHEME_ED448;
+		} break;
+#endif
 
 #ifdef ENABLE_DSA
 		// DSA
@@ -1549,59 +1631,71 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 #endif
 
 #ifdef ENABLE_ECDSA
-
 		// EC
 		case EVP_PKEY_EC: {
 			return PKI_SCHEME_ECDSA;
 		} break;
-
 #endif
 
-	}
+#ifdef ENABLE_DSA
+#endif
+		
+		default: {
 
 #ifdef ENABLE_COMPOSITE
-	if (pkey_type == PKI_ID_get_by_name("composite")) {
-		// COMPOSITE
-		return PKI_SCHEME_COMPOSITE;
-	}
-#endif
-#ifdef ENABLE_COMBINED
-	if (pkey_type == PKI_ID_get_by_name("multikey")) {
-		// MULTIKEYS
-		return PKI_SCHEME_COMBINED;
-	}
+
+			// Check Generic Composite
+			if (PKI_ID_is_composite(pkey_type, NULL)) {
+				// COMPOSITE
+				return PKI_SCHEME_COMPOSITE;
+			}
+
+			// Check Explicit Composite
+			PKI_SCHEME_ID explicit_scheme;
+			if (PKI_ID_is_explicit_composite(pkey_type, &explicit_scheme)) {
+				// Explicit Composite
+				return explicit_scheme;
+			}
 #endif
 
 #if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
 
-	// Let's see if we can find the scheme via the
-	// dynamic approach:
-	if (   pkey_type == PKI_ID_get_by_name("falcon512")
-	    || pkey_type == PKI_ID_get_by_name("falcon1024")) {
-		// FALCON
-		return PKI_SCHEME_FALCON;
-	} else if (   pkey_type == PKI_ID_get_by_name("dilithium2")
-			   || pkey_type == PKI_ID_get_by_name("dilithium3")
-			   || pkey_type == PKI_ID_get_by_name("dilithium5")) {
-		// DILITHIUM
-		return PKI_SCHEME_DILITHIUM;
-    } else if (   pkey_type == PKI_ID_get_by_name("sphincssha2128fsimple")
-	           || pkey_type == PKI_ID_get_by_name("sphincssha2128ssimple")
-	           || pkey_type == PKI_ID_get_by_name("sphincssha2192fsimple")
-	           || pkey_type == PKI_ID_get_by_name("sphincsshake128fsimple")) {
-		// SPHINCS+
-		return PKI_SCHEME_SPHINCS;
-	} else if (   pkey_type == PKI_ID_get_by_name("kyber512")
-	           || pkey_type == PKI_ID_get_by_name("kyber768")
-			   || pkey_type == PKI_ID_get_by_name("kyber1024")) {
-		// KYBER
-		return PKI_SCHEME_KYBER;
-	}  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {
-		// DILITHIUMX
-		return PKI_SCHEME_DILITHIUMX3;
-	}
+			// Check PQC
+			PKI_SCHEME_ID pqc_scheme;
+			if (PKI_ID_is_pqc(pkey_type, &pqc_scheme)) {
+				// Explicit Composite
+				return pqc_scheme;
+			}
+
+			// // Let's see if we can find the scheme via the
+			// // dynamic approach:
+			// if (   pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME)
+			// 	|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME)) {
+			// 	// FALCON
+			// 	return PKI_SCHEME_FALCON;
+			// } else if (    pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME)
+			// 			|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME)
+			// 			|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
+			// 	// DILITHIUM
+			// 	return PKI_SCHEME_DILITHIUM;
+			// } else if (    pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_SPHINCS128_F_SIMPLE_NAME)
+			// 			|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_SPHINCS192_F_SIMPLE_NAME)) {
+			// 	// SPHINCS+
+			// 	return PKI_SCHEME_SPHINCS;
+			// } else if (   pkey_type == PKI_ID_get_by_name("kyber512")
+			// 		|| pkey_type == PKI_ID_get_by_name("kyber768")
+			// 		|| pkey_type == PKI_ID_get_by_name("kyber1024")) {
+			// 	// KYBER
+			// 	return PKI_SCHEME_KYBER;
+			// }  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {
+			// 	// DILITHIUMX
+			// 	return PKI_SCHEME_DILITHIUMX3;
+			// }
+
+		}
 
 #endif // End of ENABLE_OQS || ENABLE_OQSPROV
+	}
 
 	// Let's check the pkey type
 	return PKI_SCHEME_UNKNOWN;
@@ -1788,17 +1882,19 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 
 	pp = (EVP_PKEY *) pkey->value;
 
-#if OPENSSL_VERSION_NUMBER > 0x30000000L
-	int p_id = 0;
-	p_id = PKI_X509_KEYPAIR_get_id(pkey);
-	p_type = EVP_PKEY_type(p_id);
-	// TODO: Fix this trick
-	if (p_type <= 0) p_type = p_id;
-#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
-	p_type = EVP_PKEY_type(pp->type);
-#else
-	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
-#endif
+// #if OPENSSL_VERSION_NUMBER > 0x30000000L
+// 	int p_id = 0;
+// 	p_id = PKI_X509_KEYPAIR_get_id(pkey);
+// 	p_type = EVP_PKEY_type(p_id);
+// 	// TODO: Fix this trick
+// 	if (p_type <= 0) p_type = p_id;
+// #elif OPENSSL_VERSION_NUMBER < 0x1010000fL
+// 	p_type = EVP_PKEY_type(pp->type);
+// #else
+// 	p_type = EVP_PKEY_type(EVP_PKEY_id(pp));
+// #endif
+
+	p_type = PKI_X509_KEYPAIR_get_id(pkey);
 
 	// TODO: Remove this debug
 	PKI_DEBUG("******* OSSL3 UPGRADE: Retrieved p_type (%d) from pkey (%d) ************", p_type, pkey->type);

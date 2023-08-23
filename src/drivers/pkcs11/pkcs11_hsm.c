@@ -548,7 +548,7 @@ int HSM_PKCS11_sign_algor_set (HSM *hsm, PKI_X509_ALGOR_VALUE *algor) {
 			break;
 #endif // ENABLE_ECDSA_SHA1
 
-#ifdef ENABLE_SHA_2
+#ifdef ENABLE_SHA2
 		case PKI_ALGOR_ID_ECDSA_SHA224:
 			if((ret = HSM_PKCS11_check_mechanism ( lib,
 						CKM_ECDSA_SHA224)) == PKI_OK ) {
@@ -576,7 +576,7 @@ int HSM_PKCS11_sign_algor_set (HSM *hsm, PKI_X509_ALGOR_VALUE *algor) {
 				lib->mech_curr = CKM_ECDSA_SHA512;
 			}
 			break;
-#endif // ENABLE_SHA_2
+#endif // ENABLE_SHA2
 
 		default:
 			ret = PKI_ERR;

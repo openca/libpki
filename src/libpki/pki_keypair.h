@@ -63,11 +63,36 @@ char *PKI_X509_KEYPAIR_get_parsed(const PKI_X509_KEYPAIR *pkey );
 
 PKI_SCHEME_ID PKI_X509_KEYPAIR_get_scheme(const PKI_X509_KEYPAIR *k);
 
-PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_get_algor(const PKI_X509_KEYPAIR *k);
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_get_algor(const PKI_X509_KEYPAIR * k, 
+                                                  const PKI_DIGEST_ALG   * digest);
 
 int PKI_X509_KEYPAIR_get_id(const PKI_X509_KEYPAIR * key);
 
 int PKI_X509_KEYPAIR_VALUE_get_id(const PKI_X509_KEYPAIR_VALUE * pkey);
+
+// /*!
+//  * \brief Returns the OSSL key type of the keypair
+//  *
+//  * This function returns the OSSL key type of the keypair. The
+//  * returned value can be used to compare with PKEY_METHOD backed
+//  * keys.
+//  * 
+//  * @param pkey A pointer to the PKI_X509_KEYPAIR_VALUE data structure
+//  * @return The OSSL key type of the keypair (int)
+//  */
+// int PKI_X509_KEYPAIR_get_ossl_type(const PKI_X509_KEYPAIR * pkey);
+
+// /*!
+//  * @brief Returns the OSSL key type of the keypair value
+//  *
+//  * This function returns the OSSL key type of the keypair value. The
+//  * returned value can be used to compare with PKEY_METHOD backed
+//  * keys (e.g., type == EVP_PKEY_RSA)
+//  * 
+//  * @param pkey A pointer to the PKI_X509_KEYPAIR_VALUE data structure
+//  * @return The OSSL key type of the keypair value (int)
+//  */
+// int PKI_X509_KEYPAIR_VALUE_get_ossl_type(const PKI_X509_KEYPAIR_VALUE * pkey);
 
 /// @brief Returns the ID of the default digest algorithm for a PKI_X509_KEYPAIR
 /// @param key A PKI_X509_KEYPAIR data structure
@@ -116,7 +141,8 @@ PKI_DIGEST *PKI_X509_KEYPAIR_VALUE_pub_digest(const PKI_X509_KEYPAIR_VALUE * pke
 
 PKI_SCHEME_ID PKI_X509_KEYPAIR_VALUE_get_scheme(const PKI_X509_KEYPAIR_VALUE *pVal);
 
-PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const  PKI_X509_KEYPAIR_VALUE *pVal );
+PKI_X509_ALGOR_VALUE * PKI_X509_KEYPAIR_VALUE_get_algor (const PKI_X509_KEYPAIR_VALUE * pVal,
+                                                         const PKI_ID                   digest_id);
 
 int PKI_X509_KEYPAIR_VALUE_get_size (const  PKI_X509_KEYPAIR_VALUE *pKey );
 
