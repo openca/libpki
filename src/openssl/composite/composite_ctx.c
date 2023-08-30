@@ -793,11 +793,19 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
         PKI_DEBUG("(SigAlgs) Digest is required for component %d", idx);
 
         int md_nid = 0;
+        md_nid = PKI_X509_KEYPAIR_VALUE_get_default_digest(x);
+
+// #if OPENSSL_VERSION_NUMBER > 0x30000000L
+// 	char name_buf[50] = { 0x0 };
+// 	int digestResult = EVP_PKEY_get_default_digest_name(x, name_buf, sizeof(name_buf));
+// 	md_nid = OBJ_txt2nid(name_buf);
+// #else
+//   int digestResult = EVP_PKEY_get_default_digest_nid(x, &md_nid);
+// #endif
         
         // Search for a default digest for the type of key
-        if (!EVP_PKEY_get_default_digest_nid(x, &md_nid)) {
+        if (md_nid < 0) {
         	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid seems to fail *****");
-
           PKI_DEBUG("No default exists for component #%d, using library default (%d)",
             idx, EVP_MD_type(PKI_DIGEST_ALG_DEFAULT));
           // Use the library's default for the digest

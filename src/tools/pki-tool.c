@@ -654,8 +654,9 @@ int set_token_algorithm(PKI_TOKEN * tk, const char * algor_opt, const char * dig
 	if (digest_opt) {
 
 		// Checks for the NO-HASH (null) digest option
-		if (str_cmp_ex(digest_opt, "null", 0, 1) == 0 ||
-		    str_cmp_ex(digest_opt, "no", 0, 1) == 0) {
+		if (str_cmp_ex(digest_opt, "null", 0, 1) == 0
+		    || str_cmp_ex(digest_opt, "no", 0, 1) == 0
+			|| str_cmp_ex(digest_opt, "undef", 0, 1) == 0) {
 			// Uses the NULL digest method to indicate we
 			// do not need the digest. NULL is used to
 			// indicated there is no preference, use the

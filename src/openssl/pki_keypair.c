@@ -485,7 +485,13 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 	if (!pkey) return PKI_ID_UNKNOWN;
 
 	// Retrieves the default digest for the PKEY
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+	char name_buf[50] = { 0x0 };
+	int digestResult = EVP_PKEY_get_default_digest_name((PKI_X509_KEYPAIR_VALUE *)pkey, name_buf, sizeof(name_buf));
+	def_nid = OBJ_txt2nid(name_buf);
+#else
 	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
+#endif
 
 // #if OPENSSL_VERSION_NUMBER > 0x3000000fL
 // 	char buff[50] = { 0 };
@@ -501,15 +507,24 @@ int PKI_X509_KEYPAIR_VALUE_get_default_digest(const PKI_X509_KEYPAIR_VALUE * pke
 		def_nid = -1;
 	} else if (digestResult <= 0) {
 		int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+#ifdef ENABLE_COMPOSITE
 		if (PKI_ID_is_explicit_composite(pkey_id, NULL)
-		    || PKI_ID_is_composite(pkey_id, NULL)
-			|| PKI_ID_is_pqc(pkey_id, NULL)) {
+		    || PKI_ID_is_composite(pkey_id, NULL)) {
 			// For explicit, no default digest is available
 			def_nid = PKI_DIGEST_ALG_ID_NULL;
+#else
+		if (0) {
+			// Empty placeholder for when composite is not enabled
+#endif
+#if defined(ENABLE_OQS) || defined(ENABLE_OQSPROV)
+		} else if (PKI_ID_is_pqc(pkey_id, NULL)) {
+			// For explicit, no default digest is available
+			def_nid = PKI_DIGEST_ALG_ID_NULL;
+#endif
 		} else {
 			PKI_DEBUG("ERROR, can not get the default digest for the keypair value (pkey: %s, result: %d)", 
 				PKI_ID_get_txt(pkey_id), digestResult);
-			return PKI_ID_UNKNOWN;
+			def_nid = -1;
 		}
 	}
 
@@ -604,7 +619,13 @@ int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pk
 	if (!pkey) return PKI_ERR;
 
 	// Retrieves the default digest for the PKEY
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+	char name_buf[50] = { 0x0 };
+	int digestResult = EVP_PKEY_get_default_digest_name((PKI_X509_KEYPAIR_VALUE *)pkey, name_buf, sizeof(name_buf));
+	def_nid = OBJ_txt2nid(name_buf);
+#else
 	int digestResult = EVP_PKEY_get_default_digest_nid((PKI_X509_KEYPAIR_VALUE *)pkey, &def_nid);
+#endif
 	PKI_DEBUG("***** OSSL3 UPGRADE: EVP_PKEY_get_default_digest_nid (%d) seems to fail *****", digestResult);
 
 	// Check for error condition
@@ -619,17 +640,17 @@ int PKI_X509_KEYPAIR_VALUE_is_digest_supported(const PKI_X509_KEYPAIR_VALUE * pk
 	}
 
 	// Checks the combined OID existence
-	int pkey_id = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
-	int pkey_type = EVP_PKEY_type(pkey_id);
+	int pkey_type = PKI_X509_KEYPAIR_VALUE_get_id(pkey);
+	// int pkey_type = EVP_PKEY_type(pkey_id);
 	if (pkey_type <= 0) {
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
-		// TODO: Remove this trick
-		pkey_type = pkey_id;
-#else
+// #if OPENSSL_VERSION_NUMBER > 0x3000000fL
+// 		// TODO: Remove this trick
+// 		pkey_type = pkey_id;
+// #else
 		PKI_ERROR(PKI_ERR_ALGOR_UNKNOWN, NULL);
 		return PKI_ERR;
 
-#endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
+// #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 	}
 
 	if (!OBJ_find_sigid_by_algs(&algor_nid, EVP_MD_nid(digest), pkey_type)) {
