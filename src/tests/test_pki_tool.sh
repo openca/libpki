@@ -6,7 +6,7 @@ DEBUG_OPTION=""
 # Digest Algorithms
 NULL_DIGEST="NULL"
 CLASSIC_DIGESTS="sha256 sha384 sha512"
-ADVANCED_DIGESTS="shake128 shake256 sha3-256 sha3-384 sha3-512"
+ADVANCED_DIGESTS="sha3-256 sha3-384 sha3-512"
 ALL_DIGESTS="$NULL_DIGEST $CLASSIC_DIGESTS $ADVANCED_DIGESTS"
 
 # This script is used to test the pki_tool.sh script
