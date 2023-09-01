@@ -137,14 +137,9 @@ int _pki_rand_seed( void ) {
 
 PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
 
-    BIGNUM *bne = NULL;
     PKI_RSA_KEY *rsa = NULL;
-    int ossl_rc = 0;
 
     int bits = PKI_RSA_KEY_DEFAULT_SIZE;
-
-    unsigned long e = RSA_F4;
-        // Default exponent (65537)
 
     if ( kp && kp->bits > 0 ) bits = kp->bits;
 
@@ -156,6 +151,61 @@ PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
         PKI_DEBUG("WARNING: RSA Key size smaller than default safe size (%d vs. %d)", 
             bits, PKI_RSA_KEY_DEFAULT_SIZE);
     }
+
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+    EVP_PKEY_CTX * pkey_ctx = NULL;
+    EVP_PKEY * pkey = NULL;
+
+    OSSL_LIB_CTX * ossl_libctx = PKI_init_get_ossl_library_ctx();
+
+    // Tries to create the context by using the key id
+    if ((pkey_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL)) == NULL) {
+        // Tries to create the context by using the name
+        pkey_ctx = EVP_PKEY_CTX_new_from_name(ossl_libctx, "RSA", NULL);
+    }
+    if (!pkey_ctx) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot create EVP_PKEY_CTX");
+        return NULL;
+    }
+
+    // Initializes the key generation operation
+    if (EVP_PKEY_keygen_init(pkey_ctx) < 0) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot init EVP_PKEY_CTX");
+        EVP_PKEY_CTX_free(pkey_ctx);
+        return NULL;
+    }
+
+    // Sets the RSA key size (parameter)
+    if (EVP_PKEY_CTX_set_rsa_keygen_bits(pkey_ctx, bits) < 0) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot set RSA key size");
+        EVP_PKEY_CTX_free(pkey_ctx);
+        return NULL;
+    }
+   
+    // Generates the new key
+    if (!EVP_PKEY_generate(pkey_ctx, &pkey)) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot generate EVP_PKEY");
+        EVP_PKEY_CTX_free(pkey_ctx);
+        return NULL;
+    }
+
+    // Extracts the RSA key
+    rsa = EVP_PKEY_get1_RSA(pkey);
+
+    // Free allocated heap memory
+    if (pkey) EVP_PKEY_free(pkey);
+    if (pkey_ctx) EVP_PKEY_CTX_free(pkey_ctx);
+    
+    if (!rsa) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot extract RSA key from EVP_PKEY");
+        return NULL;
+    }
+#else
+    unsigned long e = RSA_F4;
+        // Default exponent (65537)
+
+    BIGNUM *bne = NULL;
+    int ossl_rc = 0;
 
     if ((bne = BN_new()) != NULL) {
         if (1 != BN_set_word(bne, e)) {
@@ -181,6 +231,7 @@ PKI_RSA_KEY * _pki_rsakey_new( PKI_KEYPARAMS *kp ) {
     }
 
     BN_free(bne);
+#endif
 
     /* Let's return the RSA_KEY infrastructure */
     return (rsa);
