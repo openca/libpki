@@ -481,6 +481,7 @@ if [[ "$CC" = "gcc" ]] ; then
 	# AC_CHECK_C_OPTION(-fstack-check)
 	AC_CHECK_C_OPTION(-fstack-clash_protection)
 	AC_CHECK_C_OPTION(-maccumulate-outgoing-args)
+	AC_CHECK_C_OPTION(-Wno-deprecated)
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
@@ -493,8 +494,6 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Werror)
 		AC_CHECK_C_OPTION(-Wno-switch)
 		dnl AC_CHECK_C_OPTION(-fsanitize=address)
-	else
-		AC_CHECK_C_OPTION(-Wno-deprecated)
 	fi
 
 	if [[ "$DIST_NAME" = "darwin" ]] ; then
