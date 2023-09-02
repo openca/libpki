@@ -14587,174 +14587,6 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; };
 fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -Werror"
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Werror support" >&5
-printf %s "checking checking for -Werror support... " >&6; };
-
-if test "$cross_compiling" = yes
-then :
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-   _supported=yes
-else $as_nop
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-printf "%s\n" "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; };
-fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -Wfatal-errors"
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Wfatal-errors support" >&5
-printf %s "checking checking for -Wfatal-errors support... " >&6; };
-
-if test "$cross_compiling" = yes
-then :
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-   _supported=yes
-else $as_nop
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-printf "%s\n" "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; };
-fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -Wunused-variable"
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Wunused-variable support" >&5
-printf %s "checking checking for -Wunused-variable support... " >&6; };
-
-if test "$cross_compiling" = yes
-then :
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-   _supported=yes
-else $as_nop
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-printf "%s\n" "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; };
-fi
-
-old_cflags=$CFLAGS
-CFLAGS="$CFLAGS -Wno-switch"
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Wno-switch support" >&5
-printf %s "checking checking for -Wno-switch support... " >&6; };
-
-if test "$cross_compiling" = yes
-then :
-  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else $as_nop
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdlib.h>
-int main(void)
-{
-        return(0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"
-then :
-   _supported=yes
-else $as_nop
-   _supported=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-if [ $_supported = no ] ; then
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
-printf "%s\n" "not supported" >&6; };
-	CFLAGS=$old_cflags
-else
-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; };
-fi
 	if [ "x${extra_checks}" = "xyes" ] ; then
 
 old_cflags=$CFLAGS
@@ -15008,9 +14840,175 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; };
 fi
-			fi
 
-	if [ "$DIST_NAME" = "darwin" ] ; then
+old_cflags=$CFLAGS
+CFLAGS="$CFLAGS -Wfatal-errors"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Wfatal-errors support" >&5
+printf %s "checking checking for -Wfatal-errors support... " >&6; };
+
+if test "$cross_compiling" = yes
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else $as_nop
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+int main(void)
+{
+        return(0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"
+then :
+   _supported=yes
+else $as_nop
+   _supported=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+if [ $_supported = no ] ; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+printf "%s\n" "not supported" >&6; };
+	CFLAGS=$old_cflags
+else
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; };
+fi
+
+old_cflags=$CFLAGS
+CFLAGS="$CFLAGS -Wunused-variable"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Wunused-variable support" >&5
+printf %s "checking checking for -Wunused-variable support... " >&6; };
+
+if test "$cross_compiling" = yes
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else $as_nop
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+int main(void)
+{
+        return(0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"
+then :
+   _supported=yes
+else $as_nop
+   _supported=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+if [ $_supported = no ] ; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+printf "%s\n" "not supported" >&6; };
+	CFLAGS=$old_cflags
+else
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; };
+fi
+
+old_cflags=$CFLAGS
+CFLAGS="$CFLAGS -Werror"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Werror support" >&5
+printf %s "checking checking for -Werror support... " >&6; };
+
+if test "$cross_compiling" = yes
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else $as_nop
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+int main(void)
+{
+        return(0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"
+then :
+   _supported=yes
+else $as_nop
+   _supported=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+if [ $_supported = no ] ; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+printf "%s\n" "not supported" >&6; };
+	CFLAGS=$old_cflags
+else
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; };
+fi
+
+old_cflags=$CFLAGS
+CFLAGS="$CFLAGS -Wno-switch"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking checking for -Wno-switch support" >&5
+printf %s "checking checking for -Wno-switch support... " >&6; };
+
+if test "$cross_compiling" = yes
+then :
+  { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot run test program while cross compiling
+See \`config.log' for more details" "$LINENO" 5; }
+else $as_nop
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+int main(void)
+{
+        return(0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"
+then :
+   _supported=yes
+else $as_nop
+   _supported=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+if [ $_supported = no ] ; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not supported" >&5
+printf "%s\n" "not supported" >&6; };
+	CFLAGS=$old_cflags
+else
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; };
+fi
+			else
 
 old_cflags=$CFLAGS
 CFLAGS="$CFLAGS -Wno-deprecated"
@@ -15053,6 +15051,9 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; };
 fi
+	fi
+
+	if [ "$DIST_NAME" = "darwin" ] ; then
 
 old_cflags=$CFLAGS
 CFLAGS="$CFLAGS -Wno-unknown-pragmas"
