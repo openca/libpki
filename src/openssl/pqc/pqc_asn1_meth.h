@@ -19,6 +19,14 @@
 #include <libpki/compat.h>
 #endif
 
+#ifndef _LIBPKI_PKI_ID_H
+# include <libpki/pki_id.h>
+#endif
+
+#ifndef _LIBPKI_X509_KEYPAIR_HEADER_H
+#include <libpki/pki_keypair.h>
+#endif
+
 #ifndef _LIBPKI_PQC_DEFS_H
 #include <libpki/openssl/pqc/pqc_defs.h>
 #endif
