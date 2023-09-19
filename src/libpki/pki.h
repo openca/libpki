@@ -280,6 +280,7 @@ typedef enum {
 #include <libpki/pki_oid.h>
 #include <libpki/pki_digest.h>
 #include <libpki/pki_hmac.h>
+#include <libpki/pki_kdf.h>
 #include <libpki/pki_config.h>
 #include <libpki/pki_keypair.h>
 #include <libpki/pki_x509_item.h>
