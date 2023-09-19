@@ -16,6 +16,10 @@
 #include <openssl/obj_mac.h>
 #endif
 
+#ifndef OPENSSL_EVP_H
+#include <openssl/evp.h>
+#endif
+
 #ifndef _LIBPKI_FEATURES_H
 #include <libpki/libpki_enables.h>
 #endif
@@ -702,7 +706,7 @@ int PKI_X509_OID_init() {
 	// // PKI_DIGEST_ALG * digest = PKI_DIGEST_ALG_SHA256;
 	PKI_DIGEST_ALG * digest = PKI_DIGEST_ALG_SHA256;
 
-	PKI_ID digest_id = EVP_MD_get_type(digest);
+	PKI_ID digest_id = EVP_MD_type(digest);
 
 	// int success = OBJ_add_sigid(sig_obj_id, digest_id, pkey_obj_id);
 	// PKI_DEBUG("Added (success: %d) New Signing Algorithm (%s) with ID (%d), Hash ID (%d), and Pkey ID (%d)", 
@@ -730,7 +734,7 @@ int PKI_X509_OID_init() {
 			PKI_DEBUG("Created new OID for TEST-SIG-OID");
 			// test_pkey_nid = EVP_PKEY_EC;
 			test_sig_nid = OBJ_sn2nid("TEST-SIG-OID");
-			test_digest_nid = EVP_MD_get_type(digest);
+			test_digest_nid = EVP_MD_type(digest);
 			test_pkey_nid = OBJ_sn2nid("TEST-KEY-OID");
 			success = OBJ_add_sigid(test_sig_nid, digest_id, test_pkey_nid);
 			if (!success) {
