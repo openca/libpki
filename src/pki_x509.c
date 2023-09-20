@@ -353,31 +353,44 @@ PKI_X509 *PKI_X509_new_value (PKI_DATATYPE type, void *value,
 
 /*! \brief Allocates the memory for a new PKI_X509 and duplicates the data */
 
-PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE type, 
-				  const void *value, 
-				  struct hsm_st *hsm ) {
+PKI_X509 *PKI_X509_new_dup_value (PKI_DATATYPE    type, 
+				  				  const void    * value, 
+				  				  struct hsm_st * hsm ) {
 
 	PKI_X509 *ret = NULL;
+		// Return Value
 
-	if( !value ) return NULL;
-
-	if (( ret = PKI_X509_new ( type, hsm )) == NULL ) {
-		PKI_log_debug ( "Can not initialized a new PKI_X509 object.");
+	// Input Checks
+	if (!value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+	if (type <= PKI_DATATYPE_UNKNOWN || type > PKI_DATATYPE_X509_OTHER) {
+		PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
 		return NULL;
 	}
 
-	if ( !ret->cb || !ret->cb->dup )  {
-		PKI_log_debug ( "ERROR, no 'dup' callback!");
-		PKI_X509_free ( ret );
+	// Allocates the memory for the new object
+	if ((ret = PKI_X509_new(type, hsm)) == NULL) {
+		PKI_DEBUG("Can not initialized a new PKI_X509 object.");
 		return NULL;
 	}
 
+	// Checks if the callback is available
+	if (!ret->cb || !ret->cb->dup)  {
+		PKI_ERROR(PKI_ERR_CALLBACK_NULL, NULL);
+		PKI_X509_free(ret);
+		return NULL;
+	}
+
+	// Duplicates the value
 	if ((ret->value = ret->cb->dup((void *)value)) == NULL) {
 		PKI_DEBUG("Can not duplicate internal value (type: %d)", type);
 		PKI_X509_free(ret);
 		return NULL;
-	};
+	}
 	
+	// All Done
 	return ret;
 }
 

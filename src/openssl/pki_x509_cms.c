@@ -2,6 +2,7 @@
 
 #include <openssl/opensslv.h>
 #include "internal/ossl_1_1_1/cms_lcl.h"
+#include <openssl/x509.h>
 
 #ifndef _LIBPKI_PKI_H
 #include <libpki/pki.h>
@@ -813,7 +814,7 @@ int PKI_X509_CMS_get_certs_num(const PKI_X509_CMS * const cms ) {
 	ret = sk_X509_num(x_sk);
 
 	// Free the stack
-	sk_X509_free(x_sk);
+	sk_X509_pop_free(x_sk, X509_free);
 	x_sk = NULL;
 
 	// All Done
@@ -836,12 +837,12 @@ PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
 	// Input Check
 	if (!cms || !cms->value) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return -1;
+		return NULL;
 	}
 
 	// Gets the internal stack of certificates
 	x_sk = CMS_get1_certs(cms->value);
-	if (!x_sk) return -1;
+	if (!x_sk) return NULL;
 
 	// Gets the number of elements in the stack
 	x = sk_X509_value(x_sk, idx);
@@ -851,10 +852,125 @@ PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
 	}
 
 	// Duplicates the certificate and put it in a PKI_X509 structure
-	ret = PKI_X509_new_dup_value(PKI_DATATYPE_X509_CERT, ret, NULL);
+	ret = PKI_X509_new_dup_value(PKI_DATATYPE_X509_CERT, x, NULL);
+	if (!ret) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
+	}
 
 	// Free the stack
-	sk_X509_free(x_sk);
+	sk_X509_pop_free(x_sk, X509_free);
+	x_sk = NULL;
+
+	if (!ret) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;		
+	}
+
+	// All Done
+	return ret;
+}
+
+int PKI_X509_CMS_get_signer_num(const PKI_X509_CMS * cms) {
+
+	STACK_OF(CMS_SignerInfo) *si_sk = NULL;
+		// Internal stack of SignerInfo
+
+	// Input Check
+	if (!cms || !cms->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Retrieves the stack of signer infos
+	si_sk = CMS_get0_SignerInfos(cms->value);
+	if (!si_sk) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return NULL;
+	}
+
+	// All Done
+	return sk_CMS_SignerInfo_num(si_sk);
+}
+
+PKI_X509_CERT *PKI_X509_CMS_get_signer_cert(const PKI_X509_CMS * cms,
+				       				    	int                  idx) {
+
+	PKI_X509_CERT * ret = NULL;
+		// Return value
+
+	int x_found = 0;
+	PKI_X509_CERT_VALUE * x = NULL;
+	STACK_OF(X509) *x_sk = NULL;
+		// Internal stack of certificates
+
+	STACK_OF(CMS_SignerInfo) *si_sk = NULL;
+		// Internal stack of SignerInfo
+
+	// Input Check
+	if (!cms || !cms->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
+
+	// Retrieves the stack of signer infos
+	si_sk = CMS_get0_SignerInfos(cms->value);
+	if (!si_sk) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return NULL;
+	}
+
+	// Retrieves the stack of certificates
+	x_sk = CMS_get1_certs(cms->value);
+	if (!x_sk) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return NULL;
+	}
+
+	// Checks we have enough signers
+	if (idx > sk_CMS_SignerInfo_num(si_sk)) {
+		PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+		goto err;
+	}
+
+	// Fixes wrong values
+	if (idx < 0) idx = 0;
+
+	// Retrieves the idx-th signer info
+	PKI_X509_CMS_SIGNER_INFO * si = sk_CMS_SignerInfo_value(si_sk, idx);
+	if (!si) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		goto err;
+	}
+
+	// Retrieves the right certificate
+	for (int i = 0; i < sk_X509_num(x_sk); i++) {
+		x = sk_X509_value(x_sk, i);
+		if (!x) {
+			PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+			return NULL;
+		}
+		if (1 == CMS_SignerInfo_cert_cmp(si, x)) {
+			x_found = 1;
+			break;
+		}
+	}
+
+	// Check if we found the certificate
+	if (!x_found) {
+		PKI_DEBUG("No certificate corresponding to the SignerInfo %d was not found", idx);
+		goto err;
+	}
+
+	// Duplicates the certificate and put it in a PKI_X509 structure
+	ret = PKI_X509_new_dup_value(PKI_DATATYPE_X509_CERT, x, NULL);
+	if (!ret) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		goto err;
+	}
+
+	// Free the stack
+	sk_X509_pop_free(x_sk, X509_free);
 	x_sk = NULL;
 
 	if (!ret) {
@@ -865,21 +981,9 @@ PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
 	// All Done
 	return ret;
 
-
-	/*
-	PKI_X509_CERT_VALUE *x = NULL;
-	const STACK_OF(X509) *x_sk = NULL;
-
-	if (!cms || !cms->value) return NULL;
-
-	if ((x_sk = __get_chain(cms)) == NULL) return NULL;
-
-	if ( idx < 0 ) idx = 0;
-
-	if ((x = sk_X509_value(x_sk, idx)) == NULL) return NULL;
-
-	return PKI_X509_new_dup_value ( PKI_DATATYPE_X509_CERT, x, NULL );
-	*/
+err:
+	if (x_sk) sk_X509_pop_free(x_sk, X509_free);
+	return NULL;
 }
 
 

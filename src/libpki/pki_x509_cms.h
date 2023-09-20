@@ -157,6 +157,11 @@ int PKI_X509_CMS_get_certs_num(const PKI_X509_CMS * const cms );
 PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
                                      int                  idx );
 
+int PKI_X509_CMS_get_signer_num(const PKI_X509_CMS * cms);
+
+PKI_X509_CERT *PKI_X509_CMS_get_signer_cert(const PKI_X509_CMS * cms,
+				       				    	                int                  idx);
+
 int PKI_X509_CMS_clear_certs(const PKI_X509_CMS * cms);
 
 // Signer
