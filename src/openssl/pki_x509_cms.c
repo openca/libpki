@@ -206,7 +206,7 @@ const PKI_X509_CMS_SIGNER_INFO * PKI_X509_CMS_get_signer_info(
 		return NULL;
 
 	// Gets the list of signer info
-	if ((x_sk = CMS_get0_SignerInfos((CMS_ContentInfo *)cms)) == NULL)
+	if ((x_sk = CMS_get0_SignerInfos((CMS_ContentInfo *)val)) == NULL)
 		return NULL;
 
 	// Retrieves the Signer Info structure
@@ -824,12 +824,47 @@ int PKI_X509_CMS_get_certs_num(const PKI_X509_CMS * const cms ) {
 /*! \brief Returns a copy of the n-th cert from a singed/signed&enc PKCS7 */
 
 PKI_X509_CERT *PKI_X509_CMS_get_cert(const PKI_X509_CMS * const cms,
-				       int idx) {
+				       				 int 						idx) {
 
-PKI_ERROR(PKI_ERR_NOT_IMPLEMENTED,
-		"PKI_X509_CMS_get_recipient_cert() Not Implemented, yet.");
+	PKI_X509_CERT * ret = NULL;
+		// Return value
 
-	return NULL;
+	PKI_X509_CERT_VALUE * x = NULL;
+	STACK_OF(X509) *x_sk = NULL;
+		// Internal stack of certificates
+
+	// Input Check
+	if (!cms || !cms->value) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return -1;
+	}
+
+	// Gets the internal stack of certificates
+	x_sk = CMS_get1_certs(cms->value);
+	if (!x_sk) return -1;
+
+	// Gets the number of elements in the stack
+	x = sk_X509_value(x_sk, idx);
+	if (!x) {
+		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+		return NULL;
+	}
+
+	// Duplicates the certificate and put it in a PKI_X509 structure
+	ret = PKI_X509_new_dup_value(PKI_DATATYPE_X509_CERT, ret, NULL);
+
+	// Free the stack
+	sk_X509_free(x_sk);
+	x_sk = NULL;
+
+	if (!ret) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;		
+	}
+
+	// All Done
+	return ret;
+
 
 	/*
 	PKI_X509_CERT_VALUE *x = NULL;

@@ -377,16 +377,16 @@ static char * _pki_get_time_s( void ) {
 		// Time String
 
 	// Get the current time
-	if (clock_gettime(CLOCK_REALTIME, &now) >= 0) {
+	if (clock_gettime(CLOCK_MONOTONIC, &now) >= 0) {
 
 		long millisec = 0;
 			// Milliseconds
 
-		millisec = now.tv_nsec / 1000000;
+		millisec = now.tv_nsec / 1000;
 		strftime(time_s, time_s_size, "%Y-%m-%d %H:%M:%S", localtime(&now.tv_sec));
 		strncat(time_s, ".", time_s_size - strlen(time_s) - 1);
 		snprintf(time_s + strlen(time_s), time_s_size - strlen(time_s) - 1,
-			"%03ld", millisec);
+			"%ld", millisec);
 	
 	} else {
 

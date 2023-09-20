@@ -806,7 +806,10 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
       break;
 
     case PKI_X509_DATA_SERIAL:
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+
+#if OPENSSL_VERSION_NUMBER > 0x30000000L
+      ret = X509_get0_serialNumber((X509 *)tmp_x);
+#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
       if (tmp_x->cert_info) ret = tmp_x->cert_info->serialNumber;
 #else
       ret = &((tmp_x)->cert_info.serialNumber);
@@ -815,7 +818,9 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
       break;
 
     case PKI_X509_DATA_SUBJECT:
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+      ret = X509_get_subject_name((X509 *)tmp_x);
+#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
       if (tmp_x->cert_info) ret = tmp_x->cert_info->subject;
 #else
       ret = tmp_x->cert_info.subject;
@@ -824,7 +829,9 @@ const void * PKI_X509_CERT_get_data(const PKI_X509_CERT * x,
       break;
 
     case PKI_X509_DATA_ISSUER:
-#if OPENSSL_VERSION_NUMBER < 0x1010000fL
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+      ret = X509_get_issuer_name((X509 *)tmp_x);
+#elif OPENSSL_VERSION_NUMBER < 0x1010000fL
       if (tmp_x->cert_info) ret = tmp_x->cert_info->issuer;
 #else
       ret = tmp_x->cert_info.issuer;
