@@ -879,14 +879,14 @@ int PKI_X509_CMS_get_signer_num(const PKI_X509_CMS * cms) {
 	// Input Check
 	if (!cms || !cms->value) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
-		return NULL;
+		return -1;
 	}
 
 	// Retrieves the stack of signer infos
 	si_sk = CMS_get0_SignerInfos(cms->value);
 	if (!si_sk) {
 		PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
-		return NULL;
+		return -1;
 	}
 
 	// All Done
@@ -948,9 +948,9 @@ PKI_X509_CERT *PKI_X509_CMS_get_signer_cert(const PKI_X509_CMS * cms,
 		x = sk_X509_value(x_sk, i);
 		if (!x) {
 			PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
-			return NULL;
+			goto err;
 		}
-		if (1 == CMS_SignerInfo_cert_cmp(si, x)) {
+		if (0 == CMS_SignerInfo_cert_cmp(si, x)) {
 			x_found = 1;
 			break;
 		}
