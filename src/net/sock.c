@@ -470,7 +470,7 @@ ssize_t PKI_NET_read (int fd, const void *bufptr, size_t nbytes, int timeout ) {
 
 		if( (timeout > 0 ) && (sel_ret == 0) ) {
 			PKI_log_debug("ERROR, Socket connection t-out");
-			return -1;
+			return 0;
 		}
 
 		if (FD_ISSET (fd, &readset)) {
