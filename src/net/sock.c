@@ -475,7 +475,9 @@ ssize_t PKI_NET_read (int fd, const void *bufptr, size_t nbytes, int timeout ) {
 
 		if (FD_ISSET (fd, &readset)) {
 			if((n = recv(fd, (void *)bufptr, nbytes, 0 )) == 0 ) {
-				break;
+				// This only verifies in case of a closed connection
+				PKI_log_debug("ERROR: Connection closed by peer");
+				return -1;
 			};
 
 			if (n < 0) {
