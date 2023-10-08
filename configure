@@ -18632,7 +18632,7 @@ printf "%s\n" " Checking support for Open Quantum Safe Provider " >&6; }
 printf "%s\n" "Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)" >&6; }
 
 printf "%s\n" "#define ENABLE_OQSPROV 1" >>confdefs.h
-],
+
 				oqsprov_check="yes"
 				oqsprov_cflags="-DENABLE_OQSPROV=1"
 				oqsprov_prefix=$prefix_dir

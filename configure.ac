@@ -1602,7 +1602,7 @@ else
 			echo "Checking for Provider Library File ...." ${provider_lib}
 			if [[ -f ${provider_lib} ]] ; then
 				AC_MSG_RESULT([Open Quantum Safe: Module Found (oqsprov=$oqsprov_prefix/lib/ossl-modules/oqsprovider.*)])
-				AC_DEFINE(ENABLE_OQSPROV, 1, [Open Quantum Safe Library])],
+				AC_DEFINE(ENABLE_OQSPROV, 1, [Open Quantum Safe Library])
 				oqsprov_check="yes"
 				oqsprov_cflags="-DENABLE_OQSPROV=1"
 				oqsprov_prefix=$prefix_dir
