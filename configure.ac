@@ -23,7 +23,7 @@ mybits="32"
 mybits_install=""
 is_sparc="no"
 is_aix="no"
-my_arch=`uname -p`
+my_arch=`uname -m`
 
 case "$my_arch" in
   *i686)
