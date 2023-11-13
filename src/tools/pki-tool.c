@@ -1,5 +1,6 @@
 
 #include <libpki/pki.h>
+#include <libpki/openssl/pki_oid_defs.h>
 
 /* Global Variables - not a good coding practice, but for a small
    tool is not a problem (and it saves in complexity for signatures

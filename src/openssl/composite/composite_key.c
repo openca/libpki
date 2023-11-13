@@ -19,9 +19,187 @@
 #include "composite_ossl_lcl.h"
 #endif
 
+
+            // ===================
+            // COMPOSITE_PARAM API
+            // ===================
+
+// COMPOSITE_PARAM * COMPOSITE_PARAM_new(void) {
+
+//   COMPOSITE_PARAM * cParam = NULL;
+
+//   cParam = PKI_Malloc(sizeof(cParam));
+//   if (!cParam) {
+//     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+//     return NULL;
+//   }
+
+//   // Sets the defaults
+//   cParam->algorithm = NULL;
+//   cParam->canSkipUnknown = NULL;
+
+//   // Success
+//   return cParam;
+// }
+
+// COMPOSITE_KEY_PARAM * COMPOSITE_PARAM_dup(COMPOSITE_KEY_PARAM * cParam) {
+
+//   COMPOSITE_KEY_PARAM * destParam = NULL;
+
+//   if (!cParam) {
+//     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+//     return NULL;
+//   }
+
+//   destParam = PKI_Malloc(sizeof(COMPOSITE_KEY_PARAM));
+//   if (!destParam) {
+//     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+//     return NULL;
+//   }
+
+//   if (cParam->algorithm) {
+//     destParam->algorithm = X509_ALGOR_dup(cParam->algorithm);
+//     if (!destParam->algorithm) {
+//       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+//       PKI_Free(destParam);
+//       return NULL;
+//     }
+//   }
+
+//   if (cParam->canSkipUnknown) {
+//     destParam->canSkipUnknown = CRYPTO_memdup(cParam->canSkipUnknown, sizeof(ASN1_BOOLEAN), __FILE__, __LINE__);
+//     if (!destParam->canSkipUnknown) {
+//       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+//       PKI_Free(destParam);
+//       return NULL;
+//     }
+//   }
+
+//   return destParam;
+// }
+
+
+            // =================
+            // KEY_COMPONENT API
+            // =================
+
+KEY_COMPONENT * KEY_COMPONENT_new(void) {
+
+  KEY_COMPONENT * kComp = NULL;
+
+  kComp = PKI_Malloc(sizeof(KEY_COMPONENT));
+  if (!kComp) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    return NULL;
+  }
+
+  kComp->params = NULL;
+  kComp->pkey = NULL;
+
+  return kComp;
+
+}
+
+void KEY_COMPONENT_free(KEY_COMPONENT * kComp) {
+
+  if (!kComp) return;
+
+  if (kComp->params) {
+    sk_COMPONENT_PARAMS_pop_free(kComp->params, COMPONENT_PARAMS_free);
+    kComp->params = NULL;
+  }
+
+  if (kComp->pkey) {
+    EVP_PKEY_free(kComp->pkey);
+    kComp->pkey = NULL;
+  }
+
+  return;
+}
+
+KEY_COMPONENT * KEY_COMPONENT_dup(KEY_COMPONENT *kComp) {
+
+  KEY_COMPONENT * destComp = NULL;
+
+  if (!kComp) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return NULL;
+  }
+
+  destComp = KEY_COMPONENT_new();
+  if (!destComp) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    return NULL;
+  }
+
+  if (kComp->params && sk_COMPONENT_PARAMS_num(kComp->params) > 0) {
+    destComp->params = sk_COMPONENT_PARAMS_dup(kComp->params);
+    if (!destComp->params) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      goto err;
+    }
+  }
+
+  if (kComp->pkey) {
+    
+    PKI_X509_KEYPAIR * dup = NULL;
+      // Duplicated component's value
+
+    PKI_MEM * buff = NULL;
+      // Temporary Buffer structure
+  
+    PKI_X509 wrapper;
+      // Static wrapper
+
+    // Duplicates the value by serializing and deserializing it
+    PKI_X509_KEYPAIR_put_mem(&wrapper, PKI_DATA_FORMAT_ASN1, &buff, NULL, NULL);
+    if (!buff) {
+      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+      goto err;
+    }
+
+    // De-Serializes the data from the buffer
+    dup = PKI_X509_KEYPAIR_get_mem(buff, PKI_DATA_FORMAT_ASN1, NULL);
+    if (!dup) { 
+      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+      PKI_MEM_free(buff);
+      goto err;
+    }
+
+    // Free the buffer memory
+    PKI_MEM_free(buff);
+    buff = NULL;
+  }
+
+  // Success
+  return destComp;
+
+err:
+
+  if (destComp) KEY_COMPONENT_free(destComp);
+  return NULL;
+
+}
+
 // ==========================
 // Exported Functions: STACKs
 // ==========================
+
+void KEY_COMPONENTS_clear(KEY_COMPONENTS * sk) {
+
+  // Free all the entries, but not the stack structure itself
+  KEY_COMPONENT * tmp_x;
+
+  while (sk != NULL && (tmp_x = sk_KEY_COMPONENT_pop(sk)) != NULL) { 
+    // Frees the component
+    if (tmp_x) KEY_COMPONENT_free(tmp_x);
+  }
+  
+}
+
+// =================
+// OLD KEY STructure
+// =================
 
 void COMPOSITE_KEY_STACK_clear(COMPOSITE_KEY_STACK * sk) {
 
@@ -79,15 +257,22 @@ COMPOSITE_KEY * COMPOSITE_KEY_new(void) {
   COMPOSITE_KEY * ret = NULL;
     // Return Value
 
-  // Allocates the memory structures
+  // Allocates the memory structures for the outer structure
+  // and the stack of components keys
   if ((ret = PKI_Malloc(sizeof(COMPOSITE_KEY))) == NULL ||
-      ((ret->components = COMPOSITE_KEY_STACK_new()) == NULL)) {
+      ((ret->components = KEY_COMPONENTS_new()) == NULL)) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
     return NULL;
   }
 
-  // Sets the validation param to default value
+  // Sets the no-value value
+  ret->algorithm = PKI_ID_UNKNOWN;
+
+  // Sets the K of N parameter (none by default)
   ret->params = NULL;
+
+  // // Sets the validation param to default value
+  // ret->params = NULL;
 
   // All Done
   return ret;
@@ -106,10 +291,10 @@ COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
     return NULL;
   }
-    
+
   // Copy the K param
   if (key->params) {
-    ret->params = ASN1_INTEGER_dup(key->params);
+    ret->params = COMPOSITE_KEY_PARAM_dup(key->params);
     if (!ret->params) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       COMPOSITE_KEY_free(ret);
@@ -118,48 +303,51 @@ COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key) {
   }
 
   // Duplicates the stack
-  for (int i = 0; i < COMPOSITE_KEY_STACK_num(key->components); i++) {
+  // for (int i = 0; i < COMPOSITE_KEY_STACK_num(key->components); i++) {
+    for (int i = 0; i < KEY_COMPONENTS_num(key->components); i++) {
 
-    PKI_X509_KEYPAIR_VALUE * val = NULL;
+    KEY_COMPONENT * kComp = NULL;
+    KEY_COMPONENT * destComp = NULL;
       // Pointer to the element to duplicate
 
-    PKI_X509_KEYPAIR * dup = NULL;
-      // Duplicated component's value
-
-    PKI_MEM * buff = NULL;
-      // Temporary Buffer structure
-
-    PKI_X509 wrapper;
-      // Wrapper for the duplicated value
-
-    // Retrieves the value to duplicate
-    if ((val = COMPOSITE_KEY_STACK_value(key->components, i)) == NULL) continue;
-
-    // Duplicates the value by serializing and deserializing it
-    PKI_X509_KEYPAIR_put_mem(&wrapper, PKI_DATA_FORMAT_ASN1, &buff, NULL, NULL);
-    if (!buff) {
-      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+    // Retrieves the value to duplicate an duplicates it
+    if (((kComp = KEY_COMPONENTS_value(key->components, i)) == NULL) ||
+        (destComp = KEY_COMPONENT_dup(kComp)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       goto err;
     }
 
-    // De-Serializes the data from the buffer
-    dup = PKI_X509_KEYPAIR_get_mem(buff, PKI_DATA_FORMAT_ASN1, NULL);
-    if (!dup) { 
-      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
-      PKI_MEM_free(buff);
+    // Pushes the component in the destination
+    if (!KEY_COMPONENTS_push(ret->components, destComp)) {
+      PKI_ERROR(PKI_ERR_GENERAL, "Cannot push a component in the duplicated key's components.");
       goto err;
     }
 
-    // Free the buffer memory
-    PKI_MEM_free(buff);
-    buff = NULL;
+    // // Duplicates the value by serializing and deserializing it
+    // PKI_X509_KEYPAIR_put_mem(&wrapper, PKI_DATA_FORMAT_ASN1, &buff, NULL, NULL);
+    // if (!buff) {
+    //   PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+    //   goto err;
+    // }
 
-    // Adds the value to the return object stack
-    if (!COMPOSITE_KEY_STACK_push(ret->components, PKI_X509_get_value(dup))) {
-      PKI_ERROR(PKI_ERR_HSM_KEYPAIR_IMPORT, NULL);
-      PKI_X509_free(dup);
-      goto err;
-    }
+    // // De-Serializes the data from the buffer
+    // dup = PKI_X509_KEYPAIR_get_mem(buff, PKI_DATA_FORMAT_ASN1, NULL);
+    // if (!dup) { 
+    //   PKI_ERROR(PKI_ERR_HSM_KEYPAIR_EXPORT, NULL);
+    //   PKI_MEM_free(buff);
+    //   goto err;
+    // }
+
+    // // Free the buffer memory
+    // PKI_MEM_free(buff);
+    // buff = NULL;
+
+    // // Adds the value to the return object stack
+    // if (!COMPOSITE_KEY_STACK_push(ret->components, PKI_X509_get_value(dup))) {
+    //   PKI_ERROR(PKI_ERR_HSM_KEYPAIR_IMPORT, NULL);
+    //   PKI_X509_free(dup);
+    //   goto err;
+    // }
 
     // Frees the memory
     //
@@ -167,7 +355,7 @@ COMPOSITE_KEY * COMPOSITE_KEY_dup(const COMPOSITE_KEY * const key) {
     //       and it will be freed automatically when the function
     //       returns
     //
-
+ 
   }
 
   // All Done
@@ -184,51 +372,115 @@ err:
 
 int COMPOSITE_KEY_push(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * val) {
 
-  if (!key || !key->components || !val) return 0;
-  
-  return COMPOSITE_KEY_STACK_push(key->components, val);
+  KEY_COMPONENT * kComp = NULL;
+
+  if (!key || !key->components || !val) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return 0;
+  }
+
+  kComp = KEY_COMPONENT_new();
+  if (!kComp) {
+    PKI_ERROR(PKI_ERR_MEMORY_ALLOC,  NULL);
+  }
+
+  kComp->pkey = val;
+
+  return KEY_COMPONENTS_push(key->components, kComp);  
 }
 
 PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_pop(COMPOSITE_KEY * key) {
 
+  PKI_X509_KEYPAIR_VALUE * pkey = NULL;
+  KEY_COMPONENT * kComp = NULL;
+
   if (!key || !key->components) return NULL;
   
-  return COMPOSITE_KEY_STACK_pop(key->components);
+  kComp = KEY_COMPONENTS_pop(key->components);
+  if (!kComp || !kComp->pkey) PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+
+  // Transfer Ownership
+  pkey = kComp->pkey;
+  kComp->pkey = NULL;
+
+  // Free the container
+  KEY_COMPONENT_free(kComp);
+  kComp = NULL;
+
+  // Returns the individual key
+  return pkey;
 }
 
 void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key) {
 
   if (!key || !key->components) return;
+
+  KEY_COMPONENTS_pop_free(key->components);
   
-  COMPOSITE_KEY_STACK_pop_free(key->components);
-  key->components = NULL;
+  key->components = KEY_COMPONENTS_new();
+  if (!key->components) PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+
+  return;
 }
 
 
 int COMPOSITE_KEY_num(COMPOSITE_KEY * key) {
 
-  if (!key || !key->components) return 0;
+  if (!key || !key->components) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
   
-  return COMPOSITE_KEY_STACK_num(key->components);
+  return KEY_COMPONENTS_num(key->components);
 }
 
 PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num) {
-  if (!key || !key->components) return 0;
-  return COMPOSITE_KEY_STACK_value(key->components, num);
+  
+  KEY_COMPONENT * tmp_comp = NULL;
+
+  if (!key || !key->components) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return NULL;
+  }
+
+  tmp_comp = KEY_COMPONENTS_value(key->components, num);
+  if (!tmp_comp) {
+    PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
+    return NULL;
+  }
+
+  return tmp_comp->pkey;
 }
 
 int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value, int num) {
 
-  if (!key || !key->components || !value) return PKI_ERR;
-  
-  return COMPOSITE_KEY_STACK_add(key->components, value, num);
+  KEY_COMPONENT * kComp = NULL;
+
+  if (!key || !key->components || !value) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
+
+  if ((kComp = KEY_COMPONENT_new()) != NULL) {
+    kComp->pkey = value;
+  }
+
+  return KEY_COMPONENTS_add(key->components, kComp, num);
 }
 
 int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num) {
 
-  if (!key || !key->components) return PKI_ERR;
+  if (!key || !key->components) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
 
-  COMPOSITE_KEY_STACK_del(key->components, num);
+  if (num > KEY_COMPONENTS_num(key->components)) {
+    PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+    return PKI_ERR;
+  }
+
+  KEY_COMPONENTS_del(key->components, num);
 
   return PKI_OK;
 }
@@ -236,13 +488,16 @@ int COMPOSITE_KEY_del(COMPOSITE_KEY * key, int num) {
 // Free all components of the key
 int COMPOSITE_KEY_clear(COMPOSITE_KEY *key) {
 
-  if (!key) return PKI_ERR;
+  if (!key) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
 
   // Clears (and free) the stack of key components
-  COMPOSITE_KEY_STACK_clear(key->components);
+  KEY_COMPONENTS_clear(key->components);
 
   // Clears the params
-  if (key->params) ASN1_INTEGER_free(key->params);
+  if (key->params) COMPOSITE_KEY_PARAMS_free(key->params);
   key->params = NULL;
 
   // All Done
@@ -355,11 +610,9 @@ void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
   // Input Checks
   if (!key) return;
 
-  // Clears the components
-  COMPOSITE_KEY_STACK_pop_free(key->components);
-
   // Clears the params
-  if (key->params) ASN1_INTEGER_free(key->params);
+  if (key->params) COMPOSITE_KEY_PARAMS_free(key->params);
+  if (key->components) KEY_COMPONENTS_pop_free(key->components);
 
   // Free the memory
   PKI_ZFree(key, sizeof(COMPOSITE_KEY));
@@ -368,12 +621,42 @@ void COMPOSITE_KEY_free(COMPOSITE_KEY * key) {
 int COMPOSITE_KEY_set_kofn(COMPOSITE_KEY * comp_key, int kofn) {
 
   // Input Checks
-  if (!comp_key) return PKI_ERR;
+  if (!comp_key) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return PKI_ERR;
+  }
+
+  if (kofn >= KEY_COMPONENTS_num(comp_key->components)) {
+    PKI_DEBUG("Maximum value for KOFN is %d (# of Components - 1)",
+      KEY_COMPONENTS_num(comp_key->components));
+    PKI_ERROR(PKI_ERR_PARAM_RANGE, NULL);
+    return PKI_ERR;
+  }
+
+  // If the value is equal or less than 0 we remove the parameter
+  if (kofn <= 0) {
+    if (!comp_key->params) return PKI_OK;
+    if (comp_key->params->KOFN) ASN1_INTEGER_free(comp_key->params->KOFN);
+    comp_key->params->KOFN = NULL;
+    return PKI_OK;
+  }
 
   // Sets the K-of-N value  
-  if (!comp_key->params) ASN1_INTEGER_new();
-  ASN1_INTEGER_set(comp_key->params, kofn);
-
+  if (!comp_key->params) {
+    comp_key->params = COMPOSITE_KEY_PARAMS_new();
+    if (!comp_key->params) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      return PKI_ERR;
+    }
+    if (!comp_key->params->KOFN) {
+      comp_key->params->KOFN = ASN1_INTEGER_new();
+      if (!comp_key->params->KOFN) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+        return PKI_ERR;
+      }
+    }
+    ASN1_INTEGER_set(comp_key->params->KOFN, kofn);
+  } 
   // All Done  
   return PKI_OK;
 }
@@ -394,10 +677,13 @@ int COMPOSITE_KEY_get_kofn(COMPOSITE_KEY * comp_key) {
     // Return value
 
   // Input Checks
-  if (!comp_key || !comp_key->params) return -1;
+  if (!comp_key) return -1;
+
+  // If not present, we return 0
+  if (!comp_key->params || !comp_key->params->KOFN) return 0;
   
   // Returns the K-of-N value  
-  ret = (int) ASN1_INTEGER_get(comp_key->params);
+  ret = (int) ASN1_INTEGER_get(comp_key->params->KOFN);
   if (ret <= 0) return -1;
 
   // All Done

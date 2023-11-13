@@ -14,14 +14,9 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-# Composite Support
-if ENABLE_COMPOSITE
-	COMPOSITE_SUBDIR = composite
-	COMPOSITE_OBJ = composite/libpki-composite.la
-else
-	COMPOSITE_SUBDIR =
-	COMPOSITE_OBJ =
-endif
+# Native Composite Implementation
+COMPOSITE_SUBDIR = composite
+COMPOSITE_OBJ = composite/libpki-composite.la
 
 # OQS Support
 if ENABLE_OQS

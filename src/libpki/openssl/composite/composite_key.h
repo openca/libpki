@@ -32,6 +32,77 @@ BEGIN_C_DECLS
 // Functions Prototypes
 // ====================
 
+
+// DECLARE_ASN1_FUNCTIONS(COMPONENT_PARAM);
+
+// // DECLARE_ASN1_DUP_FUNCTION(COMPONENT_PARAM);
+// COMPONENT_PARAM *COMPONENT_PARAM_dup(const COMPONENT_PARAM *a);
+
+// // COMPONENT_PARAM *COMPONENT_PARAM_dup(const COMPONENT_PARAM *a);
+
+// DECLARE_ASN1_FUNCTIONS(COMPOSITE_KEY_PARAMS);
+
+// // DECLARE_ASN1_DUP_FUNCTION(COMPOSITE_KEY_PARAM);
+// COMPOSITE_KEY_PARAMS *COMPOSITE_KEY_PARAM_dup(const COMPOSITE_KEY_PARAMS *a);
+
+// COMPOSITE_KEY_PARAM *COMPOSITE_KEY_PARAM_dup(const COMPOSITE_KEY_PARAM *a);
+
+// COMPOSITE_KEY_PARAM * COMPOSITE_PARAM_dup(COMPOSITE_KEY_PARAM * cParam);
+
+#define COMPOSITE_PARAMS_new()  sk_COMPOSITE_PARAM_new_null();
+#define COMPOSITE_PARAMS_pop_free(sk) sk_COMPOSITE_PARAM_pop_free(sk, );
+
+KEY_COMPONENT * KEY_COMPONENT_new(void);
+
+KEY_COMPONENT * KEY_COMPONENT_dup(KEY_COMPONENT * kComp);
+
+void KEY_COMPONENT_free(KEY_COMPONENT * key_component);
+
+
+// COMPOSITE_KEY: Stack Aliases
+// ----------------------------
+
+#define KEY_COMPONENTS_new()                sk_KEY_COMPONENT_new_null()
+  // Allocates a new stack of EVP_PKEY
+
+#define KEY_COMPONENTS_free(p)              PKI_STACK_free ((PKI_STACK *)p)
+  // Free a stack of EVP_PKEYs
+
+#define KEY_COMPONENTS_new_null()           sk_KEY_COMPONENT_new_null()
+  // Allocates a new stack of EVP_PKEY
+
+#define KEY_COMPONENTS_push(sk, val)       sk_KEY_COMPONENT_push(sk, val)
+  // Pushes a new EVP_PKEY to the key
+
+#define KEY_COMPONENTS_pop(sk)             sk_KEY_COMPONENT_pop(sk)
+  // Removes the last EVP_PKEY from the key
+
+#define KEY_COMPONENTS_pop_free(sk)        sk_KEY_COMPONENT_pop_free(sk, KEY_COMPONENT_free)
+  // Removes all the elements of the sk and sk itself
+
+#define KEY_COMPONENTS_num(sk)             sk_KEY_COMPONENT_num(sk)
+  // Gets the number of components of a key
+
+#define KEY_COMPONENTS_value(sk, num)      sk_KEY_COMPONENT_value(sk, num)
+  // Returns the num-th EVP_PKEY in the stack
+
+#define KEY_COMPONENTS_add(sk, value, num) sk_KEY_COMPONENT_insert(sk, value, num)
+  // Adds a component at num-th position
+
+#define KEY_COMPONENTS_del(sk, num)        KEY_COMPONENT_free(sk_KEY_COMPONENT_delete(sk, num))
+  // Deletes the num-th component from the key
+
+#define KEY_COMPONENTS_get0(sk, num)       sk_KEY_COMPONENT_value(sk, num)
+  // Alias for the COMPOSITE_KEY_num() define
+
+#define KEY_COMPONENTS_dup(sk)             sk_KEY_COMPONENT_deep_copy(sk, KEY_COMPONENT_dup, KEY_COMPONENT_free)
+  // Duplicates (deep copy) the key
+
+/// @brief Free all the entries, but not the stack structure itself
+/// @brief Pops and free all components from the stack
+/// @param key The stack to empty
+void KEY_COMPONENTS_clear(KEY_COMPONENTS * sk);
+
 // COMPOSITE_KEY: Stack Aliases
 // ----------------------------
 
@@ -214,6 +285,9 @@ int COMPOSITE_KEY_clear(COMPOSITE_KEY *key);
 
 /*! \brief Alias for @COMPOSITE_KEY_num() function */
 #define COMPOSITE_KEY_get0(key, num)  COMPOSITE_KEY_value(key, num)
+
+/*! \brief Alias for @COMPOSITE_KEY_num() function */
+#define COMPOSITE_KEY_COMPONENT_get0(key, num)  KEY_COMPONENTS_value(key->components, num)
 
 /*!
  * \brief Duplicates a COMPOSITE_KEY structure

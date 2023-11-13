@@ -204,7 +204,7 @@ PKI_MEM_STACK *URL_get_data_ldap_url(const URL *url, int timeout, ssize_t size )
 			if((obj = PKI_MEM_new_null()) == NULL ) {
 				goto end;
 			}
-			if(PKI_MEM_add( obj, (char *) vals[i]->bv_val, 
+			if(PKI_MEM_add( obj, (const unsigned char *) vals[i]->bv_val, 
 					vals[i]->bv_len) == PKI_ERR) {
 				/* ERROR in memory growth */;
 				break;

@@ -485,7 +485,6 @@ if [[ "$CC" = "gcc" ]] ; then
 	if [[ "x${extra_checks}" = "xyes" ]] ; then
 		AC_CHECK_C_OPTION(-Wall)
 		AC_CHECK_C_OPTION(-Wmissing-field-initializers)
-		AC_CHECK_C_OPTION(-Wmissing-parameter-type)
 		AC_CHECK_C_OPTION(-Wtype-limits)
 		AC_CHECK_C_OPTION(-Wuninitialized)
 		AC_CHECK_C_OPTION(-Wconversion)
@@ -493,6 +492,7 @@ if [[ "$CC" = "gcc" ]] ; then
 		AC_CHECK_C_OPTION(-Wunused-variable)
 		AC_CHECK_C_OPTION(-Werror)
 		AC_CHECK_C_OPTION(-Wno-switch)
+		dnl AC_CHECK_C_OPTION(-Wmissing-parameter-type)
 		dnl AC_CHECK_C_OPTION(-fsanitize=address)
 	fi
 
@@ -1640,7 +1640,7 @@ composite_ldadd=
 AC_ARG_ENABLE( composite,
 	[  --enable-composite      enable openssl composite crypto support (no)],
 	[composite=$enableval], 
-	[composite=no]
+	[composite=yes]
  )
 
 if ! [[ "x$composite" = "xno" ]] ; then

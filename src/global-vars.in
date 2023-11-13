@@ -42,22 +42,22 @@ GZIP			= @GZIP@
 TAR			= @TAR@
 PWD			= @PWD@
 ## sometimes "-D -c" must be added here
-INSTALL                 = ${install_sh_PROGRAM}
-MKDIR			= @MKDIR@
-CHMOD			= @CHMOD@
-CHOWN			= @CHOWN@
-ECHO			= @ECHO@
+INSTALL     = ${install_sh_PROGRAM}
+MKDIR		= @MKDIR@
+CHMOD		= @CHMOD@
+CHOWN		= @CHOWN@
+ECHO		= @ECHO@
 SED			= @SED@
 CAT			= @CAT@
 MV			= @MV@
 CP			= @CP@
-LN_S			= @LN_S@
+LN_S		= @LN_S@
 AWK			= @AWK@
 CC			= @CC@
 RM			= rm
 
-PERL			= @PERL@
-OPENSSL			= ${OPENSSL_CMD}
+PERL				= @PERL@
+OPENSSL				= ${OPENSSL_CMD}
 OPENSSL_PREFIX		= ${openssl_prefix}
 OPENSSL_CFLAGS		= ${openssl_cflags}
 OPENSSL_LDFLAGS		= ${openssl_ldflags}
@@ -67,20 +67,20 @@ OPENSSL_STATIC_LIBS	= ${openssl_static_libs}
 LDAP_PREFIX		= ${ldap_prefix}
 LDAP_CFLAGS		= ${ldap_cflags}
 LDAP_LIBS		= ${ldap_libs}
-LDAP_LDFLAGS		= ${ldap_ldflags}
+LDAP_LDFLAGS	= ${ldap_ldflags}
 LDAP_LDADD		= ${ldap_ldadd}
 LDAP_VENDOR		= ${ldap_vendor}
 
 XML2_CONFIG		= ${xml2_config}
 XML2_PREFIX		= ${xml2_prefix}
 XML2_CFLAGS		= ${xml2_cflags}
-XML2_LDFLAGS		= ${xml2_ldflags}
+XML2_LDFLAGS	= ${xml2_ldflags}
 XML2_LDADD		= ${xml2_ldadd}
 
-MYSQL_CONFIG		= ${mysql_config}
-MYSQL_PREFIX		= ${mysql_prefix}
-MYSQL_CFLAGS		= ${mysql_cflags}
-MYSQL_LDFLAGS		= ${mysql_ldflags}
+MYSQL_CONFIG	= ${mysql_config}
+MYSQL_PREFIX	= ${mysql_prefix}
+MYSQL_CFLAGS	= ${mysql_cflags}
+MYSQL_LDFLAGS	= ${mysql_ldflags}
 MYSQL_LDADD		= ${mysql_ldadd}
 
 PG_CONFIG		= ${pg_config}

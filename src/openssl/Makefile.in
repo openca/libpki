@@ -105,7 +105,7 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-am__DEPENDENCIES_1 =
+am__DEPENDENCIES_1 = $(COMPOSITE_OBJ)
 libpki_openssl_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__objects_1 =
 am__objects_2 = $(am__objects_1) libpki_openssl_la-pthread_init.lo \
@@ -530,6 +530,10 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
+
+# Native Composite Implementation
+COMPOSITE_SUBDIR = composite
+COMPOSITE_OBJ = composite/libpki-composite.la
 OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
 SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 NOINST_SRCS = \
@@ -1225,12 +1229,6 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 include $(TOP)/global-vars
-
-# Composite Support
-@ENABLE_COMPOSITE_TRUE@	COMPOSITE_SUBDIR = composite
-@ENABLE_COMPOSITE_TRUE@	COMPOSITE_OBJ = composite/libpki-composite.la
-@ENABLE_COMPOSITE_FALSE@	COMPOSITE_SUBDIR =
-@ENABLE_COMPOSITE_FALSE@	COMPOSITE_OBJ =
 
 # OQS Support
 @ENABLE_OQS_TRUE@	PQC_SUBDIR = pqc

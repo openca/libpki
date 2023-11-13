@@ -6,21 +6,8 @@
 #ifndef _LIBPKI_COMPOSITE_TYPES_H
 #define _LIBPKI_COMPOSITE_TYPES_H
 
-#include <openssl/x509.h>
-#include <openssl/asn1t.h>
-#include <openssl/evp.h>
-#include <openssl/ossl_typ.h>
-
-#ifndef _LIBPKI_COMPAT_H
-#include <libpki/compat.h>
-#endif
-
-#ifndef _LIBPKI_OS_H
-#include <libpki/os.h>
-#endif
-
-#ifndef _LIBPKI_STACK_H
-#include <libpki/stack.h>
+#ifndef _LIBPKI_COMPOSITE_ASN1_H
+#include <libpki/openssl/composite/composite_asn1.h>
 #endif
 
 BEGIN_C_DECLS
@@ -46,6 +33,43 @@ DEFINE_STACK_OF(EVP_PKEY);
 /*! \brief Stack of Composite Key Components (EVP_PKEY) */
 typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY_STACK;
 
+// /*!
+//  * @brief Composite Parameters to capture the OID and Key
+//  *        individual parameters
+//  */
+// typedef struct Composite_Component_Param_st {
+//   X509_ALGOR *algorithm;
+//   ASN1_BOOLEAN * canSkipUnknown;
+// } COMPONENT_PARAM;
+
+// DECLARE_STACK_OF(COMPONENT_PARAM);
+
+// typedef STACK_OF(COMPONENT_PARAM) COMPONENT_PARAMS;
+
+typedef struct CompositeKey_Component_st {
+  EVP_PKEY * pkey;
+  COMPONENT_PARAMS_STACK * params;
+} KEY_COMPONENT;
+
+DEFINE_STACK_OF(KEY_COMPONENT);
+
+typedef STACK_OF(KEY_COMPONENT) KEY_COMPONENTS;
+
+// typedef struct CompositeKey_Params_st {
+//   ASN1_INTEGER * KOFN;
+//   COMPONENT_PARAMS * components_params;
+// } COMPOSITE_KEY_PARAMS;
+
+/*!
+ * \brief Structure to hold the stack of key components
+ *        and validation param (K of N)
+ */
+typedef struct CompositeKey_st {
+  int algorithm;
+  COMPOSITE_KEY_PARAMS * params;
+  KEY_COMPONENTS * components;
+} COMPOSITE_KEY;
+
 /*!
  * \brief Structure to hold the stack of key components
  *        and validation param (K of N)
@@ -53,8 +77,8 @@ typedef STACK_OF(EVP_PKEY) COMPOSITE_KEY_STACK;
 typedef struct _libpki_composite_key_st {
   int algorithm;
   COMPOSITE_KEY_STACK * components;
-  ASN1_INTEGER * params;
-} COMPOSITE_KEY;
+  COMPOSITE_KEY_PARAMS * params;
+} COMPOSITE_KEY_OLD;
 
 /*!
  * @brief Defines a stack of MDs
@@ -111,7 +135,7 @@ typedef struct _libpki_composite_ctx {
 
 // Used to Concatenate the encodings of the different
 // components when encoding via the ASN1 meth (priv_encode)
-DEFINE_STACK_OF(ASN1_BIT_STRING)
+DEFINE_STACK_OF(ASN1_BIT_STRING);
 
 END_C_DECLS
 

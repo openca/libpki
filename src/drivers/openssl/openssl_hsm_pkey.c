@@ -693,8 +693,9 @@ PKI_COMPOSITE_KEY * _pki_composite_new( PKI_KEYPARAMS *kp ) {
 
     // Adds the Parameter (k-of-n) to the key
     if (kp->comp.k_of_n != NULL) {
-        if (k->params) ASN1_INTEGER_free(k->params);
-        k->params = ASN1_INTEGER_dup(kp->comp.k_of_n);
+        if (!k->params) k->params = COMPOSITE_KEY_PARAMS_new();
+        if (k->params->KOFN) ASN1_INTEGER_free(k->params->KOFN);
+        k->params->KOFN = ASN1_INTEGER_dup(kp->comp.k_of_n);
     }
 
     // All Done.

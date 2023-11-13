@@ -72,6 +72,8 @@ int pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey) {
   X509_ALGOR * pkey_alg = NULL;
   int pkey_type = 0;
     // Public Key Type and Algorithms
+    
+fprintf(stderr, "********************* DEBUG: PUB Dencoding Composite Key\n");
 
   // Input Checking
   if (!pkey || !pubkey) return 0;
@@ -173,11 +175,7 @@ int pub_decode(EVP_PKEY *pkey, X509_PUBKEY *pubkey) {
   // Gets the type and the parameters
   X509_ALGOR_get0(NULL, &pkey_type, &params_value, pkey_alg);
   if (params_value) {
-    // If we have parameters, we need to save them to the key
-    if ((comp_key->params = ASN1_INTEGER_dup((ASN1_INTEGER *)params_value)) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameters");
-      goto err;
-    }
+    PKI_DEBUG(">>>> PARAMETERS ARE NOT PROCESSED, MISSING CODE <<<<<<<");
   }
 
   // All Done.
@@ -242,13 +240,15 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   int buff_len = 0;
     // Temporary Storage for ASN1 data
 
-  ASN1_INTEGER * key_param = NULL;
+  COMPOSITE_KEY_PARAMS * key_params = NULL;
   int key_param_type = V_ASN1_UNDEF;
     // K of N parameter
 
+fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
+
+
   // Input Checking
   if (!pub || !pk) return 0;
-
 
   // First we should encode the parameters, however
   // in Composite, we do not have parameters, so we
@@ -262,7 +262,6 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   
   if ((sk = sk_ASN1_TYPE_new_null()) == NULL) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new stack of ASN1 Types");
-    if (key_param) ASN1_INTEGER_free(key_param);
     return 0;
   }
 
@@ -287,24 +286,40 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
       PKI_ERROR(PKI_ERR_ALGOR_SET, "ERROR: Cannot set the PUBKEY for component #%d", i);
       goto err;
     }
+    
 
-    // Encodes the PUBLIC key
-    if ((buff_len = i2d_X509_PUBKEY(tmp_pubkey, &buff)) <= 0) {
-      PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot ASN1 encode the [%d] component of the key", i);
-      goto err;
-    }
+    // The original public key structure used a sequence of X509_PUBKEY as the value
+    // of the key bits. The I-D on signatures (-10) changes the structure by replacing
+    // the sequence of X509_PUBKEY as the value of the key with a sequence of BIT_STRING
+    // where only the key value is encoded, the OID defines the combination of 
+    // algorithms that must be reconstructed when parsing the data
+
+    // // Encodes the PUBLIC key - old method
+    // if ((buff_len = i2d_X509_PUBKEY(tmp_pubkey, &buff)) <= 0) {
+    //   PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot ASN1 encode the [%d] component of the key", i);
+    //   goto err;
+    // }
 
     // Generates the wrapping string
-    if ((bit_string = ASN1_OCTET_STRING_new()) == NULL) {
+    // if ((bit_string = ASN1_OCTET_STRING_new()) == NULL) {
+    //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new OCTET string for component %d", i);
+    //   goto err;
+    // }
+    // // This sets and transfer ownership
+    // ASN1_STRING_set0(bit_string, buff, buff_len);
+    // 
+    // // Resets the pointer and length after ownership transfer
+    // buff = NULL; buff_len = 0;
+
+    fprintf(stderr, "DEBUG: Encoding component %d, public_key %d\n", i, tmp_pubkey->public_key->length);
+
+    // The new mechanism for encoding the key uses a sequence of the keys' bit string, without the
+    // Algorithm identifier.
+    bit_string = ASN1_OCTET_STRING_dup(tmp_pubkey->public_key);
+    if (bit_string == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new OCTET string for component %d", i);
       goto err;
     }
-
-    // This sets and transfer ownership
-    ASN1_STRING_set0(bit_string, buff, buff_len);
-
-    // Resets the pointer and length after ownership transfer
-    buff = NULL; buff_len = 0;
 
     // Let's free the X509_PUBKEY structure
     X509_PUBKEY_free(tmp_pubkey);
@@ -338,20 +353,12 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   if (sk) sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
   sk = NULL;
 
-  // Encode the parameters (if any)
-  if (comp_key->params) {
-    PKI_DEBUG("Detected k-of-n parameter, processing it...\n");
-    key_param_type = V_ASN1_INTEGER;
-    key_param = ASN1_INTEGER_dup(comp_key->params);
-    if (!key_param) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the key parameters");
-      return 0;
-    }
-  }
+  PKI_DEBUG(">>>>>> Missing code for encoding the PUBKEY parameters.");
+  key_params = NULL;
 
   // We do not have parameters    
   if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
-                        key_param_type, key_param, 
+                        key_param_type, key_params, 
                          buff, buff_len)) {
     PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot encode the parameter");
     goto err;
@@ -363,7 +370,7 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
 err:
 
   // Free allocated memory
-  if (key_param) ASN1_INTEGER_free(key_param);
+  if (key_params) COMPOSITE_KEY_PARAMS_free(key_params);
   if (buff && buff_len >= 0) OPENSSL_secure_clear_free(buff, (size_t) buff_len);
   if (bit_string) ASN1_BIT_STRING_free(bit_string);
   if (aType) ASN1_TYPE_free(aType);
@@ -403,16 +410,14 @@ int pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
     return -1;
   }
 
-  // Checks both have (or not) parameters
+  // Checks the parameters
   if ((comp_a->params && !comp_b->params) ||
-      (!comp_a->params && comp_b->params) ) {
-    // If one has parameters and the other not, we
-    // return an error
+      (!comp_a->params && comp_b->params)) {
+    // Different parameters
     return -1;
   }
 
-  // Checks the parameters
-  if (ASN1_INTEGER_cmp(comp_a->params, comp_b->params) != 0) {
+  if (ASN1_INTEGER_cmp(comp_a->params->KOFN, comp_b->params->KOFN) != 0) {
     // If the parameters are different, we return -1
     return -1;
   }
@@ -424,6 +429,9 @@ int pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
 
   // Compares all components
   for (int i = 0; i < COMPOSITE_KEY_num(comp_b); i++) {
+
+    KEY_COMPONENT * kComp_a = NULL;
+    KEY_COMPONENT * kComp_b = NULL;
     
     // 'get0' returns the i-th EVP_PKEY, then we apply
     // the call to the two returned ones from a and b
@@ -433,6 +441,15 @@ int pub_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
               COMPOSITE_KEY_get0(comp_b, i));
 
     if (ret != 0) return ret;
+
+    // Compare the parameters
+    kComp_a = COMPOSITE_KEY_COMPONENT_get0(comp_a, i);
+    kComp_b = COMPOSITE_KEY_COMPONENT_get0(comp_b, i);
+    
+    if (!(kComp_a->params && kComp_b->params) ||
+        !(!kComp_b->params && !kComp_b->params)) {
+      return 1;
+    }
   }
 
   return 0;
@@ -482,8 +499,8 @@ int pub_print(BIO *out, const EVP_PKEY *pkey, int indent, ASN1_PCTX *pctx) {
       ) {
     BIO_printf(out, "%*s", indent, "");
     BIO_printf(out, "Required Valid Components Signatures (K-of-N): %ld (%ld-%d)\n",
-      comp_key->params ? ASN1_INTEGER_get(comp_key->params) : -1, 
-      comp_key->params ? ASN1_INTEGER_get(comp_key->params) : COMPOSITE_KEY_num(comp_key),
+      comp_key->params && comp_key->params->KOFN ? ASN1_INTEGER_get(comp_key->params->KOFN) : -1, 
+      comp_key->params && comp_key->params->KOFN ? ASN1_INTEGER_get(comp_key->params->KOFN) : COMPOSITE_KEY_num(comp_key),
       COMPOSITE_KEY_num(comp_key));
   }
 
@@ -553,6 +570,9 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
   int param_type = 0;
     // Public Key Type and Algorithms
 
+fprintf(stderr, "************************ DEBUG: Priv Dencoding Composite Key\n");
+PKI_DEBUG("************************ DEBUG: Priv Dencoding Composite Key - ffff\n");
+
   // Input Checking
   if (!p8 || !pk) return 0;
 
@@ -566,7 +586,7 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
   if ((sk = d2i_ASN1_SEQUENCE_ANY(NULL, 
                 (const unsigned char **)&outBitStr.data,
                 outBitStr.length)) <= 0) {
-    PKI_ERROR(PKI_ERR_X509_KEYPAIR_DECODE, "Cannot decode the composite key");
+    PKI_ERROR(PKI_ERR_X509_KEYPAIR_DECODE, "Cannot decode the SEQUENCE of components for the composite key");
     return 0;
   }
 
@@ -629,15 +649,17 @@ int priv_decode(EVP_PKEY *pk, const PKCS8_PRIV_KEY_INFO *p8) {
   X509_ALGOR_get0(&alg_oid, &param_type, &params_value, pkey_alg);
   if (params_value) {
     
-    // Free current allocated params, if any
-    if (comp_key->params) ASN1_INTEGER_free(comp_key->params);
-    comp_key->params = NULL;
+    // // Free current allocated params, if any
+    // if (comp_key->params) COMPOSITE_KEY_PARAMS_free(comp_key->params);
+    // comp_key->params = NULL;
 
-    // If we have parameters, we need to save them to the key
-    if ((comp_key->params = ASN1_INTEGER_dup((ASN1_INTEGER *)params_value)) == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameters");
-      goto err;
-    }
+    // // If we have parameters, we need to save them to the key
+    // if ((comp_key->KOFN = ASN1_INTEGER_dup((ASN1_INTEGER *)params_value)) == NULL) {
+    //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the parameters");
+    //   goto err;
+    // }
+
+    PKI_DEBUG("***** MISSING CODE: Decode Parameters *********");
   }
 
   // Let's Get the PKEY and MD algorithms
@@ -712,9 +734,6 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     // Pointer to the Composite Key
     // (just a STACK_OF(EVP_PKEY))
 
-  ASN1_BIT_STRING * bit_string = NULL;
-    // Output Buffer
-
   ASN1_TYPE * aType = NULL;
     // ASN1 generic wrapper
 
@@ -722,9 +741,12 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   int buff_len = 0;
     // Temporary Storage for ASN1 data
 
-  ASN1_INTEGER * key_param = NULL;
-  int key_param_type = V_ASN1_UNDEF;
-    // K of N parameter
+  // ASN1_INTEGER * key_param = NULL;
+  // int key_param_type = V_ASN1_UNDEF;
+  //   // K of N parameter
+
+  ASN1_OCTET_STRING * oct_string = NULL;
+    // Container for RAW key (no params)
 
   // Input Checking
   if (!p8 || !pk) return 0;
@@ -751,6 +773,8 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
       goto err;
     }
 
+#ifdef COMPOSITE_SIGS_8
+
     // Generates the P8 info
     if ((tmp_pkey_info = EVP_PKEY2PKCS8(tmp_pkey)) == NULL) {
       PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot generate PKCS8 for [%d] component of the key", i);
@@ -769,13 +793,13 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     }
 
     // Generates the wrapping OCTET string
-    if ((bit_string = ASN1_BIT_STRING_new()) == NULL) {
+    if ((oct_string = ASN1_OCTET_STRING_new()) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       goto err;
     }
 
     // This sets and transfer ownership
-    ASN1_STRING_set0(bit_string, buff, buff_len);
+    ASN1_STRING_set0(oct_string, buff, buff_len);
 
     // Resets the pointer and length after ownership transfer
     buff = NULL; buff_len = 0;
@@ -783,6 +807,54 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     // Let's free the X509_PUBKEY structure
     PKCS8_PRIV_KEY_INFO_free(tmp_pkey_info);
     tmp_pkey_info = NULL;
+  
+  #else
+
+    // Generates the P8 info
+    if ((tmp_pkey_info = EVP_PKEY2PKCS8(tmp_pkey)) == NULL) {
+      PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot generate PKCS8 for [%d] component of the key", i);
+      goto err;
+    }
+
+    // Duplicates the Octet String
+    oct_string = ASN1_OCTET_STRING_dup(tmp_pkey_info->pkey);
+    if (!oct_string) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      goto err;
+    }
+
+    // // Gets the Size of the DER encoding of the component key
+    // buff_len = i2d_PrivateKey(tmp_pkey, NULL);
+    // if (buff_len <= 0) {
+    //   PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, "Cannot convert a component to its DER representation.");
+    //   goto err;
+    // }
+
+    // // Get the encoded version of the key and put it in an OCTET STRING
+    // oct_string = ASN1_OCTET_STRING_new();
+    // if (!oct_string) {
+    //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    //   goto err;
+    // }
+
+    // // Allocate the buffer
+    // buff = oct_string->data = PKI_Malloc((size_t)buff_len);
+    // if (!oct_string->data) {
+    //   PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+    //   goto err;
+    // }
+
+    // // Set the size
+    // oct_string->length = buff_len;
+
+    // // Saves the Private key in the OCTET String
+    // if (i2d_PrivateKey(tmp_pkey, &buff) <= 0) {
+    //   PKI_ERROR(PKI_ERR_DATA_ASN1_ENCODING, NULL);
+    //   goto err;
+    // }
+
+
+  #endif
 
     // Let's now generate the ASN1_TYPE and add it to the stack
     if ((aType = ASN1_TYPE_new()) == NULL) {
@@ -791,8 +863,8 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     }
 
     // Transfer Ownership to the aType structure
-    ASN1_TYPE_set(aType, V_ASN1_SEQUENCE, bit_string);
-    bit_string = NULL;
+    ASN1_TYPE_set(aType, V_ASN1_SEQUENCE, oct_string);
+    oct_string = NULL;
 
     // Adds the component to the stack
     if (!sk_ASN1_TYPE_push(sk, aType)) {
@@ -814,16 +886,6 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   sk_ASN1_TYPE_free(sk);
   sk = NULL;
 
-  // Encode the parameters (if any)
-  if (comp_key->params) {
-    key_param_type = V_ASN1_INTEGER;
-    key_param = ASN1_INTEGER_dup(comp_key->params);
-    if (!key_param) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot duplicate the key parameters");
-      goto err;
-    }
-  }
-
   // PKI_DEBUG("PRIV. KEY. ENCODING: COMPOSITE KEY - algorithm = %d", comp_key->algorithm);
   // PKI_DEBUG("PRIV. KEY. ENCODING: EVP_PKEY TYPE - pk->type = %d, pk->save_type = %d", pk->type, pk->save_type);
   // PKI_DEBUG("PRIV. KEY. ENCODING: PKEY_AMETH - pkey_id = %d", pk->ameth->pkey_id);
@@ -835,10 +897,12 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   // PKI_DEBUG("PRIV. KEY. ENCODING: OBJ_nid2obj(%d) = %s", pk->save_type || pk->ameth->pkey_id, PKI_OID_get_descr(obj));
 
   // Sets the params for the P8
-  if (!PKCS8_pkey_set0(p8, obj, 0, key_param_type, key_param, buff, buff_len)) {
+  if (!PKCS8_pkey_set0(p8, obj, 0, V_ASN1_SEQUENCE, comp_key->params, buff, buff_len)) {
     PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the P8 null parameters contents");
     goto err;
   }
+
+PKI_DEBUG("************** DEBUG: Priv Encoding Composite Key - DONE!\n");
 
   // All Done.
   return 1;
@@ -846,9 +910,9 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
 err:
 
   // Free allocated memory
-  if (key_param) ASN1_INTEGER_free(key_param);
+  // if (key_param) ASN1_INTEGER_free(key_param);
   if (buff && buff_len >= 0) OPENSSL_secure_clear_free(buff, (size_t) buff_len);
-  if (bit_string) ASN1_BIT_STRING_free(bit_string);
+  if (oct_string) ASN1_BIT_STRING_free(oct_string);
 
   // Free the Stack of ASN1_TYPE
   if (sk) {
@@ -1069,8 +1133,8 @@ int param_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
   COMPOSITE_KEY * comp_b = NULL;
     // Pointers to the inner data structure
 
-  int param_a = -1;
-  int param_b = -1;
+  int KOFN_a = -1;
+  int KOFN_b = -1;
     // Holds the parameters' values
 
   // Input Checks
@@ -1083,14 +1147,17 @@ int param_cmp(const EVP_PKEY *a, const EVP_PKEY *b) {
   }
 
   // Gets the parameters' values
-  if (comp_a->params) param_a = (int) ASN1_INTEGER_get(comp_a->params);
-  if (comp_b->params) param_b = (int) ASN1_INTEGER_get(comp_b->params);
+  if (comp_a->params && comp_a->params->KOFN) KOFN_a = (int) ASN1_INTEGER_get(comp_a->params->KOFN);
+  if (comp_b->params && comp_b->params->KOFN) KOFN_b = (int) ASN1_INTEGER_get(comp_b->params->KOFN);
 
   // Compares the values
-  if (param_a == param_b) return 0;
+  if (KOFN_a == KOFN_b) return 0;
+
+  // Missing Code for Comparing the component parameters
+  PKI_DEBUG("*************** MISSING CODE: Not Parsing the Components Parameters **************");
   
   // All Done
-  return (param_a > param_b ? 1 : -1);
+  return (KOFN_a > KOFN_b ? 1 : -1);
 }
 
 // // Not Implemented

@@ -21,6 +21,7 @@ OPENSSL_INTERNAL_SRCS = \
 nobase_include_HEADERS = 
 
 COMPOSITE_SRCS = \
+	composite_asn1.c \
 	composite_key.c \
 	composite_ctx.c \
 	composite_ameth.c \
