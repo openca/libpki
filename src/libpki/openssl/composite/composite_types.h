@@ -108,10 +108,10 @@ typedef struct _libpki_composite_ctx {
   const EVP_MD * md;
 
   // Key Components for Key Generation
-  COMPOSITE_KEY_STACK * components;
+  KEY_COMPONENTS * components;
 
   // Key Generation Parameters
-  ASN1_INTEGER * params;
+  COMPOSITE_KEY_PARAMS * params;
 
   // Default hash for signature calculation
   // in generic composite key operations when

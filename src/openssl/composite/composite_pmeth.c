@@ -183,17 +183,17 @@ static int keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey) {
   // }
 
   // Transfer the components from the CTX
-  if (key->components) COMPOSITE_KEY_STACK_free(key->components);
+  if (key->components) KEY_COMPONENTS_pop_free(key->components);
   key->components = comp_ctx->components;
   comp_ctx->components = NULL;
 
   // Transfers the parameter
-  if (key->params) ASN1_INTEGER_free(key->params);
+  if (key->params) COMPOSITE_KEY_PARAMS_free(key->params);
   key->params = comp_ctx->params;
   comp_ctx->params = NULL;
 
   // Resets the list of components on the CTX
-  comp_ctx->components = COMPOSITE_KEY_STACK_new_null();
+  comp_ctx->components = KEY_COMPONENTS_new();
 
   // NOTE: To Get the Structure, use EVP_PKEY_get0(EVP_PKEY *k)
   // NOTE: To Add the Key Structure, use EVP_PKEY_assign()
@@ -876,7 +876,7 @@ static int verify(EVP_PKEY_CTX        * ctx,
   // Checks the parameters, if we have any
   if (!comp_ctx->sig_algs || sk_X509_ALGOR_num(comp_ctx->sig_algs) <= 0) {
     PKI_DEBUG("No configured set of parameters for composite, generating default ones");
-    if (!COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, comp_ctx->asn1_item, comp_key->components, NULL)) {
+    if (!COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, comp_ctx->asn1_item, comp_key, NULL)) {
       PKI_DEBUG("Cannot configure the validation parameters");
       return 0;
     }
@@ -1331,56 +1331,61 @@ static int pmeth_ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
     // COMPOSITE CTRL Values
     // =====================
 
+    case EVP_PKEY_CTRL_COMPOSITE_ADD:
     case EVP_PKEY_CTRL_COMPOSITE_PUSH: {
-      // Adds the Key to the internal stack
-      if (!COMPOSITE_KEY_STACK_push(comp_ctx->components, (EVP_PKEY *)value)) {
-        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot add component (type %d) to composite key", pkey->type);
-        return 0;
-      }
-      // All Done
-      return 1;
-    } break;
+      KEY_COMPONENT * key_comp = NULL;
 
-    case EVP_PKEY_CTRL_COMPOSITE_ADD: {
-      // Adds the Key to the internal stack
-      if (!COMPOSITE_KEY_STACK_add(comp_ctx->components, (EVP_PKEY *)value, key_id)) {
-        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot add component (type %d) to composite key", pkey->type);
+      // Allocates needed memory
+      key_comp = KEY_COMPONENT_new();
+      if (!key_comp) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
         return 0;
       }
+
+      // Transfer ownership
+      key_comp->pkey = (EVP_PKEY *)value;
+
+      // Adds the Key to the internal stack
+      if (!KEY_COMPONENTS_push(comp_ctx->components, key_comp)) {
+        PKI_ERROR(PKI_ERR_X509_KEYPAIR_GENERATION, "Cannot add component (type %d) to composite key", pkey->type);
+        KEY_COMPONENT_free(key_comp);
+        return 0;
+      }
+
       // All Done
       return 1;
     } break;
 
     case EVP_PKEY_CTRL_COMPOSITE_DEL: {
       // Checks we have the key_id component
-      if (key_id <= 0 || key_id >= COMPOSITE_KEY_STACK_num(comp_ctx->components)) {
+      if (key_id <= 0 || key_id >= KEY_COMPONENTS_num(comp_ctx->components)) {
         PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE, "Component %d does not exists (max is %d)", 
-          key_id, COMPOSITE_KEY_STACK_num(comp_ctx->components));
+          key_id, KEY_COMPONENTS_num(comp_ctx->components));
         return 0;
       }
       // Delete the specific item from the stack
-      COMPOSITE_KEY_STACK_del(comp_ctx->components, key_id);
+      KEY_COMPONENTS_del(comp_ctx->components, key_id);
       // All Done
       return 1;
     } break;
 
     case EVP_PKEY_CTRL_COMPOSITE_POP: {
       
-      PKI_X509_KEYPAIR_VALUE * tmp_key = NULL;
+      KEY_COMPONENT * tmp_key = NULL;
         // Pointer to the value to pop
 
       // Checks we have at least one component
-      if (key_id <= 0 || key_id >= COMPOSITE_KEY_STACK_num(comp_ctx->components)) {
+      if (key_id <= 0 || key_id >= KEY_COMPONENTS_num(comp_ctx->components)) {
         PKI_ERROR(PKI_ERR_X509_KEYPAIR_SIZE, "Component %d does not exists (max is %d)", 
-          key_id, COMPOSITE_KEY_STACK_num(comp_ctx->components));
+          key_id, KEY_COMPONENTS_num(comp_ctx->components));
         return 0;
       }
       
       // Pops a Key
-      tmp_key = COMPOSITE_KEY_STACK_pop(comp_ctx->components);
+      tmp_key = KEY_COMPONENTS_pop(comp_ctx->components);
       
       // Free the associated memory
-      if (tmp_key) EVP_PKEY_free(tmp_key);
+      if (tmp_key) KEY_COMPONENT_free(tmp_key);
 
       // All Done
       return 1;
@@ -1388,7 +1393,7 @@ static int pmeth_ctrl(EVP_PKEY_CTX *ctx, int type, int key_id, void *value) {
 
     case EVP_PKEY_CTRL_COMPOSITE_CLEAR: {
       // Clears all components from the key
-      COMPOSITE_KEY_STACK_clear(comp_ctx->components);
+      KEY_COMPONENTS_clear(comp_ctx->components);
       // All Done
       return 1;
     } break;

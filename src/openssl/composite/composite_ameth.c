@@ -1509,7 +1509,7 @@ int item_sign(EVP_MD_CTX      * ctx,
     int success = COMPOSITE_CTX_explicit_algors_new0(comp_ctx, 
                                                      pkey_type, 
                                                      it, 
-                                                     comp_key->components, 
+                                                     comp_key, 
                                                      &sig_algs);
     if (!success || !sig_algs) {
       PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
@@ -1544,7 +1544,7 @@ int item_sign(EVP_MD_CTX      * ctx,
     PKI_DEBUG("Building the generic composite list of algorithms for signing");
 
     // Build the list with defaults
-    int success = COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, it, comp_key->components, &sig_algs);
+    int success = COMPOSITE_CTX_algors_new0(comp_ctx, pkey_type, it, comp_key, &sig_algs);
     if (!success || !sig_algs) {
       PKI_ERROR(PKI_ERR_GENERAL, "Can not get the list of algorithms from the Composite Key");
       return -1;

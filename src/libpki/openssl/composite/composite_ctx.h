@@ -82,16 +82,16 @@ int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * ctx,
 int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * ctx);
 
 /*! \brief Returns a reference to the stack of keys from the CTX */
-int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
-                                  const COMPOSITE_KEY_STACK ** const components);
+int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX   * const ctx,
+                                  const KEY_COMPONENTS ** const components);
 
 /*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
-                                  COMPOSITE_KEY_STACK * const components);
+int COMPOSITE_CTX_components_set0(COMPOSITE_CTX  * ctx, 
+                                  KEY_COMPONENTS * const components);
 
 /*! \brief Detaches the components from the CTX */
-int COMPOSITE_CTX_components_detach(COMPOSITE_CTX        * ctx, 
-                                    COMPOSITE_KEY_STACK ** const components);
+int COMPOSITE_CTX_components_detach(COMPOSITE_CTX   * ctx, 
+                                    KEY_COMPONENTS ** const components);
 
 /*! \brief Generates and returns the list of signature algorithms 
  * 
@@ -114,14 +114,17 @@ int COMPOSITE_CTX_components_detach(COMPOSITE_CTX        * ctx,
  * the caller, so the caller should not free it.
  * 
  * @param ctx The Composite CTX to use for signing operation
- * @param algors The return pointer that references the internal structure
+ * @param pkey_type The type of key to use for signing
+ * @param asn1_type The ASN1 type of the key to use for signing
+ * @param comp_key The composite key to use for signing
+ * @param algors The return pointer with the list of algorithms
  * @retval Returns PKI_OK on success, PKI_ERR on failure
 */
-int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
-                              const int                    pkey_type,
-                              const ASN1_ITEM            * asn1_type,
-                              const COMPOSITE_KEY_STACK  * const components,
-                              X509_ALGORS               ** algors);
+int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX        * ctx,
+                              const int              pkey_type,
+                              const ASN1_ITEM      * asn1_type,
+                              COMPOSITE_KEY        * const comp_key,
+                              X509_ALGORS         ** algors);
 
 /*! \brief Generates and returns the list of explicit algorithms 
  * 
@@ -138,11 +141,11 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
  * @param algors The return pointer that references the internal structure
  * @retval Returns PKI_OK on success, PKI_ERR on failure
 */
-int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
-                                       const int                    pkey_type,
-                                       const ASN1_ITEM            * asn1_type,
-                                       const COMPOSITE_KEY_STACK  * const components,
-                                       X509_ALGORS               ** algors);
+int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX        * ctx,
+                                       const int              pkey_type,
+                                       const ASN1_ITEM      * asn1_type,
+                                       COMPOSITE_KEY        * const components,
+                                       X509_ALGORS         ** algors);
 
 /*! \brief Clears the list of signature algorithms */
 int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx);

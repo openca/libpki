@@ -85,7 +85,7 @@ COMPOSITE_CTX * COMPOSITE_CTX_new_null() {
   memset(ret, 0, sizeof(COMPOSITE_CTX));
 
   // Initializes the stack of components
-  ret->components = COMPOSITE_KEY_STACK_new();
+  ret->components = KEY_COMPONENTS_new();
   if (!ret->components) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
     if (ret) PKI_Free(ret);
@@ -109,7 +109,7 @@ void COMPOSITE_CTX_free(COMPOSITE_CTX * comp_ctx) {
   if (!comp_ctx) return;
 
   // Free Components Stack Memory
-  if (comp_ctx->components) sk_EVP_PKEY_pop_free(comp_ctx->components, EVP_PKEY_free); 
+  if (comp_ctx->components) KEY_COMPONENTS_pop_free(comp_ctx->components); 
   comp_ctx->components = NULL;
 
   // Free the signatures' algorithms, if any
@@ -165,6 +165,9 @@ const EVP_MD * COMPOSITE_CTX_get_default_md(COMPOSITE_CTX * ctx) {
 int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * comp_ctx, 
                             PKI_X509_KEYPAIR_VALUE * pkey) {
 
+  KEY_COMPONENT * key_comp = NULL;
+    // Pointer to the new key component
+
   // Input Checks
   if (!comp_ctx || !pkey) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -177,8 +180,12 @@ int COMPOSITE_CTX_pkey_push(COMPOSITE_CTX          * comp_ctx,
     return PKI_ERR;
   }
 
+  // Allocate the meomory for the key component
+  key_comp = KEY_COMPONENT_new();
+  key_comp->pkey = pkey;
+
   // Pushes the new component
-  COMPOSITE_KEY_STACK_push(comp_ctx->components, pkey);
+  KEY_COMPONENTS_push(comp_ctx->components, key_comp);
 
   // All Done
   return PKI_OK;
@@ -188,11 +195,8 @@ int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * comp_ctx,
                            PKI_X509_KEYPAIR_VALUE ** pkey,
                            const PKI_DIGEST_ALG   ** md) {
 
-  PKI_X509_KEYPAIR_VALUE * x = NULL;
-      // Return pointer
-
-  // const PKI_DIGEST_ALG * x_md;
-  //     // Pointer to the MD associated with the PKEY
+  KEY_COMPONENT * key_comp = NULL;
+    // Pointer to the new key component
 
   // Input Checks
   if (!comp_ctx || !comp_ctx->components) {
@@ -201,23 +205,29 @@ int COMPOSITE_CTX_pkey_pop(COMPOSITE_CTX           * comp_ctx,
   }
 
   // Checks for the number of components
-  if (sk_EVP_PKEY_num(comp_ctx->components) < 1) {
+  if (KEY_COMPONENTS_num(comp_ctx->components) < 1) {
     // Something is wrong with the stacks
     PKI_ERROR(PKI_ERR_GENERAL, "Inconsistency in number of elements in components stack");
     return PKI_ERR;
   }
 
   // Pops and returns the last component
-  x = COMPOSITE_KEY_STACK_pop(comp_ctx->components);
-  if (!x) {
+  key_comp = KEY_COMPONENTS_pop(comp_ctx->components);
+  if (!key_comp) {
     // Cannot get the EVP_PKEY from the stack
     PKI_ERROR(PKI_ERR_GENERAL, "Cannot get the EVP_PKEY from the components stack");
     return PKI_ERR;
   }
 
   // Sets the output parameters
-  if (pkey) *pkey = x;
+  if (pkey) *pkey = key_comp->pkey;
   if (md) *md = comp_ctx->md;
+
+  // Transfer ownership of the key component
+  key_comp->pkey = NULL;
+
+  // Free the memory
+  if (key_comp) KEY_COMPONENT_free(key_comp);
 
   // All Done
   return PKI_OK;
@@ -229,10 +239,10 @@ int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * comp_ctx) {
   if (!comp_ctx) return PKI_ERR;
 
   // Clears the components
-  if (comp_ctx->components) COMPOSITE_KEY_STACK_clear(comp_ctx->components);
+  if (comp_ctx->components) KEY_COMPONENTS_clear(comp_ctx->components);
 
   // Clears the k-of-n parameter
-  if (comp_ctx->params) ASN1_INTEGER_free(comp_ctx->params);
+  if (comp_ctx->params) COMPOSITE_KEY_PARAMS_free(comp_ctx->params);
   comp_ctx->params = NULL;
 
   // Clears the signature algorithms
@@ -246,8 +256,8 @@ int COMPOSITE_CTX_pkey_clear(COMPOSITE_CTX * comp_ctx) {
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
-                                  const COMPOSITE_KEY_STACK ** const components) {
+int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX    * const ctx,
+                                  const KEY_COMPONENTS  ** const components) {
   // Input Checks
   if (!ctx) return PKI_ERR;
 
@@ -259,14 +269,14 @@ int COMPOSITE_CTX_components_get0(const COMPOSITE_CTX        * const ctx,
 }
 
 /*! \brief Sets the MD for the Composite CTX */
-int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx, 
-                                  COMPOSITE_KEY_STACK * const components) {
+int COMPOSITE_CTX_components_set0(COMPOSITE_CTX  * ctx, 
+                                  KEY_COMPONENTS * const components) {
   // Input Checks
   if (!ctx) return PKI_ERR;
 
   // Checks the values and set them in the CTX
   if (components) {
-    if (ctx->components) COMPOSITE_KEY_STACK_pop_free(ctx->components);
+    if (ctx->components) KEY_COMPONENTS_pop_free(ctx->components);
     ctx->components = components;
   }
 
@@ -274,8 +284,8 @@ int COMPOSITE_CTX_components_set0(COMPOSITE_CTX       * ctx,
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_components_detach(COMPOSITE_CTX        * ctx, 
-                                    COMPOSITE_KEY_STACK ** const components) {
+int COMPOSITE_CTX_components_detach(COMPOSITE_CTX   * ctx, 
+                                    KEY_COMPONENTS ** const components) {
 
   // Input Checks
   if (!ctx) return PKI_ERR;
@@ -306,11 +316,11 @@ int COMPOSITE_CTX_algors_clear(COMPOSITE_CTX  * const ctx) {
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
-                                       const int                    pkey_type,
-                                       const ASN1_ITEM            * asn1_item,
-                                       const COMPOSITE_KEY_STACK  * const components,
-                                       X509_ALGORS               ** algors) {
+int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX        * ctx,
+                                       const int              pkey_type,
+                                       const ASN1_ITEM      * asn1_item,
+                                       COMPOSITE_KEY        * const comp_key,
+                                       X509_ALGORS         ** algors) {
 
   int stack_elements_num = 0;
     // Number of elements in the stack
@@ -323,7 +333,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     // NID of the algorithm
 
   // Input Checks
-  if (!ctx || !components) {
+  if (!ctx || !comp_key) {
     PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
     return PKI_ERR;
   }
@@ -333,18 +343,19 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     return PKI_ERR;
   }
 
+  // Gets the number of components
+  stack_elements_num = COMPOSITE_KEY_num((COMPOSITE_KEY *)comp_key);
+  if (stack_elements_num < 2) {
+    PKI_DEBUG("Insufficient number of components in the key stack (%d)", stack_elements_num);
+    return PKI_ERR;
+  }
+
   PKI_DEBUG("Scheme %d is an explicit composite (number of components = %d)", 
-    scheme, COMPOSITE_KEY_STACK_num(components));
+    scheme, stack_elements_num);
 
   sk = sk_X509_ALGOR_new_null();
   if (!sk) {
     PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
-    return PKI_ERR;
-  }
-
-  // Gets the number of components
-  if ((stack_elements_num = COMPOSITE_KEY_STACK_num(components)) < 2) {
-    PKI_DEBUG("Insufficient number of components in the key stack (%d)", stack_elements_num);
     return PKI_ERR;
   }
 
@@ -362,7 +373,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -378,7 +389,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA256), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -394,7 +405,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -410,7 +421,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ED25519), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -426,7 +437,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha384());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA384), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -442,7 +453,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha384());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP384r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -458,7 +469,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
       //                NULL, 
       //                NULL,
       //                NULL,
-      //                COMPOSITE_KEY_STACK_get0(components, 1),
+      //                COMPOSITE_KEY_get0(comp_key, 1),
       //                NULL);
       X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ED448), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -474,7 +485,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_ecdsa_with_SHA384), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -490,7 +501,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -506,7 +517,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(NID_brainpoolP256r1), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -522,7 +533,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      NULL);
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSAPSS), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -538,7 +549,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 1),
+                     COMPOSITE_KEY_get0(comp_key, 1),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -561,7 +572,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 2),
+                     COMPOSITE_KEY_get0(comp_key, 2),
                      EVP_sha512());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_ECDSA_SHA512), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -584,7 +595,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
                      NULL, 
                      NULL,
                      NULL,
-                     COMPOSITE_KEY_STACK_get0(components, 2),
+                     COMPOSITE_KEY_get0(comp_key, 2),
                      EVP_sha256());
       // X509_ALGOR_set0(&algor, OBJ_nid2obj(PKI_ALGOR_RSA), V_ASN1_UNDEF, NULL);
       sk_X509_ALGOR_push(sk, X509_ALGOR_dup(&algor));
@@ -597,12 +608,12 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
   }
 
   int algor_num = sk_X509_ALGOR_num(sk);
-  int components_num = COMPOSITE_KEY_STACK_num(components);
+  int components_num = COMPOSITE_KEY_num(comp_key);
   
   // Checks the number of components and algorithms to be the same
   if (algor_num != components_num) {
     PKI_DEBUG("Number of components (%d) and algorithms (%d) do not match",
-              COMPOSITE_KEY_STACK_num(components), sk_X509_ALGOR_num(ctx->sig_algs));
+              COMPOSITE_KEY_num(comp_key), sk_X509_ALGOR_num(ctx->sig_algs));
     sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
     return PKI_ERR;
   }
@@ -610,7 +621,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
   PKI_DEBUG("Same number of components and algorithms (%d)", sk_X509_ALGOR_num(sk));
 
   // Cycles through the components and checks the pkey algors
-  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
+  for (int idx = 0; idx < COMPOSITE_KEY_num(comp_key); idx++) {
 
     X509_ALGOR * algor = NULL;
       // Pointer to a X509_ALGOR in the stack
@@ -627,7 +638,7 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
     PKI_DEBUG("Validating component #%d", idx);
 
     // Gets the component and the algorithm
-    pkey = COMPOSITE_KEY_STACK_value(components, idx);
+    pkey = COMPOSITE_KEY_value(comp_key, idx);
     if (!pkey) {
       PKI_DEBUG("Cannot retrieve Key Component #%d", idx);
       return PKI_ERR;
@@ -687,11 +698,11 @@ int COMPOSITE_CTX_explicit_algors_new0(COMPOSITE_CTX              * ctx,
   return PKI_OK;
 }
 
-int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
+int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX        * ctx,
                               const int                    pkey_type,
-                              const ASN1_ITEM            * const asn1_item,
-                              const COMPOSITE_KEY_STACK  * const components,
-                              X509_ALGORS               ** algors) {
+                              const ASN1_ITEM      * const asn1_item,
+                              COMPOSITE_KEY        * const comp_key,
+                              X509_ALGORS         ** algors) {
   
   int use_global_hash = 0;
   const EVP_MD * global_hash = NULL;
@@ -733,7 +744,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
   PKI_DEBUG("Allocated a new stack of X509_ALGOR, adding entries.");
 
   // Cycles through the components and adds the algors
-  for (int idx = 0; idx < COMPOSITE_KEY_STACK_num(components); idx++) {
+  for (int idx = 0; idx < COMPOSITE_KEY_num(comp_key); idx++) {
 
     PKI_X509_KEYPAIR_VALUE * x = NULL;
     PKI_SCHEME_ID x_scheme_id = PKI_SCHEME_UNKNOWN;
@@ -746,7 +757,7 @@ int COMPOSITE_CTX_algors_new0(COMPOSITE_CTX              * ctx,
     PKI_DEBUG("(SigAlgs) Adding component #%d", idx);
 
     // Gets the component
-    x = COMPOSITE_KEY_STACK_get0(components, idx);
+    x = COMPOSITE_KEY_get0(comp_key, idx);
     if (!x) {
       sk_X509_ALGOR_pop_free(sk, X509_ALGOR_free);
       PKI_DEBUG("Cannot get the component from the stack");
@@ -988,8 +999,16 @@ int COMPOSITE_CTX_set_kofn(COMPOSITE_CTX * ctx, int kofn) {
   if (!ctx) return PKI_ERR;
 
   // Sets the K-of-N value  
-  if (!ctx->params) ASN1_INTEGER_new();
-  ASN1_INTEGER_set(ctx->params, kofn);
+  if (!ctx->params) {
+    ctx->params = COMPOSITE_KEY_PARAMS_new();
+    if (!ctx->params) return PKI_ERR;
+  }
+
+  if (!ctx->params->KOFN) {
+    ctx->params->KOFN = ASN1_INTEGER_new();
+    if (!ctx->params->KOFN) return PKI_ERR;
+  }
+  ASN1_INTEGER_set(ctx->params->KOFN, kofn);
 
   // All Done  
   return PKI_OK;
@@ -1001,10 +1020,10 @@ int COMPOSITE_CTX_get_kofn(COMPOSITE_CTX * ctx) {
     // Return value
 
   // Input Checks
-  if (!ctx) return PKI_ERR;
+  if (!ctx || !ctx->params || !ctx->params->KOFN) return PKI_ERR;
   
   // Returns the K-of-N value  
-  ret = (int) ASN1_INTEGER_get(ctx->params);
+  ret = (int) ASN1_INTEGER_get(ctx->params->KOFN);
 
   // All Done
   return ret;
