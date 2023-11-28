@@ -443,13 +443,28 @@ PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, int num) {
     return NULL;
   }
 
+  tmp_comp = COMPOSITE_KEY_component_value(key, num);
+  if (tmp_comp) return tmp_comp->pkey;
+
+  return NULL;
+}
+
+KEY_COMPONENT * COMPOSITE_KEY_component_value(COMPOSITE_KEY * key, int num) {
+  
+  KEY_COMPONENT * tmp_comp = NULL;
+
+  if (!key || !key->components) {
+    PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+    return NULL;
+  }
+
   tmp_comp = KEY_COMPONENTS_value(key->components, num);
   if (!tmp_comp) {
     PKI_ERROR(PKI_ERR_POINTER_NULL, NULL);
     return NULL;
   }
 
-  return tmp_comp->pkey;
+  return tmp_comp;
 }
 
 int COMPOSITE_KEY_add(COMPOSITE_KEY * key, PKI_X509_KEYPAIR_VALUE * value, int num) {

@@ -59,7 +59,7 @@ typedef STACK_OF(COMPONENT_PARAMS) COMPONENT_PARAMS_STACK;
 
 typedef struct CompositeKey_Params_st {
   ASN1_INTEGER * KOFN;
-  COMPONENT_PARAMS * components_params;
+  COMPONENT_PARAMS_STACK * components_params;
 } COMPOSITE_KEY_PARAMS;
 
 

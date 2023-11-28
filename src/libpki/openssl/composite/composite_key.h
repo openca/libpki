@@ -240,6 +240,21 @@ void COMPOSITE_KEY_pop_free(COMPOSITE_KEY * key);
 int COMPOSITE_KEY_num(COMPOSITE_KEY * key);
 
 /*!
+ * \brief Returns the num-th key value
+ *
+ * This function returns the pointer to the num-th KEY of the
+ * composite. The ownership of the component is retained by the
+ * key, thus the caller must not free the retrieved component.
+ * 
+ * @param key The COMPOSITE_KEY to retrieve the component from
+ * @param num The number of the component to retrieve
+ * @retval The pointer to the num-th entry (PKI_X509_KEYPAIR_VALUE)
+*/
+PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, 
+                                             int             num);
+
+
+/*!
  * \brief Returns the num-th key component
  *
  * This function returns the pointer to the num-th component of
@@ -248,10 +263,10 @@ int COMPOSITE_KEY_num(COMPOSITE_KEY * key);
  * 
  * @param key The COMPOSITE_KEY to retrieve the component from
  * @param num The number of the component to retrieve
- * @retval The pointer to the num-th entry
+ * @retval The pointer to the num-th entry (KEY_COMPONENT)
 */
-PKI_X509_KEYPAIR_VALUE * COMPOSITE_KEY_value(COMPOSITE_KEY * key, 
-                                             int             num);
+KEY_COMPONENT * COMPOSITE_KEY_component_value(COMPOSITE_KEY * key,
+                                              int             num);
 
 /*!
  * \brief Adds a component at num-th position

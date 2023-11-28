@@ -107,6 +107,7 @@ fprintf(stderr, "********************* DEBUG: PUB Dencoding Composite Key\n");
       goto err;
     }
 
+#ifdef __SIGS08__
     // Checks we got the right type
     if ((aType->type != V_ASN1_SEQUENCE) || (aType->value.sequence == NULL)) {
       PKI_ERROR(PKI_ERR_PARAM_TYPE, "Composite key encoding error (expecting OCTET STRINGs for component #%d)", i);
@@ -134,6 +135,38 @@ fprintf(stderr, "********************* DEBUG: PUB Dencoding Composite Key\n");
     // Here we can free the X509_PUBKEY structure
     X509_PUBKEY_free(tmp_pub);
     tmp_pub = NULL; // Safety
+
+#else
+
+    // Checks we got the right type
+    if ((aType->type != V_ASN1_BIT_STRING) || (aType->value.bit_string == NULL)) {
+      PKI_DEBUG("Composite key encoding error (expecting OCTET STRINGs for component #%d)", i);
+      goto err;
+    }
+
+    // Sets the Pointers so that our original ones
+    // are not moved (can cause memory issues)
+    aBitStr.data = aType->value.bit_string->data;
+    aBitStr.length = aType->value.bit_string->length;
+
+    // Retrieve the EVP_PKEY from the ASN1_TYPE
+    if ((tmp_pub = d2i_X509_PUBKEY(NULL, 
+                      (const unsigned char **)&(aBitStr.data),
+                      (long)aBitStr.length)) == NULL) {
+      PKI_ERROR(PKI_ERR_X509_KEYPAIR_DECODE, "Cannot decode X509_PUBKEY of Key #%d", i);
+      goto err;
+    }
+
+    if ((tmp_pkey = X509_PUBKEY_get(tmp_pub)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot retrieve the public key for component #%d", i);
+      goto err;
+    }
+
+    // Here we can free the X509_PUBKEY structure
+    X509_PUBKEY_free(tmp_pub);
+    tmp_pub = NULL; // Safety
+
+#endif
 
     // Add the component to the key
     if (!COMPOSITE_KEY_push(comp_key, tmp_pkey)) {
@@ -197,7 +230,6 @@ err:
 // Implemented
 int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
 
-
   // Strategy:
   //
   // Get the COMPOSITE_KEY and encode each EVP_PKEY in a
@@ -214,7 +246,6 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   // in openssl/asn1.h and it is basically a type (int) and
   // a value (union). The value.sequence() is where you can
   // put the sequence to get encoded
-
 
   EVP_PKEY * tmp_pkey = NULL;
     // Containers for the different
@@ -244,8 +275,10 @@ int pub_encode(X509_PUBKEY *pub, const EVP_PKEY *pk) {
   int key_param_type = V_ASN1_UNDEF;
     // K of N parameter
 
-fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
+  COMPONENT_PARAMS * comp_params = NULL;
+    // Component Parameters
 
+fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
 
   // Input Checking
   if (!pub || !pk) return 0;
@@ -265,21 +298,77 @@ fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
     return 0;
   }
 
+  if (PKI_ID_is_explicit_composite(PKI_X509_KEYPAIR_VALUE_get_id(pk), NULL)) {
+    
+    // If the key is an explicit composite, no parameters
+    key_param_type = V_ASN1_UNDEF;
+    key_params = NULL;
+
+  } else if (PKI_ID_is_composite(PKI_X509_KEYPAIR_VALUE_get_id(pk), NULL)) {
+    
+    // If the key is a generic composite, we need to encode the
+    // parameters as a sequence of X509_ALGOR
+    key_param_type = V_ASN1_SEQUENCE;
+    key_params = COMPOSITE_KEY_PARAMS_new();
+    if (!key_params) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new COMPOSITE_KEY_PARAMS");
+      goto err;
+    }
+
+    // Generic Requires Params for encoding and decoding
+    if (!comp_key->params) {
+      PKI_ERROR(PKI_ERR_POINTER_NULL, "Missing parameters for the composite key (generic)");
+      goto err;
+    }
+
+    // Sets the KOFN parameter
+    if (comp_key->params->KOFN) {
+      key_params->KOFN = ASN1_INTEGER_dup(comp_key->params->KOFN);
+      if (!key_params->KOFN) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot set the KOFN parameter");
+        goto err;
+      }
+    }
+
+    // Prepares the stack of parameters
+    if (!comp_key->params->components_params) {
+      comp_key->params->components_params = sk_COMPONENT_PARAMS_new_null();
+      if (!comp_key->params->components_params) {
+        PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new stack of COMPONENT_PARAMS");
+        goto err;
+      }
+    }
+
+  } else {
+
+    PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Unknown key type for encoding");
+    goto err;
+  }
+
   // Gets the P8 info for each key and
   // adds it to the output stack
   for (int i = 0; i < COMPOSITE_KEY_num(comp_key); i++) {
 
+    KEY_COMPONENT * tmp_key_comp = NULL;
+      // Pointer to the component
+    
     // Get the component of the key
-    if ((tmp_pkey = COMPOSITE_KEY_get0(comp_key, i)) == NULL) {
+    if ((tmp_key_comp = COMPOSITE_KEY_component_value(comp_key, i)) == NULL) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot access [%d] component of the key", i);
+      goto err;
+    }
+    
+    // Get the component of the key
+    if ((tmp_pkey = tmp_key_comp->pkey) == NULL) {
       PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot access [%d] component of the key", i);
       goto err;
     }
 
-    if (tmp_pkey->ameth->pub_encode == NULL) {
-      PKI_ERROR(PKI_ERR_GENERAL, "Key %d of alg %d does not have a pub_encode ameth.",
-          i, tmp_pkey->ameth->pkey_id);
-      goto err;
-    }
+    // if (tmp_pkey->ameth->pub_encode == NULL) {
+    //   PKI_ERROR(PKI_ERR_GENERAL, "Key %d of alg %d does not have a pub_encode ameth.",
+    //       i, tmp_pkey->ameth->pkey_id);
+    //   goto err;
+    // }
 
     // Sets the Public Key
     if(!X509_PUBKEY_set(&tmp_pubkey, tmp_pkey)) {
@@ -287,7 +376,6 @@ fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
       goto err;
     }
     
-
     // The original public key structure used a sequence of X509_PUBKEY as the value
     // of the key bits. The I-D on signatures (-10) changes the structure by replacing
     // the sequence of X509_PUBKEY as the value of the key with a sequence of BIT_STRING
@@ -315,11 +403,33 @@ fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
 
     // The new mechanism for encoding the key uses a sequence of the keys' bit string, without the
     // Algorithm identifier.
-    bit_string = ASN1_OCTET_STRING_dup(tmp_pubkey->public_key);
+    bit_string = ASN1_STRING_dup(tmp_pubkey->public_key);
     if (bit_string == NULL) {
-      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new OCTET string for component %d", i);
+      PKI_DEBUG("Cannot allocate a new OCTET string for component %d", i);
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
       goto err;
     }
+
+    // Allocates the component param
+    comp_params = COMPONENT_PARAMS_new();
+    if (!comp_params) {
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, "Cannot allocate a new COMPONENT_PARAMS");
+      goto err;
+    }
+
+    // Copies the algorithm (and algorithm-specific parameter)
+    comp_params->algorithm = X509_ALGOR_dup(tmp_pubkey->algor);
+    if (!comp_params->algorithm) {
+      PKI_DEBUG("Cannot allocate a new X509_ALGOR for component %d", i);
+      PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+      goto err;
+    }
+
+    // Creates the Boolean, if present
+    if (tmp_key_comp->params) {
+      comp_params->canSkipUnknown = (ASN1_BOOLEAN *)PKI_Malloc(sizeof(ASN1_BOOLEAN));
+    }
+
 
     // Let's free the X509_PUBKEY structure
     X509_PUBKEY_free(tmp_pubkey);
@@ -332,7 +442,7 @@ fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
     }
 
     // Transfer Ownership to the aType structure
-    ASN1_TYPE_set(aType, V_ASN1_SEQUENCE, bit_string);
+    ASN1_TYPE_set(aType, V_ASN1_BIT_STRING, bit_string);
     bit_string = NULL;
 
     // Adds the component to the stack
@@ -357,9 +467,12 @@ fprintf(stderr, "********************* DEBUG: PUB Encoding Composite Key\n");
   key_params = NULL;
 
   // We do not have parameters    
-  if (!X509_PUBKEY_set0_param(pub, OBJ_nid2obj(pk->ameth->pkey_id),
-                        key_param_type, key_params, 
-                         buff, buff_len)) {
+  if (!X509_PUBKEY_set0_param(pub, 
+                              OBJ_nid2obj(pk->ameth->pkey_id),
+                              key_param_type, 
+                              key_params, 
+                              buff, 
+                              buff_len)) {
     PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot encode the parameter");
     goto err;
   }
@@ -773,8 +886,6 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
       goto err;
     }
 
-#ifdef COMPOSITE_SIGS_8
-
     // Generates the P8 info
     if ((tmp_pkey_info = EVP_PKEY2PKCS8(tmp_pkey)) == NULL) {
       PKI_ERROR(PKI_ERR_X509_KEYPAIR_ENCODE, "Cannot generate PKCS8 for [%d] component of the key", i);
@@ -808,7 +919,7 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
     PKCS8_PRIV_KEY_INFO_free(tmp_pkey_info);
     tmp_pkey_info = NULL;
   
-  #else
+#ifdef ___EXPERIMENTAL_PRIVKEY_FORMAT____
 
     // Generates the P8 info
     if ((tmp_pkey_info = EVP_PKEY2PKCS8(tmp_pkey)) == NULL) {
@@ -896,13 +1007,20 @@ int priv_encode(PKCS8_PRIV_KEY_INFO *p8, const EVP_PKEY *pk) {
   // PKI_DEBUG("PRIV. KEY. ENCODING: my_nid = %d", my_nid);
   // PKI_DEBUG("PRIV. KEY. ENCODING: OBJ_nid2obj(%d) = %s", pk->save_type || pk->ameth->pkey_id, PKI_OID_get_descr(obj));
 
+  // // Sets the params for the P8
+  // if (!PKCS8_pkey_set0(p8, obj, 0, V_ASN1_SEQUENCE, comp_key->params, buff, buff_len)) {
+  //   PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the P8 null parameters contents");
+  //   goto err;
+  // }
+
   // Sets the params for the P8
-  if (!PKCS8_pkey_set0(p8, obj, 0, V_ASN1_SEQUENCE, comp_key->params, buff, buff_len)) {
+  PKI_DEBUG("***** MISSING CODE TO HANDLE KEY PARAMETERS! *************");
+  if (!PKCS8_pkey_set0(p8, obj, 0, V_ASN1_UNDEF, NULL, buff, buff_len)) {
     PKI_ERROR(PKI_ERR_GENERAL, "Cannot set the P8 null parameters contents");
     goto err;
   }
 
-PKI_DEBUG("************** DEBUG: Priv Encoding Composite Key - DONE!\n");
+PKI_DEBUG("************** DEBUG: Priv Encoding Composite Key - DONE!");
 
   // All Done.
   return 1;
