@@ -52,10 +52,10 @@ int PKI_X509_OID_init();
 # define OPENCA_ALG_OID				            OPENCA_OID ".2"
 # define OPENCA_ALG_PKEY_OID		            OPENCA_ALG_OID ".1"
 # define OPENCA_ALG_SIGS_OID		            OPENCA_ALG_OID ".2"
-# define OPENCA_ALG_KEMS_OID		            OPENCA_ALT_OID ".3"
-# define OPENCA_ALG_HASH_OID		            OPENCA_ALT_OID ".4"
-# define OPENCA_ALG_HMAC_OID		            OPENCA_ALT_OID ".5"
-# define OPENCA_ALG_SYM_OID 		            OPENCA_ALT_OID ".6"
+# define OPENCA_ALG_KEMS_OID		            OPENCA_ALG_OID ".3"
+# define OPENCA_ALG_HASH_OID		            OPENCA_ALG_OID ".4"
+# define OPENCA_ALG_HMAC_OID		            OPENCA_ALG_OID ".5"
+# define OPENCA_ALG_SYM_OID 		            OPENCA_ALG_OID ".6"
 
 // =====================
 // Public Key Algorithms
