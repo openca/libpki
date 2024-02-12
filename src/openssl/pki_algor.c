@@ -1692,9 +1692,9 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 			// 	return PKI_SCHEME_DILITHIUMX3;
 			// }
 
+#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 		}
 
-#endif // End of ENABLE_OQS || ENABLE_OQSPROV
 	}
 
 	// Let's check the pkey type
