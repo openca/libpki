@@ -1,3 +1,7 @@
+* Mar 11 2024 Massimiliano Pala <madwolf@openca.org>
+- Added a script to identify deprecated OpenSSL function calls and fixed a missing include in pki.h
+- Added a list of OpenSSL's deprecated functions and a script to generate it from OpenSSL's includes.
+
 * Mar 14 2023 Massimiliano Pala <madwolf@openca.org>
 - Updated library version in configure.ac to 0.9.9
 - Added Public Key Encryption/Decryption functions (RSA supported only)
