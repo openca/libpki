@@ -294,9 +294,7 @@ typedef enum {
 #include <libpki/pki_x509_p12.h>
 #include <libpki/pki_x509_cms.h>
 
-#ifdef _LIBPKI_OID_DEFS_H
 #include <libpki/openssl/pki_oid_defs.h>
-#endif
 
 #include <libpki/pki_ocsp_req.h>
 #include <libpki/pki_ocsp_resp.h>
