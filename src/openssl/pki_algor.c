@@ -1636,9 +1636,6 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 			return PKI_SCHEME_ECDSA;
 		} break;
 #endif
-
-#ifdef ENABLE_DSA
-#endif
 		
 		default: {
 
@@ -1667,169 +1664,14 @@ PKI_SCHEME_ID PKI_X509_ALGOR_VALUE_get_scheme (const PKI_X509_ALGOR_VALUE *algor
 				return pqc_scheme;
 			}
 
-			// // Let's see if we can find the scheme via the
-			// // dynamic approach:
-			// if (   pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON512_NAME)
-			// 	|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_FALCON1024_NAME)) {
-			// 	// FALCON
-			// 	return PKI_SCHEME_FALCON;
-			// } else if (    pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME)
-			// 			|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM3_NAME)
-			// 			|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_DILITHIUM5_NAME)) {
-			// 	// DILITHIUM
-			// 	return PKI_SCHEME_DILITHIUM;
-			// } else if (    pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_SPHINCS128_F_SIMPLE_NAME)
-			// 			|| pkey_type == PKI_ID_get_by_name(OPENCA_ALG_PKEY_PQC_SPHINCS192_F_SIMPLE_NAME)) {
-			// 	// SPHINCS+
-			// 	return PKI_SCHEME_SPHINCS;
-			// } else if (   pkey_type == PKI_ID_get_by_name("kyber512")
-			// 		|| pkey_type == PKI_ID_get_by_name("kyber768")
-			// 		|| pkey_type == PKI_ID_get_by_name("kyber1024")) {
-			// 	// KYBER
-			// 	return PKI_SCHEME_KYBER;
-			// }  else if (pkey_type == PKI_ID_get_by_name("dilithiumX")) {
-			// 	// DILITHIUMX
-			// 	return PKI_SCHEME_DILITHIUMX3;
-			// }
-
-		}
-
 #endif // End of ENABLE_OQS || ENABLE_OQSPROV
+		}
 	}
 
 	// Let's check the pkey type
 	return PKI_SCHEME_UNKNOWN;
-
-// 	switch ( id ) {
-
-// 		case PKI_ALGOR_ID_DSA_SHA1:
-// #ifdef ENABLE_DSA_SHA_2
-// 		case PKI_ALGOR_ID_DSA_SHA224:
-// 		case PKI_ALGOR_ID_DSA_SHA256:
-// #endif
-// 			ret = PKI_SCHEME_DSA;
-// 			break;
-// //		case PKI_ALGOR_RSA_MD2:
-// 		case PKI_ALGOR_ID_RSA_MD4:
-// 		case PKI_ALGOR_ID_RSA_MD5:
-// 		case PKI_ALGOR_ID_RSA_SHA1:
-// #ifdef ENABLE_SHA224
-// 		case PKI_ALGOR_ID_RSA_SHA224:
-// #endif
-// #ifdef ENABLE_SHA256
-// 		case PKI_ALGOR_ID_RSA_SHA256:
-// #endif
-// #ifdef ENABLE_SHA384
-// 		case PKI_ALGOR_ID_RSA_SHA384:
-// #endif
-// #ifdef ENABLE_SHA512
-// 		case PKI_ALGOR_ID_RSA_SHA512:
-// 			ret = PKI_SCHEME_RSA;
-// 			break;
-// #endif
-// #ifdef ENABLE_ECDSA
-// 		case PKI_ALGOR_ID_ECDSA_SHA1:
-// #endif
-// #ifdef ENABLE_ECDSA_SHA_2
-// 		case PKI_ALGOR_ID_ECDSA_SHA224:
-// 		case PKI_ALGOR_ID_ECDSA_SHA256:
-// 		case PKI_ALGOR_ID_ECDSA_SHA384:
-// 		case PKI_ALGOR_ID_ECDSA_SHA512:
-// 			ret = PKI_SCHEME_ECDSA;
-// 			break;
-// #endif
-
-// #ifdef ENABLE_OQS
-
-// 		// ==================
-// 		// Post-Quantum Algos
-// 		// ==================
-
-// 		case PKI_ALGOR_ID_FALCON512:
-// 		case PKI_ALGOR_ID_FALCON1024:
-// 			ret = PKI_SCHEME_FALCON;
-// 			break;
-
-// 		case PKI_ALGOR_ID_DILITHIUM3:
-// 		case PKI_ALGOR_ID_DILITHIUM5:
-// 		case PKI_ALGOR_ID_DILITHIUM3_AES:
-// 		case PKI_ALGOR_ID_DILITHIUM5_AES:
-// 			ret = PKI_SCHEME_DILITHIUM;
-// 			break;
-
-// 		case PKI_ALGOR_ID_SPHINCS_SHA256_128_R:
-// 		// case PKI_ALGOR_ID_SPHINCS_SHA256_192_R:
-// 		// case PKI_ALGOR_ID_SPHINCS_SHA256_256_R:
-// 		case PKI_ALGOR_ID_SPHINCS_SHAKE256_128_R:
-// 			ret = PKI_SCHEME_SPHINCS;
-// 			break;
-
-// 		// ================
-// 		// Composite Crypto
-// 		// ================
-
-// // NOTE: We cannot handle the composite/combined crypto
-// //       this way because we do not have the static value
-// //       for it, therefore we need to use a different approach
-// //       by checking it separately
-// // #ifdef ENABLE_COMPOSITE
-// // 		case NID_composite:
-// // 			ret = PKI_SCHEME_COMPOSITE;
-// // 			break;
-// // #endif
-// //
-// // #ifdef ENABLE_COMBINED
-// // 		case PKI_ALGOR_ID_COMPOSITE_OR:
-// // 			ret = PKI_SCHEME_COMPOSITE_OR;
-// // 			break;
-// // #endif
-
-// 		// ====================
-// 		// OQS Composite Crypto
-// 		// ====================
-
-// 		case PKI_ALGOR_ID_COMPOSITE_RSA_FALCON512:
-// 			ret = PKI_SCHEME_COMPOSITE_RSA_FALCON;
-// 			break;
-
-// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON512:
-// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_FALCON1024:
-// 			ret = PKI_SCHEME_COMPOSITE_ECDSA_FALCON;
-// 			break;
-
-// 		case PKI_ALGOR_ID_COMPOSITE_RSA_DILITHIUM2:
-// 			ret = PKI_SCHEME_COMPOSITE_RSA_DILITHIUM;
-// 			break;
-
-// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM2:
-// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM3:
-// 		case PKI_ALGOR_ID_COMPOSITE_ECDSA_DILITHIUM5:
-// 			ret = PKI_SCHEME_COMPOSITE_ECDSA_DILITHIUM;
-// 			break;
-
-// #endif
-// 		default:
-// 			ret = PKI_SCHEME_UNKNOWN;
-// 	}
-
-// 	// Process the dynamic-provided schemes
-// 	if (ret == PKI_SCHEME_UNKNOWN) {
-// #ifdef ENABLE_COMPOSITE
-// 		// Composite Crypto
-// 		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("composite")) {
-// 			ret = PKI_SCHEME_COMPOSITE;
-// 		}
-// #endif
-
-// #ifdef ENABLE_COMBINED
-// 		if (id == PKI_SCHEME_UNKNOWN && id == OBJ_txt2nid("combined")) {
-// 			ret = PKI_SCHEME_COMBINED;
-// 		}
-// #endif
-// 	}
-
-// 	return ( ret );
 }
+
 
 /*! \brief Returns the PKI_DIGEST_ALG * from its name.
  *
@@ -1959,16 +1801,32 @@ const PKI_DIGEST_ALG * PKI_DIGEST_ALG_get_by_key (const PKI_X509_KEYPAIR *pkey )
 #endif
 
 #ifdef ENABLE_OQS
+
+#if PKI_ALGOR_ID_FALCON1024 != NID_undef
 			case PKI_ALGOR_ID_FALCON1024:
-			case PKI_ALGOR_ID_FALCON512: {
+#endif
+
+#if PKI_ALGOR_ID_FALCON512 != NID_undef
+			case PKI_ALGOR_ID_FALCON512:
+#endif
+			{
 				// PQ Algorithms, Not Returning Hash
 				PKI_DEBUG("FALCON: Key Type [%d]; No Hash Returned", p_type);
 				digest = PKI_DIGEST_ALG_NULL;
 			} break;
 
+#if PKI_ALGOR_ID_DILITHIUM5 != NID_undef
 			case PKI_ALGOR_ID_DILITHIUM5:
+#endif
+
+#if PKI_ALGOR_ID_DILITHIUM3 != NID_undef
 			case PKI_ALGOR_ID_DILITHIUM3:
-			case PKI_ALGOR_ID_DILITHIUM2: {
+#endif
+
+#if PKI_ALGOR_ID_DILITHIUM2 != NID_undef
+			case PKI_ALGOR_ID_DILITHIUM2:
+#endif 
+			{
 				PKI_DEBUG("DILITHIUM: Key Type [%d]; No Hash Returned", p_type);
 				digest = PKI_DIGEST_ALG_NULL;
 			} break;

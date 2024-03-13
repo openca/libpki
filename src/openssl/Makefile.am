@@ -18,9 +18,14 @@ AM_CPPFLAGS = -I$(TOP) \
 if ENABLE_COMPOSITE
 	COMPOSITE_SUBDIR = composite
 	COMPOSITE_OBJ = composite/libpki-composite.la
+endif
+
+if ENABLE_OCSPROV
+	OCSPROV_SUBDIR = ocsprov
+	OCSPROV_OBJ = ocsprov/libpki-ocsprov.la
 else
-	COMPOSITE_SUBDIR =
-	COMPOSITE_OBJ =
+	OCSPROV_SUBDIR =
+	OCSPROV_OBJ =
 endif
 
 # OQS Support
@@ -32,9 +37,9 @@ else
 	PQC_OBJ =
 endif
 
-OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
+OBJECTS = $(OCSPROV_OBJ) $(COMPOSITE_OBJ) $(PQC_OBJ)
 
-SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
+SUBDIRS = $(OCSPROV_SUBDIR) $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 
 NOINST_SRCS = \
 	internal/ossl_1_0_x/*.h \

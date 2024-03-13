@@ -6,6 +6,14 @@
 * Released under OpenCA LICENSE
 */
 
+/**
+ * @file pqc_init.h
+ * @brief Header file for initializing the PQC (Post-Quantum Cryptography) module and the Crypto Layer.
+ *
+ * This file contains the declarations for initializing the PQC module and the Crypto Layer.
+ * It provides functions to initialize the PQC module, create a new PQC key, and initialize the Crypto Layer.
+ */
+
 #ifndef _LIBPKI_PQC_INIT_H
 #define _LIBPKI_PQC_INIT_H
 
@@ -27,6 +35,13 @@
 
 BEGIN_C_DECLS
 
+/**
+ * @brief Initializes the PQC (Post-Quantum Cryptography) module.
+ *
+ * This function initializes the PQC module and prepares it for use.
+ *
+ * @return 1 on success, 0 on failure.
+ */
 int PKI_PQC_init();
 
 int PKI_PQC_PKEY_new(char * name, int flags);

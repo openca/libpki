@@ -1,6 +1,12 @@
 /* Initialization functions */
 
+#include <libpki/pki_init.h>
+
 #include <libpki/pki.h>
+
+#ifndef _LIBPKI_INIT_H
+#include <libpki/pki_init.h>
+#endif
 
 #ifndef _LIBPKI_FEATURES_H
 #include <libpki/libpki_enables.h>
@@ -20,6 +26,9 @@
 
 #if OPENSSL_VERSION_NUMBER > 0x3000000fL
 #include <openssl/provider.h>
+# ifdef ENABLE_OCSPROV
+#  include "openssl/ocsprov/ocsprov.h"
+# endif
 #endif
 
 #ifndef _LIBPKI_ERR_H
@@ -64,18 +73,18 @@ extern EVP_PKEY_METHOD composite_pkey_meth;
 int NID_proxyCertInfo = -1;
 #endif
 
-#if OPENSSL_VERSION_NUMBER > 0x30000000L
-OSSL_PROVIDER * ossl_providers[4] = {
-	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "default"),
-	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "legacy"),
-	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "oqsprovider"),
-	NULL
-};
-#endif
-
 // OpenSSL Library Context
 #if OPENSSL_VERSION_NUMBER > 0x30000000L
 static OSSL_LIB_CTX * _ossl_lib_ctx = NULL;
+
+OSSL_PROVIDER * ossl_providers[5] = {
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "default"),
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "ocsprovider"),
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "oqsprovider"),
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "legacy"),
+	NULL
+};
+
 #endif
 
 
@@ -571,19 +580,10 @@ int PKI_init_providers(void) {
 		// OpenSSL Library Context
 
 	// Loads the Default Provider
-	if (ossl_providers[0] == NULL) {
-		provider = OSSL_PROVIDER_load(lib_ctx, "default");
+	if (ossl_providers[PKI_OSSL_PROV_DEFAULT] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, PKI_OSSL_PROV_DEFAULT_NAME);
 		if (provider == NULL) {
-			fprintf(stderr, "Failed to load Default provider\n");
-			return 0;
-		}
-	}
-
-	// Loads the Legacy Provider
-	if (ossl_providers[1] == NULL) {
-		provider = OSSL_PROVIDER_load(lib_ctx, "legacy");
-		if (provider == NULL) {
-			fprintf(stderr, "Failed to load Default provider\n");
+			fprintf(stderr, "Failed to load %s provider\n", PKI_OSSL_PROV_DEFAULT_NAME);
 			return 0;
 		}
 	}
@@ -591,8 +591,8 @@ int PKI_init_providers(void) {
 #ifdef ENABLE_OQSPROV
 
 	// Loads the OQS Provider
-	if (ossl_providers[2] == NULL) {
-		provider = OSSL_PROVIDER_load(lib_ctx, "oqsprovider");
+	if (ossl_providers[PKI_OSSL_PROVIDER_OQS] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, PKI_OSSL_PROVIDER_OQS_NAME);
 		if (provider == NULL) {
 			fprintf(stderr, "Failed to load Default provider\n");
 			return 0;
@@ -600,6 +600,33 @@ int PKI_init_providers(void) {
 	}
 
 #endif // End of ENABLE_OQSPROV
+
+#ifdef ENABLE_OCSPROV
+
+	// Loads the OQS Provider
+	if (ossl_providers[PKI_OSSL_PROV_OCS] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, PKI_OSSL_PROV_OCS_NAME);
+		if (provider == NULL) {
+			fprintf(stderr, "Failed to load %s provider\n", PKI_OSSL_PROV_OCS_NAME);
+			return 0;
+		}
+	}
+
+#endif // End of ENABLE_OCSPROV
+
+#ifdef ENABLE_LEGACYPROV
+
+	// Loads the Legacy Provider
+	if (ossl_providers[PKI_OSSL_PROV_LEGACY] == NULL) {
+		provider = OSSL_PROVIDER_load(lib_ctx, PKI_OSSL_PROV_LEGACY_NAME);
+		if (provider == NULL) {
+			fprintf(stderr, "Failed to load %s provider\n", PKI_OSSL_PROV_LEGACY_NAME);
+			return 0;
+		}
+	}
+
+#endif // End of ENABLE_LEGACYPROV
+
 #endif // End of OPENSSL_VERSION_NUMBER > 0x3000000fL
 
 	// All Done
@@ -621,8 +648,10 @@ int PKI_cleanup_providers(void) {
 	return 1;
 }
 
-#if OPENSSL_VERSION_NUMBER > 0x3000000fL
 OSSL_LIB_CTX * PKI_init_get_ossl_library_ctx() {
+
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+
 	if (_ossl_lib_ctx == NULL) {
 		_ossl_lib_ctx = OSSL_LIB_CTX_new();
 	}
@@ -631,10 +660,48 @@ OSSL_LIB_CTX * PKI_init_get_ossl_library_ctx() {
 		return NULL;
 	}
 	return _ossl_lib_ctx;
-}
+
 #else
-void * PKI_init_get_ossl_library_ctx() {
-	PKI_DEBUG("Function not implemented for OpenSSL < 3.0.0");
+
 	return NULL;
-}
+
 #endif
+}
+
+void PKI_init_load_providers(void) {
+
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+
+	OSSL_PROVIDER *provider = NULL;
+    OSSL_LIB_CTX *libctx = NULL;
+
+    // Create a new library context
+    libctx = OSSL_LIB_CTX_new();
+    if (libctx == NULL) {
+        fprintf(stderr, "Failed to create OpenSSL library context\n");
+        return 1;
+    }
+
+    // Load the default provider
+    provider = OSSL_PROVIDER_load(libctx, "default");
+    if (provider == NULL) {
+        fprintf(stderr, "Failed to load default provider\n");
+        OSSL_LIB_CTX_free(libctx);
+        return 1;
+    }
+
+    // Load the 'ocs-provider'
+    provider = OSSL_PROVIDER_load(libctx, "ocs-provider");
+    if (provider == NULL) {
+        fprintf(stderr, "Failed to load 'ocs-provider'\n");
+        OSSL_LIB_CTX_free(libctx);
+        return 1;
+    }
+
+#else
+
+	return NULL;
+
+#endif
+}
+

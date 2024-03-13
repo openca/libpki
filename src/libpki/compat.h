@@ -8,6 +8,7 @@
 
 #ifndef _LIBPKI_COMPAT_H
 #define _LIBPKI_COMPAT_H
+# pragma once
 
 // Basic Definitions for return codes
 #define PKI_ERR					0

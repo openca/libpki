@@ -467,6 +467,9 @@ mysql_config = @mysql_config@
 mysql_ldadd = @mysql_ldadd@
 mysql_ldflags = @mysql_ldflags@
 mysql_prefix = @mysql_prefix@
+ocsprov_cflags = @ocsprov_cflags@
+ocsprov_ldadd = @ocsprov_ldadd@
+ocsprov_ldflags = @ocsprov_ldflags@
 oldincludedir = @oldincludedir@
 openssl_cflags = @openssl_cflags@
 openssl_include = @openssl_include@
@@ -530,8 +533,8 @@ AM_CPPFLAGS = -I$(TOP) \
 	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-OBJECTS = $(COMPOSITE_OBJ) $(PQC_OBJ)
-SUBDIRS = $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
+OBJECTS = $(OCSPROV_OBJ) $(COMPOSITE_OBJ) $(PQC_OBJ)
+SUBDIRS = $(OCSPROV_SUBDIR) $(COMPOSITE_SUBDIR) $(PQC_SUBDIR)
 NOINST_SRCS = \
 	internal/ossl_1_0_x/*.h \
 	internal/ossl_1_1_0/*.h \
@@ -1229,8 +1232,11 @@ include $(TOP)/global-vars
 # Composite Support
 @ENABLE_COMPOSITE_TRUE@	COMPOSITE_SUBDIR = composite
 @ENABLE_COMPOSITE_TRUE@	COMPOSITE_OBJ = composite/libpki-composite.la
-@ENABLE_COMPOSITE_FALSE@	COMPOSITE_SUBDIR =
-@ENABLE_COMPOSITE_FALSE@	COMPOSITE_OBJ =
+
+@ENABLE_OCSPROV_TRUE@	OCSPROV_SUBDIR = ocsprov
+@ENABLE_OCSPROV_TRUE@	OCSPROV_OBJ = ocsprov/libpki-ocsprov.la
+@ENABLE_OCSPROV_FALSE@	OCSPROV_SUBDIR =
+@ENABLE_OCSPROV_FALSE@	OCSPROV_OBJ =
 
 # OQS Support
 @ENABLE_OQS_TRUE@	PQC_SUBDIR = pqc

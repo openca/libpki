@@ -1629,6 +1629,45 @@ AC_SUBST(oqsprov_cflags)
 AC_SUBST(oqsprov_ldflags)
 AC_SUBST(oqsprov_ldadd)
 
+dnl ================= OpenCA Composite Signatures (C-Sigs) Crypto PROVIDER ===================
+
+dnl Defaults
+ocsprov_config=
+ocsprov_cflags=
+ocsprov_check=
+ocsprov_prefix=/usr
+ocsprov_ldflags=
+ocsprov_ldadd=
+
+dnl Enable Composite Signatures Provider support
+cli_ocsprov=no
+
+AC_ARG_ENABLE(ocsprov,
+	[  --enable-ocsprov      enable support for the Composite Signatures provider (no)],
+	[cli_ocsprov=$enableval], 
+	[cli_ocsprov=default]
+ )
+
+if [[ "x$cli_ocsprov" = "xyes" ]] ; then
+	AC_MSG_RESULT([ OpenCA Composite Signatures Provider: Enabled via CLI option ($cli_ocsprov) ])
+	AC_DEFINE(ENABLE_OCSPROV, 1, [ OpenCA Composite Signatures Support ])
+	ocsprov_check="yes"
+	ocsprov_cflags="-DENABLE_OCSPROV=1"
+	ocsprov_ldadd=""
+	ocsprov_ldflags=""
+else
+	AC_MSG_RESULT([OpenCA Composite Signatures Provider: Disabled (oqs=$ocsprov_check)])
+	ocsprov_check="no"
+	ocsprov_ldadd=""
+	ocsprov_cflags=""
+fi
+
+AM_CONDITIONAL(ENABLE_OCSPROV, test "${ocsprov_check}" = "yes")
+
+AC_SUBST(ocsprov_cflags)
+AC_SUBST(ocsprov_ldflags)
+AC_SUBST(ocsprov_ldadd)
+
 dnl ================= OpenSSL Composite Crypto Native Support ===================
 
 dnl Defaults
@@ -1709,14 +1748,14 @@ fi
 AC_SUBST(sys_ldadd)
 AC_SUBST(sys_cflags)
 
-libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+libpki_cflags="-Isrc/ -I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${ocsprov_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
 
 if [[ "${enable_shared}" = "yes" ]] ; then
-  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
   libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
-  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${ocsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
 fi
 
 # Harmonize the linker directories
@@ -1848,6 +1887,7 @@ AC_CONFIG_FILES(
 	src/drivers/engine/Makefile
 	src/drivers/pkcs11/Makefile
 	src/drivers/kmf/Makefile
+	src/openssl/ocsprov/Makefile
 	src/openssl/composite/Makefile
 	src/openssl/pqc/Makefile
 	src/openssl/Makefile
@@ -1984,6 +2024,7 @@ Configuration for $PACKAGE $VERSION :
  Open Post Quantum ....: $oqs_check
  Open Post Quantum Prov: $oqsprov_check
  Composite Native .....: $composite
+ Composite Sigs Prov ..: $ocsprov_check
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)

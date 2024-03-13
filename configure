@@ -686,6 +686,11 @@ ENABLE_COMPOSITE_TRUE
 composite_ldadd
 composite_ldflags
 composite_cflags
+ocsprov_ldadd
+ocsprov_ldflags
+ocsprov_cflags
+ENABLE_OCSPROV_FALSE
+ENABLE_OCSPROV_TRUE
 oqsprov_ldadd
 oqsprov_ldflags
 oqsprov_cflags
@@ -990,6 +995,7 @@ enable_ecdsa
 enable_openssl_engine
 enable_oqs
 enable_oqsprov
+enable_ocsprov
 enable_composite
 enable_strict
 '
@@ -1669,6 +1675,7 @@ Optional Features:
   --enable-openssl-engine      enable openssl engine support (yes)
   --enable-oqs          enable oqs support (no)
   --enable-oqsprov      enable support for the OQS provider (no)
+  --enable-ocsprov      enable support for the Composite Signatures provider (no)
   --enable-composite      enable openssl composite crypto support (no)
   --enable-strict         enable strict compilation error warnings (default is
                           no)
@@ -18669,6 +18676,57 @@ fi
 
 
 
+ocsprov_config=
+ocsprov_cflags=
+ocsprov_check=
+ocsprov_prefix=/usr
+ocsprov_ldflags=
+ocsprov_ldadd=
+
+cli_ocsprov=no
+
+# Check whether --enable-ocsprov was given.
+if test ${enable_ocsprov+y}
+then :
+  enableval=$enable_ocsprov; cli_ocsprov=$enableval
+else $as_nop
+  cli_ocsprov=default
+
+fi
+
+
+if [ "x$cli_ocsprov" = "xyes" ] ; then
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result:  OpenCA Composite Signatures Provider: Enabled via CLI option ($cli_ocsprov) " >&5
+printf "%s\n" " OpenCA Composite Signatures Provider: Enabled via CLI option ($cli_ocsprov) " >&6; }
+
+printf "%s\n" "#define ENABLE_OCSPROV 1" >>confdefs.h
+
+	ocsprov_check="yes"
+	ocsprov_cflags="-DENABLE_OCSPROV=1"
+	ocsprov_ldadd=""
+	ocsprov_ldflags=""
+else
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: OpenCA Composite Signatures Provider: Disabled (oqs=$ocsprov_check)" >&5
+printf "%s\n" "OpenCA Composite Signatures Provider: Disabled (oqs=$ocsprov_check)" >&6; }
+	ocsprov_check="no"
+	ocsprov_ldadd=""
+	ocsprov_cflags=""
+fi
+
+ if test "${ocsprov_check}" = "yes"; then
+  ENABLE_OCSPROV_TRUE=
+  ENABLE_OCSPROV_FALSE='#'
+else
+  ENABLE_OCSPROV_TRUE='#'
+  ENABLE_OCSPROV_FALSE=
+fi
+
+
+
+
+
+
+
 composite=
 composite_cflags=
 composite_ldflags=
@@ -18781,14 +18839,14 @@ fi
 
 
 
-libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+libpki_cflags="-I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${ocsprov_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
 
 if [ "${enable_shared}" = "yes" ] ; then
-  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
   libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
 else
-  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${ocsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
 fi
 
 # Harmonize the linker directories
@@ -18917,7 +18975,7 @@ etc_dir=${prefix}/etc
 
 
 
-ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/composite/Makefile src/openssl/pqc/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
+ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/ocsprov/Makefile src/openssl/composite/Makefile src/openssl/pqc/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
 
 
 cat >confcache <<\_ACEOF
@@ -19115,6 +19173,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_OQSPROV_TRUE}" && test -z "${ENABLE_OQSPROV_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_OQSPROV\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_OCSPROV_TRUE}" && test -z "${ENABLE_OCSPROV_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_OCSPROV\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_COMPOSITE_TRUE}" && test -z "${ENABLE_COMPOSITE_FALSE}"; then
@@ -20007,6 +20069,7 @@ do
     "src/drivers/engine/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/engine/Makefile" ;;
     "src/drivers/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/pkcs11/Makefile" ;;
     "src/drivers/kmf/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/kmf/Makefile" ;;
+    "src/openssl/ocsprov/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/ocsprov/Makefile" ;;
     "src/openssl/composite/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/composite/Makefile" ;;
     "src/openssl/pqc/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/pqc/Makefile" ;;
     "src/openssl/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/Makefile" ;;
@@ -21413,6 +21476,7 @@ Configuration for $PACKAGE $VERSION :
  Open Post Quantum ....: $oqs_check
  Open Post Quantum Prov: $oqsprov_check
  Composite Native .....: $composite
+ Composite Sigs Prov ..: $ocsprov_check
 "
 echo "
  Package configured for: $DIST_NAME $DIST_VERSION ($arch_target)

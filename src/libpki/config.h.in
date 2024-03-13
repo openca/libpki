@@ -15,6 +15,9 @@
 /* SUN CMS */
 #undef ENABLE_KMF
 
+/* OpenCA Composite Signatures Support */
+#undef ENABLE_OCSPROV
+
 /* OPENSSL */
 #undef ENABLE_OPENSSL
 

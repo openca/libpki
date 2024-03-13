@@ -7,12 +7,31 @@
 #include <libpki/stack.h>
 #endif
 
+#if OPENSSL_VERSION_NUMBER > 0x3000000fL
+#include <openssl/provider.h>
+#endif
+
 // ==================
 // Defines and Macros
 // ==================
 
+// Definitions for the initialization status
 #define PKI_STATUS_NOT_INIT			0
 #define PKI_STATUS_INIT				1
+
+// Definitions for the loaded providers by LibPKI
+typedef enum {
+    PKI_OSSL_PROV_DEFAULT       = 0,
+    PKI_OSSL_PROV_OQS,
+    PKI_OSSL_PROV_OCS,
+    PKI_OSSL_PROV_LEGACY,
+} PKI_OSSL_LIBPKI_PROVIDERS;
+
+// Names for the different providers we want to load
+#define PKI_OSSL_PROV_DEFAULT_NAME  "default"
+#define PKI_OSSL_PROV_OQS_NAME      "oqsprovider"
+#define PKI_OSSL_PROV_OCS_NAME      "ocsprovider"
+#define PKI_OSSL_PROV_LEGACY_NAME   "legacy"
 
 // ===================
 // Function Prototypes
