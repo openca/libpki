@@ -1,6 +1,6 @@
 AC_REVISION($Revision: 1.19 $)
 
-AC_COPYRIGHT([Copyright 2007-2023 by Massimiliano Pala and OpenCA Labs])
+AC_COPYRIGHT([Copyright 2007-2024 by Massimiliano Pala and OpenCA Labs])
 # AC_CONFIG_SUBDIRS(src/core/openca.c)
 
 dnl Autoconf
@@ -1176,29 +1176,13 @@ fi
 
 dnl ######################### CRYPTO SUPPORT #############################
 
-AC_ARG_ENABLE( kmf,
-	AC_HELP_STRING( [--enable-kmf],
-		[enable kmf crypto for token operations (default is no)]),
-			enable_kmf=$enableval, enable_kmf=no )
-
 AC_ARG_ENABLE( openssl,
 	AC_HELP_STRING( [--enable-openssl],
 		[enable openssl crypto for token operations (default is yes)]),
 			enableopenssl=$enableval, enableopenssl=yes )
 
-# if [[ "$myarch" = "solaris" ]] ; then
-# 	if [[ "${enable_kmf}" = "" ]] ; then
-# 		enable_kmf=no
-# 	fi
-# else
-# 	# Not on solaris, we disable kmf
-# 	enable_kmf=no
-# fi
-
 openssl_setup=no
-kmf_setup=no
 
-AC_MSG_RESULT([enable_kmf: ${enable_kmf}])
 AC_MSG_RESULT([enable_openssl: ${enableopenssl}])
 
 dnl Defaults
@@ -1211,39 +1195,6 @@ openssl_engine=
 openssl_static_libs=
 openssl_min_ver=0x090909f
 openssl_pkg_min_ver=0.9.8
-
-dnl activate_ecdsa=
-
-kmf_prefix=
-kmf_cflags=
-kmf_ldflags=
-kmf_ldadd=
-kmf_include=
-kmf_setup=
-
-if ! [[ $enable_kmf = "no" ]] ; then
-AC_CHECK_LIB(kmf, KMF_Initialize,
-		kmf_ldadd=-lkmf, [
-			enable_kmf=no;
-			enableopenssl=yes;
-			AC_MSG_RESULT([***WARNING***: Can not setup kmf library correctly, Falling back to OpenSSL!])]
-	    )
-fi
-
-AM_CONDITIONAL(ENABLE_KMF, test "${enable_kmf}" = "yes")
-
-if [[ "${enable_kmf}" = "yes" ]] ; then
-	AC_MSG_RESULT([crypto package for token operations... KMF])
-
-	AC_DEFINE(ENABLE_KMF, 1, [SUN CMS])
-	kmf_prefix=/usr
-	kmf_include=/usr/include
-	kmf_setup=yes
-	AC_SUBST(kmf_prefix)
-	AC_SUBST(kmf_cflags)
-	AC_SUBST(kmf_libflags)
-	AC_SUBST(kmf_ldadd)
-fi
 
 AM_CONDITIONAL(ENABLE_OPENSSL, test "${enableopenssl}" = "yes")
 AM_CONDITIONAL(OPENSSL_PREFIX, test ! x$openssl_prefix = x )
@@ -1748,14 +1699,14 @@ fi
 AC_SUBST(sys_ldadd)
 AC_SUBST(sys_cflags)
 
-libpki_cflags="-Isrc/ -I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${ocsprov_cflags} ${composite_cflags} ${ldap_cflags} ${kmf_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
+libpki_cflags="-Isrc/ -I${package_prefix}/include ${openssl_cflags} ${oqs_cflags} ${oqsprov_cflags} ${ocsprov_cflags} ${composite_cflags} ${ldap_cflags} ${xml2_cflags} ${mysql_cflags} ${pg_cflags}"
 
 if [[ "${enable_shared}" = "yes" ]] ; then
-  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd}"
 else
-  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags} ${kmf_ldflags}"
-  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${ocsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${kmf_ldadd}"
+  libpki_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${oqsprov_ldflags} ${ocsprov_ldflags} ${composite_cflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+  libpki_ldadd="-lpthread ${openssl_ldadd} ${oqs_ldadd} ${oqsprov_ldadd} ${ocsprov_ldadd} ${composite_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd}"
 fi
 
 # Harmonize the linker directories
@@ -1806,17 +1757,17 @@ AC_SUBST(libpki_ldadd)
 
 dnl Internal Makefile
 if [[ "${enable_shared}" = "yes" ]] ; then
-	my_ldadd="${openssl_ldadd} ${oqs_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
-	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+	my_ldadd="${openssl_ldadd} ${oqs_ldadd} -lpthread ${sys_ldadd} ${ldap_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+	my_ldflags="-L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${sys_ldflags} ${mysql_ldflags} ${pg_ldflags}"
 	test_libs="${sys_ldflags} ${sys_ldadd}"
 else
 	if [[ "$iphone_build" = "no" ]] ; then
-		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		my_ldflags="-static -L${lib_prefix} ${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldadd="${sys_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${ldap_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="-static ${sys_ldadd} src/.libs/libpki.a"
 	else
-		my_ldflags="${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${kmf_ldflags} ${mysql_ldflags} ${pg_ldflags}"
-		my_ldadd="${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${kmf_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
+		my_ldflags="${openssl_ldflags} ${oqs_ldflags} ${composite_ldflags} ${sys_ldflags} ${ldap_ldflags} ${xml2_ldflags} ${mysql_ldflags} ${pg_ldflags}"
+		my_ldadd="${ldap_ldadd} ${openssl_ldadd} ${oqs_ldadd} ${composite_ldadd} ${xml2_ldadd} ${mysql_ldadd} ${pg_ldadd} ${resolv_ldadd} ${sys_ldadd}"
 		test_libs="${sys_ldflags} ${sys_ldadd}"
 	fi
 fi
@@ -1886,7 +1837,6 @@ AC_CONFIG_FILES(
 	src/drivers/openssl/Makefile
 	src/drivers/engine/Makefile
 	src/drivers/pkcs11/Makefile
-	src/drivers/kmf/Makefile
 	src/openssl/ocsprov/Makefile
 	src/openssl/composite/Makefile
 	src/openssl/pqc/Makefile
@@ -1994,20 +1944,6 @@ echo " Support for OQS ......: $oqs_check"
 echo " Support for OQS Prov .: $oqsprov_check"
 fi
 
-if [[ "${enable_kmf}" = "yes" ]] ; then
-echo "
-KMF Configuration:
-------------------
-
- Library ..............: KMF
- Prefix ...............: $kmf_prefix
- Compiler Flags .......: $kmf_cflags
- Libs Flags ...........: $kmf_ldflags
- Libs .................: $kmf_ldadd
- Support for ECDSA ....: $kmf_ecdsa
-"
-fi
-
 echo "
 Configuration for $PACKAGE $VERSION :
 --------------------------------
@@ -2038,7 +1974,6 @@ echo "
 # echo "OSSL=${openssl_cflags}"
 # echo "COMP=${composite_cflags}"
 # echo "LDAP=${ldap_cflags}"
-# echo "KMF=${kmf_cflags}"
 # echo "XML2=${xml2_cflags}"
 # echo "MYSQL=${mysql_cflags}"
 # echo "PGSQL=${pg_cflags}"

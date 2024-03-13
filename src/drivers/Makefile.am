@@ -7,13 +7,6 @@ include $(TOP)/global-vars
 
 BASE_DEFS = 
 
-if ENABLE_KMF
-HSM_KMF = kmf
-HSM_KMF_OBJ = $(top_builddir)/src/drivers/kmf/libpki-token-kmf.a
-else
-HSM_KMF =
-endif
-
 if ENABLE_OPENSSL
 HSM_SOFTWARE = openssl
 HSM_SOFTWARE_OBJ = $(top_builddir)/src/drivers/openssl/libpki-token-openssl.la

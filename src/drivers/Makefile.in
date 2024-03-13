@@ -105,7 +105,9 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libpki_token_la_DEPENDENCIES = $(OBJECTS)
+am__DEPENDENCIES_1 = $(HSM_SOFTWARE_OBJ) $(HSM_ENGINE_OBJ) \
+	$(HSM_PKCS11_OBJ)
+libpki_token_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__objects_1 = libpki_token_la-hsm_main.lo \
 	libpki_token_la-hsm_slot.lo libpki_token_la-hsm_keypair.lo
 am_libpki_token_la_OBJECTS = $(am__objects_1)
@@ -195,7 +197,7 @@ am__define_uniq_tagged_files = \
   unique=`for i in $$list; do \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
-DIST_SUBDIRS = openssl kmf engine pkcs11 .
+DIST_SUBDIRS = openssl engine pkcs11 .
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/depcomp \
 	$(top_srcdir)/build/mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -382,10 +384,6 @@ include_prefix = @include_prefix@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-kmf_cflags = @kmf_cflags@
-kmf_ldadd = @kmf_ldadd@
-kmf_libflags = @kmf_libflags@
-kmf_prefix = @kmf_prefix@
 ldap_cflags = @ldap_cflags@
 ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@
@@ -479,9 +477,6 @@ xml2_prefix = @xml2_prefix@
 yr = @yr@
 TOP = ..
 BASE_DEFS = 
-@ENABLE_KMF_FALSE@HSM_KMF = 
-@ENABLE_KMF_TRUE@HSM_KMF = kmf
-@ENABLE_KMF_TRUE@HSM_KMF_OBJ = $(top_builddir)/src/drivers/kmf/libpki-token-kmf.a
 @ENABLE_OPENSSL_FALSE@HSM_SOFTWARE = 
 @ENABLE_OPENSSL_TRUE@HSM_SOFTWARE = openssl
 @ENABLE_OPENSSL_TRUE@HSM_SOFTWARE_OBJ = $(top_builddir)/src/drivers/openssl/libpki-token-openssl.la

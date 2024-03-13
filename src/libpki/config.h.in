@@ -12,9 +12,6 @@
 /* ECC Support for OpenSSL */
 #undef ENABLE_ECDSA
 
-/* SUN CMS */
-#undef ENABLE_KMF
-
 /* OpenCA Composite Signatures Support */
 #undef ENABLE_OCSPROV
 
