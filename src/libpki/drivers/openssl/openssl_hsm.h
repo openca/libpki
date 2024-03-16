@@ -2,8 +2,7 @@
 
 #ifndef _LIBPKI_HSM_OPENSSL_H
 #define _LIBPKI_HSM_OPENSSL_H
-
-#include <libpki/pki.h>
+# pragma once
 
 #include <strings.h>
 

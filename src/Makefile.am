@@ -34,6 +34,7 @@ nobase_include_HEADERS = \
 	libpki/prqp/*.h \
 	libpki/cmc/*.h \
 	libpki/openssl/*.h \
+	libpki/openssl/ocsprov/*.h \
 	libpki/openssl/composite/*.h \
 	libpki/openssl/pqc/*.h \
 	libpki/drivers/*.h \

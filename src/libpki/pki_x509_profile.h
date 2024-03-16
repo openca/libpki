@@ -5,12 +5,13 @@
  *
 */
 
+#ifndef _LIBPKI_X509_PROFILE_H
+#define _LIBPKI_X509_PROFILE_H
+# pragma once
+
 #ifndef __XML_TREE_H__
 #include <libxml/tree.h>
 #endif
-
-#ifndef _LIBPKI_X509_PROFILE_H
-#define _LIBPKI_X509_PROFILE_H
 
 // ===========================
 // PKI_X509_PROFILE definition

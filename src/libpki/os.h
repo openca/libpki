@@ -18,6 +18,7 @@
 # include <unistd.h>
 # include <string.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <limits.h>
@@ -315,7 +316,7 @@ typedef uint64_t pki_uint64_t;
   typedef pthread_rwlock_t PKI_RWLOCK;
 # endif
 #else
-  typedef pthread_rwlock_t PKI_RWLOCK;
+  typedef struct pthread_rwlock_t PKI_RWLOCK;
 #endif
 
   typedef pthread_mutex_t PKI_MUTEX;
@@ -345,6 +346,13 @@ typedef uint64_t pki_uint64_t;
 #define PKI_THREAD_PROCESS_SHARED 		PTHREAD_PROCESS_SHARED 
 #define PKI_THREAD_PROCESS_PRIVATE 		PTHREAD_PROCESS_PRIVATE 
 
+#endif
+
+// Library configuration
+#ifdef __LIB_BUILD__
+#include <libpki/config.h>
+#else
+#include <libpki/libpki_enables.h>
 #endif
 
 #ifndef _LIBPKI_ERR_H

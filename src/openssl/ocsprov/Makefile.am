@@ -17,14 +17,17 @@ AM_CPPFLAGS = -I$(TOP) \
 OPENSSL_INTERNAL_SRCS = 
 
 nobase_include_HEADERS = \
-	ocsprov_types.h \
+	ocsprov_lcl.h \
 	ocsprov_asn1.h \
 	ocsprov_ctx.h \
 	ocsprov.h
 
 COMPOSITE_SRCS = \
-	ocsprov_asn1.c \
+	ocsprov_lcl.c \
+	ocsprov_encoder.c \
+	ocsprov_decoder.c \
 	ocsprov_ctx.c \
+	ocsprov_key.c \
 	ocsprov.c \
 	$(OPENSSL_INTERNAL_SRCS)
 

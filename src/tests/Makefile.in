@@ -99,7 +99,8 @@ check_PROGRAMS = 1-key-gen-key-digest$(EXEEXT) \
 	9-public-key-encryption-decryption$(EXEEXT) \
 	10-ocsp-generation-req-resp-sign$(EXEEXT) \
 	11-ameth-traditional-pqc-composite-explicit$(EXEEXT) \
-	12-signature-algorithm-identifier$(EXEEXT)
+	12-signature-algorithm-identifier$(EXEEXT) \
+	13_ocsprovider_operations$(EXEEXT)
 subdir = src/tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -155,6 +156,15 @@ am_12_signature_algorithm_identifier_OBJECTS = 12_signature_algorithm_identifier
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(12_signature_algorithm_identifier_CFLAGS) $(CFLAGS) \
 	$(12_signature_algorithm_identifier_LDFLAGS) $(LDFLAGS) -o $@
+am_13_ocsprovider_operations_OBJECTS =  \
+	13_ocsprovider_operations-13_ocsprov_operations.$(OBJEXT)
+13_ocsprovider_operations_OBJECTS =  \
+	$(am_13_ocsprovider_operations_OBJECTS)
+13_ocsprovider_operations_DEPENDENCIES = $(testLDADD)
+13_ocsprovider_operations_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(13_ocsprovider_operations_CFLAGS) $(CFLAGS) \
+	$(13_ocsprovider_operations_LDFLAGS) $(LDFLAGS) -o $@
 am_2_cert_gen_digest_alg_list_OBJECTS = 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.$(OBJEXT)
 2_cert_gen_digest_alg_list_OBJECTS =  \
 	$(am_2_cert_gen_digest_alg_list_OBJECTS)
@@ -246,6 +256,7 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po \
 	./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po \
 	./$(DEPDIR)/12_signature_algorithm_identifier-12_signature_algorithm_identifier.Po \
+	./$(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Po \
 	./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po \
 	./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po \
 	./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po \
@@ -278,6 +289,7 @@ SOURCES = $(1_key_gen_key_digest_SOURCES) \
 	$(10_ocsp_generation_req_resp_sign_SOURCES) \
 	$(11_ameth_traditional_pqc_composite_explicit_SOURCES) \
 	$(12_signature_algorithm_identifier_SOURCES) \
+	$(13_ocsprovider_operations_SOURCES) \
 	$(2_cert_gen_digest_alg_list_SOURCES) \
 	$(3_token_generation_rsa_ec_dilithium_falcon_SOURCES) \
 	$(4_token_generation_request_self_sign_export_cert_req_SOURCES) \
@@ -290,6 +302,7 @@ DIST_SOURCES = $(1_key_gen_key_digest_SOURCES) \
 	$(10_ocsp_generation_req_resp_sign_SOURCES) \
 	$(11_ameth_traditional_pqc_composite_explicit_SOURCES) \
 	$(12_signature_algorithm_identifier_SOURCES) \
+	$(13_ocsprovider_operations_SOURCES) \
 	$(2_cert_gen_digest_alg_list_SOURCES) \
 	$(3_token_generation_rsa_ec_dilithium_falcon_SOURCES) \
 	$(4_token_generation_request_self_sign_export_cert_req_SOURCES) \
@@ -876,6 +889,10 @@ TESTS = $(check_PROGRAMS)
 12_signature_algorithm_identifier_LDFLAGS = $(testLDFLAGS)
 12_signature_algorithm_identifier_LDADD = $(testLDADD)
 12_signature_algorithm_identifier_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+13_ocsprovider_operations_SOURCES = 13_ocsprov_operations.c
+13_ocsprovider_operations_LDFLAGS = $(testLDFLAGS)
+13_ocsprovider_operations_LDADD = $(testLDADD)
+13_ocsprovider_operations_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
 all: all-recursive
 
 .SUFFIXES:
@@ -935,6 +952,10 @@ clean-checkPROGRAMS:
 	@rm -f 12-signature-algorithm-identifier$(EXEEXT)
 	$(AM_V_CCLD)$(12_signature_algorithm_identifier_LINK) $(12_signature_algorithm_identifier_OBJECTS) $(12_signature_algorithm_identifier_LDADD) $(LIBS)
 
+13_ocsprovider_operations$(EXEEXT): $(13_ocsprovider_operations_OBJECTS) $(13_ocsprovider_operations_DEPENDENCIES) $(EXTRA_13_ocsprovider_operations_DEPENDENCIES) 
+	@rm -f 13_ocsprovider_operations$(EXEEXT)
+	$(AM_V_CCLD)$(13_ocsprovider_operations_LINK) $(13_ocsprovider_operations_OBJECTS) $(13_ocsprovider_operations_LDADD) $(LIBS)
+
 2-cert-gen-digest-alg-list$(EXEEXT): $(2_cert_gen_digest_alg_list_OBJECTS) $(2_cert_gen_digest_alg_list_DEPENDENCIES) $(EXTRA_2_cert_gen_digest_alg_list_DEPENDENCIES) 
 	@rm -f 2-cert-gen-digest-alg-list$(EXEEXT)
 	$(AM_V_CCLD)$(2_cert_gen_digest_alg_list_LINK) $(2_cert_gen_digest_alg_list_OBJECTS) $(2_cert_gen_digest_alg_list_LDADD) $(LIBS)
@@ -976,6 +997,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/12_signature_algorithm_identifier-12_signature_algorithm_identifier.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po@am__quote@ # am--include-marker
@@ -1071,6 +1093,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='12_signature_algorithm_identifier.c' object='12_signature_algorithm_identifier-12_signature_algorithm_identifier.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(12_signature_algorithm_identifier_CFLAGS) $(CFLAGS) -c -o 12_signature_algorithm_identifier-12_signature_algorithm_identifier.obj `if test -f '12_signature_algorithm_identifier.c'; then $(CYGPATH_W) '12_signature_algorithm_identifier.c'; else $(CYGPATH_W) '$(srcdir)/12_signature_algorithm_identifier.c'; fi`
+
+13_ocsprovider_operations-13_ocsprov_operations.o: 13_ocsprov_operations.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(13_ocsprovider_operations_CFLAGS) $(CFLAGS) -MT 13_ocsprovider_operations-13_ocsprov_operations.o -MD -MP -MF $(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Tpo -c -o 13_ocsprovider_operations-13_ocsprov_operations.o `test -f '13_ocsprov_operations.c' || echo '$(srcdir)/'`13_ocsprov_operations.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Tpo $(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='13_ocsprov_operations.c' object='13_ocsprovider_operations-13_ocsprov_operations.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(13_ocsprovider_operations_CFLAGS) $(CFLAGS) -c -o 13_ocsprovider_operations-13_ocsprov_operations.o `test -f '13_ocsprov_operations.c' || echo '$(srcdir)/'`13_ocsprov_operations.c
+
+13_ocsprovider_operations-13_ocsprov_operations.obj: 13_ocsprov_operations.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(13_ocsprovider_operations_CFLAGS) $(CFLAGS) -MT 13_ocsprovider_operations-13_ocsprov_operations.obj -MD -MP -MF $(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Tpo -c -o 13_ocsprovider_operations-13_ocsprov_operations.obj `if test -f '13_ocsprov_operations.c'; then $(CYGPATH_W) '13_ocsprov_operations.c'; else $(CYGPATH_W) '$(srcdir)/13_ocsprov_operations.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Tpo $(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='13_ocsprov_operations.c' object='13_ocsprovider_operations-13_ocsprov_operations.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(13_ocsprovider_operations_CFLAGS) $(CFLAGS) -c -o 13_ocsprovider_operations-13_ocsprov_operations.obj `if test -f '13_ocsprov_operations.c'; then $(CYGPATH_W) '13_ocsprov_operations.c'; else $(CYGPATH_W) '$(srcdir)/13_ocsprov_operations.c'; fi`
 
 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o: 2_cert_gen_digest_alg_list.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(2_cert_gen_digest_alg_list_CFLAGS) $(CFLAGS) -MT 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o -MD -MP -MF $(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Tpo -c -o 2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.o `test -f '2_cert_gen_digest_alg_list.c' || echo '$(srcdir)/'`2_cert_gen_digest_alg_list.c
@@ -1514,6 +1550,13 @@ recheck: all $(check_PROGRAMS)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+13_ocsprovider_operations.log: 13_ocsprovider_operations$(EXEEXT)
+	@p='13_ocsprovider_operations$(EXEEXT)'; \
+	b='13_ocsprovider_operations'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -1635,6 +1678,7 @@ distclean: distclean-recursive
 		-rm -f ./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po
 	-rm -f ./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po
 	-rm -f ./$(DEPDIR)/12_signature_algorithm_identifier-12_signature_algorithm_identifier.Po
+	-rm -f ./$(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Po
 	-rm -f ./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po
 	-rm -f ./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po
 	-rm -f ./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po
@@ -1692,6 +1736,7 @@ maintainer-clean: maintainer-clean-recursive
 		-rm -f ./$(DEPDIR)/10_ocsp_generation_req_resp_sign-10_ocsp_generation_req_resp_sign.Po
 	-rm -f ./$(DEPDIR)/11_ameth_traditional_pqc_composite_explicit-11_ameth_traditional_pqc_composite_explicit.Po
 	-rm -f ./$(DEPDIR)/12_signature_algorithm_identifier-12_signature_algorithm_identifier.Po
+	-rm -f ./$(DEPDIR)/13_ocsprovider_operations-13_ocsprov_operations.Po
 	-rm -f ./$(DEPDIR)/1_key_gen_key_digest-1_key_gen_key_digest.Po
 	-rm -f ./$(DEPDIR)/2_cert_gen_digest_alg_list-2_cert_gen_digest_alg_list.Po
 	-rm -f ./$(DEPDIR)/3_token_generation_rsa_ec_dilithium_falcon-3_token_generation_rsa_ec_dilithium_falcon.Po

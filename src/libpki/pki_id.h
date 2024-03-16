@@ -1,11 +1,15 @@
 /* ID management for libpki */
 
-#ifndef _LIBPKI_PKI_ID_H
-#define _LIBPKI_PKI_ID_H
-
 #ifndef _LIBPKI_HEADER_DATA_ST_H
 #include <libpki/openssl/data_st.h>
 #endif
+
+#ifndef _LIBPKI_PKI_DATATYPES_H
+#include <libpki/datatypes.h>
+#endif
+
+#ifndef _LIBPKI_PKI_ID_H
+#define _LIBPKI_PKI_ID_H
 
 // ======================
 // Exported Data Pointers

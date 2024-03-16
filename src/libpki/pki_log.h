@@ -12,6 +12,8 @@ BEGIN_C_DECLS
 # include <libpki/token.h>
 #endif
 
+#include <libpki/token_st.h>
+
 typedef enum {
 	PKI_LOG_TYPE_STDOUT = 0,
 	PKI_LOG_TYPE_STDERR,

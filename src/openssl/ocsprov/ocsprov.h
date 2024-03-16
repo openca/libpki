@@ -10,12 +10,33 @@
 
 // Local Includes
 #include "ocsprov_ctx.h"
+#include "ocsprov_encoder.h"
+// #include "ocsprov_decoder.h"
 
 BEGIN_C_DECLS
 
-                        // ==============================================
-                        // Provider function prototypes and documentation
-                        // ==============================================
+                        // ====================
+                        // Provider Definitions
+                        // ====================
+
+
+/// @brief The name of the OCS provider.
+#define PKI_OSSL_OCSPROV_NAME "ocsprovider"
+/// @brief The description of the OCS provider.
+#define PKI_OSSL_OCSPROV_DESC "OpenSSL OCS Provider"
+/// @brief The version of the OCS provider.
+#define PKI_OSSL_OCSPROV_VERSION PACKAGE_VERSION_STR
+/// @brief The ID of the OCS provider.
+#define PKI_OSSL_OCSPROV_ID "ocsprov"
+
+/// @brief The name of the composite signature algorithm.
+#define PKI_OSSL_OCSPROV_ALG_COMP_SIG_NAME "COMPOSITE"
+/// @brief The description of the composite signature algorithm.
+#define PKI_OSSL_OCSPROV_ALG_COMP_SIG_DESC "Composite Signature Algorithm"
+
+                        // ============================
+                        // Provider function prototypes
+                        // ============================
 
 /**
  * Initializes the OCS provider.

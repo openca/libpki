@@ -1,6 +1,7 @@
 #include <libpki/pki.h>
 #include <libpki/scep/scep.h>
 
+#include <openssl/pem.h>
 #include <openssl/cms.h>
 #include <libpki/pki_x509_cms.h>
 
@@ -160,7 +161,7 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_CMS_CALLBACKS = {
 	(void *) NULL, // PKI_X509_PKCS7_print_parsed;
 
 	/* Data Conversion */
-	(void *) PEM_write_bio_CMS,     // PEM format
+	(void *) PKI_PEM_write_bio_CMS,     // PEM format
 	NULL,  							// PEM EX (encrypted) format
 	(void *) i2d_CMS_bio,		    // DER format
 	(void *) PKI_X509_CMS_VALUE_print_bio, // TXT format
@@ -168,7 +169,7 @@ const PKI_X509_CALLBACKS PKI_OPENSSL_X509_CMS_CALLBACKS = {
 	(void *) NULL,			// XML format
 
 	/* Data Conversion */
-	(void *) PEM_read_bio_CMS,     // PEM format
+	(void *) PKI_PEM_read_bio_CMS,     // PEM format
 	(void *) d2i_CMS_bio,          // DER format
 	(void *) NULL,		        // TXT format
 	(void *) NULL,			// B64 format

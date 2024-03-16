@@ -1,16 +1,24 @@
 
-#ifndef _LIBPKI_TOKEN_H
-#define _LIBPKI_TOKEN_H
+#ifndef _LIBPKI_TOKEN_ST_H
+#define _LIBPKI_TOKEN_ST_H
+# pragma once
 
+// LibPKI Includes
 #include <libpki/stack.h>
-#include <libpki/drivers/engine/engine_st.h>
 #include <libpki/hsm_st.h>
+#include <libpki/pki_config.h>
+#include <libpki/pki_cred.h>
+
+#ifndef HSM
+# pragma error "HSM is not defined, please define it before including this file"
+#endif
 
 /* Structure for PKI_TOKEN definition */
 typedef struct pki_token_st {
+	
 	/*! Pointer to the HSM if one is configured for the
 	   specific PKI_TOKEN */
-	HSM *hsm;
+	struct hsm_st *hsm;
 
 	/*! Scheme used when generating KEYPAIR */
 	int scheme;

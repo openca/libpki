@@ -6,6 +6,10 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_PKI_X509_DATATYPES_ST_H
+#define _LIBPKI_PKI_X509_DATATYPES_ST_H
+# pragma once
+
 #ifndef _LIBPKI_PKI_DATATYPES_H
 #include <libpki/datatypes.h>
 #endif
@@ -18,10 +22,14 @@
 #include <libpki/pki_cred.h>
 #endif
 
-#ifndef _LIBPKI_PKI_X509_DATATYPES_ST_H
-#define _LIBPKI_PKI_X509_DATATYPES_ST_H
+#ifndef _LIBPKI_URL_H
+#include <libpki/net/url.h>
+#endif
 
-#define PKI_IO			BIO
+BEGIN_C_DECLS
+
+typedef BIO 			PKI_IO;
+
 #define PKI_IO_new		BIO_new
 #define PKI_IO_write	BIO_write
 #define PKI_IO_read		BIO_read
@@ -117,5 +125,6 @@ typedef struct pki_x509_st {
 
 } PKI_X509;
 
-/* End of _LIBPKI_PKI_X509_DATA_ST_H */
-#endif
+END_C_DECLS
+
+#endif // End of _LIBPKI_PKI_X509_DATA_ST_H

@@ -13,13 +13,22 @@
  */
 
 /* Functions prototypes*/
-
-#ifndef _LIBPKI_PKI_IO_H
-#include <libpki/pki_io.h>
-#endif
-
 #ifndef _LIBPKI_PKI_MEM_H
 #define _LIBPKI_PKI_MEM_H
+# pragma once
+
+#include <libpki/os.h>
+
+#include <openssl/bio.h>
+
+// #ifndef _LIBPKI_HEADER_DATA_ST_H
+// #include <libpki/openssl/data_st.h>
+// #endif
+
+#include <libpki/datatypes.h>
+
+// Forwad Declaration of PKI_IO
+typedef BIO PKI_IO;
 
 typedef struct pki_mem_st {
 	unsigned char * data;

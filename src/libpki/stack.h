@@ -100,24 +100,6 @@ int     PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj );
 #define PKI_RESOURCE_IDENTIFIER_STACK		PKI_STACK
 #define PKI_RESOURCE_RESPONSE_TOKEN_STACK	PKI_STACK
 
-/* Void freeing functions, used for freeing the stacks */
-/*
-void PKI_MEM_free_void ( void * );
-void PKI_X509_CERT_free_void ( void * );
-void PKI_X509_REQ_free_void ( void * );
-void PKI_X509_XPAIR_free_void ( void * );
-void PKI_X509_PROFILE_free_void ( void * );
-void PKI_X509_EXTENSION_free_void ( void * );
-void PKI_X509_CRL_ENTRY_free_void ( void * );
-void PKI_X509_CRL_free_void ( void * );
-void PKI_CONFIG_free_void ( void * );
-void PKI_OID_free_void ( void * );
-void PKI_ID_INFO_free_void ( void * );
-void PKI_TOKEN_free_void ( void * );
-
-void PKI_RESOURCE_IDENTIFIER_free_void( void * );
-void PKI_RESOURCE_RESPONSE_TOKEN_free_void ( void * );
-*/
 
 /* define for PKI_MEM stacks - implement object type casting */
 #define PKI_STACK_MEM_new() (PKI_MEM_STACK *) PKI_STACK_new((void (*)(void *))PKI_MEM_free)

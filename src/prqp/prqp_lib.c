@@ -7,12 +7,78 @@
  * in the archive. You can not remove this copyright notice.
  */
                                                                                 
-#define __PKI_PRQP_LIB_C__
-
 #include <libpki/pki.h>
 #include <libpki/prqp/prqp_asn1.h>
 
 #include "../openssl/internal/x509_data_st.h"
+
+static char *prqp_exts_services[] = {
+	"1.3.6.1.5.5.7.48.12.0", "rqa", "PRQP RQA Server",
+	"1.3.6.1.5.5.7.48.12.1", "ocspServer", "OCSP Server",
+	"1.3.6.1.5.5.7.48.12.2", "subjectCert", "Subject Certificate Retieval URI",
+	"1.3.6.1.5.5.7.48.12.3", "issuerCert", "Issuer's Certificate Retieval URI",
+	"1.3.6.1.5.5.7.48.12.4", "timeStamp", "TimeStamping Service",
+	/* PKIX - not yet defined */
+	"1.3.6.1.5.5.7.48.12.5", "scvp", "SCVP Service",
+	"1.3.6.1.5.5.7.48.12.6", "crlDistribution", "Latest CRL URI",
+	"1.3.6.1.5.5.7.48.12.7", "certRepository", "CMS Certificate Repository",
+	"1.3.6.1.5.5.7.48.12.8", "crlRepository", "CMS CRL Repository",
+	"1.3.6.1.5.5.7.48.12.9", "crossCertRepository", "CMS Cross Certificate Repository",
+	/* Gateways */
+	"1.3.6.1.5.5.7.48.12.10", "cmcGateway", "CMC Gateway",
+	"1.3.6.1.5.5.7.48.12.11", "scepGateway", "SCEP Gateway",
+	"1.3.6.1.5.5.7.48.12.12", "htmlGateway", "HTML Gateway",
+	"1.3.6.1.5.5.7.48.12.13", "xkmsGateway", "XKMS Gateway",
+	/* Certificate Policies */
+	"1.3.6.1.5.5.7.48.12.20", "certPolicy", "Certificate Policy (CP) URL",
+	"1.3.6.1.5.5.7.48.12.21", "certPracticeStatement", "Certificate Practices Statement (CPS) URL",
+	"1.3.6.1.5.5.7.48.12.22", "endorsedTA", "CMS Endorsed Trust Anchors",
+	/* Level of Assurance (LOA) */
+	"1.3.6.1.5.5.7.48.12.25", "loaPolicy", "LOA Policy URL",
+	"1.3.6.1.5.5.7.48.12.26", "certLOALevel", "Certificate LOA Modifier URL",
+	/* HTTP (Browsers) based services */
+	"1.3.6.1.5.5.7.48.12.30", "htmlRequest", "HTML Certificate Request Service URL",
+	"1.3.6.1.5.5.7.48.12.31", "htmlRevoke", "HTML Based Certificate Revocation Service URL",
+	"1.3.6.1.5.5.7.48.12.32", "htmlRenew", "HTML Certificate Renewal Service URL",
+	"1.3.6.1.5.5.7.48.12.33", "htmlSuspend", "HTML Certificate Suspension Service",
+	/* Webdav Services */
+/*
+	"1.3.6.1.5.5.7.48.12.40", "webdavCert", "Webdav Certificate Validation URL",
+	"1.3.6.1.5.5.7.48.12.41", "webdavRev", "Webdav Certificate Revocation URL",
+*/
+
+	/* Grid Specific Services */
+	"1.3.6.1.5.5.7.48.12.50", "gridAccreditationBody", "CA Accreditation Bodies",
+	"1.3.6.1.5.5.7.48.12.51", "gridAccreditationPolicy", "CA Accreditation Policy Document(s) URL",
+	"1.3.6.1.5.5.7.48.12.52", "gridAccreditationStatus", "CA Accreditation Status Document(s) URL",
+	"1.3.6.1.5.5.7.48.12.53", "gridDistributionUpdate", "Grid Distribution Package(s) URL",
+	"1.3.6.1.5.5.7.48.12.54", "gridAccreditedCACerts", "Certificates of Currently Accredited CAs",
+	/* Trust Anchors Publishing */
+	"1.3.6.1.5.5.7.48.71", "apexTampUpdate", "APEX Trust Anchors Update URL",
+	"1.3.6.1.5.5.7.48.70", "tampUpdate", "Trust Anchors Update URL",
+	/* CA Incident report URL */
+	"1.3.6.1.5.5.7.48.90", "caIncidentReport", "CA Incident Report URL",
+	/* Private Services */
+	"1.3.6.1.5.5.7.48.12.100", "privateSvc", "Private Service",
+	/* Other PKI */
+	// "2.5.29.27", "deltaCrl", "Delta CRL Base Address",
+	// "2.5.29.31", "crl", "CRL Repository",
+	/* End of the List */
+       	NULL, NULL, NULL
+};
+
+static char *prqp_exts[] = {
+	/* PRQP extended key usage - id-kp-PRQPSigning ::= { id-kp 10 }*/
+	"1.3.6.1.5.5.7.3.11", "prqpSigning", "PRQP Signing",
+	/* PRQP PKIX identifier - id-prqp ::= { id-pkix 23 } */
+	"1.3.6.1.5.5.7.23", "PRQP", "PKI Resource Query Protocol",
+	/* PRQP PKIX - PTA identifier - { id-prqp 1 } */
+	"1.3.6.1.5.5.7.23.1", "PTA", "PRQP Trusted Authority",
+	/* PRQP AD id-ad-prqp ::= { id-ad   12 } */
+	"1.3.6.1.5.5.7.48.12", "prqp", "PRQP Service",
+	/* End of the List */
+       	NULL, NULL, NULL
+};
 
 /* PKIX Defaults from http://www.imc.org/ietf-pkix/pkix-oid.asn
  *
@@ -1236,6 +1302,8 @@ PKI_X509_PRQP_RESP *PKI_X509_PRQP_RESP_new_req ( PKI_X509_PRQP_RESP **resp_pnt,
 		PKI_X509_PRQP_RESP_pkistatus_set( r, status, NULL );
 	else
 		PKI_X509_PRQP_RESP_pkistatus_set( r, 0, NULL );
+
+	#include <libpki/prqp/prqp.h>
 
 	resp->respData->producedAt = (ASN1_GENERALIZEDTIME *) PKI_TIME_new(0);
 

@@ -62,6 +62,8 @@ int main() {
 
 int subtest1() {
 	
+#ifdef ENABLE_PQC
+
 	char * oids[8] = {
 		OPENCA_ALG_PKEY_EXP_COMP_NAME,
 		OPENCA_ALG_PKEY_PQC_DILITHIUM2_NAME,
@@ -119,6 +121,8 @@ int subtest1() {
 		}
 	}
 
+#endif
+
 	// Info
 	printf("   - Subtest 1: Passed\n\n");
 
@@ -128,7 +132,7 @@ int subtest1() {
 
 int subtest2() {
 	
-
+#if defined(ENABLE_PQC) || defined(ENABLE_OQSPROV)
 	printf("   - Subtest 2: PQC/Dilithium2 and Hash-n-Sign identifiers\n");
 
 	int nid_sigid = NID_undef;
@@ -176,6 +180,8 @@ int subtest2() {
 		}
 	}
 
+#endif
+
 	// Info
 	printf("   - Subtest 2: Passed\n\n");
 
@@ -187,6 +193,8 @@ int subtest3() {
 	
 
 	printf("   - Subtest 3: Composite Crypto and Hash-n-Sign identifiers\n");
+
+#ifdef ENABLE_COMPOSITE
 
 	int nid_sigid = NID_undef;
 
@@ -232,6 +240,8 @@ int subtest3() {
 			continue;
 		}
 	}
+
+#endif
 
 	// Info
 	printf("   - Subtest 2: Passed\n\n");

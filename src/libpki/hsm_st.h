@@ -1,18 +1,24 @@
+#ifndef _LIBPKI_HSM_ST_H
+#define _LIBPKI_HSM_ST_H
+# pragma once
+
+#ifndef _LIBPKI_COMPAT_H
+#include <libpki/compat.h>
+#endif
+
+#ifndef _LIBPKI_CONF_H
+# include <libpki/pki_config.h>
+#endif
+
+#ifndef _LIBPKI_HEADER_DATA_ST_H
+#include <libpki/openssl/data_st.h>
+#endif
 
 #ifndef _LIBPKI_URL_H
 # include <libpki/net/url.h>
 #endif
 
-#ifndef _LIBPKI_PKI_CONFIG_H
-# include <libpki/pki_config.h>
-#endif
-
-#ifndef _LIBPKI_PKI_X509_DATATYPES_ST_H
-# include <libpki/pki_x509_data_st.h>
-#endif
-
-#ifndef _LIBPKI_HSM_ST_H
-#define _LIBPKI_HSM_ST_H
+BEGIN_C_DECLS
 
 #define MANUFACTURER_ID_SIZE   32
 #define DESCRIPTION_SIZE       32
@@ -181,11 +187,24 @@ struct pki_mem_st;
 #ifndef _LIBPKI_PKI_X509_DATA_ST_H
 
   /* Forward Declaration for PKI_X509 structure */
-  struct pki_x509_st;
-//  typedef struct pki_x509_st PKI_X509;
+  // typedef struct pki_x509_st PKI_X509;
+  // typedef struct pki_keyparams_st PKI_PARAMS;
+
+  // typedef PKI_X509 PKI_X509_CERT;
+  // typedef X509_ALGOR PKI_X509_ALGOR_VALUE;
+  // typedef EVP_MD PKI_DIGEST_ALG;
+
+  // typedef EVP_PKEY PKI_X509_KEYPAIR_VALUE;
+  // typedef PKI_X509 PKI_X509_KEYPAIR;
 
   /* Forward Definition for PKI_X509_CERT */
-  #define PKI_X509_CERT PKI_X509
+  // #define PKI_X509_CERT           PKI_X509
+  // #define PKI_X509_ALGOR_VALUE 	X509_ALGOR
+  // #define PKI_DIGEST_ALG				  EVP_MD
+  // #define PKI_X509_KEYPAIR_VALUE  EVP_PKEY
+  // #define PKI_X509_KEYPAIR        PKI_X509
+
+  typedef struct pki_keyparams_st PKI_X509_KEYPARAMS;
 
   /* Forward Declaration of URL structure */
   struct url_data_st;
@@ -226,7 +245,6 @@ typedef struct callbacks_st {
   /* HSM logout */
   int (*logout)(struct hsm_st *driver);
 
-  /* HSM set algor function */
   int (*sign_algor) (struct hsm_st *driver, PKI_X509_ALGOR_VALUE *algor);
 
   /* HSM set fips mode */
@@ -253,8 +271,7 @@ typedef struct callbacks_st {
   /* ------------- Key Management functions --------------- */
 
   /* Create (new) Keypair */
-  PKI_X509_KEYPAIR * (*keypair_new_url)( PKI_KEYPARAMS *, URL *, PKI_CRED *, 
-              struct hsm_st *);
+  PKI_X509_KEYPAIR * (*keypair_new_url)(PKI_PARAMS *, URL *, PKI_CRED *, struct hsm_st *);
 
   /* Free memory associated with a keypair */
   void    (*keypair_free)(PKI_X509_KEYPAIR *);
@@ -344,6 +361,8 @@ typedef struct hsm_st {
   const HSM_CALLBACKS *callbacks;
 
 } HSM;
+
+END_C_DECLS
 
 /* End of _LIBPKI_HSM_ST_H */
 #endif

@@ -1,8 +1,9 @@
-/* PKI_X509 I/O management */
+#ifndef _LIBPKI_PKI_X509_IO_H
+#define _LIBPKI_PKI_X509_IO_H
+# pragma once
 
-#ifndef _LIBPKI_PKI_DATATYPES_H
-# include <libpki/datatypes.h>
-#endif
+#include <libpki/compat.h>
+#include <libpki/pki_x509_data_st.h>
 
 #ifndef _LIBPKI_PKI_URL_H
 # include <libpki/net/url.h>
@@ -12,8 +13,7 @@
 # include <libpki/pki_cred.h>
 #endif
 
-#ifndef _LIBPKI_PKI_X509_IO_H
-#define  _LIBPKI_PKI_X509_IO_H
+BEGIN_C_DECLS
 
 /* ---------------------------- X509 get (read) ----------------------- */
 
@@ -48,6 +48,9 @@ int PKI_X509_STACK_put (PKI_X509_STACK *sk, PKI_DATA_FORMAT format,
 
 int PKI_X509_STACK_put_url (PKI_X509_STACK *sk, PKI_DATA_FORMAT format, 
 		URL *url, const char *mime, PKI_CRED *cred, HSM *hsm);
+
+
+END_C_DECLS
 
 #endif
 

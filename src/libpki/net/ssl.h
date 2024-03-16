@@ -13,11 +13,16 @@
  *
  */
 
+# pragma error "This file is not supposed to be included directly"
 
 #ifndef _LIBPKI_PKI_SSL_H
 #define _LIBPKI_PKI_SSL_H
+# pragma once
 
+// OpenSSL Includes
 #include <openssl/ssl.h>
+
+// LibPKI Includes
 #include <libpki/pki_x509_data_st.h>
 
 /*! \brief Algorithms for PKI_SSL connections */
@@ -338,7 +343,9 @@ typedef struct  pki_ssl_t {
 //  typedef struct pki_x509_st PKI_X509;
 
   /* Forward Definition for PKI_X509_CERT */
-#define PKI_X509_CERT PKI_X509
+  // #define PKI_X509_CERT PKI_X509
+
+  typedef struct pki_x509_st PKI_X509_CERT;
 
 #endif
 

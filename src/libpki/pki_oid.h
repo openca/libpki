@@ -1,7 +1,12 @@
-/* OID management for libpki */
+// Description: Header file for OID handling functions.
+
+#ifndef _LIBPKI_HEADER_DATA_ST_H
+#include <libpki/openssl/data_st.h>
+#endif
 
 #ifndef _LIBPKI_OID_H
 #define _LIBPKI_OID_H
+# pragma once
 
 PKI_OID *PKI_OID_new( const char *oid, const char *name, const char *descr );
 PKI_OID *PKI_OID_new_id ( PKI_ID id );
@@ -17,5 +22,5 @@ PKI_ID PKI_OID_get_id ( const PKI_OID *a );
 const char * PKI_OID_get_descr ( const PKI_OID *a );
 char * PKI_OID_get_str ( const PKI_OID *a );
 
-#endif
+#endif // End of _LIBPKI_OID_H
 

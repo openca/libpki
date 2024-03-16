@@ -29,6 +29,7 @@ typedef enum {
 
 // Names for the different providers we want to load
 #define PKI_OSSL_PROV_DEFAULT_NAME  "default"
+#define PKI_OSSL_PROV_FIPS_NAME     "fips"
 #define PKI_OSSL_PROV_OQS_NAME      "oqsprovider"
 #define PKI_OSSL_PROV_OCS_NAME      "ocsprovider"
 #define PKI_OSSL_PROV_LEGACY_NAME   "legacy"

@@ -4,7 +4,7 @@
 #define _LIBPKI_X509_PRQP_REQ_IO_H
 
 #define PKI_X509_PRQP_REQ_BEGIN_ARMOUR	"-----BEGIN PRQP REQUEST-----"
-#define PKI_X509_PRQP_REQ_END_ARMOUR		"-----END PRQP REQUEST-----"
+#define PKI_X509_PRQP_REQ_END_ARMOUR	"-----END PRQP REQUEST-----"
 
 /* --------------------- PRQP REQ get (load) functions ------------------- */
 PKI_X509_PRQP_REQ *PKI_X509_PRQP_REQ_get ( char *url_s, 

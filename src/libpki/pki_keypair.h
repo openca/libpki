@@ -2,6 +2,7 @@
 
 #ifndef _LIBPKI_X509_KEYPAIR_HEADER_H
 #define _LIBPKI_X509_KEYPAIR_HEADER_H
+# pragma once
 
 #ifdef _LIBPKI_HEADER_DATA_ST_H
 #include <libpki/openssl/data_st.h>

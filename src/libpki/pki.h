@@ -132,112 +132,112 @@ typedef enum {
 	PKI_MUTEX_WRITE		= 1,
 } PKI_MUTEX_METHOD;
 
-#if (LIBPKI_OS_CLASS == LIBPKI_OS_WIN )
-  // Do we need any includes for the threads on WIN (???)
-  typedef SRWLOCK PKI_RWLOCK;
-  typedef CONDITION_VARIABLE PKI_COND;
-  typedef CRITICAL_SECTION	PKI_MUTEX;
+// #if (LIBPKI_OS_CLASS == LIBPKI_OS_WIN )
+//   // Do we need any includes for the threads on WIN (???)
+//   typedef SRWLOCK PKI_RWLOCK;
+//   typedef CONDITION_VARIABLE PKI_COND;
+//   typedef CRITICAL_SECTION	PKI_MUTEX;
 
-  typedef struct timespec {
-		long long tv_sec;
-		long long tv_nsec;
-  };
+//   typedef struct timespec {
+// 		long long tv_sec;
+// 		long long tv_nsec;
+//   };
 
-  typedef struct _thread_v {
-	void *ret_arg;
-	void *(* func)(void *);
-	_pthread_cleanup *clean;
-	HANDLE h;
-	int cancelled;
-	unsigned p_state;
-	int keymax;
-	void **keyval;
+//   typedef struct _thread_v {
+// 	void *ret_arg;
+// 	void *(* func)(void *);
+// 	_pthread_cleanup *clean;
+// 	HANDLE h;
+// 	int cancelled;
+// 	unsigned p_state;
+// 	int keymax;
+// 	void **keyval;
 	
-	jmp_buf jb;
-  };
+// 	jmp_buf jb;
+//   };
 
-  typedef _thread_v PKI_THREAD;
+//   typedef _thread_v PKI_THREAD;
 
-  typedef struct pthread_attr_t {
-	unsigned p_state;
-	void *stack;
-	size_t s_size;
-  } PKI_PTHREAD_ATTR;
+//   typedef struct pthread_attr_t {
+// 	unsigned p_state;
+// 	void *stack;
+// 	size_t s_size;
+//   } PKI_PTHREAD_ATTR;
 
-#define PKI_THREAD_CREATE_JOINABLE       0
-#define PKI_THREAD_CREATE_DETACHED       0x04
+// #define PKI_THREAD_CREATE_JOINABLE       0
+// #define PKI_THREAD_CREATE_DETACHED       0x04
 
-#define PKI_THREAD_EXPLICT_SCHED         0
-#define PKI_THREAD_INHERIT_SCHED         0x08
+// #define PKI_THREAD_EXPLICT_SCHED         0
+// #define PKI_THREAD_INHERIT_SCHED         0x08
 
-#define PKI_THREAD_SCOPE_PROCESS 		 0
-#define PKI_THREAD_SCOPE_SYSTEM 		 0x10
+// #define PKI_THREAD_SCOPE_PROCESS 		 0
+// #define PKI_THREAD_SCOPE_SYSTEM 		 0x10
 
-#define PKI_THREAD_DESTRUCTOR_ITERATIONS 256
+// #define PKI_THREAD_DESTRUCTOR_ITERATIONS 256
 
-#define PKI_THREAD_PRIO_NONE 			 0
-#define PKI_THREAD_PRIO_INHERIT 		 8
-#define PKI_THREAD_PRIO_PROTECT 		 16
-#define PKI_THREAD_PRIO_MULT 			 32
+// #define PKI_THREAD_PRIO_NONE 			 0
+// #define PKI_THREAD_PRIO_INHERIT 		 8
+// #define PKI_THREAD_PRIO_PROTECT 		 16
+// #define PKI_THREAD_PRIO_MULT 			 32
 
-#define PKI_THREAD_PROCESS_SHARED 		 0
-#define PKI_THREAD_PROCESS_PRIVATE 		 1
+// #define PKI_THREAD_PROCESS_SHARED 		 0
+// #define PKI_THREAD_PROCESS_PRIVATE 		 1
 
-#else
-/* Pthread lib include */
-  #include <pthread.h>
+// #else
+// /* Pthread lib include */
+//   #include <pthread.h>
 
-#ifdef __LIB_BUILD__
-# ifndef HAVE_PTHREAD_RWLOCK
-  typedef struct pthread_rwlock_t
-  {
-    pthread_cond_t cond_var;
-    pthread_mutex_t lock_mutex;
-    pthread_mutex_t data_mutex;
+// #ifdef __LIB_BUILD__
+// # ifndef HAVE_PTHREAD_RWLOCK
+//   typedef struct pthread_rwlock_t
+//   {
+//     pthread_cond_t cond_var;
+//     pthread_mutex_t lock_mutex;
+//     pthread_mutex_t data_mutex;
 
-    uint64_t n_readers;
-    uint64_t n_writers;
-    uint64_t n_writers_waiting;
-  } PKI_RWLOCK;
-# else
-  typedef pthread_rwlock_t PKI_RWLOCK;
-# endif
-#else
-  typedef pthread_rwlock_t PKI_RWLOCK;
-#endif
+//     uint64_t n_readers;
+//     uint64_t n_writers;
+//     uint64_t n_writers_waiting;
+//   } PKI_RWLOCK;
+// # else
+//   typedef pthread_rwlock_t PKI_RWLOCK;
+// # endif
+// #else
+//   typedef struct { } PKI_RWLOCK;
+// #endif
 
-  typedef pthread_mutex_t PKI_MUTEX;
-  typedef pthread_cond_t PKI_COND;
+//   typedef pthread_mutex_t PKI_MUTEX;
+//   typedef pthread_cond_t PKI_COND;
 
-  typedef pthread_t PKI_THREAD;
+//   typedef pthread_t PKI_THREAD;
 
-  typedef pthread_attr_t PKI_THREAD_ATTR;
-  typedef pthread_t PKI_THREAD_ID;
+//   typedef pthread_attr_t PKI_THREAD_ATTR;
+//   typedef pthread_t PKI_THREAD_ID;
 
-#define PKI_THREAD_CREATE_JOINABLE 		PTHREAD_CREATE_JOINABLE 
-#define PKI_THREAD_CREATE_DETACHED 		PTHREAD_CREATE_DETACHED 
+// #define PKI_THREAD_CREATE_JOINABLE 		PTHREAD_CREATE_JOINABLE 
+// #define PKI_THREAD_CREATE_DETACHED 		PTHREAD_CREATE_DETACHED 
 
-#define PKI_THREAD_EXPLICT_SCHED 		PTHREAD_EXPLICT_SCHED 
-#define PKI_THREAD_INHERIT_SCHED 		PTHREAD_INHERIT_SCHED 
+// #define PKI_THREAD_EXPLICT_SCHED 		PTHREAD_EXPLICT_SCHED 
+// #define PKI_THREAD_INHERIT_SCHED 		PTHREAD_INHERIT_SCHED 
 
-#define PKI_THREAD_SCOPE_PROCESS 		PTHREAD_SCOPE_PROCESS 
-#define PKI_THREAD_SCOPE_SYSTEM 		PTHREAD_SCOPE_SYSTEM 
+// #define PKI_THREAD_SCOPE_PROCESS 		PTHREAD_SCOPE_PROCESS 
+// #define PKI_THREAD_SCOPE_SYSTEM 		PTHREAD_SCOPE_SYSTEM 
 
-#define PKI_THREAD_DESTRUCTOR_ITERATIONS PTHREAD_DESTRUCTOR_ITERATIONS 
+// #define PKI_THREAD_DESTRUCTOR_ITERATIONS PTHREAD_DESTRUCTOR_ITERATIONS 
 
-#define PKI_THREAD_PRIO_NONE 			PTHREAD_PRIO_NONE 
-#define PKI_THREAD_PRIO_INHERIT 		PTHREAD_PRIO_INHERIT 
-#define PKI_THREAD_PRIO_PROTECT 		PTHREAD_PRIO_PROTECT 
-#define PKI_THREAD_PRIO_MULT 			PTHREAD_PRIO_MULT 
+// #define PKI_THREAD_PRIO_NONE 			PTHREAD_PRIO_NONE 
+// #define PKI_THREAD_PRIO_INHERIT 		PTHREAD_PRIO_INHERIT 
+// #define PKI_THREAD_PRIO_PROTECT 		PTHREAD_PRIO_PROTECT 
+// #define PKI_THREAD_PRIO_MULT 			PTHREAD_PRIO_MULT 
 
-#define PKI_THREAD_PROCESS_SHARED 		PTHREAD_PROCESS_SHARED 
-#define PKI_THREAD_PROCESS_PRIVATE 		PTHREAD_PROCESS_PRIVATE 
+// #define PKI_THREAD_PROCESS_SHARED 		PTHREAD_PROCESS_SHARED 
+// #define PKI_THREAD_PROCESS_PRIVATE 		PTHREAD_PROCESS_PRIVATE 
 
-#endif
+// #endif
 
-#include <libpki/pki_threads_vars.h>
-#include <libpki/pki_threads.h>
-#include <libpki/openssl/pthread_init.h>
+// #include <libpki/pki_threads_vars.h>
+// #include <libpki/pki_threads.h>
+// #include <libpki/openssl/pthread_init.h>
 
 /* Generic */
 #include <libpki/banners.h>

@@ -78,7 +78,7 @@ int NID_proxyCertInfo = -1;
 static OSSL_LIB_CTX * _ossl_lib_ctx = NULL;
 
 OSSL_PROVIDER * ossl_providers[5] = {
-	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "default"),
+	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "default" of "fips"),
 	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "ocsprovider"),
 	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "oqsprovider"),
 	NULL, // OSSL_PROVIDER_load(OSSL_LIB_CTX_new(), "legacy"),
@@ -583,8 +583,11 @@ int PKI_init_providers(void) {
 	if (ossl_providers[PKI_OSSL_PROV_DEFAULT] == NULL) {
 		provider = OSSL_PROVIDER_load(lib_ctx, PKI_OSSL_PROV_DEFAULT_NAME);
 		if (provider == NULL) {
-			fprintf(stderr, "Failed to load %s provider\n", PKI_OSSL_PROV_DEFAULT_NAME);
-			return 0;
+			provider = OSSL_PROVIDER_load(lib_ctx, PKI_OSSL_PROV_FIPS_NAME);
+			if (provider == NULL) {
+				fprintf(stderr, "Failed to load %s provider\n", PKI_OSSL_PROV_DEFAULT_NAME);
+				return 0;
+			}
 		}
 	}
 

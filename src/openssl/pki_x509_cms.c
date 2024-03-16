@@ -2192,3 +2192,12 @@ int PKI_X509_CMS_VALUE_print_bio ( PKI_IO *bio,
 	return PKI_OK;
 	*/
 }
+
+
+PKI_X509_CMS_VALUE *PKI_PEM_read_bio_CMS( BIO *bp ) {
+  return PEM_read_bio_CMS(bp, NULL, NULL, 0);
+}
+
+int PKI_PEM_write_bio_CMS( BIO *bp, PKI_X509_CMS_VALUE *o ) {
+  return PEM_write_bio_CMS_stream(bp, o, NULL, 0);
+}

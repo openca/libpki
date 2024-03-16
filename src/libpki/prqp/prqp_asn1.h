@@ -8,9 +8,13 @@
                                                                                 
 #ifndef _LIBPK_PRQP_ASN1_H
 #define _LIBPK_PRQP_ASN1_H
+
+#include <libpki/compat.h>
                                                                                 
-#ifdef  __cplusplus
-extern "C" {
+BEGIN_C_DECLS
+
+#ifndef DECLARE_STACK_OF
+# define DECLARE_STACK_OF(a) DEFINE_STACK_OF(a)
 #endif
 
 /* PRQPSignature ::= SEQUENCE {
@@ -91,8 +95,8 @@ typedef struct ResourceIdentifier_st {
 	ASN1_OBJECT *oid;
 } RESOURCE_IDENTIFIER;
 
-DECLARE_ASN1_FUNCTIONS(RESOURCE_IDENTIFIER)
-DECLARE_STACK_OF(RESOURCE_IDENTIFIER)
+DECLARE_ASN1_FUNCTIONS(RESOURCE_IDENTIFIER);
+DECLARE_STACK_OF(RESOURCE_IDENTIFIER);
 
 /* ResourceRequestToken ::= SEQUENCE {
  *	ca		certIdentifier,
@@ -213,8 +217,8 @@ typedef struct ResourceResponseToken_st {
 	ASN1_UTF8STRING 	 *textInfo;
 } RESOURCE_RESPONSE_TOKEN;
 
-DECLARE_ASN1_FUNCTIONS(RESOURCE_RESPONSE_TOKEN)
-DECLARE_STACK_OF(RESOURCE_RESPONSE_TOKEN)
+DECLARE_ASN1_FUNCTIONS(RESOURCE_RESPONSE_TOKEN);
+DECLARE_STACK_OF(RESOURCE_RESPONSE_TOKEN);
 
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 RESOURCE_RESPONSE_TOKEN * RESOURCE_RESPONSE_TOKEN_dup ( const RESOURCE_RESPONSE_TOKEN * p );
@@ -266,9 +270,8 @@ ASN1_IA5STRING *s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
              X509V3_CTX *ctx, char *str);
 */
 
-#ifdef  __cplusplus
-}
-#endif
+END_C_DECLS
+
 #endif
 
 /* end */

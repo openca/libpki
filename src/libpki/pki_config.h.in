@@ -6,7 +6,18 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_CONF_H
+#define _LIBPKI_CONF_H
+# pragma once
+
+#include <libpki/compat.h>
+
+#ifndef _LIBPKI_OPENSSL_DATA_ST_H
+# pragma error "You need to include libpki/openssl/data_st.h before including this file!"
+#endif
+
 #ifndef _LIBPKI_XMLINCLUDES_H
+# define _LIBPKI_XMLINCLUDES_H	1
 # include <libxml/xmlmemory.h>
 # include <libxml/parser.h>
 # include <libxml/xpath.h>
@@ -17,12 +28,18 @@
 # include <libpki/stack.h>
 #endif
 
-#ifndef _LIBPKI_PKI_IO_H
-# include <libpki/pki_io.h>
+#ifndef OPENSSL_BIO_H
+#include <openssl/bio.h>
 #endif
 
-#ifndef _LIBPKI_CONF_H
-#define _LIBPKI_CONF_H
+// Forward declaration of PKI_OID
+typedef ASN1_OBJECT PKI_OID;
+
+BEGIN_C_DECLS
+
+// =======
+// Defines
+// =======
 
 #define PKI_CONFIG                xmlDoc
 #define PKI_CONFIG_ELEMENT        xmlNode

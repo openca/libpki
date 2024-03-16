@@ -7,7 +7,8 @@
 */
 
 #ifndef _LIBPKI_PKI_DATATYPES_H
-#define _LIBPKI_PKI_DATATYPES_H	
+#define _LIBPKI_PKI_DATATYPES_H
+# pragma once
 
 // Library configuration
 #ifdef __LIB_BUILD__
@@ -263,6 +264,13 @@ typedef enum {
 #endif
 
 } PKI_SCHEME_ID;
+
+// #define PKI_OID				    	ASN1_OBJECT
+// #define PKI_TIME			    		ASN1_GENERALIZEDTIME
+// #define PKI_INTEGER			  		ASN1_INTEGER
+// #define PKI_OCTET_STRING  			ASN1_OCTETSTRING
+
+// typedef struct pki_keyparams_st PKI_X509_KEYPARAMS;
 
 END_C_DECLS
 

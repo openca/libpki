@@ -3,6 +3,7 @@
 
 #ifndef _LIBPKI_PKI_CRED_H
 #define _LIBPKI_PKI_CRED_H
+# pragma once
 
 #include <sys/types.h>
 

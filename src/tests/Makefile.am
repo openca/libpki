@@ -30,7 +30,8 @@ check_PROGRAMS = \
 	9-public-key-encryption-decryption \
 	10-ocsp-generation-req-resp-sign \
 	11-ameth-traditional-pqc-composite-explicit \
-	12-signature-algorithm-identifier
+	12-signature-algorithm-identifier \
+	13_ocsprovider_operations
 
 TESTS = $(check_PROGRAMS)
 
@@ -93,3 +94,8 @@ TESTS = $(check_PROGRAMS)
 12_signature_algorithm_identifier_LDFLAGS = $(testLDFLAGS)
 12_signature_algorithm_identifier_LDADD   = $(testLDADD)
 12_signature_algorithm_identifier_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb
+
+13_ocsprovider_operations_SOURCES = 13_ocsprov_operations.c
+13_ocsprovider_operations_LDFLAGS = $(testLDFLAGS)
+13_ocsprovider_operations_LDADD   = $(testLDADD)
+13_ocsprovider_operations_CFLAGS = -I$(TOP) $(LIBPKI_MYCFLAGS) -O0 -ggdb

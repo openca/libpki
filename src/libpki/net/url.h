@@ -13,12 +13,13 @@
  *
  */
 
+#ifndef _LIBPKI_URL_H
+#define _LIBPKI_URL_H
+# pragma once
+
 #ifndef _LIBPKI_PKI_MEM_H
 # include <libpki/pki_mem.h>
 #endif
-
-#ifndef _LIBPKI_URL_H
-#define _LIBPKI_URL_H
 
 typedef enum pki_http_method_enum {
 	PKI_HTTP_METHOD_UNKNOWN		= 0,

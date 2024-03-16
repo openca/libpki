@@ -1,6 +1,7 @@
 /* HSM Object Management Functions */
 
-// Single Include
+#include <openssl/err.h>
+
 #include <libpki/drivers/openssl/openssl_hsm.h>
 
 /* Callbacks for Software OpenSSL HSM */
