@@ -1,3 +1,10 @@
+* Mar 16 2024 Massimiliano Pala <madwolf@openca.org>
+- Added initial suppot for OpenSSL 3.2+ features and aligns with its evolving API.
+- Removes outdated ASN1 code, streamlining the integration with newer OpenSSL versions.
+- Introduces new CMS functionality, broadening the scope of LibPKI's capabilities.
+- Improves provider initialization logic to support OpenSSL's modular architecture.
+- Added initial skeleton for the OpenCA's Composite Signatures provider.
+
 * Mar 11 2024 Massimiliano Pala <madwolf@openca.org>
 - Added a script to identify deprecated OpenSSL function calls and fixed a missing include in pki.h
 - Added a list of OpenSSL's deprecated functions and a script to generate it from OpenSSL's includes.
