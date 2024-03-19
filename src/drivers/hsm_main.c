@@ -1228,22 +1228,40 @@ err:
 
 /*! \brief Gets a stack of X509 objects from the URL in the HSM */
 
-PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url, 	
-						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
+PKI_X509_STACK *HSM_X509_STACK_get_url(const PKI_DATATYPE	   type,
+									   const URL 		  	 * const url,
+									   const PKI_DATA_FORMAT   format,
+									   const PKI_CRED 	   	 * cred,
+									   HSM 			   		 * hsm) {
 
 	PKI_STACK *ret = NULL;
+		// Return value
 
-	if( !url ) return ( NULL );
+	// Input Check
+	if (!url) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return NULL;
+	}
 
-	if( url->proto != URI_PROTO_ID ) return NULL;
+	// If no protocol was provided in the URL, it's an error
+	if ( url->proto != URI_PROTO_ID ) {
+		PKI_ERROR(PKI_ERR_URI_UNSUPPORTED, "Missing Protocol in URL");
+		return NULL;
+	}
 
-	if( !hsm ) hsm = (HSM * ) HSM_get_default();
+	// If no HSM was provided, let's get the default one
+	if (!hsm) hsm = (HSM *) HSM_get_default();
 
-	if( hsm  && hsm->callbacks && hsm->callbacks->x509_sk_get_url ) { 
+	// If the HSM has a callback for the X509 get URL, let's use it
+	if (hsm  && hsm->callbacks && hsm->callbacks->x509_sk_get_url) { 
 		ret = hsm->callbacks->x509_sk_get_url( type, url, format, cred, hsm );
-	};
+	} else {
+		// No callback for the X509 get URL, let's use the default
+		ret = (HSM_get_default())->callbacks->x509_sk_get_url(type, url, format, cred, hsm);
+	}
 
-        return ( ret );
+	// Returns the result
+    return ret;
 }
 
 /*! \brief Stores a stack of PKI_X509 objects in the specified URL/HSM */

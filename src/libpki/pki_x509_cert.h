@@ -2,6 +2,18 @@
 
 #ifndef _LIBPKI_X509_CERT_HEADER_H
 #define _LIBPKI_X509_CERT_HEADER_H
+# pragma once
+
+// LibPKI Includes
+#include <libpki/pki_x509.h>
+#include <libpki/pki_x509_extension.h>
+
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509_CERT)
+
+						// ====================
+						// Functions Prototypes
+						// ====================
 
 /* Memory functions */
 PKI_X509_CERT *PKI_X509_CERT_new_null( void );

@@ -1,4 +1,5 @@
 #include <libpki/pki.h>
+#include <libpki/openssl/ocsprov/ocsprov_types.h>
 
 // ================
 // Global Variables
@@ -64,9 +65,11 @@ int subtest1() {
     // Test Begin
     printf("   - Subtest 1: Sequence of BIT_STRING\n");
 
-    ASN1_BIT_STRING_STACK * bit_stack = NULL;
+    ASN1_BIT_STRING_SEQUENCE * bit_stack = NULL;
 
     // At this point, the provider is unloaded and can't be used anymore
+
+    bit_stack = ASN1_BIT_STRING_SEQUENCE_new();
 
     // Test Success
     printf("   - Subtest 1: Passed\n\n");

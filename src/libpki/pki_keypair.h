@@ -4,18 +4,17 @@
 #define _LIBPKI_X509_KEYPAIR_HEADER_H
 # pragma once
 
-#ifdef _LIBPKI_HEADER_DATA_ST_H
-#include <libpki/openssl/data_st.h>
-#endif
-
-#ifndef _LIBPKI_PKI_DATATYPES_H
+// LibPKI Includes
+#include <libpki/stack.h>
 #include <libpki/datatypes.h>
-#endif
+#include <libpki/openssl/data_st.h>
 
-typedef struct pw_cb_data {
-	const void *password;
-	const char *prompt_info;
-} PW_CB_DATA;
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509_KEYPAIR)
+
+// ======
+// Macros
+// ======
 
 #define PKI_X509_KEYPAIR_new_RSA(a,l,c,h) \
 		PKI_X509_KEYPAIR_new( PKI_SCHEME_RSA,a,l,c,h );
@@ -27,6 +26,10 @@ typedef struct pw_cb_data {
 #define PKI_X509_KEYPAIR_new_ECDSA(a,l,c,h) \
 		PKI_X509_KEYPAIR_new(PKI_SCHEME_ECDSA,a,l,c,h);
 #endif
+
+                        // ====================
+                        // Functions Prototypes
+                        // ====================
 
 /* ------------------------ Memory Management ----------------------- */
 

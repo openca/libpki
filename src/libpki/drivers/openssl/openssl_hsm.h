@@ -22,7 +22,7 @@
 #include <libpki/drivers/openssl/openssl_hsm_pkey.h>
 #endif
 
-#ifndef _LIBPKI_ERRORS_H
+#ifndef _LIBPKI_ERR_H
 #include <libpki/pki_err.h>
 #endif
 
@@ -42,7 +42,9 @@
 #include <libpki/pki_id.h>
 #endif
 
+#ifndef _LIBPKI_PKI_SSL_H
 #include <openssl/ssl.h>
+#endif
 
 BEGIN_C_DECLS
 

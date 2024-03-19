@@ -2,6 +2,25 @@
 
 #ifndef _LIBPKI_PKI_X509_CRL_H
 #define _LIBPKI_PKI_X509_CRL_H
+# pragma once
+
+// Libpki Includes
+#include <libpki/pki_x509_data_st.h>
+	// Provides PKI_X509_CRL, PKI_X509_CRL_ENTRY,
+	// PKI_X509_CRL_REASON, PKI_STACK
+
+#include <libpki/pki_x509_profile.h>
+	// Provides PKI_X509_PROFILE
+
+BEGIN_C_DECLS
+
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509_CRL_ENTRY)
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509_CRL)
+
+						// ===================
+						// Function Prototypes
+						// ===================
 
 /* PKI_X509_CRL_ENTRY */
 PKI_X509_CRL_ENTRY * PKI_X509_CRL_ENTRY_new(const PKI_X509_CERT            * cert,

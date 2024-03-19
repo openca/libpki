@@ -26,9 +26,15 @@
 #include <libpki/net/url.h>
 #endif
 
-BEGIN_C_DECLS
+#ifndef _LIBPKI_STACK_H
+#include <libpki/stack.h>
+#endif
 
-typedef BIO 			PKI_IO;
+#ifndef _LIBPKI_HSM_ST_H
+#include <libpki/hsm_st.h>
+#endif
+
+BEGIN_C_DECLS
 
 #define PKI_IO_new		BIO_new
 #define PKI_IO_write	BIO_write

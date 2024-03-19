@@ -1,20 +1,28 @@
-/* Profile management for libpki */
+/**
+ * @file pki_x509_profile.c
+ * @brief Functions for handling X509 Profiles
+ */
 
-#include <libpki/pki.h>
+// Includes
+#include <libpki/pki_x509_profile.h>
+
+						// ===========================
+						// Local Prototype Declaration
+						// ===========================
 
 static xmlNsPtr _get_pki_ns ( PKI_CONFIG_ELEMENT *node );
 
+
+						// ====================
+						// Functions Definition
+						// ====================
+
 char * PKI_X509_PROFILE_get_value(const PKI_X509_PROFILE * doc, 
                                   const char             * path) {
-
 	return PKI_CONFIG_get_value((PKI_CONFIG *) doc, path);
 }
 
 char *PKI_X509_PROFILE_get_name(const PKI_X509_PROFILE *doc) {
-
-	// snprintf(search, (size_t) BUFF_MAX_SIZE, "/profile/name", 
-	// 		PKI_NAMESPACE_PREFIX, PKI_NAMESPACE_PREFIX );
-
 	return PKI_X509_PROFILE_get_value( doc, "/profile/name" );
 }
 

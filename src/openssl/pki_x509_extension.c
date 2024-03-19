@@ -1,10 +1,10 @@
 /* Extension value building - driver specific part */
 
-#include <libpki/pki.h>
-
-#ifndef _LIBPKI_X509_EXTENSION_H
 #include <libpki/pki_x509_extension.h>
-#endif
+
+						// ==============================================
+						// Static Data for Use in the Extension Functions
+						// ==============================================
 
 static char *ext_txt_db [] = {
 	/* Tags */
@@ -376,7 +376,7 @@ PKI_X509_EXTENSION_STACK *PKI_X509_CERT_VALUE_ext_list(PKI_X509_CERT_VALUE * x) 
 	if ((ext_count = X509_get_ext_count (x)) <= 0 ) return NULL;
 
 	// Builds the LibPKI wrapper
-	if(( ret = PKI_STACK_X509_EXTENSION_new()) == NULL ) return NULL;
+	if(( ret = PKI_STACK_X509_EXTENSION_new_null()) == NULL ) return NULL;
 
 	// Process all extensions
 	for ( i=0; i < ext_count; i++ ) {

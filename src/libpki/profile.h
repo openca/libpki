@@ -3,20 +3,23 @@
 #ifndef _LIBPKI_PROFILE_HEADERS_H
 #define _LIBPKI_PROFILE_HEADERS_H
 
+// System Includes
 #include <stdio.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+
+// LibPKI Includes
+#include <libpki/datatypes.h>
 #include <libpki/support.h>
 
-typedef enum {
-	PKI_X509_PROFILE_USER = 0,
-	PKI_X509_PROFILE_PROXY,
-	PKI_X509_PROFILE_WEB_SERVER,
-	PKI_X509_PROFILE_MAIL_SERVER
-} PKI_X509_PROFILE_TYPE;
+BEGIN_C_DECLS
 
-#define PKI_PROFILE_DEFAULT_PROXY_NAME "__DEFAULT_PROXY_PROFILE__"
-#define PKI_PROFILE_DEFAULT_USER_NAME "__DEFAULT_USER_PROFILE__"
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN(PKI_X509_PROFILE)
+
+						// ====================
+						// Functions Prototypes
+						// ====================
 
 PKI_X509_PROFILE * PKI_X509_PROFILE_get_default ( 
 				PKI_X509_PROFILE_TYPE profile_id );
@@ -54,6 +57,8 @@ PKI_CONFIG_ELEMENT *PKI_X509_PROFILE_add_extension (PKI_X509_PROFILE *doc,
 						    const char *type, 
 						    int crit );
 
-#endif
+END_C_DECLS
+
+#endif // End of _LIBPKI_PROFILE_HEADERS_H
 
 

@@ -2,6 +2,19 @@
 
 #ifndef _LIBPKI_X509_EXTENSION_H
 #define _LIBPKI_X509_EXTENSION_H
+# pragma once
+
+// LibPKI Includes
+#include <libpki/pki_x509_data_st.h>
+#include <libpki/pki_config.h>
+#include <libpki/token_st.h>
+
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509_EXTENSION)
+
+						// ===================
+						// Function Prototypes
+						// ===================
 
 PKI_X509_EXTENSION *PKI_X509_EXTENSION_new( void );
 

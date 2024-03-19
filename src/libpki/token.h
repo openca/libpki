@@ -3,21 +3,31 @@
 #define _LIBPKI_TOKEN_HEADERS_H
 # pragma once
 
+#ifndef _LIBPKI_X509_CERT_HEADER_H
+#include <libpki/pki_x509_cert.h>
+#endif
+
+#ifndef _LIBPKI_PKI_X509_DATATYPES_ST_H
+#include <libpki/pki_x509_data_st.h>
+#endif
+
+#ifndef _LIBPKI_X509_PROFILE_H
+#include <libpki/pki_x509_profile.h>
+#endif
+
 #ifndef _LIBPKI_TOKEN_ST_H
 #include <libpki/token_st.h>
 #endif
 
-#ifndef _LIBPKI_X509_PROFILE_H
-# include <libpki/pki_x509_profile.h>
-#endif
-
-#ifndef _LIBPKI_HSM_ST_H
-#include <libpki/hsm_st.h>
-#endif
-
-#ifndef _LIBPKI_URL_H
+#ifdef _LIBPKI_URL_H
 #include <libpki/net/url.h>
 #endif
+
+BEGIN_C_DECLS
+
+						// ===================
+						// Function Prototypes
+						// ===================
 
 /* Memory related functions */
 PKI_TOKEN *PKI_TOKEN_new_null( void );
@@ -190,5 +200,7 @@ PKI_X509_PROFILE *PKI_TOKEN_search_profile(const PKI_TOKEN * const tk,
 int PKI_TOKEN_use_slot(PKI_TOKEN *tk, long num);
 int PKI_TOKEN_print_info(PKI_TOKEN *tk);
 
-#endif
+END_C_DECLS
+
+#endif // End of _LIBPKI_TOKEN_HEADERS_H
 

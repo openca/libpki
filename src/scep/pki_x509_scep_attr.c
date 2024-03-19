@@ -120,7 +120,7 @@ int PKI_X509_SCEP_MSG_set_attribute(PKI_X509_SCEP_MSG   * msg,
 									const unsigned char * const data,
 									size_t                size) {
 
-	PKI_X509_ATTRIBUTE *a = NULL;
+	PKI_X509_ATTRIBUTE_VALUE *a = NULL;
 	PKI_ID id = 0;
 
 	if (!msg || !data) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
@@ -140,7 +140,7 @@ int PKI_X509_SCEP_MSG_set_attribute(PKI_X509_SCEP_MSG   * msg,
 		case SCEP_ATTRIBUTE_TRANS_ID:
 		case SCEP_ATTRIBUTE_EXTENSION_REQ:
 		case SCEP_ATTRIBUTE_PROXY_AUTH: {
-			a = PKI_X509_ATTRIBUTE_new(id,
+			a = PKI_X509_ATTRIBUTE_VALUE_new(id,
 				                       V_ASN1_PRINTABLESTRING,
 									   data,
 									   size );
@@ -149,7 +149,7 @@ int PKI_X509_SCEP_MSG_set_attribute(PKI_X509_SCEP_MSG   * msg,
 		// OCTET_STRING Attributes
 		case SCEP_ATTRIBUTE_SENDER_NONCE:
 		case SCEP_ATTRIBUTE_RECIPIENT_NONCE: {
-			a = PKI_X509_ATTRIBUTE_new(id,
+			a = PKI_X509_ATTRIBUTE_VALUE_new(id,
 				                       V_ASN1_OCTET_STRING,
 									   data,
 									   size);
@@ -212,7 +212,7 @@ int PKI_X509_SCEP_MSG_set_attribute_int(PKI_X509_SCEP_MSG * msg,
 PKI_MEM * PKI_X509_SCEP_MSG_get_attr_value(const PKI_X509_SCEP_MSG * const msg,
 		                                   SCEP_ATTRIBUTE_TYPE             type) {
 
-	const PKI_X509_ATTRIBUTE *attr = NULL;
+	const PKI_X509_ATTRIBUTE_VALUE *attr = NULL;
 	PKI_MEM *ret = NULL;
 
 	const PKI_STRING *st = NULL;

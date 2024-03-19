@@ -143,6 +143,10 @@ PKI_PRQP_REQ * PKI_PRQP_REQ_dup ( const PKI_PRQP_REQ *x );
 PKI_PRQP_REQ * PKI_PRQP_REQ_dup ( PKI_PRQP_REQ *x );
 #endif
 
+typedef PKI_PRQP_REQ PKI_X509_PRQP_REQ_VALUE;
+typedef PKI_X509 	 PKI_X509_PRQP_REQ;
+
+
 /* PKIStatus ::= INTEGER {
  * 	ok		{0},
  *	badRequest	{1},
@@ -262,13 +266,8 @@ PKI_PRQP_RESP * PKI_PRQP_RESP_dup ( const PKI_PRQP_RESP *x );
 PKI_PRQP_RESP * PKI_PRQP_RESP_dup ( PKI_PRQP_RESP *x );
 #endif
 
-/* Crypto Functionality */
-/*
-char *i2s_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
-             ASN1_IA5STRING *ia5);
-ASN1_IA5STRING *s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
-             X509V3_CTX *ctx, char *str);
-*/
+typedef PKI_PRQP_RESP 	PKI_X509_PRQP_RESP_VALUE;
+typedef PKI_X509 	 	PKI_X509_PRQP_REQ;
 
 END_C_DECLS
 

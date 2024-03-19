@@ -14,6 +14,14 @@
 #define PKI_ERR					0
 #define PKI_OK					1
 
+// Check for MSVC compiler
+#ifdef _MSC_VER
+#define DEPRECATED(msg) __declspec(deprecated(msg))
+#else
+// Assume support for GCC/Clang style
+#define DEPRECATED(msg) __attribute__((deprecated(msg)))
+#endif
+
 /* BEGIN_C_DECLS should be used at the beginning of your declarations,
 so that C++ compilers don't mangle their names.  Use END_C_DECLS at
 the end of C declarations. */

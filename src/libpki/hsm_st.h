@@ -18,6 +18,8 @@
 # include <libpki/net/url.h>
 #endif
 
+#include <libpki/pki_cred.h>
+
 BEGIN_C_DECLS
 
 #define MANUFACTURER_ID_SIZE   32
@@ -177,14 +179,14 @@ typedef struct hsm_slot_info_st {
 
 } HSM_SLOT_INFO;
 
-/* Forward Declarations */
-struct hsm_st;
-// typedef struct hsm_st HSM;
-
-struct pki_mem_st;
-// typedef struct pki_mem_st PKI_MEM;
-
 #ifndef _LIBPKI_PKI_X509_DATA_ST_H
+
+/* Forward Declarations */
+// struct hsm_st;
+typedef struct hsm_st HSM;
+
+  // // struct pki_mem_st;
+  // typedef struct pki_mem_st PKI_MEM;
 
   /* Forward Declaration for PKI_X509 structure */
   // typedef struct pki_x509_st PKI_X509;
@@ -208,20 +210,20 @@ struct pki_mem_st;
 
   /* Forward Declaration of URL structure */
   struct url_data_st;
-//  typedef struct url_data_st URL;
+  typedef struct url_data_st URL;
 
   /* Forward Declaration of PKI_STACK and PKI_X509_STACK */
-  struct pki_stack_st;
-//  typedef struct pki_stack_st PKI_STACK;
-//  typedef PKI_STACK PKI_X509_STACK;
+  // struct pki_stack_st;
+  typedef struct pki_stack_st PKI_STACK;
+  typedef PKI_STACK PKI_X509_STACK;
 
   /* Forward Declaration of PKI_X509_CALLBACKS structure */
-  struct pki_x509_callbacks_st;
-//  typedef struct pki_x509_callbacks_st PKI_X509_CALLBACKS;
+  // struct pki_x509_callbacks_st;
+  typedef struct pki_x509_callbacks_st PKI_X509_CALLBACKS;
 
   /* Forward Declaration of PKI_X509_PROFILE structure */
-  struct _xmlDoc;
-//  typedef struct xmlDoc PKI_X509_PROFILE;
+  // struct _xmlDoc;
+  typedef struct xmlDoc PKI_X509_PROFILE;
 
 #endif
 

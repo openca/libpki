@@ -1,10 +1,6 @@
 /* Config management for libpki */
 
-#include <libpki/pki.h>
-
-#include <sys/types.h>
-#include <dirent.h>
-#include <libxml/xmlerror.h>
+#include <libpki/pki_config.h>
 
 /* Static function, to be used only internally */
 static char * _xml_search_namespace_add ( char *search );
@@ -1083,4 +1079,9 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child_el ( PKI_CONFIG * doc,
 	// if ( doc ) _pki_update_config ( &doc );
 
 	return ( el );
+}
+
+void PKI_CONFIG_ELEMENT_free(PKI_CONFIG_ELEMENT *el) {
+	if (el) xmlFreeNode(el);
+	return;
 }

@@ -131,7 +131,7 @@ am__objects_2 = $(am__objects_1) libpki_openssl_la-pthread_init.lo \
 	libpki_openssl_la-pki_x509_xpair_asn1.lo \
 	libpki_openssl_la-pki_ocsp_req.lo \
 	libpki_openssl_la-pki_ocsp_resp.lo \
-	libpki_openssl_la-pki_x509_attribute.lo
+	libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.lo
 am_libpki_openssl_la_OBJECTS = $(am__objects_2)
 libpki_openssl_la_OBJECTS = $(am_libpki_openssl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -171,7 +171,7 @@ am__depfiles_remade = ./$(DEPDIR)/libpki_openssl_la-pki_algor.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_rand.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_string.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_time.Plo \
-	./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo \
+	./$(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_x509_cert.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_x509_cms.Plo \
 	./$(DEPDIR)/libpki_openssl_la-pki_x509_crl.Plo \
@@ -567,7 +567,7 @@ OPENSSL_SRCS = \
 	pki_x509_xpair_asn1.c \
 	pki_ocsp_req.c \
 	pki_ocsp_resp.c \
-	pki_x509_attribute.c
+	PKI_X509_ATTRIBUTE_VALUE.c
 
 noinst_LTLIBRARIES = libpki-openssl.la
 libpki_openssl_la_SOURCES = $(OPENSSL_SRCS)
@@ -641,7 +641,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_rand.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_string.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_time.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_x509_cert.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_x509_cms.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_openssl_la-pki_x509_crl.Plo@am__quote@ # am--include-marker
@@ -875,12 +875,12 @@ libpki_openssl_la-pki_ocsp_resp.lo: pki_ocsp_resp.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_ocsp_resp.lo `test -f 'pki_ocsp_resp.c' || echo '$(srcdir)/'`pki_ocsp_resp.c
 
-libpki_openssl_la-pki_x509_attribute.lo: pki_x509_attribute.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-pki_x509_attribute.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Tpo -c -o libpki_openssl_la-pki_x509_attribute.lo `test -f 'pki_x509_attribute.c' || echo '$(srcdir)/'`pki_x509_attribute.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Tpo $(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pki_x509_attribute.c' object='libpki_openssl_la-pki_x509_attribute.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.lo: PKI_X509_ATTRIBUTE_VALUE.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.lo -MD -MP -MF $(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Tpo -c -o libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.lo `test -f 'PKI_X509_ATTRIBUTE_VALUE.c' || echo '$(srcdir)/'`PKI_X509_ATTRIBUTE_VALUE.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Tpo $(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='PKI_X509_ATTRIBUTE_VALUE.c' object='libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-pki_x509_attribute.lo `test -f 'pki_x509_attribute.c' || echo '$(srcdir)/'`pki_x509_attribute.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.lo `test -f 'PKI_X509_ATTRIBUTE_VALUE.c' || echo '$(srcdir)/'`PKI_X509_ATTRIBUTE_VALUE.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1099,7 +1099,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_rand.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_string.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_time.Plo
-	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo
+	-rm -f ./$(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_cert.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_cms.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_crl.Plo
@@ -1172,7 +1172,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_rand.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_string.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_time.Plo
-	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_attribute.Plo
+	-rm -f ./$(DEPDIR)/libpki_openssl_la-PKI_X509_ATTRIBUTE_VALUE.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_cert.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_cms.Plo
 	-rm -f ./$(DEPDIR)/libpki_openssl_la-pki_x509_crl.Plo

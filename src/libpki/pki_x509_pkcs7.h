@@ -114,24 +114,24 @@ PKI_MEM *PKI_X509_PKCS7_get_raw_data(const PKI_X509_PKCS7 * const p7 );
 /* ------------------------- X509_ATTRIBUTE funcs ----------------------- */
 
 int PKI_X509_PKCS7_add_attribute(const PKI_X509_PKCS7 * p7,
-                                 PKI_X509_ATTRIBUTE   * a);
+                                 PKI_X509_ATTRIBUTE_VALUE   * a);
 
 int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 * p7,
-                                        PKI_X509_ATTRIBUTE   * a);
+                                        PKI_X509_ATTRIBUTE_VALUE   * a);
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_signed_attribute(
                                 const PKI_X509_PKCS7 * const p7, 
                                 PKI_ID                 id );
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_attribute(
                                 const PKI_X509_PKCS7 * const p7,
                                 PKI_ID                 id);
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute_by_name(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_signed_attribute_by_name(
                                 const PKI_X509_PKCS7 * const p7, 
                                 const char           * const name );
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute_by_name(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_attribute_by_name(
                                 const PKI_X509_PKCS7 * const p7, 
                                 const char           * const name);
 

@@ -17,26 +17,22 @@
 #define _LIBPKI_PKI_MEM_H
 # pragma once
 
-#include <libpki/os.h>
-
+// OpenSSL Includes
 #include <openssl/bio.h>
 
-// #ifndef _LIBPKI_HEADER_DATA_ST_H
-// #include <libpki/openssl/data_st.h>
-// #endif
+// LibPKI Includes
+#include <libpki/pki_x509_data_st.h>
+#include <libpki/pki_mem_st.h>
+#include <libpki/stack.h>
 
-#include <libpki/datatypes.h>
+BEGIN_C_DECLS
 
-// Forwad Declaration of PKI_IO
+// Hacking Typedef, need to be removed
 typedef BIO PKI_IO;
 
-typedef struct pki_mem_st {
-	unsigned char * data;
-	// size_t current;
-	size_t size;
-} PKI_MEM;
-
-/* Function prototypes */
+// ===================
+// Function prototypes
+// ===================
 
 void *PKI_Malloc( size_t size );
 void PKI_Free( void *ret );
@@ -44,6 +40,7 @@ void PKI_ZFree ( void *pnt, size_t size );
 void PKI_ZFree_str ( char *str );
 
 PKI_MEM *PKI_MEM_new ( size_t size );
+void PKI_MEM_free(PKI_MEM *buf);
 
 /*!  \brief Creates a new PKI_MEM object with a copy of the passed data */
 PKI_MEM *PKI_MEM_new_data ( size_t size, const unsigned char *data );
@@ -52,8 +49,6 @@ PKI_MEM *PKI_MEM_dup ( PKI_MEM *mem );
 
 PKI_MEM *PKI_MEM_new_func ( void *obj, int (*func)() );
 PKI_MEM *PKI_MEM_new_func_bio (void *obj, int (*func)());
-
-int PKI_MEM_free ( PKI_MEM *buf );
 
 int PKI_MEM_grow( PKI_MEM *buf, size_t new_size );
 int PKI_MEM_add( PKI_MEM *buf, const unsigned char *data, size_t data_size );
@@ -118,4 +113,9 @@ int PKI_MEM_transfer(PKI_MEM * dst, PKI_MEM * src);
 /*! @brief Clears (free) the data from a PKI_MEM */
 int PKI_MEM_clear(PKI_MEM * mem);
 
-#endif
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN(PKI_MEM)
+
+END_C_DECLS
+
+#endif // End of _LIBPKI_PKI_MEM_H

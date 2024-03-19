@@ -54,27 +54,8 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
-// #include <libxml/nanohttp.h>
-
 
 BEGIN_C_DECLS
-
-extern const long LIBPKI_OS_DETAILS;
-
-#define PKI_NAMESPACE_PREFIX		"pki"
-#define PKI_NAMESPACE_HREF		    "http://www.openca.org/openca/pki/1/0/0"
-
-#define PKI_SUBSCRIBER_REQ_TYPE		"application/pki-subscriber-request"
-#define PKI_SUBSCRIBER_RESP_TYPE	"application/pki-subscriber-response"
-#define PKI_MANAGEMENT_REQ_TYPE		"application/pki-management-request"
-#define PKI_MANAGEMENT_RESP_TYPE	"application/pki-management-response"
-
-#ifdef HAVE_ENGINE
-#define ENV_OPENCA_ENGINE		    "engine"
-#define ENV_OPENCA_ENGINE_ID		"engine_id"
-#define ENV_OPENCA_ENGINE_PRE		"engine_pre"
-#define ENV_OPENCA_ENGINE_POST		"engine_post"
-#endif
 
 /* Imports the library's datatypes */
 #ifndef _LIBPKI_PKI_DATATYPES_H
@@ -85,52 +66,52 @@ extern const long LIBPKI_OS_DETAILS;
 #include <libpki/openssl/composite/composite_pmeth.h>
 #endif
 
-#define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
+// #define PKI_SCHEME_DEFAULT		PKI_SCHEME_RSA
 
-#define PKI_DEFAULT_CLASSIC_SEC_BITS	128
-#define PKI_DEFAULT_QUANTUM_SEC_BITS	128
+// #define PKI_DEFAULT_CLASSIC_SEC_BITS	128
+// #define PKI_DEFAULT_QUANTUM_SEC_BITS	128
 
-#define CRL_OK			        1
-#define	CRL_NOT_YET_VALID	    2
-#define	CRL_EXPIRED		        3
-#define	CRL_ERROR_NEXT_UPDATE	4
-#define	CRL_ERROR_LAST_UPDATE	5
-#define CRL_ERROR_UNKNOWN       10
+// #define CRL_OK			        1
+// #define	CRL_NOT_YET_VALID	    2
+// #define	CRL_EXPIRED		        3
+// #define	CRL_ERROR_NEXT_UPDATE	4
+// #define	CRL_ERROR_LAST_UPDATE	5
+// #define CRL_ERROR_UNKNOWN       10
 
-#define	PKI_VALIDITY_ONE_HOUR	3600
-#define PKI_VALIDITY_ONE_DAY	PKI_VALIDITY_ONE_HOUR*24
-#define PKI_VALIDITY_ONE_WEEK	PKI_VALIDITY_ONE_DAY*7
-#define PKI_VALIDITY_ONE_MONTH	PKI_VALIDITY_ONE_DAY*30
-#define PKI_VALIDITY_ONE_YEAR	PKI_VALIDITY_ONE_DAY*365
+// #define	PKI_VALIDITY_ONE_HOUR	3600
+// #define PKI_VALIDITY_ONE_DAY	PKI_VALIDITY_ONE_HOUR*24
+// #define PKI_VALIDITY_ONE_WEEK	PKI_VALIDITY_ONE_DAY*7
+// #define PKI_VALIDITY_ONE_MONTH	PKI_VALIDITY_ONE_DAY*30
+// #define PKI_VALIDITY_ONE_YEAR	PKI_VALIDITY_ONE_DAY*365
 
-typedef enum {
-	PKI_X509_CRL_REASON_ERROR 						= -1,
-	PKI_X509_CRL_REASON_UNSPECIFIED					= 0,
-	PKI_X509_CRL_REASON_KEY_COMPROMISE				= 1,
-	PKI_X509_CRL_REASON_CA_COMPROMISE				= 2,		
-	PKI_X509_CRL_REASON_AFFILIATION_CHANGED			= 3,
-	PKI_X509_CRL_REASON_SUPERSEDED					= 4,
-	PKI_X509_CRL_REASON_CESSATION_OF_OPERATION		= 5,
-	PKI_X509_CRL_REASON_CERTIFICATE_HOLD			= 6,
-	// Value #7 is not used
-	PKI_X509_CRL_REASON_REMOVE_FROM_CRL				= 8,
-	PKI_X509_CRL_REASON_PRIVILEGE_WITHDRAWN			= 9,
-	PKI_X509_CRL_REASON_AA_COMPROMISE				= 10,	
-	// Hold instructions
-	PKI_X509_CRL_REASON_HOLD_INSTRUCTION_REJECT		= 0xA2,
-	PKI_X509_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER	= 0xA3,
-} PKI_X509_CRL_REASON;
+// typedef enum {
+// 	PKI_X509_CRL_REASON_ERROR 						= -1,
+// 	PKI_X509_CRL_REASON_UNSPECIFIED					= 0,
+// 	PKI_X509_CRL_REASON_KEY_COMPROMISE				= 1,
+// 	PKI_X509_CRL_REASON_CA_COMPROMISE				= 2,		
+// 	PKI_X509_CRL_REASON_AFFILIATION_CHANGED			= 3,
+// 	PKI_X509_CRL_REASON_SUPERSEDED					= 4,
+// 	PKI_X509_CRL_REASON_CESSATION_OF_OPERATION		= 5,
+// 	PKI_X509_CRL_REASON_CERTIFICATE_HOLD			= 6,
+// 	// Value #7 is not used
+// 	PKI_X509_CRL_REASON_REMOVE_FROM_CRL				= 8,
+// 	PKI_X509_CRL_REASON_PRIVILEGE_WITHDRAWN			= 9,
+// 	PKI_X509_CRL_REASON_AA_COMPROMISE				= 10,	
+// 	// Hold instructions
+// 	PKI_X509_CRL_REASON_HOLD_INSTRUCTION_REJECT		= 0xA2,
+// 	PKI_X509_CRL_REASON_HOLD_INSTRUCTION_CALLISSUER	= 0xA3,
+// } PKI_X509_CRL_REASON;
 
-typedef struct __pkiCrlReasonCodes_st {
-	int code;
-	const char *name;
-	const char *descr;
-} PKI_X509_CRL_REASON_CODE;
+// typedef struct __pkiCrlReasonCodes_st {
+// 	int code;
+// 	const char *name;
+// 	const char *descr;
+// } PKI_X509_CRL_REASON_CODE;
 
-typedef enum {
-	PKI_MUTEX_READ		= 0,
-	PKI_MUTEX_WRITE		= 1,
-} PKI_MUTEX_METHOD;
+// typedef enum {
+// 	PKI_MUTEX_READ		= 0,
+// 	PKI_MUTEX_WRITE		= 1,
+// } PKI_MUTEX_METHOD;
 
 // #if (LIBPKI_OS_CLASS == LIBPKI_OS_WIN )
 //   // Do we need any includes for the threads on WIN (???)
@@ -262,9 +243,9 @@ typedef enum {
 #include <libpki/pki_x509.h>
 #include <libpki/pki_x509_mime.h>
 
-/* Forward declarations */
-#define PKI_X509_CERT	PKI_X509
-#define PKI_X509_REQ	PKI_X509
+// /* Forward declarations */
+// #define PKI_X509_CERT	PKI_X509
+// #define PKI_X509_REQ	PKI_X509
 
 /* Libpki Includes */
 #include <libpki/pki_time.h>
@@ -284,7 +265,7 @@ typedef enum {
 #include <libpki/pki_config.h>
 #include <libpki/pki_keypair.h>
 #include <libpki/pki_x509_item.h>
-#include <libpki/pki_x509_attribute.h>
+#include <libpki/PKI_X509_ATTRIBUTE_VALUE.h>
 #include <libpki/pki_x509_signature.h>
 #include <libpki/pki_x509_name.h>
 #include <libpki/pki_x509_req.h>

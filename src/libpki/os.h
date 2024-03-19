@@ -13,23 +13,22 @@
 #include <libpki/compat.h>
 #endif
 
-# include <sys/param.h>
-# include <sys/types.h>
+
+# include <stdio.h>
+# include <stdlib.h>
 # include <unistd.h>
 # include <string.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <limits.h>
-#include <syslog.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <sys/times.h>
+# include <limits.h>
+# include <syslog.h>
+# include <ctype.h>
+# include <sys/param.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/stat.h>
+# include <sys/file.h>
+# include <sys/times.h>
+# include <dirent.h>
 
 #define __XOPEN_OR_POSIX
 #include <signal.h>

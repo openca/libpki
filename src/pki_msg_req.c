@@ -698,7 +698,7 @@ int PKI_MSG_REQ_SCEP_new ( PKI_MSG_REQ *msg ) {
 
 	if ( msg->action == PKI_MSG_REQ_ACTION_CERTREQ )
 	{
-		PKI_X509_ATTRIBUTE *attr = NULL;
+		PKI_X509_ATTRIBUTE_VALUE *attr = NULL;
 		char buf[64];
 
 		if (!msg->sign_cert)
@@ -735,7 +735,7 @@ int PKI_MSG_REQ_SCEP_new ( PKI_MSG_REQ *msg ) {
 
 		if (msg->template_name)
 		{
-			if ((attr = PKI_X509_ATTRIBUTE_new_name("certificateTemplate", 
+			if ((attr = PKI_X509_ATTRIBUTE_VALUE_new_name("certificateTemplate", 
 				PKI_STRING_PRINTABLE, msg->template_name, strlen(msg->template_name))) != NULL)
 			{
 				PKI_X509_REQ_add_attribute ( req, attr );
@@ -744,7 +744,7 @@ int PKI_MSG_REQ_SCEP_new ( PKI_MSG_REQ *msg ) {
 
 		snprintf( buf, sizeof(buf) - 1, "%s", msg->loa );
 
-		if ((attr = PKI_X509_ATTRIBUTE_new_name( "loa", PKI_STRING_PRINTABLE, 
+		if ((attr = PKI_X509_ATTRIBUTE_VALUE_new_name( "loa", PKI_STRING_PRINTABLE, 
 			buf, strlen(buf))) != NULL )
 		{
 			PKI_X509_REQ_add_attribute ( req, attr );

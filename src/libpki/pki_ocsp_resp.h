@@ -2,12 +2,30 @@
 
 #ifndef _LIBPKI_X509_OCSP_RESP_H
 #define _LIBPKI_X509_OCSP_RESP_H
+# pragma once
+
+// LibPKI Includes
+#include <libpki/pki_mem.h>
+#include <libpki/pki_x509_data_st.h>
+
+BEGIN_C_DECLS
+
+						// ======
+						// Macros
+						// ======
 
 /* Macros for PKI_MEM conversion */
 #define PKI_X509_OCSP_RESP_mem_der(a) \
         PKI_MEM_new_func( (void *) a, i2d_OCSP_RESP_bio )
 #define PKI_X509_OCSP_RESP_mem_pem(a) \
         PKI_MEM_new_func( (void *) a, PEM_write_bio_OCSP_RESP )
+
+// Stack Declaration
+DECLARE_LIBPKI_STACK_FN(PKI_X509_OCSP_RESP)
+
+						// ===================
+						// Function Prototypes
+						// ===================
 
 /* ---------------------------- Memory Management ----------------------- */
 
@@ -19,20 +37,6 @@ PKI_X509_OCSP_RESP *PKI_X509_OCSP_RESP_new ( void );
 
 void PKI_X509_OCSP_RESP_free_void( void *x );
 void PKI_X509_OCSP_RESP_free( PKI_X509_OCSP_RESP *x );
-
-// int PKI_X509_OCSP_RESP_set_keytype_by_key(PKI_X509_OCSP_RESP     * x, 
-// 										  const PKI_X509_KEYPAIR * const key);
-
-// int PKI_X509_OCSP_RESP_set_keytype_by_cert(PKI_X509_OCSP_RESP  * x,
-// 										   const PKI_X509_CERT * const cert);
-
-// int PKI_X509_OCSP_RESP_set_nametype_by_cert(PKI_X509_OCSP_RESP * x,
-// 											const PKI_X509     * const cert);
-
-// int PKI_X509_OCSP_RESP_set_nametype_by_name(PKI_X509_OCSP_RESP  * x, 
-// 											const PKI_X509_NAME * const name);
-
-// int PKI_X509_OCSP_RESP_set_createdAt(PKI_X509_OCSP_RESP * x, int offset);
 
 /* ---------------------------- Response Manipulation ------------------- */
 
@@ -131,5 +135,7 @@ int PEM_write_bio_PKI_X509_OCSP_RESP_VALUE( PKI_IO *bp, PKI_X509_OCSP_RESP_VALUE
 PKI_OCSP_RESP *d2i_PKI_X509_OCSP_RESP_VALUE_bio ( PKI_IO *bp, PKI_X509_OCSP_RESP_VALUE **p );
 
 int i2d_PKI_X509_OCSP_RESP_VALUE_bio(PKI_IO *bp, PKI_X509_OCSP_RESP_VALUE *o );
+
+END_C_DECLS
 
 #endif

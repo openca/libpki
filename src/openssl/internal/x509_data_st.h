@@ -17,7 +17,7 @@ typedef struct X509_crl_info_st   LIBPKI_X509_CRL_INFO;
 typedef struct X509_crl_st        LIBPKI_X509_CRL;
 typedef struct X509_algor_st      LIBPKI_X509_ALGOR;
 typedef struct X509_extension_st  LIBPKI_X509_EXTENSION;
-typedef struct x509_attributes_st LIBPKI_X509_ATTRIBUTE_FULL;
+typedef struct x509_attributes_st LIBPKI_X509_ATTRIBUTE;
 
 // OCSP Structures Forward references
 typedef struct ocsp_cert_id_st        LIBPKI_X509_OCSP_CERTID;

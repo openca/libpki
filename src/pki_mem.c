@@ -158,19 +158,22 @@ void PKI_MEM_free_void ( void *buf ) {
 
 /*! \brief Frees the memory associated with a PKI_MEM, returns 1 */
 
-int PKI_MEM_free ( PKI_MEM *buf ) {
+void PKI_MEM_free(PKI_MEM *buf) {
 
-	if( !buf ) return (0);
+	// Nothing to free
+	if (!buf) return;
 
-	if (buf->data)
-	{
+	// Frees the data
+	if (buf->data) {
 		PKI_ZFree(buf->data, buf->size);
 		buf->data = NULL;
 	}
 
+	// Frees the PKI_MEM structure
 	PKI_ZFree(buf, sizeof(PKI_MEM));
 
-	return 1;
+	// All Done
+	return;
 }
 
 /*! \brief Grows the allocated size of data_size bytes */

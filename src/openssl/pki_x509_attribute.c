@@ -1,31 +1,31 @@
-/* src/openssl/pki_x509_attribute.c */
+/* src/openssl/PKI_X509_ATTRIBUTE_VALUE.c */
 
 #include <libpki/pki.h>
 #include "internal/x509_data_st.h"
 
-/*! \brief Frees the memory associated with a PKI_X509_ATTRIBUTE */
+/*! \brief Frees the memory associated with a PKI_X509_ATTRIBUTE_VALUE */
 
-void PKI_X509_ATTRIBUTE_free ( PKI_X509_ATTRIBUTE *a ) {
+void PKI_X509_ATTRIBUTE_VALUE_free ( PKI_X509_ATTRIBUTE_VALUE *a ) {
 
 	if( a ) PKI_Free ( a );
 
 	return;
 }
 
-void PKI_X509_ATTRIBUTE_free_null ( void *a ) {
-	if( a ) PKI_Free ( (PKI_X509_ATTRIBUTE *) a );
+void PKI_X509_ATTRIBUTE_VALUE_free_null ( void *a ) {
+	if( a ) PKI_Free ( (PKI_X509_ATTRIBUTE_VALUE *) a );
 
 	return;
 }
 
-/*! \brief Returns an empty PKI_X509_ATTRIBUTE */
+/*! \brief Returns an empty PKI_X509_ATTRIBUTE_VALUE */
 
-PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_null ( void ) {
+PKI_X509_ATTRIBUTE_VALUE *PKI_X509_ATTRIBUTE_VALUE_new_null ( void ) {
 
 	return ( X509_ATTRIBUTE_new() );
 }
 
-PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new( PKI_ID attribute_id,
+PKI_X509_ATTRIBUTE_VALUE *PKI_X509_ATTRIBUTE_VALUE_new( PKI_ID attribute_id,
 					    int data_type, 
 					    const unsigned char *value, 
 					    size_t size ) {
@@ -34,9 +34,9 @@ PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new( PKI_ID attribute_id,
 			(const char *) value, (int) size ));
 }
 
-/*! \brief Returns a PKI_X509_ATTRIBUTE from a string description */
+/*! \brief Returns a PKI_X509_ATTRIBUTE_VALUE from a string description */
 
-PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_name(const char *name,
+PKI_X509_ATTRIBUTE_VALUE *PKI_X509_ATTRIBUTE_VALUE_new_name(const char *name,
 						int data_type,
 						const char *value,
 						size_t size ) {
@@ -45,23 +45,23 @@ PKI_X509_ATTRIBUTE *PKI_X509_ATTRIBUTE_new_name(const char *name,
 			(unsigned char *) value, (int) size ));
 }
 
-/*! \brief Frees the memory associated with a stack of PKI_X509_ATTRIBUTE */
+/*! \brief Frees the memory associated with a stack of PKI_X509_ATTRIBUTE_VALUE */
 
-void PKI_STACK_X509_ATTRIBUTE_free( PKI_X509_ATTRIBUTE_STACK *sk ) {
+void PKI_STACK_X509_ATTRIBUTE_VALUE_free( PKI_X509_ATTRIBUTE_STACK *sk ) {
 	if( !sk ) return;
 
 	sk_X509_ATTRIBUTE_free ( sk );
 	return;
 }
 
-void PKI_STACK_X509_ATTRIBUTE_free_all ( PKI_X509_ATTRIBUTE_STACK *sk ) {
+void PKI_STACK_X509_ATTRIBUTE_VALUE_free_all ( PKI_X509_ATTRIBUTE_STACK *sk ) {
 
-	PKI_X509_ATTRIBUTE *a = NULL;
+	PKI_X509_ATTRIBUTE_VALUE *a = NULL;
 
 	if( !sk ) return;
 
-	while ((a = PKI_STACK_X509_ATTRIBUTE_pop ( sk )) != NULL ) {
-		PKI_X509_ATTRIBUTE_free ( a );
+	while ((a = PKI_STACK_X509_ATTRIBUTE_VALUE_pop ( sk )) != NULL ) {
+		PKI_X509_ATTRIBUTE_VALUE_free ( a );
 	}
 
 	sk_X509_ATTRIBUTE_free ( sk );
@@ -69,11 +69,11 @@ void PKI_STACK_X509_ATTRIBUTE_free_all ( PKI_X509_ATTRIBUTE_STACK *sk ) {
 	return;
 }
 
-const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_STACK_X509_ATTRIBUTE_VALUE_get(
 				const PKI_X509_ATTRIBUTE_STACK * a_sk,
 				PKI_ID                           attribute_id ) {
 
-	PKI_X509_ATTRIBUTE *ret = NULL;
+	PKI_X509_ATTRIBUTE_VALUE *ret = NULL;
 	int pos = 0;
 
 	pos = X509at_get_attr_by_NID ( a_sk, attribute_id, 0);
@@ -84,7 +84,7 @@ const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get(
 	return ( ret );
 }
 
-const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_num ( 
+const PKI_X509_ATTRIBUTE_VALUE *PKI_STACK_X509_ATTRIBUTE_VALUE_get_by_num ( 
 					const PKI_X509_ATTRIBUTE_STACK * a_sk, 
 					int                              num ) {
 
@@ -94,7 +94,7 @@ const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_num (
 	return X509at_get_attr ( a_sk, num );
 }
 
-const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_name (
+const PKI_X509_ATTRIBUTE_VALUE *PKI_STACK_X509_ATTRIBUTE_VALUE_get_by_name (
 			const PKI_X509_ATTRIBUTE_STACK * const a_sk,
 			const char                     * const name ) {
 
@@ -102,7 +102,7 @@ const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_name (
 	PKI_OID *obj = NULL;
 	PKI_ID id = 0;
 
-	PKI_X509_ATTRIBUTE *ret = NULL;
+	PKI_X509_ATTRIBUTE_VALUE *ret = NULL;
 
 	if( !a_sk ) {
 		return ( PKI_ERR );
@@ -121,7 +121,7 @@ const PKI_X509_ATTRIBUTE *PKI_STACK_X509_ATTRIBUTE_get_by_name (
 	return ( ret );
 }
 
-int PKI_STACK_X509_ATTRIBUTE_delete(const PKI_X509_ATTRIBUTE_STACK * a_sk, 
+int PKI_STACK_X509_ATTRIBUTE_VALUE_delete(const PKI_X509_ATTRIBUTE_STACK * a_sk, 
 				    PKI_ID                           attr ) {
 	int pos = -1;
 	int found = 0;
@@ -139,7 +139,7 @@ int PKI_STACK_X509_ATTRIBUTE_delete(const PKI_X509_ATTRIBUTE_STACK * a_sk,
 		
 }
 
-int PKI_STACK_X509_ATTRIBUTE_delete_by_num(const PKI_X509_ATTRIBUTE_STACK * a_sk,
+int PKI_STACK_X509_ATTRIBUTE_VALUE_delete_by_num(const PKI_X509_ATTRIBUTE_STACK * a_sk,
 					   int                              num){
 
 	if ( !a_sk ) return PKI_ERR;
@@ -151,14 +151,14 @@ int PKI_STACK_X509_ATTRIBUTE_delete_by_num(const PKI_X509_ATTRIBUTE_STACK * a_sk
 	return PKI_OK;
 }
 
-int PKI_STACK_X509_ATTRIBUTE_num(const PKI_X509_ATTRIBUTE_STACK * a_sk) {
+int PKI_STACK_X509_ATTRIBUTE_VALUE_num(const PKI_X509_ATTRIBUTE_STACK * a_sk) {
 
 	if (!a_sk) return -1;
 
 	return sk_X509_ATTRIBUTE_num(a_sk);
 }
 
-int PKI_STACK_X509_ATTRIBUTE_delete_by_name(const PKI_X509_ATTRIBUTE_STACK * a_sk, 
+int PKI_STACK_X509_ATTRIBUTE_VALUE_delete_by_name(const PKI_X509_ATTRIBUTE_STACK * a_sk, 
 					    const char                     * const name ) {
 
 	PKI_OID *obj = NULL;
@@ -172,19 +172,19 @@ int PKI_STACK_X509_ATTRIBUTE_delete_by_name(const PKI_X509_ATTRIBUTE_STACK * a_s
 
 	id = PKI_OID_get_id( obj );
 
-	return PKI_STACK_X509_ATTRIBUTE_delete(a_sk, id);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_delete(a_sk, id);
 }
 
-int PKI_STACK_X509_ATTRIBUTE_add(const PKI_X509_ATTRIBUTE_STACK * a_sk,
-				 PKI_X509_ATTRIBUTE             * a) {
+int PKI_STACK_X509_ATTRIBUTE_VALUE_add(const PKI_X509_ATTRIBUTE_STACK * a_sk,
+				 PKI_X509_ATTRIBUTE_VALUE             * a) {
 
 	if (!sk_X509_ATTRIBUTE_push((PKI_X509_ATTRIBUTE_STACK *)a_sk, a)) return PKI_ERR;
 
 	return PKI_OK;
 }
 
-int PKI_STACK_X509_ATTRIBUTE_replace(const PKI_X509_ATTRIBUTE_STACK * a_sk, 
-				     PKI_X509_ATTRIBUTE             * a) {
+int PKI_STACK_X509_ATTRIBUTE_VALUE_replace(const PKI_X509_ATTRIBUTE_STACK * a_sk, 
+				     PKI_X509_ATTRIBUTE_VALUE             * a) {
 
 	PKI_OID *obj = NULL;
 	PKI_ID id = 0;
@@ -205,12 +205,12 @@ int PKI_STACK_X509_ATTRIBUTE_replace(const PKI_X509_ATTRIBUTE_STACK * a_sk,
 	}
 
 	/* Delete the attribute from the stack */
-	PKI_STACK_X509_ATTRIBUTE_delete((PKI_X509_ATTRIBUTE_STACK *)a_sk, id );
+	PKI_STACK_X509_ATTRIBUTE_VALUE_delete((PKI_X509_ATTRIBUTE_STACK *)a_sk, id );
 
-	return PKI_STACK_X509_ATTRIBUTE_add((PKI_X509_ATTRIBUTE_STACK *)a_sk, a );
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_add((PKI_X509_ATTRIBUTE_STACK *)a_sk, a );
 }
 
-const char *PKI_X509_ATTRIBUTE_get_descr(const PKI_X509_ATTRIBUTE * const a) {
+const char *PKI_X509_ATTRIBUTE_get_descr(const PKI_X509_ATTRIBUTE_VALUE * const a) {
 
 	if ( !a || !a->object ) return "Unknown";
 
@@ -218,7 +218,7 @@ const char *PKI_X509_ATTRIBUTE_get_descr(const PKI_X509_ATTRIBUTE * const a) {
 }
 
 const PKI_STRING *PKI_X509_ATTRIBUTE_get_value(
-					const PKI_X509_ATTRIBUTE * const a ) {
+					const PKI_X509_ATTRIBUTE_VALUE * const a ) {
 
 	ASN1_TYPE *a_type = NULL;
 	int string_type = 0;
@@ -284,7 +284,7 @@ const PKI_STRING *PKI_X509_ATTRIBUTE_get_value(
 	return NULL;
 }
 
-char * PKI_X509_ATTRIBUTE_get_parsed(const PKI_X509_ATTRIBUTE * const a ) {
+char * PKI_X509_ATTRIBUTE_get_parsed(const PKI_X509_ATTRIBUTE_VALUE * const a ) {
 
 	int attr_type = 0;
 	char *ret = NULL;

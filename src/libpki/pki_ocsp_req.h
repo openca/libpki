@@ -2,12 +2,35 @@
 
 #ifndef _LIBPKI_X509_OCSP_REQ_H
 #define _LIBPKI_X509_OCSP_REQ_H
+# pragma once
+
+// LibPKI Includes
+#include <libpki/pki_mem.h>
+#include <libpki/pki_x509_data_st.h>
+
+BEGIN_C_DECLS
+
+						// ======
+						// Macros
+						// ======
 
 /* Macros for PKI_MEM conversion */
 #define PKI_X509_OCSP_REQ_mem_der(a) \
         PKI_MEM_new_func( (void *) a, i2d_OCSP_REQ_bio )
 #define PKI_X509_OCSP_REQ_mem_pem(a) \
         PKI_MEM_new_func( (void *) a, PEM_write_bio_OCSP_REQ )
+
+// Stack Declaration
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509_OCSP_REQ)
+
+						// ===================
+						// Function Prototypes
+						// ===================
+
+// TODO:
+//
+// Add Support for OCSPv2 (Range Queries) and OCSP-over-DNS (ODIN)
+// see proposed I-Ds at https://datatracker.ietf.org
 
 /* --------------------------------- Memory Allocation ------------------ */
 PKI_X509_OCSP_REQ *PKI_X509_OCSP_REQ_new ( void );
@@ -85,5 +108,7 @@ int i2d_OCSP_REQ_bio ( PKI_IO *bio, PKI_X509_OCSP_REQ_VALUE *val );
 PKI_X509_OCSP_REQ_VALUE * d2i_OCSP_REQ_bio ( PKI_IO *bio, 
 					PKI_X509_OCSP_REQ_VALUE *buf );
 
-#endif
+END_C_DECLS
+
+#endif // End of _LIBPKI_X509_OCSP_REQ_H
 

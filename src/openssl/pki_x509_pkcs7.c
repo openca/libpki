@@ -978,7 +978,7 @@ int PKI_X509_PKCS7_add_recipient(const PKI_X509_PKCS7 * p7,
 /* -------------------------------- Add Attributes ---------------------- */
 
 int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 * p7, 
-					PKI_X509_ATTRIBUTE   * a) {
+					PKI_X509_ATTRIBUTE_VALUE   * a) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
@@ -991,15 +991,15 @@ int PKI_X509_PKCS7_add_signed_attribute(const PKI_X509_PKCS7 * p7,
 	}
 
 	if (signerInfo->auth_attr == NULL) {
-		signerInfo->auth_attr = PKI_STACK_X509_ATTRIBUTE_new_null();
+		signerInfo->auth_attr = PKI_STACK_X509_ATTRIBUTE_VALUE_new_null();
 	}
 
-	return PKI_STACK_X509_ATTRIBUTE_add(signerInfo->auth_attr, a);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_add(signerInfo->auth_attr, a);
 
 }
 
 int PKI_X509_PKCS7_add_attribute(const PKI_X509_PKCS7 * p7,
-				 PKI_X509_ATTRIBUTE   * a) {
+				 PKI_X509_ATTRIBUTE_VALUE   * a) {
 
 	PKCS7_SIGNER_INFO *signerInfo = NULL;
 
@@ -1012,16 +1012,16 @@ int PKI_X509_PKCS7_add_attribute(const PKI_X509_PKCS7 * p7,
 	}
 
 	if (signerInfo->unauth_attr == NULL) {
-		signerInfo->unauth_attr = PKI_STACK_X509_ATTRIBUTE_new_null();
+		signerInfo->unauth_attr = PKI_STACK_X509_ATTRIBUTE_VALUE_new_null();
 	}
 
-	return PKI_STACK_X509_ATTRIBUTE_add( signerInfo->unauth_attr, a);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_add( signerInfo->unauth_attr, a);
 
 }
 
 /* -------------------------------- Get Attributes ---------------------- */
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_signed_attribute(
 					              const PKI_X509_PKCS7 * const p7,
 					              PKI_ID                 id) {
 
@@ -1037,10 +1037,10 @@ const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute(
 
     if (signerInfo->auth_attr == NULL) return NULL;
 
-	return PKI_STACK_X509_ATTRIBUTE_get(signerInfo->auth_attr, id);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_get(signerInfo->auth_attr, id);
 }
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_attribute(
 					const PKI_X509_PKCS7 * const p7, 
 					PKI_ID id ) {
 
@@ -1055,10 +1055,10 @@ const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute(
 
         if (signerInfo->unauth_attr == NULL) return NULL;
 
-	return PKI_STACK_X509_ATTRIBUTE_get(signerInfo->auth_attr, id);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_get(signerInfo->auth_attr, id);
 }
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute_by_name( 
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_signed_attribute_by_name( 
 					const PKI_X509_PKCS7 * const p7,
 					const char *name ) {
 
@@ -1073,11 +1073,11 @@ const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_signed_attribute_by_name(
 
         if (signerInfo->auth_attr == NULL) return NULL;
 
-	return PKI_STACK_X509_ATTRIBUTE_get_by_name(signerInfo->auth_attr, 
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_get_by_name(signerInfo->auth_attr, 
 						    name);
 }
 
-const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute_by_name(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_PKCS7_get_attribute_by_name(
 					const PKI_X509_PKCS7 * const p7, 
 					const char *name) {
 
@@ -1092,7 +1092,7 @@ const PKI_X509_ATTRIBUTE *PKI_X509_PKCS7_get_attribute_by_name(
 
         if (signerInfo->unauth_attr == NULL) return ( NULL );
 
-	return PKI_STACK_X509_ATTRIBUTE_get_by_name(signerInfo->auth_attr, 
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_get_by_name(signerInfo->auth_attr, 
 						    name);
 }
 
@@ -1114,7 +1114,7 @@ int PKI_X509_PKCS7_delete_signed_attribute(const PKI_X509_PKCS7 *p7,
 
 	if (signerInfo->auth_attr == NULL) return PKI_OK;
 
-	return PKI_STACK_X509_ATTRIBUTE_delete(signerInfo->auth_attr, id);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_delete(signerInfo->auth_attr, id);
 
 }
 
@@ -1133,7 +1133,7 @@ int PKI_X509_PKCS7_delete_attribute(const PKI_X509_PKCS7 *p7, PKI_ID id ) {
 
 	if (signerInfo->unauth_attr == NULL) return PKI_OK;
 
-	return PKI_STACK_X509_ATTRIBUTE_delete(signerInfo->unauth_attr, id);
+	return PKI_STACK_X509_ATTRIBUTE_VALUE_delete(signerInfo->unauth_attr, id);
 
 }
 
@@ -1260,10 +1260,10 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 			char * tmp_str = NULL;
 
 			for ( attr_num = 0; attr_num < 
-				PKI_STACK_X509_ATTRIBUTE_elements ( 
+				PKI_STACK_X509_ATTRIBUTE_VALUE_elements ( 
 					si->auth_attr ); attr_num++ ) {
 
-				a = PKI_STACK_X509_ATTRIBUTE_get_num ( 
+				a = PKI_STACK_X509_ATTRIBUTE_VALUE_get_num ( 
 					si->auth_attr, attr_num );
 
 				if ( PKI_OID_get_id ( a->object ) == 
@@ -1299,15 +1299,15 @@ int PKI_X509_PKCS7_VALUE_print_bio ( PKI_IO *bio,
 
 		BIO_printf( bio,"        Non Signed Attributes:\r\n");
 		if ( si->unauth_attr ) {
-			PKI_X509_ATTRIBUTE *a = NULL;
+			PKI_X509_ATTRIBUTE_VALUE *a = NULL;
 			int attr_num = 0;
 			char * tmp_str = NULL;
 
 			for ( attr_num = 0; attr_num < 
-				PKI_STACK_X509_ATTRIBUTE_elements ( 
+				PKI_STACK_X509_ATTRIBUTE_VALUE_elements ( 
 					si->auth_attr ); attr_num++ ) {
 
-				a = PKI_STACK_X509_ATTRIBUTE_get_num ( 
+				a = PKI_STACK_X509_ATTRIBUTE_VALUE_get_num ( 
 					si->auth_attr, attr_num );
 
 				BIO_printf( bio, "            %s=",

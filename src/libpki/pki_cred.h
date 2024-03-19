@@ -5,10 +5,17 @@
 #define _LIBPKI_PKI_CRED_H
 # pragma once
 
+// System Includes
 #include <sys/types.h>
 
-// typedef pki_ssl_st;
+// LibPKI Includes
+#include <libpki/compat.h>
 
+BEGIN_C_DECLS
+
+						// ===============
+						// Data Structures
+						// ===============
 typedef struct pki_cred_st {
 	const char *username;
 	const char *password;
@@ -19,6 +26,10 @@ typedef struct pki_cred_st {
 	struct pki_ssl_t *ssl;
 } PKI_CRED;
 
+						// ===================
+						// Function Prototypes
+						// ===================
+
 PKI_CRED *PKI_CRED_new_null ( void );
 PKI_CRED *PKI_CRED_new ( const char * const user, const char * const pwd );
 
@@ -28,4 +39,6 @@ PKI_CRED *PKI_CRED_dup ( const PKI_CRED * const cred );
 const struct pki_ssl_t * PKI_CRED_get_ssl(const PKI_CRED * const cred);
 int PKI_CRED_set_ssl(PKI_CRED *cred, struct pki_ssl_t * const ssl);
 
-#endif
+END_C_DECLS
+
+#endif // End of _LIBPKI_PKI_CRED_H

@@ -77,7 +77,7 @@ OPENSSL_SRCS = \
 	pki_x509_xpair_asn1.c \
 	pki_ocsp_req.c \
 	pki_ocsp_resp.c \
-	pki_x509_attribute.c
+	PKI_X509_ATTRIBUTE_VALUE.c
 
 noinst_LTLIBRARIES = libpki-openssl.la
 

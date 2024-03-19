@@ -3,9 +3,14 @@
 #ifndef _LIBPKI_PKI_X509_H
 #define _LIBPKI_PKI_X509_H
 
+#include <libpki/pki_x509_data_st.h>
+
 #ifndef _LIBPKI_HSM_MAIN_H
 #include <libpki/drivers/hsm_main.h>
 #endif
+
+// Stack Declarations
+DECLARE_LIBPKI_STACK_FN_DUP(PKI_X509)
 
 // ===================
 // Function Prototypes

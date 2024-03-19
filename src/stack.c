@@ -13,10 +13,22 @@
  *
  */
 
-#include <stdlib.h>
-#include <compat.h>
+						// ========
+						// Includes
+						// ========
+
+#include <libpki/os.h>
+	// Provides NULL, size_t, etc.
+
 #include <libpki/stack.h>
-#include <pki.h>
+	// Provides the PKI_STACK data structure and function prototypes
+
+#include <libpki/pki_err.h>
+	// Provides the PKI_ERROR() macro
+
+						// ========================
+						// Function Implementations
+						// ========================
 
 static PKI_STACK_NODE * _PKI_STACK_NODE_new( void *data )
 {
@@ -52,40 +64,71 @@ static int _PKI_STACK_NODE_free(PKI_STACK_NODE *n)
  * data structure. In case of error the returned value is NULL.
 */
 
-PKI_STACK * PKI_STACK_new( void (*free)())
-{
-	PKI_STACK *ret = NULL;
+PKI_STACK * PKI_STACK_new(void (*free)(void *)) {
 
-	if((ret = (PKI_STACK *) PKI_Malloc (sizeof(PKI_STACK))) == NULL)
-	{
-		return(NULL);
+	PKI_STACK *ret = NULL;
+		// Pointer to the PKI_STACK data structure to be returned
+
+	// Allocates the memory for the PKI_STACK data structure
+	ret = (PKI_STACK *) PKI_Malloc (sizeof(PKI_STACK));
+
+	// Checks the memory allocation
+	if (ret == NULL) {
+		PKI_ERROR(PKI_ERR_MEMORY_ALLOC, NULL);
+		return NULL;
 	}
 
+	// Initializes the PKI_STACK data structure
 	ret->head = NULL;
 	ret->tail = NULL;
 	ret->elements = 0;
 
+	// Sets the free function
 	if (ret->free) ret->free = free;
 	else ret->free = PKI_Free;
 
-	return(ret);
+	// Returns the PKI_STACK data structure
+	return ret;
 }
 
-PKI_STACK *PKI_STACK_new_type ( PKI_DATATYPE type ) {
+PKI_STACK *PKI_STACK_new_type(PKI_DATATYPE type) {
 
 	const PKI_X509_CALLBACKS *cb = NULL;
 
-	if ((cb = PKI_X509_CALLBACKS_get(type, NULL)) == NULL)
-	{
-		return PKI_STACK_new( NULL );
+	// Let's get the appropriate callbacks
+	cb = PKI_X509_CALLBACKS_get(type, NULL);
+
+	// Let's check we have at least one good free function
+	if (cb == NULL)	{
+		PKI_DEBUG("Can not find the appropriate callbacks for the stack type (%d)", type);
+		return NULL;
 	}
 
+	// Let's return the new stack
 	return PKI_STACK_new(cb->free);
 }
 
-PKI_STACK * PKI_STACK_new_null( void ) {
+PKI_STACK * PKI_STACK_new_type_ex(PKI_DATATYPE type, 
+								  void (*free_func)(void *)) {
 	
-	return ( PKI_STACK_new( NULL ));
+	const PKI_X509_CALLBACKS *cb = NULL;
+
+	// Let's get the appropriate callbacks
+	cb = PKI_X509_CALLBACKS_get(type, NULL);
+
+	// Let's check we have at least one good free function
+	if (!cb && !free_func) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, "Can not find the appropriate callbacks for the type and no free function was specified.");
+		return NULL;
+	}
+
+	// If we have a callback, we use it, otherwise we use the free function
+	return PKI_STACK_new(free_func ? free_func : cb->free);
+
+}
+
+PKI_STACK * PKI_STACK_new_null(void) {
+	return PKI_STACK_new(NULL);
 }
 
 /*!
@@ -100,24 +143,24 @@ PKI_STACK * PKI_STACK_new_null( void ) {
  * by using the appropriate function (e.g., PKI_X509_CERT_free() if it
  * is a stack of certificates).
 */
-int PKI_STACK_free (PKI_STACK * st)
-{
-	void * data = NULL;
+int PKI_STACK_free (PKI_STACK * st) {
 
-	if (st == NULL)
-	{
+	// Input Checks
+	if (st == NULL) {
 		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
 		return(PKI_STACK_ERR);
 	}
 
-	data = PKI_STACK_pop(st);
-	while (data != NULL)
-	{
-		data = PKI_STACK_pop(st);
+	// Provides some debugging (helps with memory leaking)
+	if (PKI_STACK_elements(st) > 0) {
+		PKI_DEBUG("Freeing the PKI_STACK, but data is still present, did you mean to use PKI_STACK_free_all() ?");
+		return PKI_STACK_ERR;
 	}
 
+	// Let's free the PKI_STACK data structure's memory
 	PKI_Free ( st );
 
+	// All Done
 	return PKI_OK;
 }
 
@@ -126,34 +169,74 @@ int PKI_STACK_free (PKI_STACK * st)
  *
  * This function frees the memory used by a PKI_STACK structure.
  * If the structure is not empty, the pointers to every node are freed,
- * If the type of data within the STACK is not known to the
- * stack itself, it is suggested that you use the PKI_STACK_pop() function
- * and free the elements by using the appropriate function.
+ * The function pointer provided is used to free the data, if NULL is
+ * provided, the default function from the STACK initialization is used.
+ * 
+ * \param st is a pointer to the PKI_STACK data structure to be freed.
+ * \param free_func is a pointer to the function to be used to free the data
+ * \return PKI_OK in case of success, PKI_ERR in case of error.
 */
 
-int PKI_STACK_free_all (PKI_STACK * st)
+void PKI_STACK_free_all_ex(PKI_STACK * st, void (*free_func)(void *))
 {
+
+	void * data = NULL;
+		// Pointer to the data to be freed
+
+	void (*free_func_ptr)(void *) = NULL;
+		// Pointer to the function to be used to free the data
+
 	// Input check
-	if (!st) return PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+	if (!st) {
+		PKI_ERROR(PKI_ERR_PARAM_NULL, NULL);
+		return;
+	}
+
+	// Sets the function pointer to the provided function or to the
+	free_func_ptr = free_func ? free_func : st->free;
 
 	// Provides some debugging (helps with memory leaking)
-	if (st->free == NULL) {
+	if (free_func_ptr == NULL) {
 		// Provides some debugging (helps with memory leaking)
 		PKI_ERROR(PKI_ERR_PARAM_NULL,
 			"Can not free the stack because of missing memory-deallocation Function "
 			"from Stack Initialization");
 
-		// Returns the error
-		return PKI_ERR;
+		return;
 	}
 
 	// Removes and frees all the nodes in the stack
-	while (PKI_STACK_pop_free(st) == PKI_OK);
+	while ((data = PKI_STACK_pop(st)) != NULL) {
+		// Use the function pointer to free the memory
+		(free_func_ptr)(data);
+	}
 
 	// Let's free the PKI_STACK data structure's memory
 	PKI_Free(st);
 
 	// All Done.
+	return;
+}
+
+/*!
+ * \brief Frees memory associated with a PKI_STACK
+ *
+ * This function frees the memory used by a PKI_STACK structure.
+ * If the structure is not empty, the pointers to every node are freed,
+ * If the type of data within the STACK is not known to the
+ * stack itself, it is suggested that you use the PKI_STACK_free_all_ex
+ * function with the appropriate free function for the node's data.
+ * 
+ * \param st is a pointer to the PKI_STACK data structure to be freed.
+ * \return PKI_OK in case of success, PKI_ERR in case of error.
+*/
+
+int PKI_STACK_free_all (PKI_STACK * st)
+{
+	// Wrapper to the PKI_STACK_free_all_ex function
+	PKI_STACK_free_all_ex(st, NULL);
+
+	// Can we really fail? Shouldn't we return void?
 	return PKI_OK;
 }
 

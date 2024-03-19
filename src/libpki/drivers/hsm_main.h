@@ -2,10 +2,14 @@
 
 #ifndef _LIBPKI_HSM_MAIN_H
 #define _LIBPKI_HSM_MAIN_H
+# pragma once
 
-#ifndef _LIBPKI_HSM_ST_H
+// LibPKI Includes
 #include <libpki/hsm_st.h>
-#endif
+#include <libpki/pki_x509_data_st.h>
+#include <libpki/pki_mem.h>
+
+BEGIN_C_DECLS
 
 /* Added MACRO to ease usage of the general signature function PKI_sign() */
 /*
@@ -16,6 +20,10 @@
 #define PKI_verify(it,alg,sig,data,key) \
 		PKI_verify_signature((void*)ASN1_ITEM_rptr(it),alg,sig,data,key)
 */
+
+						// ====================
+						// Functions Prototypes
+						// ====================
 
 /* ----------------------- HSM Management ---------------------------- */
 
@@ -70,8 +78,11 @@ int PKI_verify_signature(const PKI_MEM  			* data,
 
 /* ------------------- PKI Object Retrieval ( Get ) ----------------------- */
 
-PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url,
-					PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm );
+PKI_X509_STACK *HSM_X509_STACK_get_url(const PKI_DATATYPE	   type,
+									   const URL 		  	 * const url,
+									   const PKI_DATA_FORMAT   format,
+									   const PKI_CRED 	   	 * cred,
+									   HSM 			   		 * hsm);
 
 /* --------------------- PKI Object Import ( Put ) ------------------------ */
 
@@ -89,4 +100,6 @@ int HSM_X509_del_url ( PKI_DATATYPE type, URL *url, PKI_CRED *cred, HSM *hsm );
 
 const PKI_X509_CALLBACKS * HSM_X509_get_cb ( PKI_DATATYPE type, HSM *hsm );
 
-#endif
+END_C_DECLS
+
+#endif // End of _LIBPKI_HSM_MAIN_H

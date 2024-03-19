@@ -54,6 +54,14 @@
 #include <libpki/hsm_st.h>
 #endif
 
+#ifndef _LIBPKI_X509_OCSP_ASN1_H
+#include <libpki/pki_ocsp_asn1.h>
+#endif
+
+#ifndef _LIBPK_PRQP_ASN1_H
+#include <libpki/prqp/prqp_asn1.h>
+#endif
+
 BEGIN_C_DECLS
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fL
@@ -69,101 +77,97 @@ BEGIN_C_DECLS
 
 #endif
 
+#if defined(ENABLE_COMPOSITE) || defined(ENABLE_OCSPROV)
+
 //! \brief EVP CTRL to set the number of required valid signatures (K of N)
-#define COMPOSITE_PKEY_CTRL_SET_K_OF_N	0x301
+# define COMPOSITE_PKEY_CTRL_SET_K_OF_N	0x301
 
 //! \brief EVP CTRL to get the number of required valid signatures (K of N)
-#define COMPOSITE_PKEY_CTRL_GET_K_OF_N	0x302
+# define COMPOSITE_PKEY_CTRL_GET_K_OF_N	0x302
 
 //! \brief EVP CTRL to set the pre-hashing function
-#define COMPOSITE_PKEY_CTRL_SET_HASH	0x303
+# define COMPOSITE_PKEY_CTRL_SET_HASH	0x303
 
 //! \brief EVP CTRL to get the pre-hashing function
-#define COMPOSITE_PKEY_CTRL_GET_HASH	0x304
+# define COMPOSITE_PKEY_CTRL_GET_HASH	0x304
 
-//! \brief Type definition for ASN1_BIT_STRING
-typedef ASN1_BIT_STRING	PKI_X509_SIGNATURE;
-
-//! \brief Forward declaration for the PKI_X509 definition
-typedef struct pki_x509_st PKI_X509;
+#endif
 
 //! \brief Forward declaration for the URL definition
-typedef struct url_data_st URL;
 
-// Base definition for PKI_IO
-typedef BIO PKI_IO;
-// #define PKI_IO					BIO
+// Base definition for PKI_IO Forward References
+typedef BIO 					PKI_IO;
+typedef ASN1_OBJECT 			PKI_OID;
+typedef ASN1_GENERALIZEDTIME 	PKI_TIME;
+typedef ASN1_INTEGER 			PKI_INTEGER;
+typedef ASN1_OCTET_STRING 		PKI_OCTET_STRING;
+typedef ASN1_BIT_STRING			PKI_X509_SIGNATURE;
 
-typedef ASN1_OBJECT PKI_OID;
-// #define PKI_OID 				ASN1_OBJECT
+// Core Structures for PKI_X509 Forward References
+typedef EVP_PKEY 				PKI_X509_KEYPAIR_VALUE;
+typedef X509 					PKI_X509_CERT_VALUE;
+typedef X509_REQ 				PKI_X509_REQ_VALUE;
+typedef X509_CRL 				PKI_X509_CRL_VALUE;
+typedef PKCS7 					PKI_X509_PKCS7_VALUE;
+typedef EVP_MD 					PKI_DIGEST_ALG;
+typedef X509_ALGOR 				PKI_X509_ALGOR_VALUE;
+typedef EVP_CIPHER 				PKI_CIPHER;
+typedef X509_NAME				PKI_X509_NAME;
+typedef X509_ATTRIBUTE			PKI_X509_ATTRIBUTE_VALUE;
 
-typedef ASN1_GENERALIZEDTIME PKI_TIME;
-// #define PKI_TIME			    ASN1_GENERALIZEDTIME
-typedef ASN1_INTEGER PKI_INTEGER;
-// #define PKI_INTEGER			  	ASN1_INTEGER
+// CMS Structures Forward References
+typedef struct CMS_ContentInfo_st 				PKI_X509_CMS_VALUE;
+typedef struct CMS_SignerInfo_st				PKI_X509_CMS_SIGNER_INFO;
+typedef struct CMS_RecipientInfo_st 			PKI_X509_CMS_RECIPIENT_INFO;
+typedef struct CMS_IssuerAndSerialNumber_st 	LIBPKI_CMS_ISSUER_AND_SERIAL_NUMBER;
+typedef struct CMS_EncapsulatedContentInfo_st 	LIBPKI_CMS_CI_ENCAPSULATED;
+typedef struct CMS_SignerIdentifier_st 			LIBPKI_CMS_SIGNER_IDENTIFIER;
+typedef struct CMS_SignedData_st 				LIBPKI_CMS_SIGNED_DATA;
+typedef struct CMS_OtherRevocationInfoFormat_st LIBPKI_CMS_OTHER_REVOCATION_INFO_FORMAT;
+typedef struct CMS_OriginatorInfo_st 			LIBPKI_CMS_ORIGINATOR_INFO;
+typedef struct CMS_EncryptedContentInfo_st 		LIBPKI_CMS_CI_ENCRYPTED;
+typedef struct CMS_EnvelopedData_st 			LIBPKI_CMS_DATA_ENVELOPED;
+typedef struct CMS_DigestedData_st 				LIBPKI_CMS_DATA_DIGESTED;
+typedef struct CMS_EncryptedData_st 			LIBPKI_CMS_DATA_ENCRYPTED;
+typedef struct CMS_AuthenticatedData_st 		LIBPKI_CMS_DATA_AUTH;
+typedef struct CMS_CompressedData_st 			LIBPKI_CMS_DATA_COMPRESSED;
+typedef struct CMS_OtherCertificateFormat_st 	LIBPKI_CMS_OTHER_CERTIFICATE_FORMAT;
+typedef struct CMS_KeyTransRecipientInfo_st 	LIBPKI_CMS_RECIPIENT_INFO_KTRANS;
+typedef struct CMS_OriginatorPublicKey_st 		LIBPKI_CMS_ORIGINATOR_PUBLIC_KEY;
+typedef struct CMS_OriginatorIdentifierOrKey_st LIBPKI_CMS_ORIGINATOR_IDENTIFIER_OR_KEY;
+typedef struct CMS_KeyAgreeRecipientInfo_st 	LIBPKI_CMS_RECIPIENT_INFO_KAGREE;
+typedef struct CMS_RecipientKeyIdentifier_st 	LIBPKI_CMS_RECIPIENT_KEY_IDENTIFIER;
+typedef struct CMS_KeyAgreeRecipientIdentifier_st LIBPKI_CMS_KAGREE_RECIPIENT_IDENTIFIER;
+typedef struct CMS_KEKIdentifier_st 			LIBPKI_CMS_KEK_IDENTIFIER;
+typedef struct CMS_KEKRecipientInfo_st 			LIBPKI_CMS_RECIPIENT_INFO_KEK;
+typedef struct CMS_PasswordRecipientInfo_st 	LIBPKI_CMS_RECIPIENT_INFO_PASSWORD;
+typedef struct CMS_OtherRecipientInfo_st 		LIBPKI_CMS_RECIPIENT_INFO_OTHER;
+typedef struct CMS_ReceiptsFrom_st 				LIBPKI_CMS_RECEIPTS_FROM;
 
-typedef ASN1_OCTET_STRING PKI_OCTET_STRING;
-// #define PKI_OCTET_STRING  		ASN1_OCTETSTRING
+// Other Generic Structures Forward References
+typedef struct url_data_st 		  URL;
+typedef struct x509_cinf_st       LIBPKI_X509_CINF;
+typedef struct x509_st            LIBPKI_X509_CERT;
+typedef struct X509_req_info_st   LIBPKI_X509_REQ_INFO;
+typedef struct X509_req_st        LIBPKI_X509_REQ;
+typedef struct X509_crl_info_st   LIBPKI_X509_CRL_INFO;
+typedef struct X509_crl_st        LIBPKI_X509_CRL;
+typedef struct X509_algor_st      LIBPKI_X509_ALGOR;
+typedef struct X509_extension_st  LIBPKI_X509_EXTENSION;
+typedef struct x509_attributes_st LIBPKI_X509_ATTRIBUTE;
+typedef struct PKCS12_st		  PKI_X509_PKCS12_VALUE;
+typedef STACK_OF(PKCS7) 		  PKI_X509_PKCS12_DATA;
 
-typedef EVP_PKEY PKI_X509_KEYPAIR_VALUE;
-typedef PKI_X509 PKI_X509_KEYPAIR;
-// #define PKI_X509_KEYPAIR_VALUE  EVP_PKEY
-// #define PKI_X509_KEYPAIR        PKI_X509
+// LibPKI X509 Structures Forward References
+typedef PKI_X509 					PKI_X509_KEYPAIR;
+typedef PKI_X509 					PKI_X509_CERT;
+typedef PKI_X509 					PKI_X509_REQ;
+typedef PKI_X509 					PKI_X509_CRL;
+typedef PKI_X509 					PKI_X509_CMS;
+typedef PKI_X509					PKI_X509_PKCS12;
 
-typedef X509 PKI_X509_CERT_VALUE;
-typedef PKI_X509 PKI_X509_CERT;
-// #define PKI_X509_CERT_VALUE     X509 	
-// #define PKI_X509_CERT           PKI_X509 	
-
-typedef X509_REQ PKI_X509_REQ_VALUE;
-typedef PKI_X509 PKI_X509_REQ;
-// #define PKI_X509_REQ_VALUE      X509_REQ
-// #define PKI_X509_REQ            PKI_X509 	
-
-typedef X509_CRL PKI_X509_CRL_VALUE;
-typedef PKI_X509 PKI_X509_CRL;
-// #define PKI_X509_CRL_VALUE      X509_CRL 
-// #define PKI_X509_CRL            PKI_X509 
-
-typedef PKCS7 PKI_X509_PKCS7_VALUE;
-typedef PKI_X509 PKI_X509_PKCS7;
-// #define PKI_X509_PKCS7_VALUE    PKCS7
-// #define PKI_X509_PKCS7          PKI_X509
-
-typedef CMS_ContentInfo PKI_X509_CMS_VALUE;
-typedef PKI_X509 PKI_X509_CMS;
-// #define PKI_X509_CMS_VALUE      CMS_ContentInfo
-// #define PKI_X509_CMS            PKI_X509
-
-typedef CMS_SignerInfo PKI_X509_CMS_SIGNER_INFO;
-// #define PKI_X509_CMS_SIGNER_INFO CMS_SignerInfo
-typedef CMS_RecipientInfo PKI_X509_CMS_RECIPIENT_INFO;
-// #define PKI_X509_CMS_RECIPIENT_INFO CMS_RecipientInfo
-
-typedef PKCS12 PKI_X509_PKCS12_VALUE;
-// #define PKI_X509_PKCS12_VALUE   PKCS12
-typedef STACK_OF(PKCS7) PKI_X509_PKCS12_DATA;
-// #define PKI_X509_PKCS12_DATA    STACK_OF(PKCS7)
-typedef PKI_X509 PKI_X509_PKCS12;
-// #define PKI_X509_PKCS12         PKI_X509
-
-typedef OCSP_ONEREQ PKI_OCSP_REQ_SINGLE;
-// #define PKI_OCSP_REQ_SINGLE     OCSP_ONEREQ
-typedef OCSP_CERTID PKI_OCSP_CERTID;
-// #define PKI_OCSP_CERTID         OCSP_CERTID
-
-typedef OCSP_REQUEST PKI_X509_OCSP_REQ_VALUE;
-// #define PKI_X509_OCSP_REQ_VALUE OCSP_REQUEST
-typedef PKI_X509 PKI_X509_OCSP_REQ;
-// #define PKI_X509_OCSP_REQ       PKI_X509
-
+// Other LibPKI Structures Forward References
 typedef struct pki_keyparams_st PKI_PARAMS;
-
-// OpenSSL structures
-typedef EVP_MD 		PKI_DIGEST_ALG;
-typedef X509_ALGOR 	PKI_X509_ALGOR_VALUE;
-typedef EVP_CIPHER 	PKI_CIPHER;
-typedef X509_NAME 	PKI_X509_NAME;
 
 // Internal Structures
 typedef int 						PKI_ID;
@@ -171,14 +175,11 @@ typedef struct pki_keyparams_st 	PKI_X509_KEYPARAMS;
 typedef struct hsm_st 				HSM;
 
 /* Some useful Key definitions */
-typedef RSA PKI_RSA_KEY;
-// #define PKI_RSA_KEY		RSA
-typedef DSA PKI_DSA_KEY;
-// #define PKI_DSA_KEY		DSA
+typedef RSA 	PKI_RSA_KEY;
+typedef DSA 	PKI_DSA_KEY;
 
 #ifdef ENABLE_ECDSA
-typedef EC_KEY PKI_EC_KEY;
-// #define PKI_EC_KEY		EC_KEY
+typedef EC_KEY 	PKI_EC_KEY;
 #endif
 
 #if defined(ENABLE_COMPOSITE) || defined(ENABLE_OCSPROV)
@@ -1303,7 +1304,7 @@ typedef struct pki_x509_name_rdn {
 } PKI_X509_NAME_RDN;
 
 /// @brief Internal Value for LibPKI extensions
-#define PKI_X509_EXTENSION_VALUE	X509_EXTENSION
+typedef X509_EXTENSION PKI_X509_EXTENSION_VALUE;
 
 // Missing definition from OpenSSL (x509v3.h)
 typedef STACK_OF(ACCESS_DESCRIPTION) SUBJECT_INFO_ACCESS;
@@ -1396,7 +1397,7 @@ typedef struct pki_keyparams_st {
 #if defined(ENABLE_COMPOSITE) || defined(ENABLE_OCSPROV)
 	struct {
 		int algorithm;
-		PKI_X509_KEYPAIR_STACK * k_stack;
+		struct pki_x509_st * k_stack;
 		ASN1_INTEGER * k_of_n;
 	} comp;
 
@@ -1426,63 +1427,12 @@ typedef struct pki_store_st {
         void	*store_ptr;
 } PKI_STORE;
 
-/* OCSP support */
 
-typedef enum {
-	PKI_OCSP_CERTSTATUS_GOOD 	= V_OCSP_CERTSTATUS_GOOD,
-	PKI_OCSP_CERTSTATUS_REVOKED	= V_OCSP_CERTSTATUS_REVOKED,
-	PKI_OCSP_CERTSTATUS_UNKNOWN	= V_OCSP_CERTSTATUS_UNKNOWN
-} PKI_OCSP_CERTSTATUS;
 
-typedef enum {
-	PKI_X509_OCSP_RESP_STATUS_SUCCESSFUL 			= 0,
-	PKI_X509_OCSP_RESP_STATUS_MALFORMEDREQUEST		= 1,
-	PKI_X509_OCSP_RESP_STATUS_INTERNALERROR 		= 2,
-	PKI_X509_OCSP_RESP_STATUS_TRYLATER 			    = 3,
-	PKI_X509_OCSP_RESP_STATUS_SIGREQUIRED 			= 5,
-	PKI_X509_OCSP_RESP_STATUS_UNAUTHORIZED 			= 6
-} PKI_X509_OCSP_RESP_STATUS;
 
-//! @brief LibPKI X509 OCSP Response Structure
-typedef struct pki_ocsp_resp_st {
-	PKI_X509_OCSP_RESP_STATUS status; //! Status of the response
-	OCSP_RESPONSE * resp; // ! OCSP Response
-	OCSP_BASICRESP * bs; //! OCSP Basic Response
-} PKI_X509_OCSP_RESP_VALUE;
+typedef PKI_X509 			PKI_X509_XPAIR;
 
-//! @brief OCSP Response Backward Compatibility name
-#define PKI_OCSP_RESP PKI_X509_OCSP_RESP_VALUE
-typedef enum {
-	PKI_X509_OCSP_RESPID_NOT_SET       = -1,
-	PKI_X509_OCSP_RESPID_TYPE_BY_NAME  =  0,
-	PKI_X509_OCSP_RESPID_TYPE_BY_KEYID =  1
-} PKI_X509_OCSP_RESPID_TYPE;
-
-typedef OCSP_BASICRESP PKI_X509_OCSP_BASICRESP_VALUE;
-// #define PKI_X509_OCSP_BASICRESP_VALUE OCSP_BASICRESP
-
-typedef PKI_X509 PKI_X509_OCSP_RESP;
-// #define PKI_X509_OCSP_RESP       PKI_X509
-
-// typedef PKI_XPAIR PKI_X509_XPAIR_VALUE;
-// #define PKI_X509_XPAIR_VALUE     PKI_XPAIR
-typedef PKI_X509 PKI_X509_XPAIR;
-// #define PKI_X509_XPAIR           PKI_X509
-
-typedef struct PRQPReq_st PKI_PRQP_REQ;
-typedef PKI_PRQP_REQ PKI_X509_PRQP_REQ_VALUE;
-// #define PKI_X509_PRQP_REQ_VALUE  PKI_PRQP_REQ
-typedef PKI_X509 PKI_X509_PRQP_REQ;
-// #define PKI_X509_PRQP_REQ        PKI_X509
-
-typedef struct PRQPResponse_st PKI_PRQP_RESP;
-typedef PKI_PRQP_RESP PKI_X509_PRQP_RESP_VALUE;
 typedef PKI_X509 PKI_X509_PRQP_RESP;
-// // #define PKI_X509_PRQP_RESP_VALUE PKI_PRQP_RESP
-// // #define PKI_X509_PRQP_RESP       PKI_X509
-
-// #include <libpki/hsm_st.h>
-// #include <libpki/token_st.h>
 
 #define __B64_write_bio_internal(type,bio,data,p) ({ BIO *b64; int r;\
                 b64 = BIO_new(BIO_f_base64()) ; \

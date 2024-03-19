@@ -236,24 +236,24 @@ PKI_MEM *PKI_X509_CMS_get_raw_data(const PKI_X509_CMS * const cms );
 /* ------------------------- X509_ATTRIBUTE funcs ----------------------- */
 
 int PKI_X509_CMS_add_attribute(const PKI_X509_CMS * cms,
-                               PKI_X509_ATTRIBUTE * a);
+                               PKI_X509_ATTRIBUTE_VALUE * a);
 
 int PKI_X509_CMS_add_signed_attribute(const PKI_X509_CMS * cms,
-                                      PKI_X509_ATTRIBUTE * a);
+                                      PKI_X509_ATTRIBUTE_VALUE * a);
 
-const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_signed_attribute(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_CMS_get_signed_attribute(
                             const PKI_X509_CMS * const cms, 
                             PKI_ID               id );
 
-const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_CMS_get_attribute(
                             const PKI_X509_CMS * const cms,
                             PKI_ID               id);
 
-const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_signed_attribute_by_name(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_CMS_get_signed_attribute_by_name(
                             const PKI_X509_CMS * const cms, 
                             const char         * const name );
 
-const PKI_X509_ATTRIBUTE *PKI_X509_CMS_get_attribute_by_name(
+const PKI_X509_ATTRIBUTE_VALUE *PKI_X509_CMS_get_attribute_by_name(
                             const PKI_X509_CMS * const cms, 
                             const char         * const name);
 

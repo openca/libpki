@@ -14,175 +14,59 @@
  *
  */
 
-#ifndef _LIBPKI_STACK_H
-#define _LIBPKI_STACK_H
+#ifndef _LIBPKI_STACK_ST_H
+#define _LIBPKI_STACK_ST_H
 # pragma once
 
-// LibPKI Includes
-#include <libpki/stack_st.h>
-#include <libpki/stack_utils.h>
+// Libpki Includes
+#include <libpki/compat.h>
 
-// ==========================
-// Stack Management Functions
-// ==========================
+BEGIN_C_DECLS
+
+#define PKI_STACK_ERR		PKI_ERR
+#define PKI_STACK_OK		PKI_OK
 
 /*!
- * \brief Creates a new PKI_STACK with a specified free function
+ * \brief Data structure for PKI_STACK nodes (INTERNAL ONLY)
+ */
+typedef struct pki_stack_node_st {
+	struct pki_stack_node_st *next;
+	struct pki_stack_node_st *prev;
+
+	void *data;
+} PKI_STACK_NODE;
+
+/*!
+ * \brief Data structure for PKI_STACK
  *
- * This function creates a new PKI_STACK data structure.
- * The free_func parameter is a pointer to a function that will be used
- * to free the data associated with the stack's nodes. If NULL is provided,
- * the default free function for the data type will be used.
- * 
- * \param free_func is a pointer to the function to be used to free the data
- * \return A pointer to the new PKI_STACK data structure.
-*/
-PKI_STACK * PKI_STACK_new(void (*free_func)(void *));
+ * The PKI_STACK is the basic structure for storing a stack of generic
+ * elements. Fields SHOULD NOT be accessed directly, instead specific
+ * PKI_STACK_new(), PKI_STACK_free(), etc... functions exist that take
+ * care about details and initialization of the structure.
+ */
+typedef struct pki_stack_st {
+	/*!  \brief Number of elements in the PKI_STACK */
+	int elements;
 
-/*!
- * \brief Creates a new PKI_STACK of a specific type
- *
- * This function creates a new PKI_STACK data structure of a specific type.
- * The type parameter is used to specify the type of data that will be stored
- * in the stack.
- * 
- * \param type is the type of data that will be stored in the stack
- * \return A pointer to the new PKI_STACK data structure.
-*/
-PKI_STACK * PKI_STACK_new_type(PKI_DATATYPE type);
+	/*! \brief Pointer to the first node of the PKI_STACK */
+	PKI_STACK_NODE *head;
+	/*! \brief Pointer to the last node of the PKI_STACK */
+	PKI_STACK_NODE *tail;
 
-/*!
-* \brief Creates a new PKI_STACK of a specific type with a specified free function
-*
-* This function creates a new PKI_STACK data structure of a specific type.
-* The type parameter is used to specify the type of data that will be stored
-* in the stack. The free_func parameter is a pointer to a function that will
-* be used to free the data associated with the stack's nodes. If NULL is
-* provided, the default free function will be used.
-*
-* \param type is the type of data that will be stored in the stack
-* \param free_func is a pointer to the function to be used to free the data
-* \return A pointer to the new PKI_STACK data structure.
-*/
-PKI_STACK * PKI_STACK_new_type_ex(PKI_DATATYPE type, 
-								  void 		   (*free_func)(void *));
+	/*! \brief Pointer to the function called to free the data object */
+	void (*free)( void *);
+} PKI_STACK;
 
-/*!
- * \brief Creates a new PKI_STACK
- *
- * This function creates a new PKI_STACK data structure. The stack
- * is initialized to use the PKI_Free() function to free the nodes'
- * data.
- * 
- * \return A pointer to the new PKI_STACK data structure.
-*/
-PKI_STACK * PKI_STACK_new_null(void);
-
-/*!
-* \brief Frees memory associated with a PKI_STACK
-*
-* This function frees the memory used by a PKI_STACK structure.
-* If the structure is not empty, the pointers to every node are NOT
-* freed, please make sure that the stack is either empty or the
-* data that was added was all constant (i.e., not owned by the
-* STACK itself).
-*
-* \param st is a pointer to the PKI_STACK data structure to be freed.
-* \return PKI_OK in case of success, PKI_ERR in case of error.
-*/
-// DEPRECATED("This function is deprecated, please use PKI_STACK_free_all() instead")
-int PKI_STACK_free(PKI_STACK * st);
-
-/*!
- * \brief Frees memory associated with a PKI_STACK
- *
- * This function frees the memory used by a PKI_STACK structure.
- * If the structure is not empty, the pointers to every node are freed
- * by using the free_func that was used to setup the stack (or the
- * default PKI_Free, if not specific datatype was used).
- * 
- * \param st is a pointer to the PKI_STACK data structure to be freed.
- * \return PKI_OK in case of success, PKI_ERR in case of error.
-*/
-int PKI_STACK_free_all(PKI_STACK * st);
-
-/*!
- * \brief Frees memory associated with a PKI_STACK
- *
- * This function frees the memory used by a PKI_STACK structure.
- * If the structure is not empty, the pointers to every node are freed,
- * The function pointer provided is used to free the data, if NULL is
- * provided, the default function from the STACK initialization is used.
- * 
- * \param st is a pointer to the PKI_STACK data structure to be freed.
- * \param free_func is a pointer to the function to be used to free the data
- * \return PKI_OK in case of success, PKI_ERR in case of error.
-*/
-void PKI_STACK_free_all_ex(PKI_STACK * st, void (*)(void *));
-
-/*!
- * \brief Returns the number of elements in a PKI_STACK
- *
- * This function returns the number of elements in a PKI_STACK.
- * 
- * \param st is a pointer to the PKI_STACK data structure to be checked.
- * \return The number of elements in the PKI_STACK.
-*/
-int     PKI_STACK_elements ( PKI_STACK *st );
-
-/*!
- * \brief Pushes an element onto a PKI_STACK
- *
- * This function pushes an element onto a PKI_STACK. The data is
- * retained in the stack and will be freed when the stack is freed.
- * An appropriate free function must be provided to automatically
- * free the stack's memory associated with the nodes' data.
- * 
- * \param st is a pointer to the PKI_STACK data structure to be used.
- * \param obj is a pointer to the object to be pushed onto the stack.
- * \return PKI_OK in case of success, PKI_ERR in case of error.
-*/
-int     PKI_STACK_push ( PKI_STACK *st, void *obj );
-
-/*!
- * \brief Pops an element from a PKI_STACK
- *
- * This function pops an element from a PKI_STACK. The ownership
- * of the data is transferred to the caller who is now responsible
- * for releasing its memory when not needed anymore.
- * 
- * \param st is a pointer to the PKI_STACK data structure to be used.
- * \return A pointer to the object popped from the stack.
-*/
-void  * PKI_STACK_pop ( PKI_STACK *st );
-
-/*!
- * \brief Pops an element from a PKI_STACK and frees its memory
- *
- * This function pops an element from a PKI_STACK and frees its memory.
- * An appropriate free function must be provided to automatically
- * free the stack's memory associated with the nodes' data.
- * 
- * \param st is a pointer to the PKI_STACK data structure to be used.
- * \return PKI_OK in case of success, PKI_ERR in case of error.
-*/
-int     PKI_STACK_pop_free ( PKI_STACK *st );
-
-void  * PKI_STACK_get_num ( PKI_STACK *st, int num );
-void  * PKI_STACK_del_num ( PKI_STACK *st, int num );
-int     PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj );
-
-
-// /* define for PKI_MEM stacks - implement object type casting */
-// #define PKI_STACK_MEM_new() (PKI_MEM_STACK *) PKI_STACK_new((void (*)(void *))PKI_MEM_free)
-// #define PKI_STACK_MEM_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
-// #define PKI_STACK_MEM_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
-// #define PKI_STACK_MEM_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
-// #define PKI_STACK_MEM_pop(p) (PKI_MEM *) PKI_STACK_pop( (PKI_STACK *) p )
-// #define PKI_STACK_MEM_get_num(p,n) (PKI_MEM *) PKI_STACK_get_num( (PKI_STACK *)p, n)
-// #define PKI_STACK_MEM_ins_num(p,n,obj) PKI_STACK_ins_num((PKI_STACK *)p,n,(void *)obj)
-// #define PKI_STACK_MEM_del_num(p,n) PKI_STACK_del_num((PKI_STACK *)p, n)
-// #define PKI_STACK_MEM_elements(p) PKI_STACK_elements((PKI_STACK *)p)
+// // /* define for PKI_MEM stacks - implement object type casting */
+// // #define PKI_STACK_MEM_new() (PKI_MEM_STACK *) PKI_STACK_new((void (*)(void *))PKI_MEM_free)
+// // #define PKI_STACK_MEM_free( p ) PKI_STACK_free ( (PKI_STACK *) p)
+// // #define PKI_STACK_MEM_free_all( p ) PKI_STACK_free_all ( (PKI_STACK *) p)
+// // #define PKI_STACK_MEM_push(p, obj) PKI_STACK_push((PKI_STACK *)p, (void *)obj)
+// // #define PKI_STACK_MEM_pop(p) (PKI_MEM *) PKI_STACK_pop( (PKI_STACK *) p )
+// // #define PKI_STACK_MEM_get_num(p,n) (PKI_MEM *) PKI_STACK_get_num( (PKI_STACK *)p, n)
+// // #define PKI_STACK_MEM_ins_num(p,n,obj) PKI_STACK_ins_num((PKI_STACK *)p,n,(void *)obj)
+// // #define PKI_STACK_MEM_del_num(p,n) PKI_STACK_del_num((PKI_STACK *)p, n)
+// // #define PKI_STACK_MEM_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
 // /* define for X509 stacks - implement object type casting */
 // #define PKI_STACK_X509_new() (PKI_X509_STACK *) PKI_STACK_new((void (*)(void *))PKI_X509_free)
@@ -365,7 +249,8 @@ int     PKI_STACK_ins_num ( PKI_STACK *st, int num, void *obj );
 // #define PKI_STACK_OCSP_RESP_del_num(p,n) PKI_STACK_del_num((PKI_STACK *)p, n)
 // #define PKI_STACK_OCSP_RESP_elements(p) PKI_STACK_elements((PKI_STACK *)p)
 
-/* END of _PKI_STACK_H */
-#endif
+END_C_DECLS
+
+#endif // END of _PKI_STACK_H
 
 
