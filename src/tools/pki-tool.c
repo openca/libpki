@@ -1,6 +1,10 @@
 
 #include <libpki/pki.h>
 
+#ifndef _LIBPKI_OID_DEFS_H
+# include <libpki/openssl/pki_oid_defs.h>
+#endif
+
 /* Global Variables - not a good coding practice, but for a small
    tool is not a problem (and it saves in complexity for signatures
    of the functions */
