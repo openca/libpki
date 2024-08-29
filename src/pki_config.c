@@ -13,6 +13,7 @@ static char *def_conf_dirs[] = {
 
 #define PKI_DEF_CONF_DIRS_SIZE	2
 #define LIBXML_MIN_VERSION 20600
+#define LIBXML_212_VERSION 21200
 
 #if LIBXML_VERSION < LIBXML_MIN_VERSION
 #define xmlErrorPtr void *
@@ -26,7 +27,11 @@ static char *def_conf_dirs[] = {
 #endif
 */
 
+#if LIBXML_VERSION >= LIBXML_212_VERSION
+void logXmlMessages( void *userData, const xmlError *error ) {
+#else
 void logXmlMessages( void *userData, xmlErrorPtr error ) {
+#endif
 #if LIBXML_VERSION >= LIBXML_MIN_VERSION
 	PKI_log_err( "XML I/O Error: %s", error->message);
 #else
