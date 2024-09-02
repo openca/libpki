@@ -7,34 +7,26 @@ include $(TOP)/global-vars
 
 BASE_DEFS = 
 
-if ENABLE_OPENSSL
-HSM_SOFTWARE = openssl
-HSM_SOFTWARE_OBJ = $(top_builddir)/src/drivers/openssl/libpki-token-openssl.la
-else
-HSM_SOFTWARE =
-endif
-
-HSM_PKCS11 = pkcs11
-HSM_PKCS11_OBJ = $(top_builddir)/src/drivers/pkcs11/libpki-token-pkcs11.la
-
-HSMS = $(HSM_SOFTWARE) $(HSM_PKCS11)
-OBJECTS = $(HSM_SOFTWARE_OBJ) $(HSM_PKCS11_OBJ)
-
-SUBDIRS = $(HSMS) .
+SUBDIRS = artifacts composite hsm .
 
 AM_CPPFLAGS = -I$(TOP)
 
 SRCS = \
-	hsm_main.c \
-	hsm_slot.c \
-	hsm_keypair.c
+	c_algorithm.c \
+	c_digest.c \
+	c_hmac.c \
+	c_rand.c \
+	c_kdf.c \
+	c_id.c \
+	c_keypair.c \
+	c_keyparams.c \
+	c_oid.c \
+	c_oid_defs.c
 
 
-noinst_LTLIBRARIES = libpki-token.la
-# noinst_LIBRARIES = libpki-token.a
+noinst_LTLIBRARIES = libpki-crypto.la
 
-libpki_token_la_SOURCES = $(SRCS)
-libpki_token_la_CFLAGS  = $(BUILD_LIBPKI_CFLAGS)
-# libpki_token_la_LIBADD  = $(BUILD_LIBPKI_LDFLAGS) $(OBJECTS)
-libpki_token_la_LIBADD  = $(OBJECTS)
+libpki_crypto_la_SOURCES = $(SRCS)
+libpki_crypto_la_CFLAGS  = $(BUILD_LIBPKI_CFLAGS)
+libpki_crypto_la_LIBADD  = $(OBJECTS)
 

@@ -99,8 +99,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
-	$(top_builddir)/src/libpki/libpki_enables.h
+CONFIG_HEADER = $(top_builddir)/src/libpki/libconf/defines.h \
+	$(top_builddir)/src/libpki/libconf/features.h
 CONFIG_CLEAN_FILES = pkginfo
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
@@ -284,10 +284,6 @@ include_prefix = @include_prefix@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-kmf_cflags = @kmf_cflags@
-kmf_ldadd = @kmf_ldadd@
-kmf_libflags = @kmf_libflags@
-kmf_prefix = @kmf_prefix@
 ldap_cflags = @ldap_cflags@
 ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@

@@ -106,14 +106,9 @@ DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
-	$(top_builddir)/src/libpki/libpki_enables.h
-CONFIG_CLEAN_FILES = src/scripts/libpki-config src/libpki/pki_config.h \
-	src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml \
-	examples/prqp/Makefile examples/profiles/Makefile \
-	examples/token/Makefile examples/url/Makefile \
-	examples/crl/Makefile examples/pkcs11/Makefile \
-	examples/pkcs12/Makefile examples/fips-mode/Makefile \
+CONFIG_HEADER = $(top_builddir)/src/libpki/libconf/defines.h \
+	$(top_builddir)/src/libpki/libconf/features.h
+CONFIG_CLEAN_FILES = scripts/libpki-config contrib/libpki-inst.xml \
 	etc/profile.d/test.xml etc/profile.d/user.xml \
 	etc/profile.d/server.xml etc/store.d/empty.xml
 CONFIG_CLEAN_VPATH_FILES =
@@ -176,24 +171,13 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/compile \
 	$(top_srcdir)/build/ltmain.sh $(top_srcdir)/build/missing \
 	$(top_srcdir)/build/mkinstalldirs \
 	$(top_srcdir)/contrib/libpki-inst.xml.in \
-	$(top_srcdir)/contrib/libpki.pc.in \
 	$(top_srcdir)/etc/profile.d/server.xml.in \
 	$(top_srcdir)/etc/profile.d/test.xml.in \
 	$(top_srcdir)/etc/profile.d/user.xml.in \
 	$(top_srcdir)/etc/store.d/empty.xml.in \
-	$(top_srcdir)/examples/crl/Makefile.in \
-	$(top_srcdir)/examples/fips-mode/Makefile.in \
-	$(top_srcdir)/examples/pkcs11/Makefile.in \
-	$(top_srcdir)/examples/pkcs12/Makefile.in \
-	$(top_srcdir)/examples/profiles/Makefile.in \
-	$(top_srcdir)/examples/prqp/Makefile.in \
-	$(top_srcdir)/examples/token/Makefile.in \
-	$(top_srcdir)/examples/url/Makefile.in \
-	$(top_srcdir)/src/libpki/config.h.in \
-	$(top_srcdir)/src/libpki/libpki_enables.h.in \
-	$(top_srcdir)/src/libpki/libpkiv.h.in \
-	$(top_srcdir)/src/libpki/pki_config.h.in \
-	$(top_srcdir)/src/scripts/libpki-config.in AUTHORS COPYING \
+	$(top_srcdir)/scripts/libpki-config.in \
+	$(top_srcdir)/src/libpki/libconf/defines.h.in \
+	$(top_srcdir)/src/libpki/libconf/features.h.in AUTHORS COPYING \
 	ChangeLog INSTALL NEWS README.md TODO build/compile \
 	build/config.guess build/config.sub build/depcomp \
 	build/install-sh build/ltmain.sh build/missing \
@@ -405,10 +389,6 @@ include_prefix = @include_prefix@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-kmf_cflags = @kmf_cflags@
-kmf_ldadd = @kmf_ldadd@
-kmf_libflags = @kmf_libflags@
-kmf_prefix = @kmf_prefix@
 ldap_cflags = @ldap_cflags@
 ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@
@@ -599,53 +579,31 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
 
-src/libpki/config.h: src/libpki/stamp-h1
-	@test -f $@ || rm -f src/libpki/stamp-h1
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) src/libpki/stamp-h1
+src/libpki/libconf/defines.h: src/libpki/libconf/stamp-h1
+	@test -f $@ || rm -f src/libpki/libconf/stamp-h1
+	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) src/libpki/libconf/stamp-h1
 
-src/libpki/stamp-h1: $(top_srcdir)/src/libpki/config.h.in $(top_builddir)/config.status
-	@rm -f src/libpki/stamp-h1
-	cd $(top_builddir) && $(SHELL) ./config.status src/libpki/config.h
-$(top_srcdir)/src/libpki/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
+src/libpki/libconf/stamp-h1: $(top_srcdir)/src/libpki/libconf/defines.h.in $(top_builddir)/config.status
+	@rm -f src/libpki/libconf/stamp-h1
+	cd $(top_builddir) && $(SHELL) ./config.status src/libpki/libconf/defines.h
+$(top_srcdir)/src/libpki/libconf/defines.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
-	rm -f src/libpki/stamp-h1
+	rm -f src/libpki/libconf/stamp-h1
 	touch $@
 
-src/libpki/libpki_enables.h: src/libpki/stamp-h2
-	@test -f $@ || rm -f src/libpki/stamp-h2
-	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) src/libpki/stamp-h2
+src/libpki/libconf/features.h: src/libpki/libconf/stamp-h2
+	@test -f $@ || rm -f src/libpki/libconf/stamp-h2
+	@test -f $@ || $(MAKE) $(AM_MAKEFLAGS) src/libpki/libconf/stamp-h2
 
-src/libpki/stamp-h2: $(top_srcdir)/src/libpki/libpki_enables.h.in $(top_builddir)/config.status
-	@rm -f src/libpki/stamp-h2
-	cd $(top_builddir) && $(SHELL) ./config.status src/libpki/libpki_enables.h
+src/libpki/libconf/stamp-h2: $(top_srcdir)/src/libpki/libconf/features.h.in $(top_builddir)/config.status
+	@rm -f src/libpki/libconf/stamp-h2
+	cd $(top_builddir) && $(SHELL) ./config.status src/libpki/libconf/features.h
 
 distclean-hdr:
-	-rm -f src/libpki/config.h src/libpki/stamp-h1 src/libpki/libpki_enables.h src/libpki/stamp-h2
-src/scripts/libpki-config: $(top_builddir)/config.status $(top_srcdir)/src/scripts/libpki-config.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-src/libpki/pki_config.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/pki_config.h.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-src/libpki/libpkiv.h: $(top_builddir)/config.status $(top_srcdir)/src/libpki/libpkiv.h.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-contrib/libpki.pc: $(top_builddir)/config.status $(top_srcdir)/contrib/libpki.pc.in
+	-rm -f src/libpki/libconf/defines.h src/libpki/libconf/stamp-h1 src/libpki/libconf/features.h src/libpki/libconf/stamp-h2
+scripts/libpki-config: $(top_builddir)/config.status $(top_srcdir)/scripts/libpki-config.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 contrib/libpki-inst.xml: $(top_builddir)/config.status $(top_srcdir)/contrib/libpki-inst.xml.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/prqp/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/prqp/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/profiles/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/profiles/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/token/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/token/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/url/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/url/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/crl/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/crl/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/pkcs11/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/pkcs11/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/pkcs12/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/pkcs12/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-examples/fips-mode/Makefile: $(top_builddir)/config.status $(top_srcdir)/examples/fips-mode/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 etc/profile.d/test.xml: $(top_builddir)/config.status $(top_srcdir)/etc/profile.d/test.xml.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@

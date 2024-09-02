@@ -1431,22 +1431,21 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	## End of OpenSSL build settings section ##
 
 	dnl OpenSSL Engine Support
-	AC_ARG_ENABLE( openssl-engine,
-	[  --enable-openssl-engine      enable openssl engine support (yes)],
+	AC_ARG_ENABLE(pkcs11,
+	[  --enable-pkcs11      enable pkcs11 experimental support (no)],
 	[case "${enableval}" in
-	  yes)  engine=yes ;;
-	  no)   engine=no ;;
-	  *) AC_MSG_ERROR([bad value ${engine} for --enable-openssl-engine]) ;;
-	 esac], [engine=yes])
+	  yes)  enable_pkcs11=yes ;;
+	  no)   enable_pkcs11=no ;;
+	  *) AC_MSG_ERROR([bad value ${engine} for --enable-pkcs11]) ;;
+	 esac], [enable_pkcs11=no])
 
-	AC_MSG_RESULT([enable engine support   : $engine])
+	AC_MSG_RESULT([enable pkcs11 experimental support   : $enable_pkcs11])
 
-	dnl AM_CONDITIONAL(HAVE_ENGINE, test x$engine = yes)
-
-	if [[ "$engine" = "yes" ]] ; then
-	        AC_DEFINE(HAVE_ENGINE, 1, [ENGINE])
+	if [[ "$enable_pkcs11" = "yes" ]] ; then
+	        AC_DEFINE(HAVE_PKCS11, 1, [PKCS11])
 	fi
-	AM_CONDITIONAL(ENABLE_OPENSSL_ENGINE, test "${engine}" = "yes")
+
+	AM_CONDITIONAL(ENABLE_PKCS11, test "${enable_pkcs11}" = "yes")
 fi
 
 dnl ================= Open Quantum Safe - PQ and Composite Crypto LIBRARIES ===================
@@ -1617,7 +1616,6 @@ AM_CONDITIONAL(ENABLE_COMPOSITE, test "${composite}" = "yes")
 dnl ================= OpenSSL Static LIBS (?) =========================
 
 AM_CONDITIONAL(STATIC_COMPILE, test "x$openssl_static_libs" != "x")
-AC_CONFIG_HEADER([src/libpki/config.h src/libpki/libpki_enables.h])
 
 AC_ARG_ENABLE(strict,
 	AC_HELP_STRING( [--enable-strict],
@@ -1625,6 +1623,8 @@ AC_ARG_ENABLE(strict,
 		strict_compile=$enableval, strict_compile=no )
 
 dnl ========================== GENERAL COMPILE OPTIONS ===============
+
+AC_CONFIG_HEADER([src/libpki/libconf/defines.h src/libpki/libconf/features.h])
 
 sys_ldadd=
 sys_cflags=
@@ -1802,7 +1802,7 @@ AC_CONFIG_FILES(
 	src/crypto/Makefile
 	src/crypto/hsm/Makefile
 	src/crypto/hsm/openssl/Makefile
-	src/drivers/pkcs11/Makefile
+dnl	src/crypto/hsm/pkcs11/Makefile
 dnl	src/crypto/composite/Makefile
 dnl	src/openssl/pqc/Makefile
 dnl	src/openssl/Makefile
@@ -1815,10 +1815,10 @@ dnl	src/pkix/cmc/Makefile
 dnl	src/pkix/prqp/Makefile
 dnl	src/pkix/prqp/Makefile
 dnl	src/tools/Makefile
-	src/scripts/libpki-config
+	scripts/libpki-config
 dnl	src/tests/Makefile
-	include/libpki/libconf/defines.h
-	include/libpki/libconf/version.h
+dnl	include/libpki/libconf/defines.h
+dnl	include/libpki/libconf/version.h
 dnl	contrib/libpki.pc
 	contrib/libpki-inst.xml
 dnl	examples/prqp/Makefile

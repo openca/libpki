@@ -20,8 +20,8 @@ SRCS = \
 	openssl_hsm_obj.c \
 	openssl_hsm_cb.c
 
-noinst_LTLIBRARIES = libpki-token-openssl.la
+noinst_LTLIBRARIES = libpki-hsm-openssl.la
 
-libpki_token_openssl_la_SOURCES = $(SRCS)
-libpki_token_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+libpki_hsm_openssl_la_SOURCES = $(SRCS)
+libpki_hsm_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 

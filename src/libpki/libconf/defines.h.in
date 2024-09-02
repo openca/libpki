@@ -1,4 +1,4 @@
-/* src/libpki/config.h.in.  Generated from configure.ac by autoheader.  */
+/* src/libpki/libconf/defines.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Forces 32bits builds */
 #undef ENABLE_ARCH_32
@@ -11,9 +11,6 @@
 
 /* ECC Support for OpenSSL */
 #undef ENABLE_ECDSA
-
-/* SUN CMS */
-#undef ENABLE_KMF
 
 /* OPENSSL */
 #undef ENABLE_OPENSSL
@@ -32,9 +29,6 @@
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
-
-/* ENGINE */
-#undef HAVE_ENGINE
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
@@ -69,6 +63,9 @@
 
 /* test "${enablepg}" = "yes" */
 #undef HAVE_PG
+
+/* PKCS11 */
+#undef HAVE_PKCS11
 
 /* HAVE_PTHREAD_RWLOCK */
 #undef HAVE_PTHREAD_RWLOCK

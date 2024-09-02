@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src/crypto/hsm
+subdir = src/crypto
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -105,19 +105,23 @@ CONFIG_HEADER = $(top_builddir)/src/libpki/libconf/defines.h \
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-libpki_hsm_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am__objects_1 = libpki_hsm_la-hsm_main.lo libpki_hsm_la-hsm_slot.lo \
-	libpki_hsm_la-hsm_keypair.lo
-am_libpki_hsm_la_OBJECTS = $(am__objects_1)
-libpki_hsm_la_OBJECTS = $(am_libpki_hsm_la_OBJECTS)
+libpki_crypto_la_DEPENDENCIES =
+am__objects_1 = libpki_crypto_la-c_algorithm.lo \
+	libpki_crypto_la-c_digest.lo libpki_crypto_la-c_hmac.lo \
+	libpki_crypto_la-c_rand.lo libpki_crypto_la-c_kdf.lo \
+	libpki_crypto_la-c_id.lo libpki_crypto_la-c_keypair.lo \
+	libpki_crypto_la-c_keyparams.lo libpki_crypto_la-c_oid.lo \
+	libpki_crypto_la-c_oid_defs.lo
+am_libpki_crypto_la_OBJECTS = $(am__objects_1)
+libpki_crypto_la_OBJECTS = $(am_libpki_crypto_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_hsm_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_hsm_la_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+libpki_crypto_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(libpki_crypto_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -133,9 +137,16 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki/libconf
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo \
-	./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo \
-	./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
+am__depfiles_remade = ./$(DEPDIR)/libpki_crypto_la-c_algorithm.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_digest.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_hmac.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_id.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_kdf.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_keypair.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_keyparams.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_oid.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_oid_defs.Plo \
+	./$(DEPDIR)/libpki_crypto_la-c_rand.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -155,8 +166,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_hsm_la_SOURCES)
-DIST_SOURCES = $(libpki_hsm_la_SOURCES)
+SOURCES = $(libpki_crypto_la_SOURCES)
+DIST_SOURCES = $(libpki_crypto_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -195,7 +206,7 @@ am__define_uniq_tagged_files = \
   unique=`for i in $$list; do \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
-DIST_SUBDIRS = openssl wolfssl pkcs11 .
+DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/depcomp \
 	$(top_srcdir)/build/mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -472,34 +483,24 @@ xml2_prefix = @xml2_prefix@
 yr = @yr@
 TOP = ..
 BASE_DEFS = 
-@ENABLE_OPENSSL_FALSE@OSSL_SUBDIRS = 
-@ENABLE_OPENSSL_TRUE@OSSL_SUBDIRS = openssl
-@ENABLE_OPENSSL_FALSE@OSSL_SOFTWARE_OBJ = 
-@ENABLE_OPENSSL_TRUE@OSSL_SOFTWARE_OBJ = openssl/libpki-hsm-openssl.la
-@ENABLE_WOLFSSL_FALSE@WOLFSSL_SUBDIRS = 
-
-# HSM_SOFTWARE = wolfssl
-# HSM_SOFTWARE_OBJ = $(top_builddir)/src/drivers/wolfssl/libpki-token-wolfssl.la
-@ENABLE_WOLFSSL_TRUE@WOLFSSL_SUBDIRS = wolfssl
-@ENABLE_WOLFSSL_FALSE@WOLFSSL_SOFTWARE_OBJ = 
-@ENABLE_WOLFSSL_TRUE@WOLFSSL_SOFTWARE_OBJ = wolfssl/libpki-hsm-wolfssl.la
-@ENABLE_PKCS11_FALSE@PKCS11_SUBDIRS = 
-@ENABLE_PKCS11_TRUE@PKCS11_SUBDIRS = pkcs11
-@ENABLE_PKCS11_FALSE@PKCS11_SOFTWARE_OBJ = 
-@ENABLE_PKCS11_TRUE@PKCS11_SOFTWARE_OBJ = pkcs11/libpki-hsm-pkcs11.la
-HSMS = $(OSSL_SOFTWARE_OBJ) $(WOLFSSL_SOFTWARE_OBJ) $(PKCS11_SOFTWARE_OBJ)
-OBJECTS = $(HSM_SOFTWARE_OBJ) $(HSM_PKCS11_OBJ)
-SUBDIRS = $(OSSL_SUBDIRS) $(WOLFSSL_SUBDIRS) $(PKCS11_SUBDIRS) .
+SUBDIRS = artifacts composite hsm .
 AM_CPPFLAGS = -I$(TOP)
 SRCS = \
-	hsm_main.c \
-	hsm_slot.c \
-	hsm_keypair.c
+	c_algorithm.c \
+	c_digest.c \
+	c_hmac.c \
+	c_rand.c \
+	c_kdf.c \
+	c_id.c \
+	c_keypair.c \
+	c_keyparams.c \
+	c_oid.c \
+	c_oid_defs.c
 
-noinst_LTLIBRARIES = libpki-hsm.la
-libpki_hsm_la_SOURCES = $(SRCS)
-libpki_hsm_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
-libpki_hsm_la_LIBADD = $(OBJECTS)
+noinst_LTLIBRARIES = libpki-crypto.la
+libpki_crypto_la_SOURCES = $(SRCS)
+libpki_crypto_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+libpki_crypto_la_LIBADD = $(OBJECTS)
 all: all-recursive
 
 .SUFFIXES:
@@ -513,9 +514,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/crypto/hsm/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/crypto/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/crypto/hsm/Makefile
+	  $(AUTOMAKE) --gnu src/crypto/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -545,8 +546,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki-hsm.la: $(libpki_hsm_la_OBJECTS) $(libpki_hsm_la_DEPENDENCIES) $(EXTRA_libpki_hsm_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_hsm_la_LINK)  $(libpki_hsm_la_OBJECTS) $(libpki_hsm_la_LIBADD) $(LIBS)
+libpki-crypto.la: $(libpki_crypto_la_OBJECTS) $(libpki_crypto_la_DEPENDENCIES) $(EXTRA_libpki_crypto_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_crypto_la_LINK)  $(libpki_crypto_la_OBJECTS) $(libpki_crypto_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -554,9 +555,16 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_algorithm.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_digest.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_hmac.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_id.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_kdf.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_keypair.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_keyparams.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_oid.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_oid_defs.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_crypto_la-c_rand.Plo@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -588,26 +596,75 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libpki_hsm_la-hsm_main.lo: hsm_main.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_la-hsm_main.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_la-hsm_main.Tpo -c -o libpki_hsm_la-hsm_main.lo `test -f 'hsm_main.c' || echo '$(srcdir)/'`hsm_main.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_la-hsm_main.Tpo $(DEPDIR)/libpki_hsm_la-hsm_main.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hsm_main.c' object='libpki_hsm_la-hsm_main.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_crypto_la-c_algorithm.lo: c_algorithm.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_algorithm.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_algorithm.Tpo -c -o libpki_crypto_la-c_algorithm.lo `test -f 'c_algorithm.c' || echo '$(srcdir)/'`c_algorithm.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_algorithm.Tpo $(DEPDIR)/libpki_crypto_la-c_algorithm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_algorithm.c' object='libpki_crypto_la-c_algorithm.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_la-hsm_main.lo `test -f 'hsm_main.c' || echo '$(srcdir)/'`hsm_main.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_algorithm.lo `test -f 'c_algorithm.c' || echo '$(srcdir)/'`c_algorithm.c
 
-libpki_hsm_la-hsm_slot.lo: hsm_slot.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_la-hsm_slot.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_la-hsm_slot.Tpo -c -o libpki_hsm_la-hsm_slot.lo `test -f 'hsm_slot.c' || echo '$(srcdir)/'`hsm_slot.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_la-hsm_slot.Tpo $(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hsm_slot.c' object='libpki_hsm_la-hsm_slot.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_crypto_la-c_digest.lo: c_digest.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_digest.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_digest.Tpo -c -o libpki_crypto_la-c_digest.lo `test -f 'c_digest.c' || echo '$(srcdir)/'`c_digest.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_digest.Tpo $(DEPDIR)/libpki_crypto_la-c_digest.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_digest.c' object='libpki_crypto_la-c_digest.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_la-hsm_slot.lo `test -f 'hsm_slot.c' || echo '$(srcdir)/'`hsm_slot.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_digest.lo `test -f 'c_digest.c' || echo '$(srcdir)/'`c_digest.c
 
-libpki_hsm_la-hsm_keypair.lo: hsm_keypair.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_la-hsm_keypair.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_la-hsm_keypair.Tpo -c -o libpki_hsm_la-hsm_keypair.lo `test -f 'hsm_keypair.c' || echo '$(srcdir)/'`hsm_keypair.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_la-hsm_keypair.Tpo $(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hsm_keypair.c' object='libpki_hsm_la-hsm_keypair.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_crypto_la-c_hmac.lo: c_hmac.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_hmac.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_hmac.Tpo -c -o libpki_crypto_la-c_hmac.lo `test -f 'c_hmac.c' || echo '$(srcdir)/'`c_hmac.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_hmac.Tpo $(DEPDIR)/libpki_crypto_la-c_hmac.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_hmac.c' object='libpki_crypto_la-c_hmac.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_la-hsm_keypair.lo `test -f 'hsm_keypair.c' || echo '$(srcdir)/'`hsm_keypair.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_hmac.lo `test -f 'c_hmac.c' || echo '$(srcdir)/'`c_hmac.c
+
+libpki_crypto_la-c_rand.lo: c_rand.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_rand.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_rand.Tpo -c -o libpki_crypto_la-c_rand.lo `test -f 'c_rand.c' || echo '$(srcdir)/'`c_rand.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_rand.Tpo $(DEPDIR)/libpki_crypto_la-c_rand.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_rand.c' object='libpki_crypto_la-c_rand.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_rand.lo `test -f 'c_rand.c' || echo '$(srcdir)/'`c_rand.c
+
+libpki_crypto_la-c_kdf.lo: c_kdf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_kdf.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_kdf.Tpo -c -o libpki_crypto_la-c_kdf.lo `test -f 'c_kdf.c' || echo '$(srcdir)/'`c_kdf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_kdf.Tpo $(DEPDIR)/libpki_crypto_la-c_kdf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_kdf.c' object='libpki_crypto_la-c_kdf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_kdf.lo `test -f 'c_kdf.c' || echo '$(srcdir)/'`c_kdf.c
+
+libpki_crypto_la-c_id.lo: c_id.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_id.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_id.Tpo -c -o libpki_crypto_la-c_id.lo `test -f 'c_id.c' || echo '$(srcdir)/'`c_id.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_id.Tpo $(DEPDIR)/libpki_crypto_la-c_id.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_id.c' object='libpki_crypto_la-c_id.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_id.lo `test -f 'c_id.c' || echo '$(srcdir)/'`c_id.c
+
+libpki_crypto_la-c_keypair.lo: c_keypair.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_keypair.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_keypair.Tpo -c -o libpki_crypto_la-c_keypair.lo `test -f 'c_keypair.c' || echo '$(srcdir)/'`c_keypair.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_keypair.Tpo $(DEPDIR)/libpki_crypto_la-c_keypair.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_keypair.c' object='libpki_crypto_la-c_keypair.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_keypair.lo `test -f 'c_keypair.c' || echo '$(srcdir)/'`c_keypair.c
+
+libpki_crypto_la-c_keyparams.lo: c_keyparams.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_keyparams.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_keyparams.Tpo -c -o libpki_crypto_la-c_keyparams.lo `test -f 'c_keyparams.c' || echo '$(srcdir)/'`c_keyparams.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_keyparams.Tpo $(DEPDIR)/libpki_crypto_la-c_keyparams.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_keyparams.c' object='libpki_crypto_la-c_keyparams.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_keyparams.lo `test -f 'c_keyparams.c' || echo '$(srcdir)/'`c_keyparams.c
+
+libpki_crypto_la-c_oid.lo: c_oid.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_oid.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_oid.Tpo -c -o libpki_crypto_la-c_oid.lo `test -f 'c_oid.c' || echo '$(srcdir)/'`c_oid.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_oid.Tpo $(DEPDIR)/libpki_crypto_la-c_oid.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_oid.c' object='libpki_crypto_la-c_oid.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_oid.lo `test -f 'c_oid.c' || echo '$(srcdir)/'`c_oid.c
+
+libpki_crypto_la-c_oid_defs.lo: c_oid_defs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -MT libpki_crypto_la-c_oid_defs.lo -MD -MP -MF $(DEPDIR)/libpki_crypto_la-c_oid_defs.Tpo -c -o libpki_crypto_la-c_oid_defs.lo `test -f 'c_oid_defs.c' || echo '$(srcdir)/'`c_oid_defs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_crypto_la-c_oid_defs.Tpo $(DEPDIR)/libpki_crypto_la-c_oid_defs.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='c_oid_defs.c' object='libpki_crypto_la-c_oid_defs.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_crypto_la_CFLAGS) $(CFLAGS) -c -o libpki_crypto_la-c_oid_defs.lo `test -f 'c_oid_defs.c' || echo '$(srcdir)/'`c_oid_defs.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -812,9 +869,16 @@ clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-recursive
-		-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo
-	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo
-	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
+		-rm -f ./$(DEPDIR)/libpki_crypto_la-c_algorithm.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_digest.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_hmac.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_id.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_kdf.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_keypair.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_keyparams.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_oid.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_oid_defs.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_rand.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -860,9 +924,16 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-		-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo
-	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo
-	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
+		-rm -f ./$(DEPDIR)/libpki_crypto_la-c_algorithm.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_digest.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_hmac.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_id.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_kdf.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_keypair.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_keyparams.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_oid.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_oid_defs.Plo
+	-rm -f ./$(DEPDIR)/libpki_crypto_la-c_rand.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -89,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src/drivers/openssl
+subdir = src/crypto/hsm/openssl
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -100,26 +100,25 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
-	$(top_builddir)/src/libpki/libpki_enables.h
+CONFIG_HEADER = $(top_builddir)/src/libpki/libconf/defines.h \
+	$(top_builddir)/src/libpki/libconf/features.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libpki_token_openssl_la_LIBADD =
-am__objects_1 = libpki_token_openssl_la-openssl_hsm.lo \
-	libpki_token_openssl_la-openssl_hsm_pkey.lo \
-	libpki_token_openssl_la-openssl_hsm_obj.lo \
-	libpki_token_openssl_la-openssl_hsm_cb.lo
-am_libpki_token_openssl_la_OBJECTS = $(am__objects_1)
-libpki_token_openssl_la_OBJECTS =  \
-	$(am_libpki_token_openssl_la_OBJECTS)
+libpki_hsm_openssl_la_LIBADD =
+am__objects_1 = libpki_hsm_openssl_la-openssl_hsm.lo \
+	libpki_hsm_openssl_la-openssl_hsm_pkey.lo \
+	libpki_hsm_openssl_la-openssl_hsm_obj.lo \
+	libpki_hsm_openssl_la-openssl_hsm_cb.lo
+am_libpki_hsm_openssl_la_OBJECTS = $(am__objects_1)
+libpki_hsm_openssl_la_OBJECTS = $(am_libpki_hsm_openssl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_token_openssl_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+libpki_hsm_openssl_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(libpki_token_openssl_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -133,14 +132,14 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki/libconf
 depcomp = $(SHELL) $(top_srcdir)/build/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Plo \
-	./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Plo \
-	./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Plo \
-	./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Plo
+	./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Plo \
+	./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Plo \
+	./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Plo \
+	./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -160,8 +159,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_token_openssl_la_SOURCES)
-DIST_SOURCES = $(libpki_token_openssl_la_SOURCES)
+SOURCES = $(libpki_hsm_openssl_la_SOURCES)
+DIST_SOURCES = $(libpki_hsm_openssl_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -345,10 +344,6 @@ include_prefix = @include_prefix@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
-kmf_cflags = @kmf_cflags@
-kmf_ldadd = @kmf_ldadd@
-kmf_libflags = @kmf_libflags@
-kmf_prefix = @kmf_prefix@
 ldap_cflags = @ldap_cflags@
 ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@
@@ -450,9 +445,9 @@ SRCS = \
 	openssl_hsm_obj.c \
 	openssl_hsm_cb.c
 
-noinst_LTLIBRARIES = libpki-token-openssl.la
-libpki_token_openssl_la_SOURCES = $(SRCS)
-libpki_token_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+noinst_LTLIBRARIES = libpki-hsm-openssl.la
+libpki_hsm_openssl_la_SOURCES = $(SRCS)
+libpki_hsm_openssl_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -466,9 +461,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/drivers/openssl/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/crypto/hsm/openssl/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/drivers/openssl/Makefile
+	  $(AUTOMAKE) --gnu src/crypto/hsm/openssl/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -498,8 +493,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki-token-openssl.la: $(libpki_token_openssl_la_OBJECTS) $(libpki_token_openssl_la_DEPENDENCIES) $(EXTRA_libpki_token_openssl_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_token_openssl_la_LINK)  $(libpki_token_openssl_la_OBJECTS) $(libpki_token_openssl_la_LIBADD) $(LIBS)
+libpki-hsm-openssl.la: $(libpki_hsm_openssl_la_OBJECTS) $(libpki_hsm_openssl_la_DEPENDENCIES) $(EXTRA_libpki_hsm_openssl_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_hsm_openssl_la_LINK)  $(libpki_hsm_openssl_la_OBJECTS) $(libpki_hsm_openssl_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -507,10 +502,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Plo@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -542,33 +537,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libpki_token_openssl_la-openssl_hsm.lo: openssl_hsm.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_token_openssl_la-openssl_hsm.lo -MD -MP -MF $(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Tpo -c -o libpki_token_openssl_la-openssl_hsm.lo `test -f 'openssl_hsm.c' || echo '$(srcdir)/'`openssl_hsm.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Tpo $(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm.c' object='libpki_token_openssl_la-openssl_hsm.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_hsm_openssl_la-openssl_hsm.lo: openssl_hsm.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_openssl_la-openssl_hsm.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Tpo -c -o libpki_hsm_openssl_la-openssl_hsm.lo `test -f 'openssl_hsm.c' || echo '$(srcdir)/'`openssl_hsm.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Tpo $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm.c' object='libpki_hsm_openssl_la-openssl_hsm.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_token_openssl_la-openssl_hsm.lo `test -f 'openssl_hsm.c' || echo '$(srcdir)/'`openssl_hsm.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_openssl_la-openssl_hsm.lo `test -f 'openssl_hsm.c' || echo '$(srcdir)/'`openssl_hsm.c
 
-libpki_token_openssl_la-openssl_hsm_pkey.lo: openssl_hsm_pkey.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_token_openssl_la-openssl_hsm_pkey.lo -MD -MP -MF $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Tpo -c -o libpki_token_openssl_la-openssl_hsm_pkey.lo `test -f 'openssl_hsm_pkey.c' || echo '$(srcdir)/'`openssl_hsm_pkey.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Tpo $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm_pkey.c' object='libpki_token_openssl_la-openssl_hsm_pkey.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_hsm_openssl_la-openssl_hsm_pkey.lo: openssl_hsm_pkey.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_openssl_la-openssl_hsm_pkey.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Tpo -c -o libpki_hsm_openssl_la-openssl_hsm_pkey.lo `test -f 'openssl_hsm_pkey.c' || echo '$(srcdir)/'`openssl_hsm_pkey.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Tpo $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm_pkey.c' object='libpki_hsm_openssl_la-openssl_hsm_pkey.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_token_openssl_la-openssl_hsm_pkey.lo `test -f 'openssl_hsm_pkey.c' || echo '$(srcdir)/'`openssl_hsm_pkey.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_openssl_la-openssl_hsm_pkey.lo `test -f 'openssl_hsm_pkey.c' || echo '$(srcdir)/'`openssl_hsm_pkey.c
 
-libpki_token_openssl_la-openssl_hsm_obj.lo: openssl_hsm_obj.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_token_openssl_la-openssl_hsm_obj.lo -MD -MP -MF $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Tpo -c -o libpki_token_openssl_la-openssl_hsm_obj.lo `test -f 'openssl_hsm_obj.c' || echo '$(srcdir)/'`openssl_hsm_obj.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Tpo $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm_obj.c' object='libpki_token_openssl_la-openssl_hsm_obj.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_hsm_openssl_la-openssl_hsm_obj.lo: openssl_hsm_obj.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_openssl_la-openssl_hsm_obj.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Tpo -c -o libpki_hsm_openssl_la-openssl_hsm_obj.lo `test -f 'openssl_hsm_obj.c' || echo '$(srcdir)/'`openssl_hsm_obj.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Tpo $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm_obj.c' object='libpki_hsm_openssl_la-openssl_hsm_obj.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_token_openssl_la-openssl_hsm_obj.lo `test -f 'openssl_hsm_obj.c' || echo '$(srcdir)/'`openssl_hsm_obj.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_openssl_la-openssl_hsm_obj.lo `test -f 'openssl_hsm_obj.c' || echo '$(srcdir)/'`openssl_hsm_obj.c
 
-libpki_token_openssl_la-openssl_hsm_cb.lo: openssl_hsm_cb.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_token_openssl_la-openssl_hsm_cb.lo -MD -MP -MF $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Tpo -c -o libpki_token_openssl_la-openssl_hsm_cb.lo `test -f 'openssl_hsm_cb.c' || echo '$(srcdir)/'`openssl_hsm_cb.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Tpo $(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm_cb.c' object='libpki_token_openssl_la-openssl_hsm_cb.lo' libtool=yes @AMDEPBACKSLASH@
+libpki_hsm_openssl_la-openssl_hsm_cb.lo: openssl_hsm_cb.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_openssl_la-openssl_hsm_cb.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Tpo -c -o libpki_hsm_openssl_la-openssl_hsm_cb.lo `test -f 'openssl_hsm_cb.c' || echo '$(srcdir)/'`openssl_hsm_cb.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Tpo $(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='openssl_hsm_cb.c' object='libpki_hsm_openssl_la-openssl_hsm_cb.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_token_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_token_openssl_la-openssl_hsm_cb.lo `test -f 'openssl_hsm_cb.c' || echo '$(srcdir)/'`openssl_hsm_cb.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_openssl_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_openssl_la-openssl_hsm_cb.lo `test -f 'openssl_hsm_cb.c' || echo '$(srcdir)/'`openssl_hsm_cb.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -700,10 +695,10 @@ clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Plo
-	-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Plo
-	-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Plo
-	-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Plo
+		-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -749,10 +744,10 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm.Plo
-	-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_cb.Plo
-	-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_obj.Plo
-	-rm -f ./$(DEPDIR)/libpki_token_openssl_la-openssl_hsm_pkey.Plo
+		-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_cb.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_obj.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_openssl_la-openssl_hsm_pkey.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
