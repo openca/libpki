@@ -11,6 +11,16 @@
 #ifndef _LIBPKI_CRYPTO_OPERATIONS_H
 #define _LIBPKI_CRYPTO_OPERATIONS_H
 
+/*! \brief This function signs the input data using a keypair and a digest algorithm.
+ *
+ * @param sig is the pointer to the signature
+ * @param sig_len is the size of the signature
+ * @param data is the pointer to the input data
+ * @param data_len is the size of the input data
+ * @param digest is the digest algorithm to use
+ * @param key is the keypair to use for signing
+ * @return PKI_OK if the signature is successful, PKI_ERR otherwise
+*/
 int CRYPTO_sign(unsigned char        ** sig, 
                 size_t                * sig_len,
                 const unsigned char   * data, 

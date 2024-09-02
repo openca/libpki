@@ -1,2 +1,0 @@
-/* DOCSIS Test Keys */
-
