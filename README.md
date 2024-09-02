@@ -112,7 +112,7 @@ projects related to PKIs. The software will continuosly be updated and
 used for several other projects including, but not limited to, OpenCA
 OCSP responder, OpenCA PKI Next Generation, and OpenCA PRQP Server.
 
-- **CableLabs Television Laboratories (Jan 2019 - Now).** 
+- **CableLabs Television Laboratories (Jan 2019 - Dec 2023).** 
 The CableLabs organization has been supporting the LibPKI project and its
 evolution (especially the integration of innovative features such as the
 support for Composite Cryptography and Quantum-Safe algorithms).
