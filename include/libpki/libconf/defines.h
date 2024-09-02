@@ -1,0 +1,214 @@
+/* src/libpki/config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Forces 32bits builds */
+#undef ENABLE_ARCH_32
+
+/* Forces 64bits builds */
+#undef ENABLE_ARCH_64
+
+/* Composite Crypto Native OpenSSL Support */
+#undef ENABLE_COMPOSITE
+
+/* ECC Support for OpenSSL */
+#undef ENABLE_ECDSA
+
+/* SUN CMS */
+#undef ENABLE_KMF
+
+/* OPENSSL */
+#undef ENABLE_OPENSSL
+
+/* Open Quantum Safe Library */
+#undef ENABLE_OQS
+
+/* Open Quantum Safe Library */
+#undef ENABLE_OQSPROV
+
+/* Define to 1 if you have the `bzero' function. */
+#undef HAVE_BZERO
+
+/* Calloc in C library */
+#undef HAVE_CALLOC
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* ENGINE */
+#undef HAVE_ENGINE
+
+/* Define to 1 if you have the `fork' function. */
+#undef HAVE_FORK
+
+/* GCC pragma ignored */
+#undef HAVE_GCC_PRAGMA_IGNORED
+
+/* GCC pragma pop */
+#undef HAVE_GCC_PRAGMA_POP
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* HAVE LDAP */
+#undef HAVE_LDAP
+
+/* PTHREAD Library */
+#undef HAVE_LIBPTHREAD
+
+/* DNS Library */
+#undef HAVE_LIBRESOLV
+
+/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+   to 0 otherwise. */
+#undef HAVE_MALLOC
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* test "${enablemysql}" = "yes" */
+#undef HAVE_MYSQL
+
+/* test "${enablepg}" = "yes" */
+#undef HAVE_PG
+
+/* HAVE_PTHREAD_RWLOCK */
+#undef HAVE_PTHREAD_RWLOCK
+
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
+
+/* Define to 1 if you have the `socket' function. */
+#undef HAVE_SOCKET
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
+
+/* Define to 1 if you have the `strstr' function. */
+#undef HAVE_STRSTR
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `vfork' function. */
+#undef HAVE_VFORK
+
+/* Define to 1 if you have the <vfork.h> header file. */
+#undef HAVE_VFORK_H
+
+/* Define to 1 if `fork' works. */
+#undef HAVE_WORKING_FORK
+
+/* Define to 1 if `vfork' works. */
+#undef HAVE_WORKING_VFORK
+
+/* LIBXML2 */
+#undef HAVE_XML2
+
+/* HAVE OPENLDAP */
+#undef LDAP_VENDOR_OPENLDAP
+
+/* HAVE SUN LDAP */
+#undef LDAP_VENDOR_SUN
+
+/* BSD */
+#undef LIBPKI_TARGET_BSD
+
+/* HP-UX */
+#undef LIBPKI_TARGET_HPUX
+
+/* IPHONE */
+#undef LIBPKI_TARGET_IPHONE
+
+/* Linux */
+#undef LIBPKI_TARGET_LINUX
+
+/* OSX */
+#undef LIBPKI_TARGET_OSX
+
+/* Solaris */
+#undef LIBPKI_TARGET_SOLARIS
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
+#undef STDC_HEADERS
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to rpl_malloc if the replacement function should be used. */
+#undef malloc
+
+/* Define as a signed integer type capable of holding a process identifier. */
+#undef pid_t
+
+/* Define as `fork' if `vfork' does not work. */
+#undef vfork

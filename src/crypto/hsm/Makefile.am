@@ -1,0 +1,40 @@
+## OpenCA Makefile - by Massimiliano Pala
+## (c) 1999-2007 by Massimiliano Pala and OpenCA Project
+## All Rights Reserved
+
+TOP     = ..
+include $(TOP)/global-vars
+
+BASE_DEFS = 
+
+if ENABLE_OPENSSL
+HSM_SOFTWARE = openssl
+HSM_SOFTWARE_OBJ = $(top_builddir)/src/drivers/openssl/libpki-token-openssl.la
+else
+HSM_SOFTWARE =
+endif
+
+HSM_PKCS11 = pkcs11
+HSM_PKCS11_OBJ = $(top_builddir)/src/drivers/pkcs11/libpki-token-pkcs11.la
+
+HSMS = $(HSM_SOFTWARE) $(HSM_PKCS11)
+OBJECTS = $(HSM_SOFTWARE_OBJ) $(HSM_PKCS11_OBJ)
+
+SUBDIRS = $(HSMS) .
+
+AM_CPPFLAGS = -I$(TOP)
+
+SRCS = \
+	hsm_main.c \
+	hsm_slot.c \
+	hsm_keypair.c
+
+
+noinst_LTLIBRARIES = libpki-token.la
+# noinst_LIBRARIES = libpki-token.a
+
+libpki_token_la_SOURCES = $(SRCS)
+libpki_token_la_CFLAGS  = $(BUILD_LIBPKI_CFLAGS)
+# libpki_token_la_LIBADD  = $(BUILD_LIBPKI_LDFLAGS) $(OBJECTS)
+libpki_token_la_LIBADD  = $(OBJECTS)
+
