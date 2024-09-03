@@ -4,8 +4,8 @@
 
 const HSM_STORE_CALLBACKS c_openssl_hsm_store_cb = {
 	NULL, // store_num
-	NULL, // store_info_get
-	NULL, // store_info_free
+	HSM_OPENSSL_STORE_INFO_get, // store_info_get
+	free, // store_info_free
 	NULL, // select_slot
 	NULL, // clear_slot
 	NULL, // get_objects
