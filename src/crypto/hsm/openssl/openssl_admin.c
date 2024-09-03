@@ -1,63 +1,74 @@
-/* HSM Object Management Functions */
+/* openssl_hsm_admin.c */
 
 // Single Include
-#include <libpki/drivers/openssl/openssl_hsm.h>
+#include <libpki/crypto/hsm/openssl/openssl_hsm_admin.h>
 
-/* Callbacks for Software OpenSSL HSM */
-const HSM_CALLBACKS openssl_hsm_callbacks = {
-		/* Errno */
-		HSM_OPENSSL_get_errno,
-		/* Err Descr */
-		HSM_OPENSSL_get_errdesc,
-		/* Init */
-		HSM_OPENSSL_init,
-		/* Free */
-		HSM_OPENSSL_free,
-		/* Login */
-		NULL,
-		/* Logout */
-		NULL,
-		/* Set Algorithm */
-		NULL, /* HSM_OPENSSL_algor_set, */
-		/* Set fips mode */
-		HSM_OPENSSL_set_fips_mode, 
-		/* Fips operation mode */
-		HSM_OPENSSL_is_fips_mode, 
-		/* General Sign */
-		NULL, /* HSM_OPENSSL_sign, */
-		/* ASN1 General Sign */
-		NULL, /* HSM_OPENSSL_asn1_sign, */
-		/* General Verify */
-		NULL, /* HSM_OPENSSL_verify, */
-		/* ASN1 General Verify */
-		NULL, /* HSM_OPENSSL_verify, */
-		/* Key Generation */
-		HSM_OPENSSL_X509_KEYPAIR_new,
-		/* Free Keypair Function */
-		HSM_OPENSSL_X509_KEYPAIR_free,
-		/* Key Wrapping */
-		NULL, // HSM_OPENSSL_X509_KEYPAIR_STACK_wrap,
-		/* Key Unwrapping */
-		NULL, // HSM_OPENSSL_X509_KEYPAIR_STACK_unwrap,
-		/* Obj Load Function */
-		NULL, // HSM_OPENSSL_X509_STACK_get_url,
-		/* Obj Add Function */
-		NULL, // HSM_OPENSSL_X509_STACK_put_url,
-		/* Obj Del Function */
-		NULL, /* HSM_OPENSSL_X509_STACK_del_url */
-		/* Get the number of available Slots */
-		NULL, // HSM_OPENSSL_SLOT_num,
-		/* Get Slot info */
-		HSM_OPENSSL_SLOT_INFO_get,
-		/* Free Slot info */
-		NULL, /* HSM_OPENSSL_SLOT_INFO_free */
-		/* Set the current slot */
-		NULL, /* HSM_OPENSSL_SLOT_select */
-		/* Cleans up the current slot */
-		NULL, /* HSM_OPENSSL_SLOT_clean */
-		/* Get X509 Callbacks */
-		HSM_OPENSSL_X509_get_cb
+const HSM_ADMIN_CALLBACKS openssl_hsm_admin_cb = {
+	NULL, // init
+	NULL, // free
+	NULL, // login
+	NULL, // logout
+	NULL, // sign_algor
+	NULL, // set_fips_mode
+	NULL  // is_fips_mode
 };
+
+
+// /* Callbacks for Software OpenSSL HSM */
+// const HSM_CALLBACKS openssl_hsm_callbacks = {
+// 		/* Errno */
+// 		HSM_OPENSSL_get_errno,
+// 		/* Err Descr */
+// 		HSM_OPENSSL_get_errdesc,
+// 		/* Init */
+// 		HSM_OPENSSL_init,
+// 		/* Free */
+// 		HSM_OPENSSL_free,
+// 		/* Login */
+// 		NULL,
+// 		/* Logout */
+// 		NULL,
+// 		/* Set Algorithm */
+// 		NULL, /* HSM_OPENSSL_algor_set, */
+// 		/* Set fips mode */
+// 		HSM_OPENSSL_set_fips_mode, 
+// 		/* Fips operation mode */
+// 		HSM_OPENSSL_is_fips_mode, 
+// 		/* General Sign */
+// 		NULL, /* HSM_OPENSSL_sign, */
+// 		/* ASN1 General Sign */
+// 		NULL, /* HSM_OPENSSL_asn1_sign, */
+// 		/* General Verify */
+// 		NULL, /* HSM_OPENSSL_verify, */
+// 		/* ASN1 General Verify */
+// 		NULL, /* HSM_OPENSSL_verify, */
+// 		/* Key Generation */
+// 		HSM_OPENSSL_X509_KEYPAIR_new,
+// 		/* Free Keypair Function */
+// 		HSM_OPENSSL_X509_KEYPAIR_free,
+// 		/* Key Wrapping */
+// 		NULL, // HSM_OPENSSL_X509_KEYPAIR_STACK_wrap,
+// 		/* Key Unwrapping */
+// 		NULL, // HSM_OPENSSL_X509_KEYPAIR_STACK_unwrap,
+// 		/* Obj Load Function */
+// 		NULL, // HSM_OPENSSL_X509_STACK_get_url,
+// 		/* Obj Add Function */
+// 		NULL, // HSM_OPENSSL_X509_STACK_put_url,
+// 		/* Obj Del Function */
+// 		NULL, /* HSM_OPENSSL_X509_STACK_del_url */
+// 		/* Get the number of available Slots */
+// 		NULL, // HSM_OPENSSL_SLOT_num,
+// 		/* Get Slot info */
+// 		HSM_OPENSSL_SLOT_INFO_get,
+// 		/* Free Slot info */
+// 		NULL, /* HSM_OPENSSL_SLOT_INFO_free */
+// 		/* Set the current slot */
+// 		NULL, /* HSM_OPENSSL_SLOT_select */
+// 		/* Cleans up the current slot */
+// 		NULL, /* HSM_OPENSSL_SLOT_clean */
+// 		/* Get X509 Callbacks */
+// 		HSM_OPENSSL_X509_get_cb
+// };
 
 /* Structure for PKI_TOKEN definition */
 HSM openssl_hsm = {
@@ -99,24 +110,26 @@ HSM openssl_hsm = {
 	0,
 
 	/* Callbacks Structures */
-	&openssl_hsm_callbacks
+	NULL,
+	NULL,
+	NULL
 };
 
 
-HSM_SLOT_INFO openssl_slot_info = {
+HSM_STORE_INFO openssl_slot_info = {
 
-        /* Device Manufacturer ID */
+	/* Device Manufacturer ID */
 	"OpenSSL",
 
-        /* Device Description */
+	/* Device Description */
 	"Software interface",
 
-        /* Hardware Version */
+	/* Hardware Version */
 	1,
 	0,
 
-        /* Firmware Version */
-        1,
+	/* Firmware Version */
+	1,
 	0,
 
 	/* Initialized */
@@ -176,31 +189,6 @@ HSM_SLOT_INFO openssl_slot_info = {
 	}
 
 };
-
-unsigned long HSM_OPENSSL_get_errno ( void )
-{
-	unsigned long ret = 0;
-
-	ret = ERR_get_error();
-
-	return ret;
-}
-
-char * HSM_OPENSSL_get_errdesc ( unsigned long err, char *str, size_t size )
-{
-	char * ret = NULL;
-
-	if (err == 0) err = ERR_get_error();
-
-	if (str && size > 0)
-	{
-		ERR_error_string_n ( err, str, size );
-		ret = str;
-	}
-	else ret = ERR_error_string(err, NULL);
-	
-	return ret;
-}
 
 const HSM * HSM_OPENSSL_get_default( void )
 {

@@ -13,8 +13,8 @@
 #include <libpki/utils/types.h>
 #endif
 
-#ifndef HSM_TYPES_H
-#define HSM_TYPES_H
+#ifndef _LIBPKI_CRYPTO_HSM_TYPES_H
+#define _LIBPKI_CRYPTO_HSM_TYPES_H
 
 BEGIN_C_DECLS
 
@@ -37,7 +37,7 @@ typedef struct crypto_keypair_st CRYPTO_KEYPAIR;
 #define HSM_DESCRIPTION_SIZE       32
 
 /* \brief HSM Slot Description Size */
-#define HSM_SLOT_DESCRIPTION_SIZE  64
+#define HSM_STORE_DESCRIPTION_SIZE  64
 
 /* \brief HSM Label Size */
 #define HSM_LABEL_SIZE             32
@@ -157,13 +157,13 @@ typedef struct hsm_token_info_st {
 } HSM_TOKEN_INFO;
 
 /* \brief HSM Slot Info Data Structure */
-typedef struct hsm_slot_info_st {
+typedef struct HSM_STORE_info_st {
 
   /* \brief Device Manufacturer ID */
   char manufacturerID[HSM_MANUFACTURER_ID_SIZE];
 
   /* \brief Device Description */
-  char description[HSM_SLOT_DESCRIPTION_SIZE];
+  char description[HSM_STORE_DESCRIPTION_SIZE];
 
   /* \brief Hardware Version */
   unsigned short hw_version_major;
@@ -188,17 +188,11 @@ typedef struct hsm_slot_info_st {
   /* \brief Info for the current inserted token */
   HSM_TOKEN_INFO token_info;
 
-} HSM_SLOT_INFO;
+} HSM_STORE_INFO;
 
-typedef struct callbacks_st {
+typedef struct hsm_admin_cb_st {
   
   /* ------------- HSM Management functions --------------- */
-
-  /* Get Error number */
-  unsigned long (*get_errno)( void );
-
-  /* Get Error Description */
-  char * (*get_errdesc)( unsigned long err, char *str, size_t size );
 
   /* HSM initialization function */
   int (*init) (struct hsm_st *driver, PKI_CONFIG *);
@@ -221,16 +215,20 @@ typedef struct callbacks_st {
   /* HSM gets fips operation mode */
   int (*is_fips_mode) (const struct hsm_st *driver);
 
-  /* ----------------- Slot Management functions ----------------- */
+} HSM_ADMIN_CALLBACKS;
+
+typedef struct hsm_store_cb_st {
+  
+  /* ----------------- Store Management functions ----------------- */
   
   /* Get the number of available Slots */
-  unsigned long  (*slot_num)(struct hsm_st *);
+  unsigned long  (*store_num)(struct hsm_st *);
 
   /* Get Slot info */
-  HSM_SLOT_INFO   * (*slot_info_get)(unsigned long, struct hsm_st *);
+  HSM_STORE_INFO   * (*store_info_get)(unsigned long, struct hsm_st *);
 
-  /* Free memory associated with an HSM_SLOT_INFO structure */
-  void (*slot_info_free) (HSM_SLOT_INFO *, struct hsm_st *);
+  /* Free memory associated with an HSM_STORE_INFO structure */
+  void (*store_info_free) (HSM_STORE_INFO *, struct hsm_st *);
 
   /* Set the current slot */
   int (*select_slot)(unsigned long, PKI_CRED *cred, struct hsm_st *);
@@ -241,51 +239,79 @@ typedef struct callbacks_st {
   /* -------------- Object Management functions -------------------- */
 
   int (*get_objects)(PKI_STACK ** sk, PKI_TYPE type, byte * label, PKI_TYPE format, 
-            const PKI_CRED *cred, void *driver);
+            void *driver);
 
   int (*add_objects)(const PKI_STACK * sk, PKI_TYPE type, byte * label, PKI_TYPE format,
-            const PKI_CRED * cred, void *driver);
+            void *driver);
 
-  int (*del_objects)(PKI_TYPE type, byte * label, const PKI_CRED * cred, void *driver);
+  int (*del_objects)(PKI_TYPE type, byte * label, void *driver);
 
-  /* ------------- Crypto functions --------------- */
+  /* Key Wrapping function */
+  int (*key_wrap)(byte ** out, size_t *out_len, const char * label, size_t label_sz, char * wrappingkey_label, size_t wrappingkey_label_sz, void * driver);
 
-  /* \brief General Sign Function */
-  int (*sign)(unsigned char * data, size_t size, unsigned char * sig,
-              size_t * sig_size, const char *digest_alg, CRYPTO_KEYPAIR *key);
+  /* Key Unwrapping function */
+  int (*key_unwrap)(CRYPTO_KEYPAIR ** key, const byte * data, size_t data_sz, const byte * label, size_t label_size,
+            const char * wrappingkey_label, size_t wrappingkey_label_sz, void * driver);
 
-  /* \brief General Verify Function */
-  int (*verify)(unsigned char * data, size_t size, unsigned char * sig, size_t sig_size,
-                const char *digest_alg, CRYPTO_KEYPAIR *key);
+} HSM_STORE_CALLBACKS;
+
+typedef struct hsm_crypto_cb_st {
+  
+  /* ------------- HSM Management functions --------------- */
+
+  /* Get Error number */
+  unsigned long (*get_errno)(const void * driver);
+
+  /* Get Error Description */
+  char * (*get_errdesc)(unsigned long err, char *str, size_t size, const void * driver);
 
   /* ------------- Key Management functions --------------- */
 
   /* Create (new) Keypair */
-  int (*keypair_new)(unsigned char * pub, size_t *pub_size, unsigned char * priv, size_t priv_size,
-              const CRYPTO_KEYPARAMS * params, const char * label, void * driver);
+  int (*keypair_gen)(void ** out, const CRYPTO_KEYPARAMS * params, const char * label, void * driver);
 
   /* Free memory associated with a keypair */
-  void    (*keypair_free)(CRYPTO_KEYPAIR *);
+  void (*keypair_free)(void * key, void * driver);
 
-  /* Key Wrapping function */
-  int (*key_wrap)(unsigned char * out, size_t *out_len, CRYPTO_KEYPAIR * key, const PKI_CRED * cred);
+  /* Retrieve the keypair data */
+  int (*keypair_get)(byte ** pub, size_t * pub_size, byte ** priv, size_t * priv_size,
+              void * key, void * driver);
 
-  /* Key Unwrapping function */
-  int (*key_unwrap)(byte * wrapped_key, size_t wrapped_key_len, byte * label,
-            const PKI_CRED *, void * driver);
+  /* ------------- Crypto functions --------------- */
 
-} HSM_CALLBACKS;
+  /* \brief General Sign Function */
+  
+  int (*sign)(byte ** sig, size_t * sig_sz, const byte * data, size_t data_sz,
+					    const void * hsm_key,	const void * hsm_driver);
+  
+  /* \brief General Verify Function */
+  int (*verify)(const byte * sig, size_t sig_sz, const byte * data, size_t data_sz,
+                const void * hsm_key, const void * hsm_driver);
+
+  /* \brief General Encrypt Function */
+  int (*encrypt)(byte ** out, size_t * out_sz, const byte * data, size_t data_sz,
+                const void * hsm_key, const void * hsm_driver);
+  
+  /* \brief General Decrypt Function */
+  int (*decrypt)(byte ** out, size_t out_sz, const byte * data, size_t data_sz, 
+                const void * hsm_key, const void * hsm_driver);
+  
+  /* \brief General Derive Function */
+  int (*derive)(void ** hsm_key, const void * key_share_a, const void * key_share_b,
+                const char *digest_alg, const void * driver);
+  
+} HSM_CRYPTO_CALLBACKS;
 
 /* Structure for HSM definition */
 typedef struct hsm_st {
 
+  /* Version of the token */
+  int version;
+  
   /* ID of the driver - this is used to identify the driver
      to be used, e.g., 'id://LunaCA' for loading the ENGINE
      LunaCA extension */
   char * id_label;
-
-  /* Version of the token */
-  int version;
 
   /* Description of the HSM */
   char *description;
@@ -318,7 +344,9 @@ typedef struct hsm_st {
   const uint8_t isLoginRequired;
 
   /* HSM Callbacks */
-  const HSM_CALLBACKS *callbacks;
+  const HSM_ADMIN_CALLBACKS *admin_callbacks;
+  const HSM_STORE_CALLBACKS *store_callbacks;
+  const HSM_CRYPTO_CALLBACKS *crypto_callbacks;
 
 } HSM;
 

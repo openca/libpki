@@ -123,6 +123,13 @@ int PKI_init_all( void ) {
                       PKI_LOG_FLAGS_ENABLE_DEBUG,
 					  NULL );
 
+#ifdef ENABLE_OPENSSL
+
+#if OPENSSL_VERSION_NUMBER >= 0x3000000fL
+		// Initializes the OQS Provider layer
+		PKI_init_providers();
+#endif
+
 		// OpenSSL init
 		X509V3_add_standard_extensions();
 		OpenSSL_add_all_algorithms();
@@ -140,6 +147,8 @@ int PKI_init_all( void ) {
 		ERR_load_crypto_strings();
 #endif
 
+#endif /* ENABLE_OPENSSL */
+
 		// Parser for Config files
 		xmlInitParser();
 
@@ -152,25 +161,20 @@ int PKI_init_all( void ) {
 		// SCEP Init
 		PKI_X509_SCEP_init();
 
-#if OPENSSL_VERSION_NUMBER >= 0x3000000fL
-		// Initializes the OQS Provider layer
-		PKI_init_providers();
-#endif
-
-#ifdef ENABLE_OQS
-		// Post-Quantum Crypto Implementation
-		PKI_PQC_init();
-#endif
-#ifdef ENABLE_COMPOSITE
-		// Generic Composite Crypto (both AND and OR)
-		PKI_COMPOSITE_init();
-		// // Explicit Composite Crypto
-		PKI_EXPLICIT_COMPOSITE_init();
-#endif
-#ifdef ENABLE_COMBINED
-		// Multikey Crypto (multi-keys OR)
-		_init_combined();
-#endif
+// #ifdef ENABLE_OQS
+// 		// Post-Quantum Crypto Implementation
+// 		PKI_PQC_init();
+// #endif
+// #ifdef ENABLE_COMPOSITE
+// 		// Generic Composite Crypto (both AND and OR)
+// 		PKI_COMPOSITE_init();
+// 		// // Explicit Composite Crypto
+// 		PKI_EXPLICIT_COMPOSITE_init();
+// #endif
+// #ifdef ENABLE_COMBINED
+// 		// Multikey Crypto (multi-keys OR)
+// 		_init_combined();
+// #endif
 	}
 
 	/* Enable Proxy Certificates Support */

@@ -17,7 +17,7 @@
  * @param num The size of the buffer
  * @return PKI_OK if the operation was successful, PKI_ERR otherwise
  */
-int CRYPTO_RAND(unsigned char **buf, size_t size);
+int CRYPTO_RAND(unsigned char **buf, size_t size, const HSM * hsm);
 
 /*! \brief Digests the data using the specified algorithm
  *
@@ -47,7 +47,7 @@ int CRYPTO_RAND(unsigned char **buf, size_t size);
 int CRYPTO_DIGEST(unsigned char **out, size_t *out_size, 
                   CRYPTO_TYPE algorithm, const unsigned char *data, size_t size,
                   const unsigned char * salt, size_t salt_size,
-                  const unsigned char * pepper, size_t pepper_size, HSM * hsm);
+                  const unsigned char * pepper, size_t pepper_size, const HSM * hsm);
 
 /*! \brief Signs the data using the specified HMAC algorithm and key
  *
@@ -77,7 +77,7 @@ int CRYPTO_DIGEST(unsigned char **out, size_t *out_size,
 int CRYPTO_HMAC(unsigned char **out, size_t *out_size, 
                   CRYPTO_TYPE hmac_algo, unsigned char *key, size_t key_size,
                   const unsigned char *data, size_t size,
-                  CRYPTO_HASH hash_algo, HSM *hsm);
+                  CRYPTO_HASH hash_algo, const HSM *hsm);
 
 /*! \brief Derives a symmetric key by using the specified algorithm
  *
@@ -111,7 +111,8 @@ int CRYPTO_KDF(unsigned char    ** out,
 			   size_t              keylen, 
 			   unsigned char     * data, 
 			   size_t              datalen,
-               const CRYPTO_HASH   hash_alg);
+               const CRYPTO_HASH   hash_alg,
+               const HSM         * hsm);
 
 #endif /* _LIBPKI_CRYPTO_UTILS_H */
 
