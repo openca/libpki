@@ -696,8 +696,8 @@ oqs_ldflags
 oqs_cflags
 ENABLE_OQS_FALSE
 ENABLE_OQS_TRUE
-ENABLE_OPENSSL_ENGINE_FALSE
-ENABLE_OPENSSL_ENGINE_TRUE
+ENABLE_PKCS11_FALSE
+ENABLE_PKCS11_TRUE
 openssl_include
 openssl_static_libs
 openssl_ldadd
@@ -708,17 +708,15 @@ OPENSSL_CFLAGS
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
-openssl_prefix
 OPENSSL_PREFIX_FALSE
 OPENSSL_PREFIX_TRUE
 ENABLE_OPENSSL_FALSE
 ENABLE_OPENSSL_TRUE
-kmf_ldadd
-kmf_libflags
-kmf_cflags
-kmf_prefix
-ENABLE_KMF_FALSE
-ENABLE_KMF_TRUE
+openssl_prefix
+WOLFSSL_PREFIX_FALSE
+WOLFSSL_PREFIX_TRUE
+ENABLE_WOLFSSL_FALSE
+ENABLE_WOLFSSL_TRUE
 resolv_ldadd
 pg_ldadd
 pg_ldflags
@@ -983,11 +981,11 @@ with_mysql_prefix
 enable_pg
 with_pg_prefix
 enable_dns
-enable_kmf
-enable_openssl
+enable_wolfssl
 with_openssl_prefix
+enable_openssl
 enable_ecdsa
-enable_openssl_engine
+enable_pkcs11
 enable_oqs
 enable_oqsprov
 enable_composite
@@ -1661,12 +1659,12 @@ Optional Features:
   --enable-mysql          enable mysql support ( default is yes)
   --enable-pg             enable postgresql support ( default is yes)
   --enable-dns            enable dns support ( default is yes)
-  --enable-kmf            enable kmf crypto for token operations (default is
+  --enable-wolfssl        enable kmf crypto for token operations (default is
                           no)
   --enable-openssl        enable openssl crypto for token operations (default
                           is yes)
   --enable-ecdsa         enable Elliptic Curves DSA support
-  --enable-openssl-engine      enable openssl engine support (yes)
+  --enable-pkcs11      enable pkcs11 experimental support (no)
   --enable-oqs          enable oqs support (no)
   --enable-oqsprov      enable support for the OQS provider (no)
   --enable-composite      enable openssl composite crypto support (no)
@@ -13808,21 +13806,6 @@ fi
 
 
 
-# symbolic_build=
-# symbolic_start=
-# symbolic_end=
-
-# AC_ARG_ENABLE(symbolic,
-# 	AC_HELP_STRING( [--enable-symbolic],
-# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
-# 		symbolic_build=$enableval, symbolic_build=no )
-
-# if [[ "x$symbolic_build" = "xyes"]] ; then
-# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
-# 	symbolic_end="-Bno-symbolic"
-# fi
-
-
 if [ "x$iphone_build" = "xno" ] ; then
 
 	# Autoupdate added the next two lines to ensure that your configure
@@ -17416,13 +17399,51 @@ printf "%s\n" "***** WARNING: DNS URLs are disabled by config option ******" >&6
 fi
 
 
-# Check whether --enable-kmf was given.
-if test ${enable_kmf+y}
+
+# Check whether --enable-wolfssl was given.
+if test ${enable_wolfssl+y}
 then :
-  enableval=$enable_kmf; enable_kmf=$enableval
+  enableval=$enable_wolfssl; enable_wolfssl=$enableval
 else $as_nop
-  enable_kmf=no
+  enable_wolfssl=no
 fi
+
+
+wolfssl_setup=no
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: enable_wolfssl: ${enable_wolfssl}" >&5
+printf "%s\n" "enable_wolfssl: ${enable_wolfssl}" >&6; }
+
+ if test "${enablewolfssl}" = "yes"; then
+  ENABLE_WOLFSSL_TRUE=
+  ENABLE_WOLFSSL_FALSE='#'
+else
+  ENABLE_WOLFSSL_TRUE='#'
+  ENABLE_WOLFSSL_FALSE=
+fi
+
+ if test ! x$wolfssl_prefix = x ; then
+  WOLFSSL_PREFIX_TRUE=
+  WOLFSSL_PREFIX_FALSE='#'
+else
+  WOLFSSL_PREFIX_TRUE='#'
+  WOLFSSL_PREFIX_FALSE=
+fi
+
+
+
+# Check whether --with-openssl-prefix was given.
+if test ${with_openssl_prefix+y}
+then :
+  withval=$with_openssl_prefix; openssl_prefix=$withval
+else $as_nop
+  openssl_prefix=
+fi
+
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: with openssl-prefix     : $openssl_prefix " >&5
+printf "%s\n" "with openssl-prefix     : $openssl_prefix " >&6; }
 
 
 # Check whether --enable-openssl was given.
@@ -17434,20 +17455,8 @@ else $as_nop
 fi
 
 
-# if [[ "$myarch" = "solaris" ]] ; then
-# 	if [[ "${enable_kmf}" = "" ]] ; then
-# 		enable_kmf=no
-# 	fi
-# else
-# 	# Not on solaris, we disable kmf
-# 	enable_kmf=no
-# fi
-
 openssl_setup=no
-kmf_setup=no
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: enable_kmf: ${enable_kmf}" >&5
-printf "%s\n" "enable_kmf: ${enable_kmf}" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: enable_openssl: ${enableopenssl}" >&5
 printf "%s\n" "enable_openssl: ${enableopenssl}" >&6; }
 
@@ -17456,93 +17465,9 @@ openssl_ldflags=
 openssl_ldadd=
 openssl_include=
 openssl_setup=no
-openssl_engine=
 openssl_static_libs=
 openssl_min_ver=0x090909f
 openssl_pkg_min_ver=0.9.8
-
-
-kmf_prefix=
-kmf_cflags=
-kmf_ldflags=
-kmf_ldadd=
-kmf_include=
-kmf_setup=
-
-if ! [ $enable_kmf = "no" ] ; then
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for KMF_Initialize in -lkmf" >&5
-printf %s "checking for KMF_Initialize in -lkmf... " >&6; }
-if test ${ac_cv_lib_kmf_KMF_Initialize+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lkmf  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char KMF_Initialize ();
-int
-main (void)
-{
-return KMF_Initialize ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  ac_cv_lib_kmf_KMF_Initialize=yes
-else $as_nop
-  ac_cv_lib_kmf_KMF_Initialize=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_kmf_KMF_Initialize" >&5
-printf "%s\n" "$ac_cv_lib_kmf_KMF_Initialize" >&6; }
-if test "x$ac_cv_lib_kmf_KMF_Initialize" = xyes
-then :
-  kmf_ldadd=-lkmf
-else $as_nop
-
-			enable_kmf=no;
-			enableopenssl=yes;
-			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: ***WARNING***: Can not setup kmf library correctly, Falling back to OpenSSL!" >&5
-printf "%s\n" "***WARNING***: Can not setup kmf library correctly, Falling back to OpenSSL!" >&6; }
-
-fi
-
-fi
-
- if test "${enable_kmf}" = "yes"; then
-  ENABLE_KMF_TRUE=
-  ENABLE_KMF_FALSE='#'
-else
-  ENABLE_KMF_TRUE='#'
-  ENABLE_KMF_FALSE=
-fi
-
-
-if [ "${enable_kmf}" = "yes" ] ; then
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: crypto package for token operations... KMF" >&5
-printf "%s\n" "crypto package for token operations... KMF" >&6; }
-
-
-printf "%s\n" "#define ENABLE_KMF 1" >>confdefs.h
-
-	kmf_prefix=/usr
-	kmf_include=/usr/include
-	kmf_setup=yes
-
-
-
-
-fi
 
  if test "${enableopenssl}" = "yes"; then
   ENABLE_OPENSSL_TRUE=
@@ -18420,34 +18345,34 @@ printf "%s\n" " OPENSSL ldadd: ................... ${openssl_ldadd}" >&6; }
 
 	## End of OpenSSL build settings section ##
 
-		# Check whether --enable-openssl-engine was given.
-if test ${enable_openssl_engine+y}
+		# Check whether --enable-pkcs11 was given.
+if test ${enable_pkcs11+y}
 then :
-  enableval=$enable_openssl_engine; case "${enableval}" in
-	  yes)  engine=yes ;;
-	  no)   engine=no ;;
-	  *) as_fn_error $? "bad value ${engine} for --enable-openssl-engine" "$LINENO" 5 ;;
+  enableval=$enable_pkcs11; case "${enableval}" in
+	  yes)  enable_pkcs11=yes ;;
+	  no)   enable_pkcs11=no ;;
+	  *) as_fn_error $? "bad value ${engine} for --enable-pkcs11" "$LINENO" 5 ;;
 	 esac
 else $as_nop
-  engine=yes
+  enable_pkcs11=no
 fi
 
 
-	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: enable engine support   : $engine" >&5
-printf "%s\n" "enable engine support   : $engine" >&6; }
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: enable pkcs11 experimental support   : $enable_pkcs11" >&5
+printf "%s\n" "enable pkcs11 experimental support   : $enable_pkcs11" >&6; }
 
+	if [ "$enable_pkcs11" = "yes" ] ; then
 
-	if [ "$engine" = "yes" ] ; then
-
-printf "%s\n" "#define HAVE_ENGINE 1" >>confdefs.h
+printf "%s\n" "#define HAVE_PKCS11 1" >>confdefs.h
 
 	fi
-	 if test "${engine}" = "yes"; then
-  ENABLE_OPENSSL_ENGINE_TRUE=
-  ENABLE_OPENSSL_ENGINE_FALSE='#'
+
+	 if test "${enable_pkcs11}" = "yes"; then
+  ENABLE_PKCS11_TRUE=
+  ENABLE_PKCS11_FALSE='#'
 else
-  ENABLE_OPENSSL_ENGINE_TRUE='#'
-  ENABLE_OPENSSL_ENGINE_FALSE=
+  ENABLE_PKCS11_TRUE='#'
+  ENABLE_PKCS11_FALSE=
 fi
 
 fi
@@ -18718,8 +18643,6 @@ else
   STATIC_COMPILE_FALSE=
 fi
 
-ac_config_headers="$ac_config_headers src/libpki/config.h src/libpki/libpki_enables.h"
-
 
 # Check whether --enable-strict was given.
 if test ${enable_strict+y}
@@ -18729,6 +18652,9 @@ else $as_nop
   strict_compile=no
 fi
 
+
+
+ac_config_headers="$ac_config_headers src/libpki/libconf/defines.h src/libpki/libconf/features.h"
 
 
 sys_ldadd=
@@ -18917,7 +18843,7 @@ etc_dir=${prefix}/etc
 
 
 
-ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/drivers/Makefile src/drivers/openssl/Makefile src/drivers/engine/Makefile src/drivers/pkcs11/Makefile src/drivers/kmf/Makefile src/openssl/composite/Makefile src/openssl/pqc/Makefile src/openssl/Makefile src/io/Makefile src/net/Makefile src/est/Makefile src/scep/Makefile src/cmc/Makefile src/prqp/Makefile src/tools/Makefile src/scripts/libpki-config src/tests/Makefile src/libpki/pki_config.h src/libpki/libpkiv.h contrib/libpki.pc contrib/libpki-inst.xml examples/prqp/Makefile examples/profiles/Makefile examples/token/Makefile examples/url/Makefile examples/crl/Makefile examples/pkcs11/Makefile examples/pkcs12/Makefile examples/fips-mode/Makefile docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
+ac_config_files="$ac_config_files Makefile src/global-vars src/Makefile src/crypto/Makefile src/crypto/hsm/Makefile src/crypto/hsm/openssl/Makefile scripts/libpki-config contrib/libpki-inst.xml docs/Makefile docs/pkginfo etc/Makefile etc/profile.d/test.xml etc/profile.d/user.xml etc/profile.d/server.xml etc/store.d/empty.xml"
 
 
 cat >confcache <<\_ACEOF
@@ -19093,8 +19019,12 @@ if test -z "${xml2_prefix_TRUE}" && test -z "${xml2_prefix_FALSE}"; then
   as_fn_error $? "conditional \"xml2_prefix\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${ENABLE_KMF_TRUE}" && test -z "${ENABLE_KMF_FALSE}"; then
-  as_fn_error $? "conditional \"ENABLE_KMF\" was never defined.
+if test -z "${ENABLE_WOLFSSL_TRUE}" && test -z "${ENABLE_WOLFSSL_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_WOLFSSL\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WOLFSSL_PREFIX_TRUE}" && test -z "${WOLFSSL_PREFIX_FALSE}"; then
+  as_fn_error $? "conditional \"WOLFSSL_PREFIX\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_OPENSSL_TRUE}" && test -z "${ENABLE_OPENSSL_FALSE}"; then
@@ -19105,8 +19035,8 @@ if test -z "${OPENSSL_PREFIX_TRUE}" && test -z "${OPENSSL_PREFIX_FALSE}"; then
   as_fn_error $? "conditional \"OPENSSL_PREFIX\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${ENABLE_OPENSSL_ENGINE_TRUE}" && test -z "${ENABLE_OPENSSL_ENGINE_FALSE}"; then
-  as_fn_error $? "conditional \"ENABLE_OPENSSL_ENGINE\" was never defined.
+if test -z "${ENABLE_PKCS11_TRUE}" && test -z "${ENABLE_PKCS11_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_PKCS11\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_OQS_TRUE}" && test -z "${ENABLE_OQS_FALSE}"; then
@@ -19997,40 +19927,16 @@ do
   case $ac_config_target in
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
-    "src/libpki/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/config.h" ;;
-    "src/libpki/libpki_enables.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/libpki_enables.h" ;;
+    "src/libpki/libconf/defines.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/libconf/defines.h" ;;
+    "src/libpki/libconf/features.h") CONFIG_HEADERS="$CONFIG_HEADERS src/libpki/libconf/features.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/global-vars") CONFIG_FILES="$CONFIG_FILES src/global-vars" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "src/drivers/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/Makefile" ;;
-    "src/drivers/openssl/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/openssl/Makefile" ;;
-    "src/drivers/engine/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/engine/Makefile" ;;
-    "src/drivers/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/pkcs11/Makefile" ;;
-    "src/drivers/kmf/Makefile") CONFIG_FILES="$CONFIG_FILES src/drivers/kmf/Makefile" ;;
-    "src/openssl/composite/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/composite/Makefile" ;;
-    "src/openssl/pqc/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/pqc/Makefile" ;;
-    "src/openssl/Makefile") CONFIG_FILES="$CONFIG_FILES src/openssl/Makefile" ;;
-    "src/io/Makefile") CONFIG_FILES="$CONFIG_FILES src/io/Makefile" ;;
-    "src/net/Makefile") CONFIG_FILES="$CONFIG_FILES src/net/Makefile" ;;
-    "src/est/Makefile") CONFIG_FILES="$CONFIG_FILES src/est/Makefile" ;;
-    "src/scep/Makefile") CONFIG_FILES="$CONFIG_FILES src/scep/Makefile" ;;
-    "src/cmc/Makefile") CONFIG_FILES="$CONFIG_FILES src/cmc/Makefile" ;;
-    "src/prqp/Makefile") CONFIG_FILES="$CONFIG_FILES src/prqp/Makefile" ;;
-    "src/tools/Makefile") CONFIG_FILES="$CONFIG_FILES src/tools/Makefile" ;;
-    "src/scripts/libpki-config") CONFIG_FILES="$CONFIG_FILES src/scripts/libpki-config" ;;
-    "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;
-    "src/libpki/pki_config.h") CONFIG_FILES="$CONFIG_FILES src/libpki/pki_config.h" ;;
-    "src/libpki/libpkiv.h") CONFIG_FILES="$CONFIG_FILES src/libpki/libpkiv.h" ;;
-    "contrib/libpki.pc") CONFIG_FILES="$CONFIG_FILES contrib/libpki.pc" ;;
+    "src/crypto/Makefile") CONFIG_FILES="$CONFIG_FILES src/crypto/Makefile" ;;
+    "src/crypto/hsm/Makefile") CONFIG_FILES="$CONFIG_FILES src/crypto/hsm/Makefile" ;;
+    "src/crypto/hsm/openssl/Makefile") CONFIG_FILES="$CONFIG_FILES src/crypto/hsm/openssl/Makefile" ;;
+    "scripts/libpki-config") CONFIG_FILES="$CONFIG_FILES scripts/libpki-config" ;;
     "contrib/libpki-inst.xml") CONFIG_FILES="$CONFIG_FILES contrib/libpki-inst.xml" ;;
-    "examples/prqp/Makefile") CONFIG_FILES="$CONFIG_FILES examples/prqp/Makefile" ;;
-    "examples/profiles/Makefile") CONFIG_FILES="$CONFIG_FILES examples/profiles/Makefile" ;;
-    "examples/token/Makefile") CONFIG_FILES="$CONFIG_FILES examples/token/Makefile" ;;
-    "examples/url/Makefile") CONFIG_FILES="$CONFIG_FILES examples/url/Makefile" ;;
-    "examples/crl/Makefile") CONFIG_FILES="$CONFIG_FILES examples/crl/Makefile" ;;
-    "examples/pkcs11/Makefile") CONFIG_FILES="$CONFIG_FILES examples/pkcs11/Makefile" ;;
-    "examples/pkcs12/Makefile") CONFIG_FILES="$CONFIG_FILES examples/pkcs12/Makefile" ;;
-    "examples/fips-mode/Makefile") CONFIG_FILES="$CONFIG_FILES examples/fips-mode/Makefile" ;;
     "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
     "docs/pkginfo") CONFIG_FILES="$CONFIG_FILES docs/pkginfo" ;;
     "etc/Makefile") CONFIG_FILES="$CONFIG_FILES etc/Makefile" ;;

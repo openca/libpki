@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-
-
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -91,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src
+subdir = src/prqp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -100,55 +98,28 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(nobase_include_HEADERS) \
-	$(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
-CONFIG_HEADER = $(top_builddir)/src/libpki/libconf/defines.h \
-	$(top_builddir)/src/libpki/libconf/features.h
-CONFIG_CLEAN_FILES = global-vars
+CONFIG_HEADER = $(top_builddir)/src/libpki/config.h \
+	$(top_builddir)/src/libpki/libpki_enables.h
+CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
-am__install_max = 40
-am__nobase_strip_setup = \
-  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
-am__nobase_strip = \
-  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
-am__nobase_list = $(am__nobase_strip_setup); \
-  for p in $$list; do echo "$$p $$p"; done | \
-  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
-  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
-    if (++n[$$2] == $(am__install_max)) \
-      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
-    END { for (dir in files) print dir, files[dir] }'
-am__base_list = \
-  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
-  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__uninstall_files_from_dir = { \
-  test -z "$$files" \
-    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
-    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
-         $(am__cd) "$$dir" && rm -f $$files; }; \
-  }
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(includedir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
-libpki_la_DEPENDENCIES = crypto/libpki-crypto.la
-am__objects_1 =
-am_libpki_la_OBJECTS = $(am__objects_1)
-libpki_la_OBJECTS = $(am_libpki_la_OBJECTS)
+LTLIBRARIES = $(noinst_LTLIBRARIES)
+libpki_prqp_la_LIBADD =
+am__objects_1 = libpki_prqp_la-asn1_req.lo libpki_prqp_la-asn1_res.lo \
+	libpki_prqp_la-http_client.lo libpki_prqp_la-prqp_lib.lo \
+	libpki_prqp_la-prqp_bio.lo libpki_prqp_la-prqp_req_io.lo \
+	libpki_prqp_la-prqp_resp_io.lo libpki_prqp_la-prqp_srv.lo
+am_libpki_prqp_la_OBJECTS = $(am__objects_1)
+libpki_prqp_la_OBJECTS = $(am_libpki_prqp_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_la_CFLAGS) \
-	$(CFLAGS) $(libpki_la_LDFLAGS) $(LDFLAGS) -o $@
-SCRIPTS = $(bin_SCRIPTS)
+libpki_prqp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(libpki_prqp_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
+	$@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -161,7 +132,18 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
-DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki/libconf
+DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki
+depcomp = $(SHELL) $(top_srcdir)/build/depcomp
+am__maybe_remake_depfiles = depfiles
+am__depfiles_remade = ./$(DEPDIR)/libpki_prqp_la-asn1_req.Plo \
+	./$(DEPDIR)/libpki_prqp_la-asn1_res.Plo \
+	./$(DEPDIR)/libpki_prqp_la-http_client.Plo \
+	./$(DEPDIR)/libpki_prqp_la-prqp_bio.Plo \
+	./$(DEPDIR)/libpki_prqp_la-prqp_lib.Plo \
+	./$(DEPDIR)/libpki_prqp_la-prqp_req_io.Plo \
+	./$(DEPDIR)/libpki_prqp_la-prqp_resp_io.Plo \
+	./$(DEPDIR)/libpki_prqp_la-prqp_srv.Plo
+am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -180,30 +162,13 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_la_SOURCES)
-DIST_SOURCES = $(libpki_la_SOURCES)
-RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
-	ctags-recursive dvi-recursive html-recursive info-recursive \
-	install-data-recursive install-dvi-recursive \
-	install-exec-recursive install-html-recursive \
-	install-info-recursive install-pdf-recursive \
-	install-ps-recursive install-recursive installcheck-recursive \
-	installdirs-recursive pdf-recursive ps-recursive \
-	tags-recursive uninstall-recursive
+SOURCES = $(libpki_prqp_la_SOURCES)
+DIST_SOURCES = $(libpki_prqp_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-HEADERS = $(nobase_include_HEADERS)
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
-am__recursive_targets = \
-  $(RECURSIVE_TARGETS) \
-  $(RECURSIVE_CLEAN_TARGETS) \
-  $(am__extra_recursive_targets)
-AM_RECURSIVE_TARGETS = $(am__recursive_targets:-recursive=) TAGS CTAGS \
-	distdir distdir-am
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -221,35 +186,9 @@ am__define_uniq_tagged_files = \
   unique=`for i in $$list; do \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
-DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/global-vars.in \
+am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/depcomp \
 	$(top_srcdir)/build/mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-am__relativize = \
-  dir0=`pwd`; \
-  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
-  sed_rest='s,^[^/]*/*,,'; \
-  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
-  sed_butlast='s,/*[^/]*$$,,'; \
-  while test -n "$$dir1"; do \
-    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
-    if test "$$first" != "."; then \
-      if test "$$first" = ".."; then \
-        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
-        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
-      else \
-        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
-        if test "$$first2" = "$$first"; then \
-          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
-        else \
-          dir2="../$$dir2"; \
-        fi; \
-        dir0="$$dir0"/"$$first"; \
-      fi; \
-    fi; \
-    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
-  done; \
-  reldir="$$dir2"
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
@@ -275,7 +214,7 @@ CTAGS = @CTAGS@
 CXX = @CXX@
 CYGPATH_W = @CYGPATH_W@
 DATE = @DATE@
-DEFS = @DEFS@
+DEFS = $(OPENCA_DEFS)
 DEPDIR = @DEPDIR@
 DESTDIR = @DESTDIR@
 DIST_NAME = @DIST_NAME@
@@ -408,6 +347,10 @@ include_prefix = @include_prefix@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
+kmf_cflags = @kmf_cflags@
+kmf_ldadd = @kmf_ldadd@
+kmf_libflags = @kmf_libflags@
+kmf_prefix = @kmf_prefix@
 ldap_cflags = @ldap_cflags@
 ldap_ldadd = @ldap_ldadd@
 ldap_ldflags = @ldap_ldflags@
@@ -496,84 +439,31 @@ xml2_ldadd = @xml2_ldadd@
 xml2_ldflags = @xml2_ldflags@
 xml2_prefix = @xml2_prefix@
 yr = @yr@
-TOP = .
-EXTRA_DIST = \
-	tests
-
-
-# HSMS = $(HSM_SOFTWARE) $(HSM_KMF) $(HSM_OPENSSL_ENGINE)
-CRYPTO = crypto
-@LIBPKI_ENABLE_IPHONE_FALSE@TOOLS_AND_TESTS = tools tests
-@LIBPKI_ENABLE_IPHONE_TRUE@TOOLS_AND_TESTS = 
-
-# SUBDIRS = crypto x509 utils pkix token . $(TOOLS_AND_TESTS)
-SUBDIRS = crypto # x509 utils pkix token . $(TOOLS_AND_TESTS)
-AM_CPPFLAGS = \
-	-I$(top_srcdir)/src \
+TOP = ..
+BASE_DEFS = 
+PRQP_VERSION = 0.1.0
+AM_CPPFLAGS = -I$(TOP) \
+	$(openssl_cflags) \
+	$(libxml2_cflags) \
 	$(COND_INCLUDES)
 
-nobase_include_HEADERS = \
-	libpki/*
+PRQP_SRCS = \
+	asn1_req.c \
+	asn1_res.c \
+	http_client.c \
+	prqp_lib.c \
+	prqp_bio.c \
+	prqp_req_io.c \
+	prqp_resp_io.c \
+	prqp_srv.c
 
-
-# libpki/net/*.h \
-# libpki/io/*.h \
-# libpki/est/*.h \
-# libpki/scep/*.h \
-# libpki/prqp/*.h \
-# libpki/cmc/*.h \
-# libpki/openssl/*.h \
-# libpki/openssl/composite/*.h \
-# libpki/openssl/pqc/*.h \
-# libpki/drivers/*.h \
-# libpki/drivers/openssl/*.h \
-# libpki/drivers/engine/*.h \
-# libpki/drivers/pkcs11/*.h \
-# libpki/drivers/pkcs11/rsa/*.h \
-# libpki/drivers/kmf/*.h
-SRCS = 
-
-# banners.c\
-# pki_init.c \
-# stack.c \
-# pki_mem.c \
-# pki_cred.c \
-# pki_err.c \
-# pki_log.c \
-# pki_threads_vars.c \
-# pki_threads.c \
-# token.c \
-# token_id.c \
-# token_data.c \
-# support.c \
-# profile.c \
-# pki_config.c \
-# extensions.c \
-# pki_x509.c \
-# pki_x509_mem.c \
-# pki_x509_mime.c \
-# pki_msg_req.c \
-# pki_msg_resp.c
-lib_LTLIBRARIES = libpki.la
-libpki_la_SOURCES = $(SRCS)
-libpki_la_LDFLAGS = \
-	$(BUILD_LIBPKI_LDFLAGS) \
-	-version-number "$(PACKAGE_VERSION)" \
-	-version-info "$(INTERFACE_CURRENT):$(INTERFACE_REVISION):$(INTERFACE_AGE)"
-
-libpki_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS) $(SYSTEM_CFLAGS)
-libpki_la_LIBADD = \
-			crypto/libpki-crypto.la \
-			$(BUILD_LIBPKI_LDADD)
-
-
-# token/libpki-token.la
-# pkix/libpki-pkix.la 
-# utils/libpki-utils.la 
-bin_SCRIPTS = scripts/libpki-config
-all: all-recursive
+noinst_LTLIBRARIES = libpki-prqp.la
+libpki_prqp_la_SOURCES = $(PRQP_SRCS)
+libpki_prqp_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+all: all-am
 
 .SUFFIXES:
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -583,9 +473,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/prqp/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/Makefile
+	  $(AUTOMAKE) --gnu src/prqp/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -603,36 +493,10 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-global-vars: $(top_builddir)/config.status $(srcdir)/global-vars.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
-	list2=; for p in $$list; do \
-	  if test -f $$p; then \
-	    list2="$$list2 $$p"; \
-	  else :; fi; \
-	done; \
-	test -z "$$list2" || { \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(libdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(libdir)" || exit 1; \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
-	}
-
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
-	for p in $$list; do \
-	  $(am__strip_dir) \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
-	done
-
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; \
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; \
 	locs=`for p in $$list; do echo $$p; done | \
 	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
 	      sort -u`; \
@@ -641,43 +505,8 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki.la: $(libpki_la_OBJECTS) $(libpki_la_DEPENDENCIES) $(EXTRA_libpki_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_la_LINK) -rpath $(libdir) $(libpki_la_OBJECTS) $(libpki_la_LIBADD) $(LIBS)
-install-binSCRIPTS: $(bin_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n' \
-	    -e 'h;s|.*|.|' \
-	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
-	      if (++n[d] == $(am__install_max)) { \
-		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
-	    else { print "f", d "/" $$4, $$1 } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	     test -z "$$files" || { \
-	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
-	     } \
-	; done
-
-uninstall-binSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
+libpki-prqp.la: $(libpki_prqp_la_OBJECTS) $(libpki_prqp_la_DEPENDENCIES) $(EXTRA_libpki_prqp_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_prqp_la_LINK)  $(libpki_prqp_la_OBJECTS) $(libpki_prqp_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -685,91 +514,115 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-asn1_req.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-asn1_res.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-http_client.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-prqp_bio.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-prqp_lib.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-prqp_req_io.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-prqp_resp_io.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_prqp_la-prqp_srv.Plo@am__quote@ # am--include-marker
+
+$(am__depfiles_remade):
+	@$(MKDIR_P) $(@D)
+	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
+
+am--depfiles: $(am__depfiles_remade)
+
+.c.o:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
+
+.c.obj:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.c.lo:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libpki_prqp_la-asn1_req.lo: asn1_req.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-asn1_req.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-asn1_req.Tpo -c -o libpki_prqp_la-asn1_req.lo `test -f 'asn1_req.c' || echo '$(srcdir)/'`asn1_req.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-asn1_req.Tpo $(DEPDIR)/libpki_prqp_la-asn1_req.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1_req.c' object='libpki_prqp_la-asn1_req.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-asn1_req.lo `test -f 'asn1_req.c' || echo '$(srcdir)/'`asn1_req.c
+
+libpki_prqp_la-asn1_res.lo: asn1_res.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-asn1_res.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-asn1_res.Tpo -c -o libpki_prqp_la-asn1_res.lo `test -f 'asn1_res.c' || echo '$(srcdir)/'`asn1_res.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-asn1_res.Tpo $(DEPDIR)/libpki_prqp_la-asn1_res.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='asn1_res.c' object='libpki_prqp_la-asn1_res.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-asn1_res.lo `test -f 'asn1_res.c' || echo '$(srcdir)/'`asn1_res.c
+
+libpki_prqp_la-http_client.lo: http_client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-http_client.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-http_client.Tpo -c -o libpki_prqp_la-http_client.lo `test -f 'http_client.c' || echo '$(srcdir)/'`http_client.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-http_client.Tpo $(DEPDIR)/libpki_prqp_la-http_client.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='http_client.c' object='libpki_prqp_la-http_client.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-http_client.lo `test -f 'http_client.c' || echo '$(srcdir)/'`http_client.c
+
+libpki_prqp_la-prqp_lib.lo: prqp_lib.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-prqp_lib.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-prqp_lib.Tpo -c -o libpki_prqp_la-prqp_lib.lo `test -f 'prqp_lib.c' || echo '$(srcdir)/'`prqp_lib.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-prqp_lib.Tpo $(DEPDIR)/libpki_prqp_la-prqp_lib.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='prqp_lib.c' object='libpki_prqp_la-prqp_lib.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-prqp_lib.lo `test -f 'prqp_lib.c' || echo '$(srcdir)/'`prqp_lib.c
+
+libpki_prqp_la-prqp_bio.lo: prqp_bio.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-prqp_bio.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-prqp_bio.Tpo -c -o libpki_prqp_la-prqp_bio.lo `test -f 'prqp_bio.c' || echo '$(srcdir)/'`prqp_bio.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-prqp_bio.Tpo $(DEPDIR)/libpki_prqp_la-prqp_bio.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='prqp_bio.c' object='libpki_prqp_la-prqp_bio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-prqp_bio.lo `test -f 'prqp_bio.c' || echo '$(srcdir)/'`prqp_bio.c
+
+libpki_prqp_la-prqp_req_io.lo: prqp_req_io.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-prqp_req_io.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-prqp_req_io.Tpo -c -o libpki_prqp_la-prqp_req_io.lo `test -f 'prqp_req_io.c' || echo '$(srcdir)/'`prqp_req_io.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-prqp_req_io.Tpo $(DEPDIR)/libpki_prqp_la-prqp_req_io.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='prqp_req_io.c' object='libpki_prqp_la-prqp_req_io.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-prqp_req_io.lo `test -f 'prqp_req_io.c' || echo '$(srcdir)/'`prqp_req_io.c
+
+libpki_prqp_la-prqp_resp_io.lo: prqp_resp_io.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-prqp_resp_io.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-prqp_resp_io.Tpo -c -o libpki_prqp_la-prqp_resp_io.lo `test -f 'prqp_resp_io.c' || echo '$(srcdir)/'`prqp_resp_io.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-prqp_resp_io.Tpo $(DEPDIR)/libpki_prqp_la-prqp_resp_io.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='prqp_resp_io.c' object='libpki_prqp_la-prqp_resp_io.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-prqp_resp_io.lo `test -f 'prqp_resp_io.c' || echo '$(srcdir)/'`prqp_resp_io.c
+
+libpki_prqp_la-prqp_srv.lo: prqp_srv.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -MT libpki_prqp_la-prqp_srv.lo -MD -MP -MF $(DEPDIR)/libpki_prqp_la-prqp_srv.Tpo -c -o libpki_prqp_la-prqp_srv.lo `test -f 'prqp_srv.c' || echo '$(srcdir)/'`prqp_srv.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_prqp_la-prqp_srv.Tpo $(DEPDIR)/libpki_prqp_la-prqp_srv.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='prqp_srv.c' object='libpki_prqp_la-prqp_srv.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_prqp_la_CFLAGS) $(CFLAGS) -c -o libpki_prqp_la-prqp_srv.lo `test -f 'prqp_srv.c' || echo '$(srcdir)/'`prqp_srv.c
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-nobase_includeHEADERS: $(nobase_include_HEADERS)
-	@$(NORMAL_INSTALL)
-	@list='$(nobase_include_HEADERS)'; test -n "$(includedir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(includedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(includedir)" || exit 1; \
-	fi; \
-	$(am__nobase_list) | while read dir files; do \
-	  xfiles=; for file in $$files; do \
-	    if test -f "$$file"; then xfiles="$$xfiles $$file"; \
-	    else xfiles="$$xfiles $(srcdir)/$$file"; fi; done; \
-	  test -z "$$xfiles" || { \
-	    test "x$$dir" = x. || { \
-	      echo " $(MKDIR_P) '$(DESTDIR)$(includedir)/$$dir'"; \
-	      $(MKDIR_P) "$(DESTDIR)$(includedir)/$$dir"; }; \
-	    echo " $(INSTALL_HEADER) $$xfiles '$(DESTDIR)$(includedir)/$$dir'"; \
-	    $(INSTALL_HEADER) $$xfiles "$(DESTDIR)$(includedir)/$$dir" || exit $$?; }; \
-	done
-
-uninstall-nobase_includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(nobase_include_HEADERS)'; test -n "$(includedir)" || list=; \
-	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
-	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run 'make' without going through this Makefile.
-# To change the values of 'make' variables: instead of editing Makefiles,
-# (1) if the variable is set in 'config.status', edit 'config.status'
-#     (which will cause the Makefiles to be regenerated when you run 'make');
-# (2) otherwise, pass the desired values on the 'make' command line.
-$(am__recursive_targets):
-	@fail=; \
-	if $(am__make_keepgoing); then \
-	  failcom='fail=yes'; \
-	else \
-	  failcom='exit 1'; \
-	fi; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
-tags: tags-recursive
+tags: tags-am
 TAGS: tags
 
 tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	set x; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	$(am__define_uniq_tagged_files); \
 	shift; \
 	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
@@ -782,7 +635,7 @@ tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	      $$unique; \
 	  fi; \
 	fi
-ctags: ctags-recursive
+ctags: ctags-am
 
 CTAGS: ctags
 ctags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
@@ -795,7 +648,7 @@ GTAGS:
 	here=`$(am__cd) $(top_builddir) && pwd` \
 	  && $(am__cd) $(top_srcdir) \
 	  && gtags -i $(GTAGS_ARGS) "$$here"
-cscopelist: cscopelist-recursive
+cscopelist: cscopelist-am
 
 cscopelist-am: $(am__tagged_files)
 	list='$(am__tagged_files)'; \
@@ -846,48 +699,19 @@ distdir-am: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    $(am__make_dryrun) \
-	      || test -d "$(distdir)/$$subdir" \
-	      || $(MKDIR_P) "$(distdir)/$$subdir" \
-	      || exit 1; \
-	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
-	    $(am__relativize); \
-	    new_distdir=$$reldir; \
-	    dir1=$$subdir; dir2="$(top_distdir)"; \
-	    $(am__relativize); \
-	    new_top_distdir=$$reldir; \
-	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
-	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
-	    ($(am__cd) $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$new_top_distdir" \
-	        distdir="$$new_distdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-		am__skip_mode_fix=: \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(HEADERS)
-installdirs: installdirs-recursive
-installdirs-am:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(LTLIBRARIES)
+installdirs:
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -909,98 +733,111 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
+		-rm -f ./$(DEPDIR)/libpki_prqp_la-asn1_req.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-asn1_res.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-http_client.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_bio.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_lib.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_req_io.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_resp_io.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_srv.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
 html-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
-install-data-am: install-nobase_includeHEADERS
+install-data-am:
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binSCRIPTS install-libLTLIBRARIES
+install-exec-am:
 
-install-html: install-html-recursive
+install-html: install-html-am
 
 install-html-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
 install-pdf-am:
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
+		-rm -f ./$(DEPDIR)/libpki_prqp_la-asn1_req.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-asn1_res.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-http_client.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_bio.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_lib.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_req_io.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_resp_io.Plo
+	-rm -f ./$(DEPDIR)/libpki_prqp_la-prqp_srv.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binSCRIPTS uninstall-libLTLIBRARIES \
-	uninstall-nobase_includeHEADERS
+uninstall-am:
 
-.MAKE: $(am__recursive_targets) install-am install-strip
+.MAKE: install-am install-strip
 
-.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am check \
-	check-am clean clean-generic clean-libLTLIBRARIES \
-	clean-libtool cscopelist-am ctags ctags-am distclean \
-	distclean-compile distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binSCRIPTS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLTLIBRARIES install-man \
-	install-nobase_includeHEADERS install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
+.PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
+	clean-generic clean-libtool clean-noinstLTLIBRARIES \
+	cscopelist-am ctags ctags-am distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-binSCRIPTS \
-	uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
+	tags tags-am uninstall uninstall-am
 
 .PRECIOUS: Makefile
 
 include $(TOP)/global-vars
+# libpki_prqp_la_LIBADD = $(OPENSSL_LIBS) 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

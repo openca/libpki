@@ -14,8 +14,6 @@
 
 @SET_MAKE@
 
-
-
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -91,7 +89,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src
+subdir = src/crypto/hsm
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -100,55 +98,26 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(nobase_include_HEADERS) \
-	$(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/libpki/libconf/defines.h \
 	$(top_builddir)/src/libpki/libconf/features.h
-CONFIG_CLEAN_FILES = global-vars
+CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
-am__install_max = 40
-am__nobase_strip_setup = \
-  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
-am__nobase_strip = \
-  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
-am__nobase_list = $(am__nobase_strip_setup); \
-  for p in $$list; do echo "$$p $$p"; done | \
-  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
-  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
-    if (++n[$$2] == $(am__install_max)) \
-      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
-    END { for (dir in files) print dir, files[dir] }'
-am__base_list = \
-  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
-  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__uninstall_files_from_dir = { \
-  test -z "$$files" \
-    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
-    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
-         $(am__cd) "$$dir" && rm -f $$files; }; \
-  }
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(includedir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
-libpki_la_DEPENDENCIES = crypto/libpki-crypto.la
-am__objects_1 =
-am_libpki_la_OBJECTS = $(am__objects_1)
-libpki_la_OBJECTS = $(am_libpki_la_OBJECTS)
+LTLIBRARIES = $(noinst_LTLIBRARIES)
+am__DEPENDENCIES_1 =
+libpki_hsm_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am__objects_1 = libpki_hsm_la-hsm_main.lo libpki_hsm_la-hsm_slot.lo \
+	libpki_hsm_la-hsm_keypair.lo
+am_libpki_hsm_la_OBJECTS = $(am__objects_1)
+libpki_hsm_la_OBJECTS = $(am_libpki_hsm_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libpki_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_la_CFLAGS) \
-	$(CFLAGS) $(libpki_la_LDFLAGS) $(LDFLAGS) -o $@
-SCRIPTS = $(bin_SCRIPTS)
+libpki_hsm_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpki_hsm_la_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -162,6 +131,12 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src/libpki/libconf
+depcomp = $(SHELL) $(top_srcdir)/build/depcomp
+am__maybe_remake_depfiles = depfiles
+am__depfiles_remade = ./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo \
+	./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo \
+	./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
+am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -180,8 +155,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libpki_la_SOURCES)
-DIST_SOURCES = $(libpki_la_SOURCES)
+SOURCES = $(libpki_hsm_la_SOURCES)
+DIST_SOURCES = $(libpki_hsm_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -195,7 +170,6 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-HEADERS = $(nobase_include_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 am__recursive_targets = \
@@ -221,8 +195,8 @@ am__define_uniq_tagged_files = \
   unique=`for i in $$list; do \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
-DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/global-vars.in \
+DIST_SUBDIRS = openssl wolfssl pkcs11 .
+am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/build/depcomp \
 	$(top_srcdir)/build/mkinstalldirs
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
@@ -496,84 +470,40 @@ xml2_ldadd = @xml2_ldadd@
 xml2_ldflags = @xml2_ldflags@
 xml2_prefix = @xml2_prefix@
 yr = @yr@
-TOP = .
-EXTRA_DIST = \
-	tests
+TOP = ..
+BASE_DEFS = 
+@ENABLE_OPENSSL_FALSE@OSSL_SUBDIRS = 
+@ENABLE_OPENSSL_TRUE@OSSL_SUBDIRS = openssl
+@ENABLE_OPENSSL_FALSE@OSSL_SOFTWARE_OBJ = 
+@ENABLE_OPENSSL_TRUE@OSSL_SOFTWARE_OBJ = openssl/libpki-hsm-openssl.la
+@ENABLE_WOLFSSL_FALSE@WOLFSSL_SUBDIRS = 
 
+# HSM_SOFTWARE = wolfssl
+# HSM_SOFTWARE_OBJ = $(top_builddir)/src/drivers/wolfssl/libpki-token-wolfssl.la
+@ENABLE_WOLFSSL_TRUE@WOLFSSL_SUBDIRS = wolfssl
+@ENABLE_WOLFSSL_FALSE@WOLFSSL_SOFTWARE_OBJ = 
+@ENABLE_WOLFSSL_TRUE@WOLFSSL_SOFTWARE_OBJ = wolfssl/libpki-hsm-wolfssl.la
+@ENABLE_PKCS11_FALSE@PKCS11_SUBDIRS = 
+@ENABLE_PKCS11_TRUE@PKCS11_SUBDIRS = pkcs11
+@ENABLE_PKCS11_FALSE@PKCS11_SOFTWARE_OBJ = 
+@ENABLE_PKCS11_TRUE@PKCS11_SOFTWARE_OBJ = pkcs11/libpki-hsm-pkcs11.la
+HSMS = $(OSSL_SOFTWARE_OBJ) $(WOLFSSL_SOFTWARE_OBJ) $(PKCS11_SOFTWARE_OBJ)
+OBJECTS = $(HSM_SOFTWARE_OBJ) $(HSM_PKCS11_OBJ)
+SUBDIRS = $(OSSL_SUBDIRS) $(WOLFSSL_SUBDIRS) $(PKCS11_SUBDIRS) .
+AM_CPPFLAGS = -I$(TOP)
+SRCS = \
+	hsm_main.c \
+	hsm_slot.c \
+	hsm_keypair.c
 
-# HSMS = $(HSM_SOFTWARE) $(HSM_KMF) $(HSM_OPENSSL_ENGINE)
-CRYPTO = crypto
-@LIBPKI_ENABLE_IPHONE_FALSE@TOOLS_AND_TESTS = tools tests
-@LIBPKI_ENABLE_IPHONE_TRUE@TOOLS_AND_TESTS = 
-
-# SUBDIRS = crypto x509 utils pkix token . $(TOOLS_AND_TESTS)
-SUBDIRS = crypto # x509 utils pkix token . $(TOOLS_AND_TESTS)
-AM_CPPFLAGS = \
-	-I$(top_srcdir)/src \
-	$(COND_INCLUDES)
-
-nobase_include_HEADERS = \
-	libpki/*
-
-
-# libpki/net/*.h \
-# libpki/io/*.h \
-# libpki/est/*.h \
-# libpki/scep/*.h \
-# libpki/prqp/*.h \
-# libpki/cmc/*.h \
-# libpki/openssl/*.h \
-# libpki/openssl/composite/*.h \
-# libpki/openssl/pqc/*.h \
-# libpki/drivers/*.h \
-# libpki/drivers/openssl/*.h \
-# libpki/drivers/engine/*.h \
-# libpki/drivers/pkcs11/*.h \
-# libpki/drivers/pkcs11/rsa/*.h \
-# libpki/drivers/kmf/*.h
-SRCS = 
-
-# banners.c\
-# pki_init.c \
-# stack.c \
-# pki_mem.c \
-# pki_cred.c \
-# pki_err.c \
-# pki_log.c \
-# pki_threads_vars.c \
-# pki_threads.c \
-# token.c \
-# token_id.c \
-# token_data.c \
-# support.c \
-# profile.c \
-# pki_config.c \
-# extensions.c \
-# pki_x509.c \
-# pki_x509_mem.c \
-# pki_x509_mime.c \
-# pki_msg_req.c \
-# pki_msg_resp.c
-lib_LTLIBRARIES = libpki.la
-libpki_la_SOURCES = $(SRCS)
-libpki_la_LDFLAGS = \
-	$(BUILD_LIBPKI_LDFLAGS) \
-	-version-number "$(PACKAGE_VERSION)" \
-	-version-info "$(INTERFACE_CURRENT):$(INTERFACE_REVISION):$(INTERFACE_AGE)"
-
-libpki_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS) $(SYSTEM_CFLAGS)
-libpki_la_LIBADD = \
-			crypto/libpki-crypto.la \
-			$(BUILD_LIBPKI_LDADD)
-
-
-# token/libpki-token.la
-# pkix/libpki-pkix.la 
-# utils/libpki-utils.la 
-bin_SCRIPTS = scripts/libpki-config
+noinst_LTLIBRARIES = libpki-hsm.la
+libpki_hsm_la_SOURCES = $(SRCS)
+libpki_hsm_la_CFLAGS = $(BUILD_LIBPKI_CFLAGS)
+libpki_hsm_la_LIBADD = $(OBJECTS)
 all: all-recursive
 
 .SUFFIXES:
+.SUFFIXES: .c .lo .o .obj
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -583,9 +513,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/crypto/hsm/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/Makefile
+	  $(AUTOMAKE) --gnu src/crypto/hsm/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -603,36 +533,10 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-global-vars: $(top_builddir)/config.status $(srcdir)/global-vars.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
-	list2=; for p in $$list; do \
-	  if test -f $$p; then \
-	    list2="$$list2 $$p"; \
-	  else :; fi; \
-	done; \
-	test -z "$$list2" || { \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(libdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(libdir)" || exit 1; \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
-	}
-
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
-	for p in $$list; do \
-	  $(am__strip_dir) \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
-	done
-
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; \
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; \
 	locs=`for p in $$list; do echo $$p; done | \
 	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
 	      sort -u`; \
@@ -641,43 +545,8 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libpki.la: $(libpki_la_OBJECTS) $(libpki_la_DEPENDENCIES) $(EXTRA_libpki_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libpki_la_LINK) -rpath $(libdir) $(libpki_la_OBJECTS) $(libpki_la_LIBADD) $(LIBS)
-install-binSCRIPTS: $(bin_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n' \
-	    -e 'h;s|.*|.|' \
-	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
-	      if (++n[d] == $(am__install_max)) { \
-		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
-	    else { print "f", d "/" $$4, $$1 } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	     test -z "$$files" || { \
-	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
-	     } \
-	; done
-
-uninstall-binSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
+libpki-hsm.la: $(libpki_hsm_la_OBJECTS) $(libpki_hsm_la_DEPENDENCIES) $(EXTRA_libpki_hsm_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libpki_hsm_la_LINK)  $(libpki_hsm_la_OBJECTS) $(libpki_hsm_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -685,35 +554,66 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo@am__quote@ # am--include-marker
+
+$(am__depfiles_remade):
+	@$(MKDIR_P) $(@D)
+	@echo '# dummy' >$@-t && $(am__mv) $@-t $@
+
+am--depfiles: $(am__depfiles_remade)
+
+.c.o:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
+
+.c.obj:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.c.lo:
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libpki_hsm_la-hsm_main.lo: hsm_main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_la-hsm_main.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_la-hsm_main.Tpo -c -o libpki_hsm_la-hsm_main.lo `test -f 'hsm_main.c' || echo '$(srcdir)/'`hsm_main.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_la-hsm_main.Tpo $(DEPDIR)/libpki_hsm_la-hsm_main.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hsm_main.c' object='libpki_hsm_la-hsm_main.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_la-hsm_main.lo `test -f 'hsm_main.c' || echo '$(srcdir)/'`hsm_main.c
+
+libpki_hsm_la-hsm_slot.lo: hsm_slot.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_la-hsm_slot.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_la-hsm_slot.Tpo -c -o libpki_hsm_la-hsm_slot.lo `test -f 'hsm_slot.c' || echo '$(srcdir)/'`hsm_slot.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_la-hsm_slot.Tpo $(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hsm_slot.c' object='libpki_hsm_la-hsm_slot.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_la-hsm_slot.lo `test -f 'hsm_slot.c' || echo '$(srcdir)/'`hsm_slot.c
+
+libpki_hsm_la-hsm_keypair.lo: hsm_keypair.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -MT libpki_hsm_la-hsm_keypair.lo -MD -MP -MF $(DEPDIR)/libpki_hsm_la-hsm_keypair.Tpo -c -o libpki_hsm_la-hsm_keypair.lo `test -f 'hsm_keypair.c' || echo '$(srcdir)/'`hsm_keypair.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpki_hsm_la-hsm_keypair.Tpo $(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='hsm_keypair.c' object='libpki_hsm_la-hsm_keypair.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpki_hsm_la_CFLAGS) $(CFLAGS) -c -o libpki_hsm_la-hsm_keypair.lo `test -f 'hsm_keypair.c' || echo '$(srcdir)/'`hsm_keypair.c
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-nobase_includeHEADERS: $(nobase_include_HEADERS)
-	@$(NORMAL_INSTALL)
-	@list='$(nobase_include_HEADERS)'; test -n "$(includedir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(includedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(includedir)" || exit 1; \
-	fi; \
-	$(am__nobase_list) | while read dir files; do \
-	  xfiles=; for file in $$files; do \
-	    if test -f "$$file"; then xfiles="$$xfiles $$file"; \
-	    else xfiles="$$xfiles $(srcdir)/$$file"; fi; done; \
-	  test -z "$$xfiles" || { \
-	    test "x$$dir" = x. || { \
-	      echo " $(MKDIR_P) '$(DESTDIR)$(includedir)/$$dir'"; \
-	      $(MKDIR_P) "$(DESTDIR)$(includedir)/$$dir"; }; \
-	    echo " $(INSTALL_HEADER) $$xfiles '$(DESTDIR)$(includedir)/$$dir'"; \
-	    $(INSTALL_HEADER) $$xfiles "$(DESTDIR)$(includedir)/$$dir" || exit $$?; }; \
-	done
-
-uninstall-nobase_includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(nobase_include_HEADERS)'; test -n "$(includedir)" || list=; \
-	$(am__nobase_strip_setup); files=`$(am__nobase_strip)`; \
-	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.
@@ -873,12 +773,9 @@ distdir-am: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
 install: install-recursive
 install-exec: install-exec-recursive
 install-data: install-data-recursive
@@ -911,10 +808,13 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-recursive
+		-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -931,13 +831,13 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-nobase_includeHEADERS
+install-data-am:
 
 install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
-install-exec-am: install-binSCRIPTS install-libLTLIBRARIES
+install-exec-am:
 
 install-html: install-html-recursive
 
@@ -960,6 +860,9 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
+		-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_keypair.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_main.Plo
+	-rm -f ./$(DEPDIR)/libpki_hsm_la-hsm_slot.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -976,27 +879,24 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binSCRIPTS uninstall-libLTLIBRARIES \
-	uninstall-nobase_includeHEADERS
+uninstall-am:
 
 .MAKE: $(am__recursive_targets) install-am install-strip
 
-.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am check \
-	check-am clean clean-generic clean-libLTLIBRARIES \
-	clean-libtool cscopelist-am ctags ctags-am distclean \
+.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
+	am--depfiles check check-am clean clean-generic clean-libtool \
+	clean-noinstLTLIBRARIES cscopelist-am ctags ctags-am distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binSCRIPTS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLTLIBRARIES install-man \
-	install-nobase_includeHEADERS install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-binSCRIPTS \
-	uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am
 
 .PRECIOUS: Makefile
 

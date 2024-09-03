@@ -416,22 +416,6 @@ AC_CHECK_LIB(c, calloc,
         [ AC_MSG_RESULT([no calloc was found]) ]
 )
 
-dnl ===== Symbolic and Symbolic Functions =====
-
-# symbolic_build=
-# symbolic_start=
-# symbolic_end=
-
-# AC_ARG_ENABLE(symbolic,
-# 	AC_HELP_STRING( [--enable-symbolic],
-# 		[enable the use of -Bsymbolic and -Bsymbolic-functions (default is no)]),
-# 		symbolic_build=$enableval, symbolic_build=no )
-
-# if [[ "x$symbolic_build" = "xyes"]] ; then
-# 	symbolic_start="-Bsymbolic -Bsymbolic-functions"
-# 	symbolic_end="-Bno-symbolic"
-# fi
-
 dnl ===== iPhone build =====
 
 if [[ "x$iphone_build" = "xno" ]] ; then
@@ -1176,29 +1160,36 @@ fi
 
 dnl ######################### CRYPTO SUPPORT #############################
 
-AC_ARG_ENABLE( kmf,
-	AC_HELP_STRING( [--enable-kmf],
+dnl ----- WolfSSL -----
+
+AC_ARG_ENABLE(wolfssl,
+	AC_HELP_STRING( [--enable-wolfssl],
 		[enable kmf crypto for token operations (default is no)]),
-			enable_kmf=$enableval, enable_kmf=no )
+			enable_wolfssl=$enableval, enable_wolfssl=no )
+
+wolfssl_setup=no
+
+AC_MSG_RESULT([enable_wolfssl: ${enable_wolfssl}])
+
+AM_CONDITIONAL(ENABLE_WOLFSSL, test "${enablewolfssl}" = "yes")
+AM_CONDITIONAL(WOLFSSL_PREFIX, test ! x$wolfssl_prefix = x )
+
+AC_ARG_WITH( openssl-prefix,
+	AC_HELP_STRING( [--with-openssl-prefix=DIR], [openssl prefix]),
+	openssl_prefix=$withval, openssl_prefix= )
+AC_SUBST(openssl_prefix)
+
+AC_MSG_RESULT([with openssl-prefix     : $openssl_prefix ])
+
+dnl ----- OpenSSL -----
 
 AC_ARG_ENABLE( openssl,
 	AC_HELP_STRING( [--enable-openssl],
 		[enable openssl crypto for token operations (default is yes)]),
 			enableopenssl=$enableval, enableopenssl=yes )
 
-# if [[ "$myarch" = "solaris" ]] ; then
-# 	if [[ "${enable_kmf}" = "" ]] ; then
-# 		enable_kmf=no
-# 	fi
-# else
-# 	# Not on solaris, we disable kmf
-# 	enable_kmf=no
-# fi
-
 openssl_setup=no
-kmf_setup=no
 
-AC_MSG_RESULT([enable_kmf: ${enable_kmf}])
 AC_MSG_RESULT([enable_openssl: ${enableopenssl}])
 
 dnl Defaults
@@ -1207,48 +1198,13 @@ openssl_ldflags=
 openssl_ldadd=
 openssl_include=
 openssl_setup=no
-openssl_engine=
 openssl_static_libs=
 openssl_min_ver=0x090909f
 openssl_pkg_min_ver=0.9.8
 
-dnl activate_ecdsa=
-
-kmf_prefix=
-kmf_cflags=
-kmf_ldflags=
-kmf_ldadd=
-kmf_include=
-kmf_setup=
-
-if ! [[ $enable_kmf = "no" ]] ; then
-AC_CHECK_LIB(kmf, KMF_Initialize,
-		kmf_ldadd=-lkmf, [
-			enable_kmf=no;
-			enableopenssl=yes;
-			AC_MSG_RESULT([***WARNING***: Can not setup kmf library correctly, Falling back to OpenSSL!])]
-	    )
-fi
-
-AM_CONDITIONAL(ENABLE_KMF, test "${enable_kmf}" = "yes")
-
-if [[ "${enable_kmf}" = "yes" ]] ; then
-	AC_MSG_RESULT([crypto package for token operations... KMF])
-
-	AC_DEFINE(ENABLE_KMF, 1, [SUN CMS])
-	kmf_prefix=/usr
-	kmf_include=/usr/include
-	kmf_setup=yes
-	AC_SUBST(kmf_prefix)
-	AC_SUBST(kmf_cflags)
-	AC_SUBST(kmf_libflags)
-	AC_SUBST(kmf_ldadd)
-fi
-
 AM_CONDITIONAL(ENABLE_OPENSSL, test "${enableopenssl}" = "yes")
 AM_CONDITIONAL(OPENSSL_PREFIX, test ! x$openssl_prefix = x )
 
-dnl ECDSA support cecks
 old_cflags=$CFLAGS
 old_ldflags=$LDFLAGS
 
@@ -1475,22 +1431,21 @@ dnl	if ! [[ "x$openssl_setup" = "xyes" ]] ; then
 	## End of OpenSSL build settings section ##
 
 	dnl OpenSSL Engine Support
-	AC_ARG_ENABLE( openssl-engine,
-	[  --enable-openssl-engine      enable openssl engine support (yes)],
+	AC_ARG_ENABLE(pkcs11,
+	[  --enable-pkcs11      enable pkcs11 experimental support (no)],
 	[case "${enableval}" in
-	  yes)  engine=yes ;;
-	  no)   engine=no ;;
-	  *) AC_MSG_ERROR([bad value ${engine} for --enable-openssl-engine]) ;;
-	 esac], [engine=yes])
+	  yes)  enable_pkcs11=yes ;;
+	  no)   enable_pkcs11=no ;;
+	  *) AC_MSG_ERROR([bad value ${engine} for --enable-pkcs11]) ;;
+	 esac], [enable_pkcs11=no])
 
-	AC_MSG_RESULT([enable engine support   : $engine])
+	AC_MSG_RESULT([enable pkcs11 experimental support   : $enable_pkcs11])
 
-	dnl AM_CONDITIONAL(HAVE_ENGINE, test x$engine = yes)
-
-	if [[ "$engine" = "yes" ]] ; then
-	        AC_DEFINE(HAVE_ENGINE, 1, [ENGINE])
+	if [[ "$enable_pkcs11" = "yes" ]] ; then
+	        AC_DEFINE(HAVE_PKCS11, 1, [PKCS11])
 	fi
-	AM_CONDITIONAL(ENABLE_OPENSSL_ENGINE, test "${engine}" = "yes")
+
+	AM_CONDITIONAL(ENABLE_PKCS11, test "${enable_pkcs11}" = "yes")
 fi
 
 dnl ================= Open Quantum Safe - PQ and Composite Crypto LIBRARIES ===================
@@ -1661,7 +1616,6 @@ AM_CONDITIONAL(ENABLE_COMPOSITE, test "${composite}" = "yes")
 dnl ================= OpenSSL Static LIBS (?) =========================
 
 AM_CONDITIONAL(STATIC_COMPILE, test "x$openssl_static_libs" != "x")
-AC_CONFIG_HEADER([src/libpki/config.h src/libpki/libpki_enables.h])
 
 AC_ARG_ENABLE(strict,
 	AC_HELP_STRING( [--enable-strict],
@@ -1669,6 +1623,8 @@ AC_ARG_ENABLE(strict,
 		strict_compile=$enableval, strict_compile=no )
 
 dnl ========================== GENERAL COMPILE OPTIONS ===============
+
+AC_CONFIG_HEADER([src/libpki/libconf/defines.h src/libpki/libconf/features.h])
 
 sys_ldadd=
 sys_cflags=
@@ -1843,35 +1799,36 @@ AC_CONFIG_FILES(
 	Makefile
 	src/global-vars
 	src/Makefile
-	src/drivers/Makefile
-	src/drivers/openssl/Makefile
-	src/drivers/engine/Makefile
-	src/drivers/pkcs11/Makefile
-	src/drivers/kmf/Makefile
-	src/openssl/composite/Makefile
-	src/openssl/pqc/Makefile
-	src/openssl/Makefile
-	src/io/Makefile
-	src/net/Makefile
-	src/est/Makefile
-	src/scep/Makefile
-	src/cmc/Makefile
-	src/prqp/Makefile
-	src/tools/Makefile
-	src/scripts/libpki-config
-	src/tests/Makefile
-	src/libpki/pki_config.h
-	src/libpki/libpkiv.h
-	contrib/libpki.pc
+	src/crypto/Makefile
+	src/crypto/hsm/Makefile
+	src/crypto/hsm/openssl/Makefile
+dnl	src/crypto/hsm/pkcs11/Makefile
+dnl	src/crypto/composite/Makefile
+dnl	src/openssl/pqc/Makefile
+dnl	src/openssl/Makefile
+dnl	src/utils/io/Makefile
+dnl	src/utils/net/Makefile
+dnl	src/pkix/Makefile
+dnl	src/pkix/est/Makefile
+dnl	src/pkix/scep/Makefile
+dnl	src/pkix/cmc/Makefile
+dnl	src/pkix/prqp/Makefile
+dnl	src/pkix/prqp/Makefile
+dnl	src/tools/Makefile
+	scripts/libpki-config
+dnl	src/tests/Makefile
+dnl	include/libpki/libconf/defines.h
+dnl	include/libpki/libconf/version.h
+dnl	contrib/libpki.pc
 	contrib/libpki-inst.xml
-	examples/prqp/Makefile
-	examples/profiles/Makefile
-	examples/token/Makefile
-	examples/url/Makefile
-	examples/crl/Makefile
-	examples/pkcs11/Makefile
-	examples/pkcs12/Makefile
-	examples/fips-mode/Makefile
+dnl	examples/prqp/Makefile
+dnl	examples/profiles/Makefile
+dnl	examples/token/Makefile
+dnl	examples/url/Makefile
+dnl	examples/crl/Makefile
+dnl	examples/pkcs11/Makefile
+dnl	examples/pkcs12/Makefile
+dnl	examples/fips-mode/Makefile
 	docs/Makefile
 	docs/pkginfo
 	etc/Makefile
