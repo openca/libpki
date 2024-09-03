@@ -29,12 +29,12 @@ BEGIN_C_DECLS
                     // Core Interface
                     // ==============
 
-HSM * CRYPTO_HSM_new(const char * const dir,
+HSM * HSM_new(const char * const dir,
                     const char * const name );
 
-void CRYPTO_HSM_free (HSM *hsm);
+void HSM_free (HSM *hsm);
 
-const HSM * CRYPTO_HSM_get_default(void);
+const HSM * HSM_get_default(void);
 
 END_C_DECLS
 

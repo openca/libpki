@@ -9,8 +9,8 @@
  * while the name is the name of the HSM (e.g., LunaCA3)
  */
 
-HSM * CRYPTO_HSM_new(const char * const dir,
-                     const char * const name ) {
+HSM * HSM_new(const char * const dir,
+              const char * const name ) {
 
     HSM  * hsm   = NULL;
     char * url_s = NULL;
@@ -123,7 +123,7 @@ err:
     return NULL;
 }
 
-void CRYPTO_HSM_free ( HSM *hsm ) {
+void HSM_free ( HSM *hsm ) {
 
     if( !hsm ) return (PKI_ERR);
 
@@ -142,7 +142,7 @@ void CRYPTO_HSM_free ( HSM *hsm ) {
  * to be freed.
  */
  
-const HSM *CRYPTO_HSM_get_default( void ) {
+const HSM *HSM_get_default( void ) {
     return HSM_OPENSSL_get_default();
 }
 
