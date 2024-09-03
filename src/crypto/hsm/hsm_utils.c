@@ -9,8 +9,8 @@
  * while the name is the name of the HSM (e.g., LunaCA3)
  */
 
-HSM * HSM_new(const char * const dir,
-              const char * const name ) {
+const HSM * HSM_new(const char * const dir,
+                    const char * const name ) {
 
     HSM  * hsm   = NULL;
     char * url_s = NULL;

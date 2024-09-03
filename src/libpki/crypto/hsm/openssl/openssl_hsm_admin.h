@@ -13,23 +13,15 @@
 
 BEGIN_C_DECLS
 
-int HSM_OPENSSL_is_fips_mode(const HSM *hsm);
+int HSM_OPENSSL_new_driver(void **hsm_driver);
 
-int HSM_OPENSSL_login ( HSM *hsm, PKI_CRED *cred );
+int HSM_OPENSSL_free_driver(void *hsm_driver);
 
-int HSM_OPENSSL_logout ( HSM *hsm );
+int HSM_OPENSSL_init(void * hsm_driver, const PKI_CONFIG * conf);
 
-unsigned long HSM_OPENSSL_get_errno ( const HSM *hsm );
+int HSM_OPENSSL_set_fips_mode(const void * hsm_driver, int mode);
 
-char *HSM_OPENSSL_get_errdesc ( unsigned long err, const HSM *hsm );
-
-int HSM_OPENSSL_login ( HSM *hsm, PKI_CRED *cred );
-
-int HSM_OPENSSL_logout ( HSM *hsm );
-
-unsigned long HSM_OPENSSL_get_errno ( const HSM *hsm );
-
-char *HSM_OPENSSL_get_errdesc ( unsigned long err, const HSM *hsm );
+int HSM_OPENSSL_is_fips_mode(const void * hsm_driver);
 
 
 // /* ------------------- Keypair Functions --------------------- */

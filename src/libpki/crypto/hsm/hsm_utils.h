@@ -29,7 +29,7 @@ BEGIN_C_DECLS
                     // Core Interface
                     // ==============
 
-HSM * HSM_new(const char * const dir,
+const HSM * HSM_new(const char * const dir,
                     const char * const name );
 
 void HSM_free (HSM *hsm);
