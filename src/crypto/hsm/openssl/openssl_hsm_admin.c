@@ -195,31 +195,31 @@ const HSM * HSM_OPENSSL_get_default( void )
 	return ((const HSM *)&openssl_hsm);
 }
 
-HSM *HSM_OPENSSL_new ( PKI_CONFIG *conf )
-{
-	HSM *hsm = NULL;
+// HSM *HSM_OPENSSL_new ( PKI_CONFIG *conf )
+// {
+// 	HSM *hsm = NULL;
 
-	hsm = (HSM *) PKI_Malloc ( sizeof( HSM ));
-	memcpy( hsm, &openssl_hsm, sizeof( HSM));
+// 	hsm = (HSM *) PKI_Malloc ( sizeof( HSM ));
+// 	memcpy( hsm, &openssl_hsm, sizeof( HSM));
 
-	/* Not really needed! */
-	hsm->callbacks = &openssl_hsm_callbacks;
+// 	/* Not really needed! */
+// 	hsm->callbacks = &openssl_hsm_callbacks;
 
-	if( conf ) {
-		hsm->config = conf;
-	}
+// 	if( conf ) {
+// 		hsm->config = conf;
+// 	}
 
-	hsm->type = HSM_TYPE_SOFTWARE;
+// 	hsm->type = HSM_TYPE_SOFTWARE;
 
-	return( hsm );
-}
+// 	return( hsm );
+// }
 
-int HSM_OPENSSL_free ( HSM *driver, PKI_CONFIG *conf ) {
+// int HSM_OPENSSL_free ( HSM *driver, PKI_CONFIG *conf ) {
 
-	if( driver == NULL ) return (PKI_OK);
+// 	if( driver == NULL ) return (PKI_OK);
 
-	return (PKI_ERR);
-}
+// 	return (PKI_ERR);
+// }
 
 int HSM_OPENSSL_init( HSM *driver, PKI_CONFIG *conf ) {
 
@@ -415,12 +415,12 @@ int HSM_OPENSSL_is_fips_mode(const HSM *driver)
 
 /* ---------------------- OPENSSL Slot Management Functions ---------------- */
 
-HSM_SLOT_INFO * HSM_OPENSSL_SLOT_INFO_get (unsigned long num, HSM *hsm) {
+HSM_STORE_INFO * HSM_OPENSSL_STORE_INFO_get (unsigned long num, HSM *hsm) {
 
-	HSM_SLOT_INFO *ret = NULL;
+	HSM_STORE_INFO *ret = NULL;
 
-	ret = (HSM_SLOT_INFO *) PKI_Malloc ( sizeof (HSM_SLOT_INFO));
-	memcpy( ret, &openssl_slot_info, sizeof( HSM_SLOT_INFO ));
+	ret = (HSM_STORE_INFO *) PKI_Malloc ( sizeof (HSM_STORE_INFO));
+	memcpy( ret, &openssl_slot_info, sizeof( HSM_STORE_INFO ));
 
 	return (ret);
 }

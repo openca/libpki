@@ -7,6 +7,10 @@
 #include <libpki/crypto/types.h>
 #endif
 
+#ifndef _LIBPKI_X509_TYPES_H
+#include <libpki/x509/types.h>
+#endif
+
 #ifndef _LIBPKI_TOKEN_TYPES_H
 #define _LIBPKI_TOKEN_TYPES_H
 
@@ -39,7 +43,7 @@ typedef struct pki_token_st {
 	void * algor;
 
 	/*! Digest Algorithm used by the PKI_TOKEN */
-	PKI_DIGEST_ALG * digest;
+	CRYPTO_HASH hash_algorithm;
 
 	/*! Pointer to the CA certificate */
 	PKI_X509_CERT * cacert;
@@ -51,7 +55,7 @@ typedef struct pki_token_st {
 	PKI_X509_REQ * req;
 
 	/*! Pointer to the key */
-	PKI_X509_KEYPAIR * keypair;
+	CRYPTO_KEYPAIR * keypair;
 
 	/*! Pointer to CRED structure to be used when the PKI_KEYPAIR
             is to be loaded */

@@ -6,23 +6,22 @@
 * Released under OpenCA LICENSE
 */
 
+#ifndef _LIBPKI_UTILS_TYPES_H
+#include <libpki/utils/types.h>
+#endif
+
+#ifndef _LIBPKI_UTILS_CONF_H
+#define _LIBPKI_UTILS_CONF_H
+
 #ifndef _LIBPKI_XMLINCLUDES_H
+#define _LIBPKI_XMLINCLUDES_H
 # include <libxml/xmlmemory.h>
 # include <libxml/parser.h>
 # include <libxml/xpath.h>
 # include <libxml/xpathInternals.h>
 #endif
 
-#ifndef _LIBPKI_STACK_H
-# include <libpki/stack.h>
-#endif
-
-#ifndef _LIBPKI_PKI_IO_H
-# include <libpki/pki_io.h>
-#endif
-
-#ifndef _LIBPKI_CONF_H
-#define _LIBPKI_CONF_H
+BEGIN_C_DECLS
 
 #define PKI_CONFIG                xmlDoc
 #define PKI_CONFIG_ELEMENT        xmlNode
@@ -113,5 +112,7 @@ PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child ( PKI_CONFIG *doc,
 PKI_CONFIG_ELEMENT *PKI_CONFIG_ELEMENT_add_child_el ( PKI_CONFIG * doc, 
 						      PKI_CONFIG_ELEMENT *node, 
 						      PKI_CONFIG_ELEMENT *el);
+
+END_C_DECLS
 
 #endif

@@ -16,37 +16,31 @@
 #include <libpki/crypto/hsm/hsm_crypto.h>
 #endif
 
-#ifndef _LIBPKI_CRYPTO_HSM_CORE_H
-#define _LIBPKI_CRYPTO_HSM_CORE_H
+#ifndef _LIBPKI_CRYPTO_HSM_ADMIN_H
+#define _LIBPKI_CRYPTO_HSM_ADMIN_H
 
 BEGIN_C_DECLS
-
-                    // ===========================
-                    // Memory Management Functions
-                    // ===========================
-
-HSM *HSM_new(const char * const dir, const char * const name );
-
-HSM *HSM_new_fips(const char * const dir, const char * const name);
-
-void HSM_free ( HSM *hsm );
-
-const HSM *HSM_get_default( void );
 
                     // ===================
                     // HSM Admin Functions
                     // ===================
 
-int HSM_init( HSM *hsm );
+int CRYPTO_HSM_new (void ** driver, const PKI_CONFIG * config);
 
-int HSM_login ( HSM *hsm, PKI_CRED *cred );
+int CRYPTO_HSM_init( HSM *hsm );
 
-int HSM_logout ( HSM *hsm );
+int CRYPTO_HSM_free(void * driver);
 
-int HSM_set_fips_mode(const HSM *hsm, int k);
+int CRYPTO_HSM_login ( HSM *hsm, PKI_CRED *cred );
 
-int HSM_is_fips_mode(const HSM *hsm);
+int CRYPTO_HSM_logout ( HSM *hsm );
+
+int CRYPTO_HSM_sign_algor ( HSM *hsm, unsigned char * oid );
+
+int CRYPTO_HSM_set_fips_mode(const HSM *hsm, int k);
+
+int CRYPTO_HSM_is_fips_mode(const HSM *hsm);
 
 END_C_DECLS
 
-#endif /* _LIBPKI_CRYPTO_HSM_CORE_H */
+#endif /* _LIBPKI_CRYPTO_HSM_ADMIN_H */

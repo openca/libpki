@@ -12,12 +12,12 @@
 #include <libpki/utils/types.h>
 #endif
 
-#ifndef _LIBPKI_HSM_TYPES_H
+#ifndef _LIBPKI_CRYPTO_HSM_TYPES_H
 #include <libpki/crypto/hsm/types.h>
 #endif
 
 #ifndef CRYTO_NO_OPENSSL
-#ifndef _LIBPKI_OPENSSL_TYPES_H
+#ifndef _LIBPKI_CRYPTO_HSM_OPENSSL_TYPES_H
 #include <libpki/crypto/hsm/openssl/types.h>
 #endif
 #endif

@@ -194,26 +194,29 @@ typedef struct hsm_admin_cb_st {
   
   /* ------------- HSM Management functions --------------- */
 
-  /* HSM initialization function */
-  int (*init) (struct hsm_st *driver, PKI_CONFIG *);
+  /* HSM driver new function */
+  int (*new) (void ** driver, const PKI_CONFIG * config);
 
-  /* HSM free function */
-  int (*free) (struct hsm_st *driver, PKI_CONFIG *);
+  /* HSM initialization function */
+  int (*init) (void * driver, const PKI_CONFIG * config);
+
+  /* HSM driver free function */
+  int (*free) (void * driver);
 
   /* HSM login */
-  int (*login)(struct hsm_st *driver, PKI_CRED *cred);
+  int (*login)(void * driver, PKI_CRED *cred);
 
   /* HSM logout */
-  int (*logout)(struct hsm_st *driver);
+  int (*logout)(void * driver);
 
   /* HSM set algor function */
-  int (*sign_algor) (struct hsm_st *driver, unsigned char * oid);
+  int (*sign_algor) (void * driver, unsigned char * oid);
 
   /* HSM set fips mode */
-  int (*set_fips_mode) (const struct hsm_st *driver, int k);
+  int (*set_fips_mode) (const void * driver, int enabled);
 
   /* HSM gets fips operation mode */
-  int (*is_fips_mode) (const struct hsm_st *driver);
+  int (*is_fips_mode) (const void * driver);
 
 } HSM_ADMIN_CALLBACKS;
 

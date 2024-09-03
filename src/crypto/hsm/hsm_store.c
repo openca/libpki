@@ -1,83 +1,10 @@
-/* HSM Object Management Functions */
+/* hsm_store.c */
 
 #include <libpki/crypto/hsm/hsm_store.h>
 
-/* HSM_STORE_INFO Data Structure */
-HSM_STORE_INFO default_slot_info = {
-
-	/* Device Manufacturer ID */
-	"Unknown",
-
-	/* Device Description */
-	"Unknown",
-
-	/* Hardware Version */
-	1,
-	0,
-
-	/* Firmware Version */
-	1,
-	0,
-
-	/* Initialized */
-	1,
-
-	/* Present */
-	1,
-
-	/* Removable */
-	0,
-
-	/* Hardware */
-	0,
-
-	/* Token Info */
-	{
-		/* Token Label */
-		"Unknown Label",
-		/* ManufacturerID */
-		"Unknown",
-		/* Model */
-		"Unknown Model",
-		/* Serial Number */
-		"0",
-		/* Max Sessions */
-		65535,
-		/* Current Sessions */
-		0,
-		/* Max Pin Len */
-		0,
-		/* Min Pin Len */
-		0,
-		/* Memory Pub Total */
-		0,
-		/* Memory Pub Free */
-		0,
-		/* Memory Priv Total */
-		0,
-		/* Memory Priv Free */
-		0,
-		/* HW Version Major */
-		1,
-		/* HW Version Minor */
-		0,
-		/* FW Version Major */
-		1,
-		/* FW Version Minor */
-		0,
-		/* HAS Random Number Generator (RNG) */
-		1,
-		/* HAS clock */
-		0,
-		/* Login is Required */
-		0,
-		/* utcTime */
-		""
-	}
-
-};
-
-/* ------------- Slot Management functions --------------- */
+					// =========================
+					// Slot Management functions
+					// =========================
 	
 unsigned long HSM_STORE_num ( HSM *hsm ) {
 
@@ -156,7 +83,7 @@ HSM_STORE_INFO * HSM_STORE_INFO_get ( unsigned long num, HSM *hsm ) {
 	};
 
 	return ( ret );
-};
+}
 
 int HSM_STORE_INFO_print( unsigned long num, PKI_CRED * cred, HSM *hsm ) {
 
@@ -246,150 +173,81 @@ void HSM_STORE_INFO_free ( HSM_STORE_INFO *sl_info, HSM *hsm ) {
 	return;
 }
 
-// /* ----------------------- General Obj Management ------------------------ */
 
-// /*! \brief Gets a stack of X509 objects from the URL in the HSM */
+					// ===========================
+					// HSM_STORE_INFO Default Data
+					// ===========================
 
-// PKI_X509_STACK *HSM_X509_STACK_get_url ( PKI_DATATYPE type, URL *url, 	
-// 						PKI_DATA_FORMAT format, PKI_CRED *cred, HSM *hsm ) {
+static HSM_STORE_INFO default_slot_info = {
 
-// 	PKI_STACK *ret = NULL;
+	/* Device Manufacturer ID */
+	"Unknown",
 
-// 	if( !url ) return ( NULL );
+	/* Device Description */
+	"Unknown",
 
-// 	if( url->proto != URI_PROTO_ID ) return NULL;
+	/* Hardware Version */
+	1,
+	0,
 
-// 	if( !hsm ) hsm = (HSM * ) HSM_get_default();
+	/* Firmware Version */
+	1,
+	0,
 
-// 	if( hsm  && hsm->store_callbacks && hsm->store_callbacks->x509_sk_get_url ) { 
-// 		ret = hsm->store_callbacks->x509_sk_get_url( type, url, format, cred, hsm );
-// 	};
+	/* Initialized */
+	1,
 
-//         return ( ret );
-// }
+	/* Present */
+	1,
 
-// /*! \brief Stores a stack of PKI_X509 objects in the specified URL/HSM */
+	/* Removable */
+	0,
 
-// int HSM_X509_STACK_put_url ( PKI_X509_STACK *sk, URL *url, 
-// 						PKI_CRED *cred, HSM *hsm ) {
+	/* Hardware */
+	0,
 
-// 	int ret = PKI_OK;
+	/* Token Info */
+	{
+		/* Token Label */
+		"Unknown Label",
+		/* ManufacturerID */
+		"Unknown",
+		/* Model */
+		"Unknown Model",
+		/* Serial Number */
+		"0",
+		/* Max Sessions */
+		65535,
+		/* Current Sessions */
+		0,
+		/* Max Pin Len */
+		0,
+		/* Min Pin Len */
+		0,
+		/* Memory Pub Total */
+		0,
+		/* Memory Pub Free */
+		0,
+		/* Memory Priv Total */
+		0,
+		/* Memory Priv Free */
+		0,
+		/* HW Version Major */
+		1,
+		/* HW Version Minor */
+		0,
+		/* FW Version Major */
+		1,
+		/* FW Version Minor */
+		0,
+		/* HAS Random Number Generator (RNG) */
+		1,
+		/* HAS clock */
+		0,
+		/* Login is Required */
+		0,
+		/* utcTime */
+		""
+	}
 
-// 	if( !url || !sk ) return PKI_ERR;
-
-// 	if ( url->proto != URI_PROTO_ID ) return PKI_ERR;
-
-// 	if( !hsm ) hsm = (HSM *) HSM_get_default();
-
-// 	if( hsm  && hsm->store_callbacks && hsm->store_callbacks->x509_sk_add_url ) { 
-// 		ret = hsm->store_callbacks->x509_sk_add_url( sk, url, cred, hsm );
-// 	};
-
-//         return ( ret );
-// }
-
-// /*! \brief Stores the contents of a stack of MEM to the specified URL/HSM */
-
-// int HSM_MEM_STACK_put_url ( PKI_MEM_STACK *sk, URL *url, PKI_DATATYPE type,
-// 						PKI_CRED *cred, HSM *hsm ) {
-// 	int i = 0;
-// 	int ret = PKI_OK;
-
-// 	PKI_MEM *mem = NULL;
-// 	PKI_X509 *x_obj = NULL;
-// 	PKI_X509_STACK *obj_sk = NULL;
-
-// 	if(( obj_sk = PKI_STACK_new_type( type )) == NULL ) {
-// 		return PKI_ERR;
-// 	}
-
-// 	for ( i = 0; i < PKI_STACK_MEM_elements ( sk ); i++ ) {
-// 		PKI_X509_STACK *mem_obj_sk = NULL;
-
-// 		/* Gets the PKI_MEM container from the stack */
-// 		if((mem = PKI_STACK_MEM_get_num ( sk, i )) == NULL ) {
-// 			continue;
-// 		}
-
-// 		/* Gets the objects (multiple, possibly) from each PKI_MEM */
-// 		if((mem_obj_sk = PKI_X509_STACK_get_mem ( mem, type, 
-// 						PKI_DATA_FORMAT_UNKNOWN, cred, hsm )) == NULL ) {
-// 			continue;
-// 		}
-
-// 		/* Builds the stack of PKI_X509 objects */
-// 		while ((x_obj = PKI_STACK_X509_pop ( mem_obj_sk )) != NULL ) {
-// 			/* Push the Object on the Stack */
-// 			PKI_STACK_X509_push ( obj_sk, x_obj );
-// 		}
-// 	}
-
-// 	/* Now Put the stack of objects in the HSM */
-// 	ret = HSM_X509_STACK_put_url ( sk, url, cred, hsm );
-
-// 	/* Clean the stack of Objects we created */
-// 	while ( (x_obj = PKI_STACK_X509_pop ( sk )) != NULL ) {
-// 		PKI_X509_free ( x_obj );
-// 	}
-// 	PKI_STACK_X509_free ( sk );
-
-// 	/* Return value */
-// 	return ret;
-// }
-
-// /*! \brief Deletes a Stack of Objects that are stored in a HSM */
-
-// int HSM_X509_STACK_del ( PKI_X509_STACK *sk ) {
-
-// 	int ret = PKI_ERR;
-// 	int i = 0;
-
-// 	// HSM *hsm = NULL;
-// 	// HSM *def_hsm = NULL;
-
-// 	PKI_X509 *obj = NULL;
-
-// 	if ( !sk ) return ( PKI_ERR );
-
-// 	for ( i = 0; i < PKI_STACK_X509_elements ( sk ); i++ ) {
-// 		obj = PKI_STACK_X509_get_num ( sk, i );
-
-// 		if (!obj || !obj->value ) continue;
-
-// 		if ( obj->ref ) {
-// 			ret = HSM_X509_del_url ( obj->type, obj->ref, 
-// 							obj->cred, obj->hsm );
-
-// 			if ( ret == PKI_ERR ) return PKI_ERR;
-// 		}
-// 	}
-
-// 	return PKI_OK;
-// }
-
-// /*! \brief Deletes the contents of the specified URL in the HSM */
-
-// int HSM_X509_del_url ( PKI_DATATYPE type, URL *url, PKI_CRED *cred, HSM *hsm ) {
-
-// 	int ret = PKI_OK;
-
-// 	if( !url ) return ( PKI_ERR );
-
-// 	if( !hsm ) hsm = (HSM *) HSM_get_default();
-
-// 	if( hsm  && hsm->store_callbacks && hsm->store_callbacks->x509_del_url ) { 
-// 		ret = hsm->store_callbacks->x509_del_url( type, url, cred, hsm );
-// 	};
-
-//         return ( ret );
-// }
-
-// /*! \brief Returns the callbacks for the specific HSM */
-
-// const PKI_X509_CALLBACKS * HSM_X509_get_cb ( PKI_DATATYPE type, HSM *hsm ) {
-
-// 	if ( !hsm || !hsm->store_callbacks ) return HSM_OPENSSL_X509_get_cb (type);
-
-// 	return hsm->store_callbacks->x509_get_cb ( type );
-// }
-
+};
