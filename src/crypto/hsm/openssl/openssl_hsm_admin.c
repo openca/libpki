@@ -48,30 +48,9 @@ HSM openssl_hsm = {
 	NULL
 };
 
-					// =================================
-					// OpenSSL HSM Admin Callbacks Table
-					// =================================
-
-const HSM_ADMIN_CALLBACKS openssl_hsm_admin_cb = {
-	HSM_OPENSSL_new_driver, // new
-	HSM_OPENSSL_init, // init
-	HSM_OPENSSL_free_driver, // free
-	NULL, // login
-	NULL, // logout
-	NULL, // signature_algor
-	HSM_OPENSSL_set_fips_mode, // set_fips_mode
-	HSM_OPENSSL_is_fips_mode,  // is_fips_mode
-};
-
 					// ==============================
 					// Admin Callbacks Implementation
 					// ==============================
-
-const HSM * HSM_OPENSSL_get_default( void )
-{
-	return ((const HSM *)&openssl_hsm);
-}
-
 int HSM_OPENSSL_new_driver(void **driver) {
 
 	if (!driver) {
@@ -154,6 +133,27 @@ int HSM_OPENSSL_is_fips_mode(const void * driver)
     return PKI_ERR;
 #endif
 
+}
+
+					// =================================
+					// OpenSSL HSM Admin Callbacks Table
+					// =================================
+
+const HSM_ADMIN_CALLBACKS openssl_hsm_admin_cb = {
+	HSM_OPENSSL_new_driver, // new
+	HSM_OPENSSL_init, // init
+	HSM_OPENSSL_free_driver, // free
+	NULL, // login
+	NULL, // logout
+	NULL, // signature_algor
+	HSM_OPENSSL_set_fips_mode, // set_fips_mode
+	HSM_OPENSSL_is_fips_mode,  // is_fips_mode
+};
+
+
+const HSM * HSM_OPENSSL_get_default( void )
+{
+	return ((const HSM *)&openssl_hsm);
 }
 
 /* ----------------------- General Signing function -------------------- */
