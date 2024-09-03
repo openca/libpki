@@ -3,74 +3,7 @@
 // Single Include
 #include <libpki/crypto/hsm/openssl/openssl_hsm_admin.h>
 
-const HSM_ADMIN_CALLBACKS openssl_hsm_admin_cb = {
-	NULL, // init
-	NULL, // free
-	NULL, // login
-	NULL, // logout
-	NULL, // sign_algor
-	NULL, // set_fips_mode
-	NULL  // is_fips_mode
-};
-
-
-// /* Callbacks for Software OpenSSL HSM */
-// const HSM_CALLBACKS openssl_hsm_callbacks = {
-// 		/* Errno */
-// 		HSM_OPENSSL_get_errno,
-// 		/* Err Descr */
-// 		HSM_OPENSSL_get_errdesc,
-// 		/* Init */
-// 		HSM_OPENSSL_init,
-// 		/* Free */
-// 		HSM_OPENSSL_free,
-// 		/* Login */
-// 		NULL,
-// 		/* Logout */
-// 		NULL,
-// 		/* Set Algorithm */
-// 		NULL, /* HSM_OPENSSL_algor_set, */
-// 		/* Set fips mode */
-// 		HSM_OPENSSL_set_fips_mode, 
-// 		/* Fips operation mode */
-// 		HSM_OPENSSL_is_fips_mode, 
-// 		/* General Sign */
-// 		NULL, /* HSM_OPENSSL_sign, */
-// 		/* ASN1 General Sign */
-// 		NULL, /* HSM_OPENSSL_asn1_sign, */
-// 		/* General Verify */
-// 		NULL, /* HSM_OPENSSL_verify, */
-// 		/* ASN1 General Verify */
-// 		NULL, /* HSM_OPENSSL_verify, */
-// 		/* Key Generation */
-// 		HSM_OPENSSL_X509_KEYPAIR_new,
-// 		/* Free Keypair Function */
-// 		HSM_OPENSSL_X509_KEYPAIR_free,
-// 		/* Key Wrapping */
-// 		NULL, // HSM_OPENSSL_X509_KEYPAIR_STACK_wrap,
-// 		/* Key Unwrapping */
-// 		NULL, // HSM_OPENSSL_X509_KEYPAIR_STACK_unwrap,
-// 		/* Obj Load Function */
-// 		NULL, // HSM_OPENSSL_X509_STACK_get_url,
-// 		/* Obj Add Function */
-// 		NULL, // HSM_OPENSSL_X509_STACK_put_url,
-// 		/* Obj Del Function */
-// 		NULL, /* HSM_OPENSSL_X509_STACK_del_url */
-// 		/* Get the number of available Slots */
-// 		NULL, // HSM_OPENSSL_SLOT_num,
-// 		/* Get Slot info */
-// 		HSM_OPENSSL_SLOT_INFO_get,
-// 		/* Free Slot info */
-// 		NULL, /* HSM_OPENSSL_SLOT_INFO_free */
-// 		/* Set the current slot */
-// 		NULL, /* HSM_OPENSSL_SLOT_select */
-// 		/* Cleans up the current slot */
-// 		NULL, /* HSM_OPENSSL_SLOT_clean */
-// 		/* Get X509 Callbacks */
-// 		HSM_OPENSSL_X509_get_cb
-// };
-
-/* Structure for PKI_TOKEN definition */
+/* Structure for the OpenSSL's Software Token definition */
 HSM openssl_hsm = {
 
 	/* Version of the token */
@@ -115,122 +48,81 @@ HSM openssl_hsm = {
 	NULL
 };
 
+					// =================================
+					// OpenSSL HSM Admin Callbacks Table
+					// =================================
 
-HSM_STORE_INFO openssl_slot_info = {
-
-	/* Device Manufacturer ID */
-	"OpenSSL",
-
-	/* Device Description */
-	"Software interface",
-
-	/* Hardware Version */
-	1,
-	0,
-
-	/* Firmware Version */
-	1,
-	0,
-
-	/* Initialized */
-	1,
-
-	/* Present */
-	1,
-
-	/* Removable */
-	0,
-
-	/* Hardware */
-	0,
-
-	/* Token Info */
-	{
-		/* Token Label */
-		"Unknown Label\x0                ",
-		/* ManufacturerID */
-		"Unknown\x0                      ",
-		/* Model */
-		"Unknown\x0        ",
-		/* Serial Number */
-		"0\x0              ",
-		/* Max Sessions */
-		65535,
-		/* Current Sessions */
-		0,
-		/* Max Pin Len */
-		0,
-		/* Min Pin Len */
-		0,
-		/* Memory Pub Total */
-		0,
-		/* Memory Pub Free */
-		0,
-		/* Memory Priv Total */
-		0,
-		/* Memory Priv Free */
-		0,
-		/* HW Version Major */
-		1,
-		/* HW Version Minor */
-		0,
-		/* FW Version Major */
-		1,
-		/* FW Version Minor */
-		0,
-		/* HAS Random Number Generator (RNG) */
-		1,
-		/* HAS clock */
-		0,
-		/* Login is Required */
-		0,
-		/* utcTime */
-		""
-	}
-
+const HSM_ADMIN_CALLBACKS openssl_hsm_admin_cb = {
+	HSM_OPENSSL_new_driver, // new
+	HSM_OPENSSL_init, // init
+	HSM_OPENSSL_free_driver, // free
+	NULL, // login
+	NULL, // logout
+	NULL, // signature_algor
+	HSM_OPENSSL_set_fips_mode, // set_fips_mode
+	HSM_OPENSSL_is_fips_mode,  // is_fips_mode
 };
+
+					// ==============================
+					// Admin Callbacks Implementation
+					// ==============================
 
 const HSM * HSM_OPENSSL_get_default( void )
 {
 	return ((const HSM *)&openssl_hsm);
 }
 
-// HSM *HSM_OPENSSL_new ( PKI_CONFIG *conf )
-// {
-// 	HSM *hsm = NULL;
+int HSM_OPENSSL_new_driver(void **driver) {
 
-// 	hsm = (HSM *) PKI_Malloc ( sizeof( HSM ));
-// 	memcpy( hsm, &openssl_hsm, sizeof( HSM));
-
-// 	/* Not really needed! */
-// 	hsm->callbacks = &openssl_hsm_callbacks;
-
-// 	if( conf ) {
-// 		hsm->config = conf;
-// 	}
-
-// 	hsm->type = HSM_TYPE_SOFTWARE;
-
-// 	return( hsm );
-// }
-
-// int HSM_OPENSSL_free ( HSM *driver, PKI_CONFIG *conf ) {
-
-// 	if( driver == NULL ) return (PKI_OK);
-
-// 	return (PKI_ERR);
-// }
-
-int HSM_OPENSSL_init( HSM *driver, PKI_CONFIG *conf ) {
-
-	if( driver == NULL ) return (PKI_ERR);
-
-	/* Checks the FIPS mode */
-	if (PKI_is_fips_mode() == PKI_OK)
-	{
-		if (HSM_OPENSSL_set_fips_mode(driver, 1) == PKI_ERR)
-			return PKI_ERR;
+	if (!driver) {
+		return (PKI_ERR);
 	}
+
+	// We should get the OpenSSL's Library CTX and set it
+	// for the HSM driver
+	OSSL_LIB_CTX *libctx = NULL;
+	if ((libctx = OSSL_LIB_CTX_new()) == NULL) {
+		return PKI_ERR;
+	}
+
+	*driver = (void *)libctx;
+
+	return PKI_OK;
+}
+
+int HSM_OPENSSL_free_driver(void *driver) {
+
+	if (!driver) {
+		return (PKI_ERR);
+	}
+
+	OSSL_LIB_CTX_free((OSSL_LIB_CTX *)driver);
+
+	return PKI_OK;
+}
+
+int HSM_OPENSSL_init(HSM *driver, PKI_CONFIG *conf) {
+
+	if (!driver) {
+		return (PKI_ERR);
+	}
+
+#if OPENSSL_VERSION_NUMBER >= 0x3000000fL
+	// Initializes the OQS Provider layer
+	PKI_init_providers();
+#endif
+
+	// OpenSSL init
+	X509V3_add_standard_extensions();
+	OpenSSL_add_all_algorithms();
+	OpenSSL_add_all_digests();
+	OpenSSL_add_all_ciphers();
+
+	// Pthread Initialization
+	OpenSSL_pthread_init();
+
+	// Initializes the SSL layer
+	SSL_library_init();
 
 	/* No need for initialization of the software driver */
 	return PKI_OK;
@@ -413,17 +305,7 @@ int HSM_OPENSSL_is_fips_mode(const HSM *driver)
 // 	return out_mem;
 // }
 
-/* ---------------------- OPENSSL Slot Management Functions ---------------- */
 
-HSM_STORE_INFO * HSM_OPENSSL_STORE_INFO_get (unsigned long num, HSM *hsm) {
-
-	HSM_STORE_INFO *ret = NULL;
-
-	ret = (HSM_STORE_INFO *) PKI_Malloc ( sizeof (HSM_STORE_INFO));
-	memcpy( ret, &openssl_slot_info, sizeof( HSM_STORE_INFO ));
-
-	return (ret);
-}
 
 /* -------------------- OPENSSL Callbacks Management Functions ------------- */
 

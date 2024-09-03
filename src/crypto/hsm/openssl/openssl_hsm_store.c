@@ -2,7 +2,7 @@
 
 #include <libpki/crypto/hsm/openssl/openssl_hsm_store.h>
 
-const HSM_STORE_CALLBACKS c_openssl_hsm_crypto_cb = {
+const HSM_STORE_CALLBACKS c_openssl_hsm_store_cb = {
 	NULL, // store_num
 	NULL, // store_info_get
 	NULL, // store_info_free
@@ -14,6 +14,91 @@ const HSM_STORE_CALLBACKS c_openssl_hsm_crypto_cb = {
 	NULL, // key_wrap
 	NULL  // key_unwrap
 };
+
+HSM_STORE_INFO openssl_slot_info = {
+
+	/* Device Manufacturer ID */
+	"OpenSSL",
+
+	/* Device Description */
+	"Software interface",
+
+	/* Hardware Version */
+	1,
+	0,
+
+	/* Firmware Version */
+	1,
+	0,
+
+	/* Initialized */
+	1,
+
+	/* Present */
+	1,
+
+	/* Removable */
+	0,
+
+	/* Hardware */
+	0,
+
+	/* Token Info */
+	{
+		/* Token Label */
+		"Unknown Label\x0                ",
+		/* ManufacturerID */
+		"Unknown\x0                      ",
+		/* Model */
+		"Unknown\x0        ",
+		/* Serial Number */
+		"0\x0              ",
+		/* Max Sessions */
+		65535,
+		/* Current Sessions */
+		0,
+		/* Max Pin Len */
+		0,
+		/* Min Pin Len */
+		0,
+		/* Memory Pub Total */
+		0,
+		/* Memory Pub Free */
+		0,
+		/* Memory Priv Total */
+		0,
+		/* Memory Priv Free */
+		0,
+		/* HW Version Major */
+		1,
+		/* HW Version Minor */
+		0,
+		/* FW Version Major */
+		1,
+		/* FW Version Minor */
+		0,
+		/* HAS Random Number Generator (RNG) */
+		1,
+		/* HAS clock */
+		0,
+		/* Login is Required */
+		0,
+		/* utcTime */
+		""
+	}
+};
+
+/* ---------------------- OPENSSL Slot Management Functions ---------------- */
+
+HSM_STORE_INFO * HSM_OPENSSL_STORE_INFO_get (unsigned long num, HSM *hsm) {
+
+	HSM_STORE_INFO *ret = NULL;
+
+	ret = (HSM_STORE_INFO *) PKI_Malloc ( sizeof (HSM_STORE_INFO));
+	memcpy( ret, &openssl_slot_info, sizeof( HSM_STORE_INFO ));
+
+	return (ret);
+}
 
 // typedef struct hsm_store_cb_st {
   

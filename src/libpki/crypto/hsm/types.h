@@ -195,7 +195,7 @@ typedef struct hsm_admin_cb_st {
   /* ------------- HSM Management functions --------------- */
 
   /* HSM driver new function */
-  int (*new) (void ** driver, const PKI_CONFIG * config);
+  int (*new) (void ** driver);
 
   /* HSM initialization function */
   int (*init) (void * driver, const PKI_CONFIG * config);
